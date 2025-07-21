@@ -1,0 +1,75 @@
+name: dev-deploy
+run-name: ${{ github.actor }} is starting deployment 🚀
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 실행 알림
+        run: echo "🚀 ${{ github.actor }} 님이 배포를 시작했습니다!"
+      - run: echo "🎉 작업이 ${{ github.event_name }} 이벤트에 의해 자동으로 트리거되었습니다."
+      - run: echo "🐧 이 작업은 GitHub에서 호스팅하는 ${{ runner.os }} 서버에서 실행 중입니다!"
+      - run: echo "🔎 브랜치 이름은 ${{ github.ref }}이고, 저장소는 ${{ github.repository }}입니다."
+
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v3
+      - run: echo "💡 ${{ github.repository }} 저장소가 러너에 클론되었습니다."
+      - run: echo "🖥️ 워크플로우가 이제 러너에서 코드를 테스트할 준비가 되었습니다."
+
+      - name: 리포지토리 파일 목록
+        run: ls ${{ github.workspace }}
+      - run: echo "🍏 이 작업의 상태는 ${{ job.status }}입니다."
+
+      - name: Node.js 환경 설정
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version: 22
+
+      - name: npm 의존성 캐시
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: npm 의존성 설치
+        run: npm ci
+      - run: echo "🎉 npm 의존성이 성공적으로 설치되었습니다."
+
+      - name: npm 빌드
+        run: npm run build
+      - run: echo "📦 npm 빌드가 완료되었습니다."
+
+      - name: 서버에 목적지 폴더 생성
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER_NAME }}
+          script: |
+            mkdir -p ${{ secrets.FRONT_PATH }}
+
+      - name: 서버로 소스 복사
+        run: scp -P ${{ secrets.SSH_PORT }} -r ./build/* ${{ secrets.SSH_USER_NAME }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONT_PATH }}
+
+      - name: 서버에서 Docker 빌드 및 컨테이너 실행
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER_NAME }}
+          script: |
+            cd ${{ secrets.FRONT_PATH }}
+            sudo docker stop raven-front || true
+            sudo docker rm raven-front || true
+            sudo docker build -t raven-front:latest .
+            sudo docker run -d --name raven-front -p 80:80 raven-front:latest
+
+
