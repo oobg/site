@@ -1,18 +1,23 @@
-import { lazy } from "react";
-import { createBrowserRouter } from "react-router-dom";
-import { lazyElement } from "./lazyRoute";
+import { type FC, type ReactNode, lazy } from "react";
 
-// 절대 경로나 상대 경로는 프로젝트 셋팅에 맞게 조정
 const HomePage = lazy(() => import("../../pages/HomePage"));
 const AboutPage = lazy(() => import("../../pages/AboutPage"));
 
-export const router = createBrowserRouter([
+interface RouteConfig {
+    path: string;
+    fallback: ReactNode;
+    Component: FC;
+}
+
+export const routes: RouteConfig[] = [
     {
         path: "/",
-        element: lazyElement(HomePage),
+        fallback: <div>홈 로딩중...</div>,
+        Component: HomePage,
     },
     {
         path: "/about",
-        element: lazyElement(AboutPage, <div>About 로딩중...</div>),
+        fallback: <div>어바웃 로딩중...</div>,
+        Component: AboutPage,
     },
-]);
+];

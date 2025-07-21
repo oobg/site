@@ -2,11 +2,13 @@ import { useState } from 'react'
 import reactLogo from '../shared/icon/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
+import {useNavigate} from "react-router-dom";
 
 function HomePage() {
   const [count, setCount] = useState(0)
+    const navigate = useNavigate();
 
-  return (
+    return (
     <>
       <div>
         <a href="https://vite.dev" target="_blank">
@@ -21,6 +23,9 @@ function HomePage() {
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
         </button>
+      <button onClick={() => navigate('/')}>
+          go to Home Page
+      </button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
