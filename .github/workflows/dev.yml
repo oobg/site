@@ -56,10 +56,20 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER_NAME }}
           script: |
-            mkdir -p ${{ secrets.FRONT_PATH }}
+            mkdir -p ${{ secrets.SERVER_DEFAULT_PATH }}/${{ github.ref_name }}-${{ secrets.PROJECT_NAME }}
 
       - name: 서버로 소스 복사
-        run: scp -P ${{ secrets.SSH_PORT }} -r ./build/* ${{ secrets.SSH_USER_NAME }}@${{ secrets.SSH_HOST }}:${{ secrets.FRONT_PATH }}
+        uses: appleboy/scp-action@master
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER_NAME }}
+          source: "./dist/*"
+          target: "${{ secrets.SERVER_DEFAULT_PATH }}/${{ github.ref_name }}-${{ secrets.PROJECT_NAME }}"
+          strip_components: 1 # (dist 내부 폴더만 옮길 때 사용, 상황 따라 생략)
+          rm: true            # (기존 파일 삭제 원하면 true)
+          overwrite: true     # (같은 이름 파일 덮어쓰기)
 
       - name: 서버에서 Docker 빌드 및 컨테이너 실행
         uses: appleboy/ssh-action@v1.0.0
@@ -69,10 +79,13 @@ jobs:
           port: ${{ secrets.SSH_PORT }}
           username: ${{ secrets.SSH_USER_NAME }}
           script: |
-            cd ${{ secrets.FRONT_PATH }}
-            sudo docker stop raven-front || true
-            sudo docker rm raven-front || true
-            sudo docker build -t raven-front:latest .
-            sudo docker run -d --name raven-front -p 80:80 raven-front:latest
+            cd ${{ secrets.SERVER_DEFAULT_PATH }}/${{ github.ref_name }}-${{ secrets.PROJECT_NAME }}
+            docker stop ${{ github.ref_name }}-${{ secrets.PROJECT_NAME }} || true
+            docker rm ${{ github.ref_name }}-${{ secrets.PROJECT_NAME }} || true
+            docker run -d \
+              --name ${{ github.ref_name }}-${{ secrets.PROJECT_NAME }} \
+              --network nginx-proxy-manager_default \
+              -v $(pwd):/usr/share/nginx/html \
+              nginx:alpine
 
 
