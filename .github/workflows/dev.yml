@@ -29,21 +29,24 @@ jobs:
         with:
           node-version: 22
 
-      - name: npm 의존성 캐시
+      - name: pnpm 설치
+        run: npm install -g pnpm
+
+      - name: pnpm 의존성 캐시
         uses: actions/cache@v4
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-node-
+            ${{ runner.os }}-pnpm-store-
 
-      - name: npm 의존성 설치
-        run: npm ci
-      - run: echo "🎉 npm 의존성이 성공적으로 설치되었습니다."
+      - name: pnpm 의존성 설치
+        run: pnpm install --frozen-lockfile
+      - run: echo "🎉 pnpm 의존성이 성공적으로 설치되었습니다."
 
-      - name: npm 빌드
-        run: npm run build
-      - run: echo "📦 npm 빌드가 완료되었습니다."
+      - name: pnpm 빌드
+        run: pnpm build
+      - run: echo "📦 pnpm 빌드가 완료되었습니다."
 
       - name: 서버에 목적지 폴더 생성
         uses: appleboy/ssh-action@v1.0.0
