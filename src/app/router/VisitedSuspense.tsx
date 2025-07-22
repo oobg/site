@@ -10,7 +10,9 @@ interface Props {
 export function VisitedSuspense({ path, fallback, children }: Props) {
   const visitedPages = useVisitedStore((state) => state.visitedPages);
 
-  if (visitedPages.has(path)) return <>{children}</>;
+  if (visitedPages.has(path)) {
+    return <>{children}</>;
+  }
 
   return <Suspense fallback={fallback}>{children}</Suspense>;
 }
