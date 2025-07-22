@@ -19,14 +19,22 @@ jobs:
       - run: echo "🎉 작업이 ${{ github.event_name }} 이벤트에 의해 자동으로 트리거되었습니다."
       - run: echo "🐧 이 작업은 GitHub에서 호스팅하는 ${{ runner.os }} 서버에서 실행 중입니다!"
       - run: echo "🔎 브랜치 이름은 ${{ github.ref }}이고, 저장소는 ${{ github.repository }}입니다."
+      - run: echo "📦 워크플로우가 실행 중인 커밋은 ${{ github.sha }}입니다."
 
       - name: 저장소 체크아웃
         uses: actions/checkout@v3
       - run: echo "💡 ${{ github.repository }} 저장소가 러너에 클론되었습니다."
       - run: echo "🖥️ 워크플로우가 이제 러너에서 코드를 테스트할 준비가 되었습니다."
 
+      - name: package.json version 가져오기
+        id: get_version
+        run: echo "VERSION=$(jq -r '.version' package.json)" >> $GITHUB_ENV
+
+      - run: echo "📦 package.json의 버전은 ${{ env.VERSION }}입니다."
+
       - name: 리포지토리 파일 목록
         run: ls ${{ github.workspace }}
+
       - run: echo "🍏 이 작업의 상태는 ${{ job.status }}입니다."
 
       - name: Node.js 환경 설정
@@ -47,10 +55,12 @@ jobs:
 
       - name: pnpm 의존성 설치
         run: pnpm install --frozen-lockfile
+
       - run: echo "🎉 pnpm 의존성이 성공적으로 설치되었습니다."
 
       - name: pnpm 빌드
         run: pnpm build
+
       - run: echo "📦 pnpm 빌드가 완료되었습니다."
 
       - name: 서버에 목적지 폴더 생성
@@ -62,6 +72,7 @@ jobs:
           username: ${{ secrets.SSH_USER_NAME }}
           script: |
             mkdir -p ${{ env.DEPLOY_DIR }}
+
       - run: echo "📂 서버에 배포 디렉토리(${{ env.DEPLOY_DIR }})가 생성되었습니다."
 
       - name: 서버로 소스 복사
@@ -76,6 +87,7 @@ jobs:
           strip_components: 1 # (dist 내부 폴더만 옮길 때 사용, 상황 따라 생략)
           rm: true            # (기존 파일 삭제 원하면 true)
           overwrite: true     # (같은 이름 파일 덮어쓰기)
+
       - run: echo "📤 소스 파일이 서버의 배포 디렉토리(${{ env.DEPLOY_DIR }})로 복사되었습니다."
 
       - name: 서버에서 Docker 빌드 및 컨테이너 실행
@@ -94,6 +106,7 @@ jobs:
               --network nginx-proxy-manager_default \
               -v $(pwd):/usr/share/nginx/html \
               nginx:alpine
-      - run: echo "🚀 서버에서 Docker 컨테이너가 성공적으로 실행되었습니다."
+
+      - run: echo "🚀 서버에서 Docker 컨테이너가 package.json 버전 ${{ env.VERSION }}으로 성공적으로 실행되었습니다."
 
 
