@@ -17,7 +17,11 @@ export default defineConfig({
           }
 
           if (id.includes("node_modules/zustand")) {
-            return "@zustand-vendor";
+            return "@store-vendor";
+          }
+
+          if (id.includes("node_modules/ky/")) {
+            return "@network-vendor";
           }
         },
       },
