@@ -8,12 +8,24 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          if (id.includes("node_modules/react")) {
+            return "react";
+          }
+
           if (id.includes("node_modules/react-router-dom")) {
             return "react-router";
           }
 
           if (id.includes("node_modules/zustand")) {
             return "zustand";
+          }
+
+          if (id.includes("node_modules/vitest")) {
+            return "vitest";
+          }
+
+          if (id.includes("node_modules/miragejs")) {
+            return "miragejs";
           }
 
           if (id.includes("node_modules")) {
