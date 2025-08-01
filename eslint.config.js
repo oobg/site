@@ -1,32 +1,33 @@
 import js from "@eslint/js";
 import globals from "globals";
-import react from "eslint-plugin-react";
-import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import eslintPluginReact from "eslint-plugin-react";
+import eslintPluginReactHooks from "eslint-plugin-react-hooks";
 import eslintPluginImport from "eslint-plugin-import";
 import tseslint from "typescript-eslint";
 import prettier from "eslint-config-prettier";
 
 export default tseslint.config([
   js.configs.recommended,
-  tseslint.configs.recommended,
-  tseslint.configs.recommendedTypeChecked,
-  react.configs.recommended,
-  reactHooks.configs["recommended"],
   reactRefresh.configs.vite,
   prettier,
 
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
+      parser: tseslint.parser,
       ecmaVersion: 2022,
       sourceType: "module",
       globals: globals.browser,
+      parserOptions: {
+        project: ['./tsconfig.app.json'],
+      },
     },
     plugins: {
       react: eslintPluginReact,
-      import: eslintPluginImport,
+      "import": eslintPluginImport,
+      "react-hooks": eslintPluginReactHooks,
+      "@typescript-eslint": tseslint.plugin,
     },
     settings: {
       react: {
