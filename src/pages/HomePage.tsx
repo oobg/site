@@ -1,10 +1,10 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-import reactLogo from "../shared/icon/react.svg";
+import reactLogo from "@src/shared/icon/react.svg";
 
 import viteLogo from "/vite.svg";
 import "./App.css";
-import { useNavigate } from "react-router-dom";
 
 function HomePage() {
   const [count, setCount] = useState(0);

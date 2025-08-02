@@ -33,6 +33,25 @@ export default tseslint.config([
       react: {
         version: "detect",
       },
+      "import/parsers": {
+        "@typescript-eslint/parser": [".ts", ".tsx"]
+      },
+      "import/resolver": {
+        typescript: {
+          project: ["./tsconfig.json"], // or tsconfig.app.json
+          alwaysTryTypes: true
+        },
+        node: {
+          extensions: [".js", ".jsx", ".ts", ".tsx"]
+        },
+        alias: {
+          map: [
+            ["@src", "./src"],
+            ["/", "./public"],
+          ],
+          extensions: [".ts", ".tsx", ".js", ".jsx"]
+        }
+      }
     },
     rules: {
       // ✅ 엄격한 타입 규칙
@@ -57,7 +76,7 @@ export default tseslint.config([
       "react/no-unstable-nested-components": ["warn", { allowAsProps: true }],
 
       // ✅ React Refresh
-      "react-refresh/only-export-components": "warn",
+      "react-refresh/only-export-components": "off",
 
       // ✅ import 관련
       "import/no-unresolved": "error",
