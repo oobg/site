@@ -21,25 +21,25 @@ export function Hero() {
               Raven Developer
             </span>
             <br />
-            <span className="text-text-primary">Soaring Through Code</span>
+            <span className="text-text-primary">코드를 통해 날아오르다</span>
           </h1>
           <p className="text-lg sm:text-xl text-text-secondary mb-8 leading-relaxed">
-            Like a raven navigating the digital skies, I craft elegant solutions 
-            and build powerful applications. Specialized in React, TypeScript, 
-            and modern web technologies.
+            까마귀가 디지털 하늘을 탐험하듯, 우아한 솔루션을 만들고 
+            강력한 애플리케이션을 구축합니다. React, TypeScript, 
+            그리고 현대적인 웹 기술에 특화되어 있습니다.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
             <button 
               className="px-8 py-4 bg-gradient-to-r from-accent to-accent-hover text-white font-semibold rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 raven-shadow"
               onClick={() => document.getElementById('portfolio')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              View My Work
+              작업물 보기
             </button>
             <button 
               className="px-8 py-4 border-2 border-border text-text-primary font-semibold rounded-lg hover:bg-background-secondary hover:border-accent hover:text-accent transition-all duration-300"
               onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Get In Touch
+              연락하기
             </button>
           </div>
         </div>
@@ -56,7 +56,7 @@ export function Hero() {
             </div>
             <div className="mt-4 pt-4 border-t border-border">
               <div className="text-xs text-text-muted">
-                <span className="text-accent">●</span> Ready to craft your next project
+                <span className="text-accent">●</span> 다음 프로젝트를 함께 만들어갈 준비가 되었습니다
               </div>
             </div>
           </div>

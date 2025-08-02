@@ -10,7 +10,7 @@ interface Project {
 const projects: Project[] = [
   {
     title: "Raven E-Commerce",
-    description: "Full-stack e-commerce platform with React, Node.js, and MongoDB. Features advanced search, real-time inventory, and secure payment processing.",
+    description: "React, Node.js, MongoDB를 활용한 풀스택 이커머스 플랫폼. 고급 검색, 실시간 재고 관리, 안전한 결제 처리를 제공합니다.",
     tech: ["React", "Node.js", "MongoDB", "Stripe", "Redis"],
     image: "🛒",
     status: "Live",
@@ -18,7 +18,7 @@ const projects: Project[] = [
   },
   {
     title: "AI Raven Assistant",
-    description: "Intelligent chatbot powered by OpenAI GPT-4. Provides contextual responses and learns from user interactions.",
+    description: "OpenAI GPT-4로 구동되는 지능형 챗봇. 맥락을 이해하는 응답을 제공하고 사용자 상호작용으로부터 학습합니다.",
     tech: ["Python", "OpenAI", "FastAPI", "React", "PostgreSQL"],
     image: "🤖",
     status: "Beta",
@@ -26,7 +26,7 @@ const projects: Project[] = [
   },
   {
     title: "Raven Portfolio",
-    description: "Modern portfolio built with React and TypeScript. Features dark mode, animations, and responsive design.",
+    description: "React와 TypeScript로 구축된 현대적인 포트폴리오. 다크모드, 애니메이션, 반응형 디자인을 특징으로 합니다.",
     tech: ["React", "TypeScript", "Vite", "FSD", "Tailwind"],
     image: "💼",
     status: "Live",
@@ -42,10 +42,11 @@ export function Portfolio() {
           <span className="text-6xl raven-icon-bg">🦅</span>
         </div>
         <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-gradient">
-          Featured Projects
+          주요 프로젝트
         </h2>
         <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto">
-          Like a raven collecting treasures, here are some of my finest works that showcase innovation and craftsmanship.
+          까마귀가 보물을 수집하듯, 혁신과 장인정신을 보여주는 
+          가장 훌륭한 작품들 중 일부입니다.
         </p>
       </div>
       
@@ -62,7 +63,7 @@ export function Portfolio() {
                   ? 'bg-green-500 text-white' 
                   : 'bg-blue-500 text-white'
               }`}>
-                {project.status}
+                {project.status === 'Live' ? '서비스중' : '베타'}
               </span>
             </div>
             
@@ -101,7 +102,7 @@ export function Portfolio() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center space-x-2 text-accent hover:text-accent-hover transition-colors group/link"
               >
-                <span className="text-sm font-medium">View Project</span>
+                <span className="text-sm font-medium">프로젝트 보기</span>
                 <span className="text-xs group-hover/link:translate-x-1 transition-transform">→</span>
               </a>
             )}
@@ -114,9 +115,9 @@ export function Portfolio() {
       
       {/* Call to Action */}
       <div className="text-center mt-16">
-        <p className="text-text-secondary mb-4">Want to see more of my work?</p>
+        <p className="text-text-secondary mb-4">더 많은 작업물을 보고 싶으신가요?</p>
         <button className="px-8 py-4 bg-gradient-to-r from-accent to-accent-hover text-white font-semibold rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 raven-shadow">
-          View All Projects
+          모든 프로젝트 보기
         </button>
       </div>
     </section>

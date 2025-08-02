@@ -6,10 +6,11 @@ export function Contact() {
           <span className="text-6xl raven-icon-bg">🦅</span>
         </div>
         <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-gradient">
-          Let's Soar Together
+          함께 날아오르자
         </h2>
         <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto">
-          Ready to take flight with your next project? Let's discuss how we can build something amazing.
+          다음 프로젝트와 함께 비상할 준비가 되었나요? 
+          놀라운 것을 함께 만들어가는 방법을 논의해보겠습니다.
         </p>
       </div>
       
@@ -25,7 +26,7 @@ export function Contact() {
           </div>
           <div className="flex items-center space-x-4 text-lg group">
             <span className="text-2xl">📍</span>
-            <span className="text-text-primary group-hover:text-accent transition-all duration-300">Seoul, South Korea</span>
+            <span className="text-text-primary group-hover:text-accent transition-all duration-300">서울, 대한민국</span>
           </div>
         </div>
         

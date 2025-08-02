@@ -9,23 +9,23 @@ interface Tool {
 const tools: Tool[] = [
   {
     name: "Raven Formatter",
-    description: "Automatically format your code with raven precision. Supports multiple languages and custom rules.",
+    description: "까마귀의 정밀함으로 코드를 자동 포맷팅합니다. 다양한 언어와 커스텀 규칙을 지원합니다.",
     icon: "✨",
-    features: ["Multi-language", "Custom Rules", "Git Integration"],
+    features: ["다중 언어", "커스텀 규칙", "Git 통합"],
     status: "Ready"
   },
   {
     name: "Raven Generator",
-    description: "Generate secure passwords with raven intelligence. Creates complex, memorable passwords.",
+    description: "까마귀의 지능으로 안전한 비밀번호를 생성합니다. 복잡하면서도 기억하기 쉬운 비밀번호를 만듭니다.",
     icon: "🔐",
-    features: ["Secure", "Memorable", "Customizable"],
+    features: ["안전함", "기억하기 쉬움", "커스터마이징"],
     status: "Ready"
   },
   {
     name: "Raven Palette",
-    description: "Create beautiful color schemes for your projects. AI-powered color harmony.",
+    description: "프로젝트를 위한 아름다운 색상 조합을 만듭니다. AI 기반 색상 조화.",
     icon: "🎨",
-    features: ["AI-Powered", "Export", "Preview"],
+    features: ["AI 기반", "내보내기", "미리보기"],
     status: "Beta"
   }
 ];
@@ -38,10 +38,11 @@ export function Tools() {
           <span className="text-6xl raven-icon-bg">🦅</span>
         </div>
         <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-gradient">
-          Raven Tools
+          Raven 도구들
         </h2>
         <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto">
-          Tools crafted with raven wisdom to streamline your development workflow and boost productivity.
+          개발 워크플로우를 간소화하고 생산성을 향상시키기 위해 
+          까마귀의 지혜로 만든 도구들입니다.
         </p>
       </div>
       
@@ -58,7 +59,7 @@ export function Tools() {
                   ? 'bg-green-500 text-white' 
                   : 'bg-blue-500 text-white'
               }`}>
-                {tool.status}
+                {tool.status === 'Ready' ? '준비됨' : '베타'}
               </span>
             </div>
             
@@ -91,7 +92,7 @@ export function Tools() {
             
             {/* Try Button */}
             <button className="px-6 py-3 border-2 border-accent text-accent font-semibold rounded-lg hover:bg-accent hover:text-white transition-all duration-300 group-hover:scale-105">
-              Try It Now
+              지금 사용해보기
             </button>
             
             {/* Hover Effect Overlay */}
@@ -102,9 +103,9 @@ export function Tools() {
       
       {/* Call to Action */}
       <div className="text-center mt-16">
-        <p className="text-text-secondary mb-4">Need a custom tool for your workflow?</p>
+        <p className="text-text-secondary mb-4">워크플로우에 맞는 커스텀 도구가 필요하신가요?</p>
         <button className="px-8 py-4 bg-gradient-to-r from-accent to-accent-hover text-white font-semibold rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 raven-shadow">
-          Request Custom Tool
+          커스텀 도구 요청하기
         </button>
       </div>
     </section>

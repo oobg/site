@@ -7,10 +7,10 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { label: 'Home', path: '/' },
-  { label: 'Portfolio', path: '/portfolio' },
-  { label: 'Tools', path: '/tools' },
-  { label: 'About', path: '/about' },
+  { label: '홈', path: '/' },
+  { label: '포트폴리오', path: '/portfolio' },
+  { label: '도구', path: '/tools' },
+  { label: '소개', path: '/about' },
 ];
 
 export function Header() {
@@ -50,7 +50,7 @@ export function Header() {
           <div className="flex items-center space-x-4">
             {/* Contact Button */}
             <button className="px-4 py-2 bg-gradient-to-r from-accent to-accent-hover text-white font-medium rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
-              Contact
+              연락하기
             </button>
             
             {/* Mobile Menu Button */}
