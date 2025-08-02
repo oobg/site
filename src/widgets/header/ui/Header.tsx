@@ -19,20 +19,21 @@ export function Header() {
   const location = useLocation();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border raven-shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link 
             to="/" 
-            className="text-2xl font-bold"
+            className="text-2xl font-bold flex items-center space-x-2"
             style={{
-              background: 'linear-gradient(135deg, #646cff, #ff6b6b)',
+              background: 'linear-gradient(135deg, #2d3748, #805ad5)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text'
             }}
           >
-            DevPortfolio
+            <span className="text-3xl">🦅</span>
+            <span>Raven.kr</span>
           </Link>
 
           {/* Desktop Navigation */}

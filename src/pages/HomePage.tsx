@@ -11,7 +11,11 @@ function HomePage() {
         <Contact />
       </main>
       <footer className="text-center py-8 border-t border-border text-text-secondary">
-        <p>&copy; 2024 DevPortfolio. Built with ❤️ and React.</p>
+        <div className="mb-2">
+          <span className="text-2xl">🦅</span>
+        </div>
+        <p>&copy; 2024 Raven.kr. Built with ❤️ and React.</p>
+        <p className="text-sm mt-2">Soaring through the digital skies</p>
       </footer>
     </div>
   );

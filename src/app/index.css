@@ -1,28 +1,38 @@
 @import "tailwindcss";
 
-/* CSS Variables for theming */
+/* Raven Theme CSS Variables */
 :root {
+  /* Light theme - 까마귀의 우아함을 담은 라이트 모드 */
   --color-bg-primary: #ffffff;
   --color-bg-secondary: #f8f9fa;
   --color-bg-tertiary: #e9ecef;
-  --color-text-primary: #212529;
-  --color-text-secondary: #6c757d;
-  --color-text-muted: #adb5bd;
-  --color-border: #dee2e6;
-  --color-accent: #646cff;
-  --color-accent-hover: #535bf2;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #4a5568;
+  --color-text-muted: #718096;
+  --color-border: #e2e8f0;
+  --color-accent: #2d3748;
+  --color-accent-hover: #1a202c;
+  --color-raven-primary: #2d3748;
+  --color-raven-secondary: #4a5568;
+  --color-raven-accent: #805ad5;
+  --color-raven-gold: #d69e2e;
 }
 
 .dark {
-  --color-bg-primary: #0f0f0f;
+  /* Dark theme - 까마귀의 본질적인 다크 모드 */
+  --color-bg-primary: #0a0a0a;
   --color-bg-secondary: #1a1a1a;
   --color-bg-tertiary: #2d2d2d;
-  --color-text-primary: #ffffff;
-  --color-text-secondary: #b3b3b3;
-  --color-text-muted: #808080;
-  --color-border: #404040;
-  --color-accent: #646cff;
-  --color-accent-hover: #535bf2;
+  --color-text-primary: #f7fafc;
+  --color-text-secondary: #e2e8f0;
+  --color-text-muted: #a0aec0;
+  --color-border: #2d3748;
+  --color-accent: #805ad5;
+  --color-accent-hover: #9f7aea;
+  --color-raven-primary: #2d3748;
+  --color-raven-secondary: #4a5568;
+  --color-raven-accent: #805ad5;
+  --color-raven-gold: #f6e05e;
 }
 
 /* Global transitions */
@@ -33,7 +43,14 @@
 /* Custom utility classes */
 @layer utilities {
   .text-gradient {
-    background: linear-gradient(135deg, #646cff, #ff6b6b);
+    background: linear-gradient(135deg, #2d3748, #805ad5);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #d69e2e, #f6e05e);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -44,7 +61,15 @@
   }
   
   .dark .glass {
-    @apply bg-black/10 border-white/10;
+    @apply bg-black/20 border-white/10;
+  }
+  
+  .raven-shadow {
+    box-shadow: 0 10px 25px -3px rgba(45, 55, 72, 0.3);
+  }
+  
+  .dark .raven-shadow {
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.5);
   }
 }
 

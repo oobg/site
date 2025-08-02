@@ -20,6 +20,12 @@ export default {
           800: '#3f3fd1',
           900: '#3737a8',
         },
+        raven: {
+          primary: 'var(--color-raven-primary)',
+          secondary: 'var(--color-raven-secondary)',
+          accent: 'var(--color-raven-accent)',
+          gold: 'var(--color-raven-gold)',
+        },
         background: {
           primary: 'var(--color-bg-primary)',
           secondary: 'var(--color-bg-secondary)',
