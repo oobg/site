@@ -7,11 +7,13 @@ import eslintPluginImport from "eslint-plugin-import";
 import tsEslint from "typescript-eslint";
 import prettier from "eslint-config-prettier";
 
-export default tsEslint.config([
+export default tsEslint.config(
+  {
+    ignores: ["dist/**", "node_modules/**", "*.config.{js,ts}", "vitest.config.ts", "vite.config.ts"],
+  },
   js.configs.recommended,
   reactRefresh.configs.vite,
   prettier,
-
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -38,7 +40,7 @@ export default tsEslint.config([
       },
       "import/resolver": {
         typescript: {
-          project: ["./tsconfig.json"], // or tsconfig.app.json
+          project: ["./tsconfig.json"],
           alwaysTryTypes: true
         },
         node: {
@@ -54,7 +56,6 @@ export default tsEslint.config([
       }
     },
     rules: {
-      // ✅ 엄격한 타입 규칙
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-floating-promises": "error",
@@ -62,7 +63,6 @@ export default tsEslint.config([
       "@typescript-eslint/consistent-type-imports": "error",
       "@typescript-eslint/no-misused-promises": "off",
 
-      // ✅ React 관련
       "react/jsx-filename-extension": ["warn", { extensions: [".tsx"] }],
       "react/function-component-definition": [
         "error",
@@ -72,10 +72,8 @@ export default tsEslint.config([
       ],
       "react/no-unstable-nested-components": ["warn", { allowAsProps: true }],
 
-      // ✅ React Refresh
       "react-refresh/only-export-components": "off",
 
-      // ✅ import 관련
       "import/no-unresolved": "error",
       "import/extensions": "off",
       "import/first": "error",
@@ -95,6 +93,23 @@ export default tsEslint.config([
           ],
           "newlines-between": "always",
           alphabetize: { order: "asc", caseInsensitive: true },
+          pathGroups: [
+            {
+              pattern: "react",
+              group: "external",
+              position: "before"
+            },
+            {
+              pattern: "@testing-library/react",
+              group: "external",
+              position: "after"
+            },
+            {
+              pattern: "vitest",
+              group: "external",
+              position: "after"
+            }
+          ]
         },
       ],
       "import/no-extraneous-dependencies": [
@@ -110,18 +125,16 @@ export default tsEslint.config([
         },
       ],
 
-      // ✅ 일반 JS 규칙
       "no-console": ["warn", { allow: ["warn", "error"] }],
       "no-debugger": "error",
       "no-alert": "error",
       "prefer-const": "error",
       "no-unused-vars": "off",
 
-      // ✅ 코드 스타일: prettier와 충돌 제거
       quotes: "off",
       semi: "off",
       "comma-dangle": "off",
       "space-before-function-paren": "off",
     },
   },
-]);
+);
