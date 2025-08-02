@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
-/* Raven Dark Theme CSS Variables - 신비로운 다크모드 */
+/* Raven Dark Theme CSS Variables - 세련된 다크모드 */
 :root {
-  /* Dark theme - 까마귀의 신비로운 다크 모드 */
+  /* Dark theme - 까마귀의 세련된 다크 모드 */
   --color-bg-primary: #0a0a0a;
   --color-bg-secondary: #111111;
   --color-bg-tertiary: #1a1a1a;
@@ -27,58 +27,45 @@
 
 /* Global transitions */
 * {
-  @apply transition-all duration-500 ease-out;
+  @apply transition-all duration-300 ease-out;
 }
 
 /* Custom utility classes */
 @layer utilities {
   .text-gradient {
-    background: linear-gradient(135deg, #805ad5, #9f7aea, #00ffff);
+    background: linear-gradient(135deg, #805ad5, #9f7aea);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
   .text-gradient-gold {
-    background: linear-gradient(135deg, #f6e05e, #fbbf24, #f59e0b);
+    background: linear-gradient(135deg, #f6e05e, #fbbf24);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
-  .text-neon {
-    text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
-  }
-  
   .text-glow {
-    text-shadow: 0 0 10px var(--color-glow), 0 0 20px var(--color-glow);
+    text-shadow: 0 0 10px var(--color-glow);
   }
   
   .glass {
-    @apply bg-black/30 backdrop-blur-xl border border-white/10;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    @apply bg-black/20 backdrop-blur-xl border border-white/10;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
   }
   
   .glass-glow {
-    @apply bg-black/40 backdrop-blur-xl border border-purple-500/30;
-    box-shadow: 0 8px 32px 0 rgba(128, 90, 213, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    @apply bg-black/30 backdrop-blur-xl border border-purple-500/20;
+    box-shadow: 0 8px 32px 0 rgba(128, 90, 213, 0.1);
   }
   
   .raven-shadow {
-    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.8), 0 0 20px rgba(128, 90, 213, 0.3);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.5);
   }
   
   .raven-shadow-glow {
-    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.8), 0 0 30px rgba(128, 90, 213, 0.5);
-  }
-  
-  .neon-border {
-    border: 1px solid transparent;
-    background: linear-gradient(45deg, #805ad5, #9f7aea, #00ffff) border-box;
-    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: destination-out;
-    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
-    mask-composite: exclude;
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.6), 0 0 20px rgba(128, 90, 213, 0.2);
   }
   
   .mystical-bg {
@@ -87,7 +74,7 @@
   
   .mystical-card {
     background: linear-gradient(145deg, #1e1e1e, #1a1a1a);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
   }
   
   .floating {
@@ -95,25 +82,25 @@
   }
   
   .pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite alternate;
+    animation: pulse-glow 3s ease-in-out infinite alternate;
   }
   
   .shimmer {
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
     background-size: 200% 100%;
-    animation: shimmer 2s infinite;
+    animation: shimmer 3s infinite;
   }
 }
 
 /* Animations */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+  50% { transform: translateY(-10px); }
 }
 
 @keyframes pulse-glow {
-  0% { box-shadow: 0 0 20px rgba(128, 90, 213, 0.5); }
-  100% { box-shadow: 0 0 40px rgba(128, 90, 213, 0.8); }
+  0% { box-shadow: 0 0 10px rgba(128, 90, 213, 0.3); }
+  100% { box-shadow: 0 0 20px rgba(128, 90, 213, 0.5); }
 }
 
 @keyframes shimmer {
@@ -124,7 +111,7 @@
 @keyframes fade-in-up {
   0% {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateY(20px);
   }
   100% {
     opacity: 1;
@@ -138,6 +125,11 @@ body {
   color: var(--color-text-primary);
   background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0a0a0a 100%);
   min-height: 100vh;
+  width: 100%;
+}
+
+html {
+  width: 100%;
 }
 
 /* 스크롤바 스타일링 */
@@ -155,5 +147,5 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #9f7aea, #00ffff);
+  background: linear-gradient(180deg, #9f7aea, #805ad5);
 }

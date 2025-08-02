@@ -18,15 +18,15 @@ export function Header() {
   const location = useLocation();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 glass-glow border-b border-border-glow raven-shadow-glow">
+    <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border raven-shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link 
             to="/" 
             className="text-2xl font-bold flex items-center space-x-2 group"
           >
-            <span className="text-3xl floating">🦅</span>
-            <span className="text-gradient text-glow">Raven.kr</span>
+            <span className="text-3xl">🦅</span>
+            <span className="text-gradient">Raven.kr</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -37,19 +37,19 @@ export function Header() {
                 to={item.path}
                 className={`font-medium transition-all duration-300 relative group ${
                   location.pathname === item.path
-                    ? 'text-accent text-glow'
-                    : 'text-text-primary hover:text-accent hover:text-glow'
+                    ? 'text-accent'
+                    : 'text-text-primary hover:text-accent'
                 }`}
               >
                 {item.label}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-accent to-neon transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-accent to-accent-hover transition-all duration-300 group-hover:w-full"></span>
               </Link>
             ))}
           </nav>
 
           <div className="flex items-center space-x-4">
-            {/* Mystical Button */}
-            <button className="px-4 py-2 bg-gradient-to-r from-accent to-neon-purple text-white font-medium rounded-lg hover:shadow-glow hover:-translate-y-1 transition-all duration-300 pulse-glow">
+            {/* Contact Button */}
+            <button className="px-4 py-2 bg-gradient-to-r from-accent to-accent-hover text-white font-medium rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
               Contact
             </button>
             
@@ -83,7 +83,7 @@ export function Header() {
                 to={item.path}
                 className={`block px-4 py-2 rounded-lg transition-all duration-300 ${
                   location.pathname === item.path
-                    ? 'bg-gradient-to-r from-accent to-neon-purple text-white shadow-glow'
+                    ? 'bg-gradient-to-r from-accent to-accent-hover text-white shadow-lg'
                     : 'text-text-primary hover:bg-background-secondary hover:text-accent'
                 }`}
                 onClick={() => setIsMenuOpen(false)}

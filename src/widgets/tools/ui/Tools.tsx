@@ -32,12 +32,12 @@ const tools: Tool[] = [
 
 export function Tools() {
   return (
-    <section id="tools" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mystical-bg">
+    <section id="tools" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="text-center mb-16">
         <div className="mb-6">
-          <span className="text-6xl floating">🦅</span>
+          <span className="text-6xl">🦅</span>
         </div>
-        <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-gradient text-glow">
+        <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-gradient">
           Raven Tools
         </h2>
         <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto">
@@ -49,26 +49,26 @@ export function Tools() {
         {tools.map((tool, index) => (
           <div 
             key={index} 
-            className="group relative mystical-card rounded-2xl p-8 text-center hover:-translate-y-4 hover:shadow-glow-lg transition-all duration-500 raven-shadow-glow overflow-hidden"
+            className="group relative mystical-card rounded-2xl p-8 text-center hover:-translate-y-2 hover:shadow-lg transition-all duration-300 raven-shadow overflow-hidden"
           >
             {/* Status Badge */}
             <div className="absolute top-4 right-4">
               <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
                 tool.status === 'Ready' 
-                  ? 'bg-green-500 text-white shadow-glow' 
-                  : 'bg-blue-500 text-white shadow-glow'
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-blue-500 text-white'
               }`}>
                 {tool.status}
               </span>
             </div>
             
             {/* Tool Icon */}
-            <div className="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300 floating">
+            <div className="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">
               {tool.icon}
             </div>
             
             {/* Tool Title */}
-            <h3 className="text-xl font-bold mb-4 text-text-primary group-hover:text-accent group-hover:text-glow transition-all duration-300">
+            <h3 className="text-xl font-bold mb-4 text-text-primary group-hover:text-accent transition-all duration-300">
               {tool.name}
             </h3>
             
@@ -82,7 +82,7 @@ export function Tools() {
               {tool.features.map((feature, featureIndex) => (
                 <span 
                   key={featureIndex} 
-                  className="px-2 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full border border-accent/20 hover:shadow-glow transition-all duration-300"
+                  className="px-2 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full border border-accent/20 transition-all duration-300"
                 >
                   {feature}
                 </span>
@@ -90,12 +90,12 @@ export function Tools() {
             </div>
             
             {/* Try Button */}
-            <button className="px-6 py-3 border-2 border-accent text-accent font-semibold rounded-lg hover:bg-accent hover:text-white transition-all duration-300 group-hover:scale-105 hover:shadow-glow">
+            <button className="px-6 py-3 border-2 border-accent text-accent font-semibold rounded-lg hover:bg-accent hover:text-white transition-all duration-300 group-hover:scale-105">
               Try It Now
             </button>
             
             {/* Hover Effect Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
           </div>
         ))}
       </div>
@@ -103,7 +103,7 @@ export function Tools() {
       {/* Call to Action */}
       <div className="text-center mt-16">
         <p className="text-text-secondary mb-4">Need a custom tool for your workflow?</p>
-        <button className="px-8 py-4 bg-gradient-to-r from-accent to-neon-purple text-white font-semibold rounded-lg hover:shadow-glow hover:-translate-y-1 transition-all duration-300 raven-shadow-glow pulse-glow">
+        <button className="px-8 py-4 bg-gradient-to-r from-accent to-accent-hover text-white font-semibold rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 raven-shadow">
           Request Custom Tool
         </button>
       </div>
