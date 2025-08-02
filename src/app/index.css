@@ -90,6 +90,45 @@
     background-size: 200% 100%;
     animation: shimmer 3s infinite;
   }
+  
+  /* 까마귀 이모티콘을 완전히 퍼플 색상으로 덮는 방법들 */
+  .raven-icon {
+    /* 방법 1: 매우 강한 필터 */
+    filter: 
+      hue-rotate(240deg) 
+      saturate(5) 
+      brightness(1.5) 
+      contrast(2)
+      sepia(0.5);
+  }
+  
+  .raven-icon-purple {
+    /* 방법 2: 더 강한 필터 */
+    filter: 
+      hue-rotate(240deg) 
+      saturate(8) 
+      brightness(1.8) 
+      contrast(2.5)
+      sepia(0.8);
+  }
+  
+  .raven-icon-strong {
+    /* 방법 3: 최대 강도 필터 */
+    filter: 
+      hue-rotate(240deg) 
+      saturate(10) 
+      brightness(2) 
+      contrast(3)
+      sepia(1);
+  }
+  
+  /* 방법 4: 완전히 다른 접근 - 배경색으로 덮기 */
+  .raven-icon-bg {
+    background: linear-gradient(45deg, #805ad5, #9f7aea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
 }
 
 /* Animations */

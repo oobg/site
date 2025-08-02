@@ -12,7 +12,7 @@ function HomePage() {
       </main>
       <footer className="text-center py-8 border-t border-border text-text-secondary">
         <div className="mb-4">
-          <span className="text-3xl">🦅</span>
+          <span className="text-3xl raven-icon-bg">🦅</span>
         </div>
         <p className="text-gradient">&copy; 2024 Raven.kr. Built with ❤️ and React.</p>
         <p className="text-sm mt-2 text-text-muted">Soaring through the digital skies</p>

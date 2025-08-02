@@ -3,7 +3,7 @@ export function Contact() {
     <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       <div className="text-center mb-16">
         <div className="mb-6">
-          <span className="text-6xl">🦅</span>
+          <span className="text-6xl raven-icon-bg">🦅</span>
         </div>
         <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-gradient">
           Let's Soar Together

@@ -25,7 +25,7 @@ export function Header() {
             to="/" 
             className="text-2xl font-bold flex items-center space-x-2 group"
           >
-            <span className="text-3xl">🦅</span>
+            <span className="text-3xl raven-icon-bg">🦅</span>
             <span className="text-gradient">Raven.kr</span>
           </Link>
 

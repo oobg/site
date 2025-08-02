@@ -14,7 +14,7 @@ export function Hero() {
       <div className="flex flex-col lg:flex-row items-center gap-12 w-full">
         <div className="flex-1 max-w-2xl">
           <div className="mb-6">
-            <span className="text-6xl">🦅</span>
+            <span className="text-6xl raven-icon-bg">🦅</span>
           </div>
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight mb-6">
             <span className="text-gradient">
