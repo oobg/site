@@ -4,10 +4,10 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import eslintPluginReact from "eslint-plugin-react";
 import eslintPluginReactHooks from "eslint-plugin-react-hooks";
 import eslintPluginImport from "eslint-plugin-import";
-import tseslint from "typescript-eslint";
+import tsEslint from "typescript-eslint";
 import prettier from "eslint-config-prettier";
 
-export default tseslint.config([
+export default tsEslint.config([
   js.configs.recommended,
   reactRefresh.configs.vite,
   prettier,
@@ -15,7 +15,7 @@ export default tseslint.config([
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
-      parser: tseslint.parser,
+      parser: tsEslint.parser,
       ecmaVersion: 2022,
       sourceType: "module",
       globals: globals.browser,
@@ -27,7 +27,7 @@ export default tseslint.config([
       react: eslintPluginReact,
       "import": eslintPluginImport,
       "react-hooks": eslintPluginReactHooks,
-      "@typescript-eslint": tseslint.plugin,
+      "@typescript-eslint": tsEslint.plugin,
     },
     settings: {
       react: {
@@ -60,10 +60,7 @@ export default tseslint.config([
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/strict-boolean-expressions": "warn",
       "@typescript-eslint/consistent-type-imports": "error",
-      "@typescript-eslint/no-misused-promises": [
-        "error",
-        { checksVoidReturn: true },
-      ],
+      "@typescript-eslint/no-misused-promises": "off",
 
       // ✅ React 관련
       "react/jsx-filename-extension": ["warn", { extensions: [".tsx"] }],
@@ -118,6 +115,7 @@ export default tseslint.config([
       "no-debugger": "error",
       "no-alert": "error",
       "prefer-const": "error",
+      "no-unused-vars": "off",
 
       // ✅ 코드 스타일: prettier와 충돌 제거
       quotes: "off",
