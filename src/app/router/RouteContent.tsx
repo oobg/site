@@ -1,8 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 
 import { routes } from "./RouteMap.tsx";
-import { VisitedSuspense } from "./VisitedSuspense";
 import { useTrackVisited } from "./useTrackVisited";
+import { VisitedSuspense } from "./VisitedSuspense";
 
 export function RouterContent() {
   useTrackVisited();

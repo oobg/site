@@ -1,4 +1,5 @@
 import { type ReactNode, Suspense } from "react";
+
 import { useVisitedStore } from "./useVisitedStore";
 
 interface Props {
