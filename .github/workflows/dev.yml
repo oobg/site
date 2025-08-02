@@ -58,6 +58,13 @@ jobs:
 
       - run: echo "🎉 pnpm 의존성이 성공적으로 설치되었습니다."
 
+      - name: 빌드 전 검사
+        run: |
+          pnpm lint
+          pnpm type-check
+
+      - run: echo "✅ 빌드 전 검사(ESLint 및 TypeScript)가 성공적으로 완료되었습니다."
+
       - name: pnpm 빌드
         run: pnpm build
 
