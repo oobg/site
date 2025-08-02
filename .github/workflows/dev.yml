@@ -62,8 +62,9 @@ jobs:
         run: |
           pnpm lint
           pnpm type-check
+          pnpm test
 
-      - run: echo "✅ 빌드 전 검사(ESLint 및 TypeScript)가 성공적으로 완료되었습니다."
+      - run: echo "✅ 빌드 전 검사가 성공적으로 완료되었습니다."
 
       - name: pnpm 빌드
         run: pnpm build
