@@ -1,1 +1,3 @@
-export * from './lib/theme'; 
+export * from './lib';
+export * from './ui';
+export * from './icon'; 

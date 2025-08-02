@@ -1,7 +1,7 @@
 import { type FC, type ReactNode, lazy } from "react";
 
-const HomePage = lazy(() => import("../../pages/HomePage"));
-const AboutPage = lazy(() => import("../../pages/AboutPage"));
+const HomePage = lazy(() => import("@src/pages/home/ui/HomePage"));
+const AboutPage = lazy(() => import("@src/pages/about/ui/AboutPage"));
 
 interface RouteConfig {
   path: string;
