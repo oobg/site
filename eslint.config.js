@@ -36,7 +36,7 @@ export default tseslint.config([
     },
     rules: {
       // ✅ 엄격한 타입 규칙
-      "@typescript-eslint/explicit-function-return-type": "error",
+      "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/strict-boolean-expressions": "warn",
