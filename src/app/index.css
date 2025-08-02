@@ -1,75 +1,134 @@
 @import "tailwindcss";
 
-/* Raven Theme CSS Variables */
+/* Raven Dark Theme CSS Variables - 신비로운 다크모드 */
 :root {
-  /* Light theme - 까마귀의 우아함을 담은 라이트 모드 */
-  --color-bg-primary: #ffffff;
-  --color-bg-secondary: #f8f9fa;
-  --color-bg-tertiary: #e9ecef;
-  --color-text-primary: #1a1a1a;
-  --color-text-secondary: #4a5568;
-  --color-text-muted: #718096;
-  --color-border: #e2e8f0;
-  --color-accent: #2d3748;
-  --color-accent-hover: #1a202c;
-  --color-raven-primary: #2d3748;
-  --color-raven-secondary: #4a5568;
-  --color-raven-accent: #805ad5;
-  --color-raven-gold: #d69e2e;
-}
-
-.dark {
-  /* Dark theme - 까마귀의 본질적인 다크 모드 */
+  /* Dark theme - 까마귀의 신비로운 다크 모드 */
   --color-bg-primary: #0a0a0a;
-  --color-bg-secondary: #1a1a1a;
-  --color-bg-tertiary: #2d2d2d;
-  --color-text-primary: #f7fafc;
+  --color-bg-secondary: #111111;
+  --color-bg-tertiary: #1a1a1a;
+  --color-bg-card: #1e1e1e;
+  --color-text-primary: #ffffff;
   --color-text-secondary: #e2e8f0;
   --color-text-muted: #a0aec0;
+  --color-text-accent: #805ad5;
   --color-border: #2d3748;
+  --color-border-glow: #805ad5;
   --color-accent: #805ad5;
   --color-accent-hover: #9f7aea;
   --color-raven-primary: #2d3748;
   --color-raven-secondary: #4a5568;
   --color-raven-accent: #805ad5;
   --color-raven-gold: #f6e05e;
+  --color-glow: #805ad5;
+  --color-glow-secondary: #9f7aea;
+  --color-neon: #00ffff;
+  --color-neon-purple: #8b5cf6;
 }
 
 /* Global transitions */
 * {
-  @apply transition-all duration-300 ease-in-out;
+  @apply transition-all duration-500 ease-out;
 }
 
 /* Custom utility classes */
 @layer utilities {
   .text-gradient {
-    background: linear-gradient(135deg, #2d3748, #805ad5);
+    background: linear-gradient(135deg, #805ad5, #9f7aea, #00ffff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
   .text-gradient-gold {
-    background: linear-gradient(135deg, #d69e2e, #f6e05e);
+    background: linear-gradient(135deg, #f6e05e, #fbbf24, #f59e0b);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
-  .glass {
-    @apply bg-white/10 backdrop-blur-md border border-white/20;
+  .text-neon {
+    text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #00ffff;
   }
   
-  .dark .glass {
-    @apply bg-black/20 border-white/10;
+  .text-glow {
+    text-shadow: 0 0 10px var(--color-glow), 0 0 20px var(--color-glow);
+  }
+  
+  .glass {
+    @apply bg-black/30 backdrop-blur-xl border border-white/10;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+  
+  .glass-glow {
+    @apply bg-black/40 backdrop-blur-xl border border-purple-500/30;
+    box-shadow: 0 8px 32px 0 rgba(128, 90, 213, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
   
   .raven-shadow {
-    box-shadow: 0 10px 25px -3px rgba(45, 55, 72, 0.3);
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.8), 0 0 20px rgba(128, 90, 213, 0.3);
   }
   
-  .dark .raven-shadow {
-    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.5);
+  .raven-shadow-glow {
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.8), 0 0 30px rgba(128, 90, 213, 0.5);
+  }
+  
+  .neon-border {
+    border: 1px solid transparent;
+    background: linear-gradient(45deg, #805ad5, #9f7aea, #00ffff) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: destination-out;
+    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+  }
+  
+  .mystical-bg {
+    background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0a0a0a 100%);
+  }
+  
+  .mystical-card {
+    background: linear-gradient(145deg, #1e1e1e, #1a1a1a);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+  
+  .floating {
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite alternate;
+  }
+  
+  .shimmer {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+  }
+}
+
+/* Animations */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 20px rgba(128, 90, 213, 0.5); }
+  100% { box-shadow: 0 0 40px rgba(128, 90, 213, 0.8); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
@@ -77,9 +136,24 @@
 body {
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
+  background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0a0a0a 100%);
+  min-height: 100vh;
 }
 
-.dark body {
-  background-color: var(--color-bg-primary);
-  color: var(--color-text-primary);
+/* 스크롤바 스타일링 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #805ad5, #9f7aea);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #9f7aea, #00ffff);
 }

@@ -1,44 +1,60 @@
 export function Contact() {
   return (
-    <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+    <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto mystical-bg">
       <div className="text-center mb-16">
-        <div className="mb-4">
-          <span className="text-4xl">🦅</span>
+        <div className="mb-6">
+          <span className="text-6xl floating">🦅</span>
         </div>
-        <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-text-primary">
+        <h2 className="text-4xl sm:text-5xl font-bold mb-4 text-gradient text-glow">
           Let's Soar Together
         </h2>
         <p className="text-lg sm:text-xl text-text-secondary max-w-3xl mx-auto">
           Ready to take flight with your next project? Let's discuss how we can build something amazing.
         </p>
       </div>
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
         <div className="space-y-6">
-          <div className="flex items-center space-x-4 text-lg">
-            <span className="text-2xl">📧</span>
-            <span className="text-text-primary">hello@raven.kr</span>
+          <div className="flex items-center space-x-4 text-lg group">
+            <span className="text-2xl floating">📧</span>
+            <span className="text-text-primary group-hover:text-accent group-hover:text-glow transition-all duration-300">hello@raven.kr</span>
           </div>
-          <div className="flex items-center space-x-4 text-lg">
-            <span className="text-2xl">📱</span>
-            <span className="text-text-primary">+82 (10) 1234-5678</span>
+          <div className="flex items-center space-x-4 text-lg group">
+            <span className="text-2xl floating">📱</span>
+            <span className="text-text-primary group-hover:text-accent group-hover:text-glow transition-all duration-300">+82 (10) 1234-5678</span>
           </div>
-          <div className="flex items-center space-x-4 text-lg">
-            <span className="text-2xl">📍</span>
-            <span className="text-text-primary">Seoul, South Korea</span>
+          <div className="flex items-center space-x-4 text-lg group">
+            <span className="text-2xl floating">📍</span>
+            <span className="text-text-primary group-hover:text-accent group-hover:text-glow transition-all duration-300">Seoul, South Korea</span>
           </div>
         </div>
+        
         <div className="flex justify-center space-x-8">
-          <a href="#" className="text-accent font-medium hover:text-accent-hover transition-colors">
-            GitHub
+          <a 
+            href="#" 
+            className="text-accent font-medium hover:text-accent-hover hover:text-glow transition-all duration-300 group"
+          >
+            <span className="group-hover:scale-110 transition-transform duration-300">GitHub</span>
           </a>
-          <a href="#" className="text-accent font-medium hover:text-accent-hover transition-colors">
-            LinkedIn
+          <a 
+            href="#" 
+            className="text-accent font-medium hover:text-accent-hover hover:text-glow transition-all duration-300 group"
+          >
+            <span className="group-hover:scale-110 transition-transform duration-300">LinkedIn</span>
           </a>
-          <a href="#" className="text-accent font-medium hover:text-accent-hover transition-colors">
-            Twitter
+          <a 
+            href="#" 
+            className="text-accent font-medium hover:text-accent-hover hover:text-glow transition-all duration-300 group"
+          >
+            <span className="group-hover:scale-110 transition-transform duration-300">Twitter</span>
           </a>
         </div>
       </div>
+      
+      {/* Mystical Background Elements */}
+      <div className="absolute bottom-10 left-10 w-1 h-1 bg-neon rounded-full animate-pulse"></div>
+      <div className="absolute bottom-20 right-20 w-2 h-2 bg-accent rounded-full animate-pulse"></div>
+      <div className="absolute top-1/2 left-1/4 w-1 h-1 bg-neon-purple rounded-full animate-pulse"></div>
     </section>
   );
 }
