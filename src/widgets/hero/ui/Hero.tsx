@@ -4,40 +4,63 @@ export function Hero() {
   const [isVisible, setIsVisible] = useState(false);
   const [codeVisible, setCodeVisible] = useState(false);
   const [typingIndex, setTypingIndex] = useState(0);
+  const [dynamicSkill, setDynamicSkill] = useState('');
+  const [skillIndex, setSkillIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(false);
+
+  const staticSkills = ['React', 'TypeScript'];
+  const dynamicSkills = ['Vue', 'Node.js', 'Next.js'];
 
   const codeLines = [
     { text: 'const raven = {', type: 'keyword', delay: 0 },
-    { text: '  name: "Raven Developer",', type: 'property', delay: 500 },
-    { text: '  skills: [', type: 'property', delay: 1000 },
-    { text: '    "React",', type: 'string', delay: 1500 },
-    { text: '    "TypeScript",', type: 'string', delay: 2000 },
-    { text: '    "Node.js",', type: 'string', delay: 2500 },
-    { text: '    "Tailwind CSS"', type: 'string', delay: 3000 },
-    { text: '  ],', type: 'property', delay: 3500 },
-    { text: '  domain: "raven.kr",', type: 'property', delay: 4000 },
-    { text: '  spirit: "Soaring through code"', type: 'property', delay: 4500 },
-    { text: '};', type: 'keyword', delay: 5000 },
-    { text: '// Ready to craft amazing projects', type: 'comment', delay: 5500 }
+    { text: '  name: "Raven Developer",', type: 'property', delay: 0 },
+    { text: '  skills: [', type: 'property', delay: 0 },
+    { text: '    "React",', type: 'string', delay: 0 },
+    { text: '    "TypeScript",', type: 'string', delay: 0 },
+    { text: '    "' + dynamicSkill + '",', type: 'string', delay: 0, isDynamic: true },
+    { text: '  ],', type: 'property', delay: 0 },
+    { text: '  domain: "raven.kr",', type: 'property', delay: 0 },
+    { text: '  spirit: "Soaring through code"', type: 'property', delay: 0 },
+    { text: '};', type: 'keyword', delay: 0 },
+    { text: '// Ready to craft amazing projects', type: 'comment', delay: 0 }
   ];
 
   useEffect(() => {
     setIsVisible(true);
     setTimeout(() => setCodeVisible(true), 500);
     
-    // 타이핑 애니메이션
-    const typingInterval = setInterval(() => {
-      setTypingIndex(prev => {
-        if (prev < codeLines.length - 1) {
-          return prev + 1;
-        } else {
-          clearInterval(typingInterval);
-          return prev;
-        }
-      });
-    }, 500);
-
-    return () => clearInterval(typingInterval);
+    // 모든 코드가 한번에 나타나도록 수정
+    setTypingIndex(codeLines.length - 1);
   }, []);
+
+  // 동적 스킬 타이핑 애니메이션
+  useEffect(() => {
+    if (codeVisible) { // 코드가 보이기 시작하면
+      const startDynamicSkills = () => {
+        let currentSkillIndex = 0;
+        
+        const typeSkill = () => {
+          setIsTyping(true);
+          setDynamicSkill(dynamicSkills[currentSkillIndex]);
+          
+          // 타이핑 완료 후 잠시 대기
+          setTimeout(() => {
+            setIsTyping(false);
+            
+            // 다음 스킬로 이동
+            setTimeout(() => {
+              currentSkillIndex = (currentSkillIndex + 1) % dynamicSkills.length;
+              typeSkill();
+            }, 1000); // 1초 대기 후 다음 스킬
+          }, 2000); // 2초간 타이핑 (CSS 애니메이션과 맞춤)
+        };
+        
+        typeSkill();
+      };
+      
+      setTimeout(startDynamicSkills, 2000); // 2초 후 시작
+    }
+  }, [codeVisible]);
 
   const getCodeClass = (type: string) => {
     switch (type) {
@@ -100,7 +123,7 @@ export function Hero() {
               {codeLines.map((line, index) => (
                 <div
                   key={index}
-                  className={`transition-all duration-500 ${
+                  className={`code-line transition-all duration-500 ${
                     index <= typingIndex ? 'opacity-100' : 'opacity-0'
                   }`}
                   style={{ 
@@ -109,11 +132,15 @@ export function Hero() {
                   }}
                 >
                   <span className={getCodeClass(line.type)}>
-                    {line.text}
+                    {line.isDynamic ? (
+                      <>
+                        <span dangerouslySetInnerHTML={{ __html: line.text.replace('"' + dynamicSkill + '",', '') }} />
+                        "<span className={`dynamic-skill ${isTyping ? 'typing' : ''}`}>{dynamicSkill}</span>",
+                      </>
+                    ) : (
+                      <span dangerouslySetInnerHTML={{ __html: line.text }} />
+                    )}
                   </span>
-                  {index === typingIndex && (
-                    <span className="typing-cursor ml-1">|</span>
-                  )}
                 </div>
               ))}
             </div>

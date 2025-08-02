@@ -130,13 +130,15 @@
     background-clip: text;
   }
   
-  /* VS Code 다크모드 스타일 코드 에디터 */
+  /* 코드 에디터 스타일 */
   .code-editor {
     background: #1e1e1e;
     border: 1px solid #3c3c3c;
     box-shadow: 
       0 8px 32px 0 rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    white-space: pre;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   }
   
   .code-editor::before {
@@ -147,6 +149,50 @@
     right: 0;
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(128, 90, 213, 0.3), transparent);
+  }
+  
+  /* 동적 스킬 타이핑 애니메이션 */
+  .dynamic-skill {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid #569cd6;
+    max-width: 0;
+    vertical-align: text-bottom;
+    line-height: inherit;
+  }
+  
+  .dynamic-skill.typing {
+    animation: typing-skill 2s steps(10, end), blink-caret 0.75s step-end infinite;
+  }
+  
+  @keyframes typing-skill {
+    0% { max-width: 0; }
+    50% { max-width: 100px; }
+    80% { max-width: 100px; }
+    100% { max-width: 0; }
+  }
+  
+  /* 탭 문자 숨기기 */
+  .code-line {
+    white-space: pre;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    line-height: 1.2;
+  }
+  
+  .code-line .tab-space {
+    display: inline-block;
+    width: 2em; /* 탭 크기 */
+  }
+  
+  /* 세미콜론 고정 */
+  .code-string-container {
+    display: inline;
+  }
+  
+  .code-string-container .dynamic-skill {
+    display: inline-block;
+    vertical-align: baseline;
   }
   
   /* VS Code 다크모드 코드 하이라이팅 */
@@ -195,7 +241,9 @@
     overflow: hidden;
     border-right: 2px solid #569cd6;
     white-space: nowrap;
-    animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+    animation: typing 2s steps(20, end), blink-caret 0.75s step-end infinite;
+    display: inline-block;
+    min-width: 0;
   }
   
   @keyframes typing {
