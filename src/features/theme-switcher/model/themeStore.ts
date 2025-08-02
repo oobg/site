@@ -6,19 +6,7 @@ import {
   getInitialTheme, 
   applyTheme 
 } from '@src/shared/lib/theme';
-
-interface ThemeState {
-  theme: Theme;
-  isSystem: boolean;
-}
-
-interface ThemeActions {
-  setTheme: (theme: Theme) => void;
-  toggleTheme: () => void;
-  setSystemTheme: (isSystem: boolean) => void;
-}
-
-type ThemeStore = ThemeState & ThemeActions;
+import { type ThemeStore } from './types';
 
 export const useThemeStore = create<ThemeStore>()(
   persist(

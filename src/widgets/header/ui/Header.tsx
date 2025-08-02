@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { ThemeSwitcher } from '@src/features/theme-switcher';
+import { Button } from '@src/shared/ui';
 
 interface NavItem {
   label: string;
@@ -48,10 +50,13 @@ export function Header() {
           </nav>
 
           <div className="flex items-center space-x-4">
+            {/* Theme Switcher */}
+            <ThemeSwitcher />
+            
             {/* Contact Button */}
-            <button className="px-4 py-2 bg-gradient-to-r from-accent to-accent-hover text-white font-medium rounded-lg hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300">
+            <Button variant="primary" size="md">
               연락하기
-            </button>
+            </Button>
             
             {/* Mobile Menu Button */}
             <button

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getSystemTheme, getStoredTheme, setStoredTheme, applyTheme } from './theme';
+import { getSystemTheme, getStoredTheme, setStoredTheme, applyTheme } from '../shared/lib/theme';
 
 // Mock localStorage
 const mockLocalStorage = {

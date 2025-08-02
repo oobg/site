@@ -1,14 +1,14 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import App from './App';
+import App from '../app/App';
 
 // Mock ThemeProvider
-vi.mock('./providers/ThemeProvider', () => ({
+vi.mock('../app/providers/ThemeProvider', () => ({
   ThemeProvider: ({ children }: { children: React.ReactNode }) => <div data-testid="theme-provider">{children}</div>,
 }));
 
 // Mock RouterContent
-vi.mock('./router', () => ({
+vi.mock('../app/router', () => ({
   RouterContent: () => <div data-testid="router-content">Router Content</div>,
 }));
 

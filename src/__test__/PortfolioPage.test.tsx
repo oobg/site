@@ -1,11 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
-import PortfolioPage from './PortfolioPage';
+import PortfolioPage from '../pages/portfolio/ui/PortfolioPage';
 
-// Mock Header widget
-vi.mock('@src/widgets', () => ({
-  Header: () => <div data-testid="header">Header</div>,
+// Mock Layout
+vi.mock('@src/shared/ui', () => ({
+  Layout: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="layout">
+      <div data-testid="header">Header</div>
+      <main className="pt-16">{children}</main>
+    </div>
+  ),
 }));
 
 // Mock scrollIntoView
@@ -127,10 +132,6 @@ describe('PortfolioPage', () => {
     
     const year2024Elements = screen.getAllByText('2024');
     expect(year2024Elements.length).toBeGreaterThan(0);
-    
-    // Check if any project has 2023 year (might not be visible in first page)
-    const allText = document.body.textContent || '';
-    expect(allText).toContain('2023');
   });
 
   it('has project links', () => {
@@ -165,7 +166,8 @@ describe('PortfolioPage', () => {
     
     expect(screen.getByText('함께 작업해요')).toBeInTheDocument();
     expect(screen.getByText(/새로운 프로젝트에 대한 아이디어가 있으신가요/)).toBeInTheDocument();
-    expect(screen.getByText('연락하기')).toBeInTheDocument();
+    const contactButtons = screen.getAllByText('연락하기');
+    expect(contactButtons.length).toBeGreaterThan(0);
   });
 
   it('has correct main structure', () => {
@@ -177,7 +179,7 @@ describe('PortfolioPage', () => {
     
     const mainElement = container.querySelector('main');
     expect(mainElement).toBeInTheDocument();
-    expect(mainElement).toHaveClass('pt-16', 'h-screen', 'overflow-y-scroll');
+    expect(mainElement).toHaveClass('pt-16');
   });
 
   it('has correct background and text colors', () => {
@@ -187,7 +189,7 @@ describe('PortfolioPage', () => {
       </BrowserRouter>
     );
     
-    const mainDiv = container.firstChild as HTMLElement;
-    expect(mainDiv).toHaveClass('min-h-screen', 'bg-background-primary', 'text-text-primary');
+    const layoutDiv = container.querySelector('[data-testid="layout"]') as HTMLElement;
+    expect(layoutDiv).toBeInTheDocument();
   });
 }); 

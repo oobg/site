@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Hero } from './Hero';
+import { Hero } from '../widgets/hero/ui/Hero';
 
 // Mock scrollIntoView
 const mockScrollIntoView = vi.fn();
