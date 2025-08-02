@@ -1,5 +1,6 @@
-import type { ReactNode } from 'react';
-import { Header } from '@src/widgets/header';
+import type { ReactNode } from "react";
+
+import { Header } from "@src/widgets/header";
 
 interface LayoutProps {
   children: ReactNode;
@@ -10,9 +11,7 @@ export function Layout({ children, showFooter = true }: LayoutProps) {
   return (
     <div className="min-h-screen bg-background-primary text-text-primary">
       <Header />
-      <main className="pt-16">
-        {children}
-      </main>
+      <main className="pt-16">{children}</main>
       {showFooter && (
         <footer className="text-center py-8 border-t border-border text-text-secondary">
           <div className="mb-4">
@@ -24,4 +23,4 @@ export function Layout({ children, showFooter = true }: LayoutProps) {
       )}
     </div>
   );
-} 
+}

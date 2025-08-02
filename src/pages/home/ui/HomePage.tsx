@@ -1,5 +1,5 @@
-import { Hero, Portfolio, Tools, Contact } from '@src/widgets';
-import { Layout } from '@src/shared/ui';
+import { Layout } from "@src/shared/ui";
+import { Hero, Portfolio, Tools, Contact } from "@src/widgets";
 
 function HomePage() {
   return (

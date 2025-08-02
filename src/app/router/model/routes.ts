@@ -32,4 +32,4 @@ export const routes: RouteConfig[] = [
     fallback: "페이지 로딩중...",
     Component: NotFoundPage,
   },
-]; 
+];

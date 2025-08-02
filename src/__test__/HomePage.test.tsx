@@ -1,10 +1,12 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import HomePage from '../pages/home/ui/HomePage';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
+import { describe, it, expect, vi } from "vitest";
+
+import HomePage from "../pages/home/ui/HomePage";
 
 // Mock widgets
-vi.mock('@src/widgets', () => ({
+vi.mock("@src/widgets", () => ({
   Hero: () => <div data-testid="hero">Hero</div>,
   Portfolio: () => <div data-testid="portfolio">Portfolio</div>,
   Tools: () => <div data-testid="tools">Tools</div>,
@@ -12,7 +14,7 @@ vi.mock('@src/widgets', () => ({
 }));
 
 // Mock Layout
-vi.mock('@src/shared/ui', () => ({
+vi.mock("@src/shared/ui", () => ({
   Layout: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="layout">
       <div data-testid="header">Header</div>
@@ -28,72 +30,72 @@ vi.mock('@src/shared/ui', () => ({
   ),
 }));
 
-describe('HomePage', () => {
-  it('renders all main sections', () => {
+describe("HomePage", () => {
+  it("renders all main sections", () => {
     render(
       <BrowserRouter>
         <HomePage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    expect(screen.getByTestId('layout')).toBeInTheDocument();
-    expect(screen.getByTestId('header')).toBeInTheDocument();
-    expect(screen.getByTestId('hero')).toBeInTheDocument();
-    expect(screen.getByTestId('portfolio')).toBeInTheDocument();
-    expect(screen.getByTestId('tools')).toBeInTheDocument();
-    expect(screen.getByTestId('contact')).toBeInTheDocument();
+
+    expect(screen.getByTestId("layout")).toBeInTheDocument();
+    expect(screen.getByTestId("header")).toBeInTheDocument();
+    expect(screen.getByTestId("hero")).toBeInTheDocument();
+    expect(screen.getByTestId("portfolio")).toBeInTheDocument();
+    expect(screen.getByTestId("tools")).toBeInTheDocument();
+    expect(screen.getByTestId("contact")).toBeInTheDocument();
   });
 
-  it('renders footer with raven branding', () => {
+  it("renders footer with raven branding", () => {
     render(
       <BrowserRouter>
         <HomePage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    const emojis = screen.getAllByText('🦅');
+
+    const emojis = screen.getAllByText("🦅");
     expect(emojis.length).toBeGreaterThan(0);
-    emojis.forEach(emoji => {
-      expect(emoji).toHaveClass('raven-icon-bg');
+    emojis.forEach((emoji) => {
+      expect(emoji).toHaveClass("raven-icon-bg");
     });
-    
+
     expect(screen.getByText(/© 2024 Raven.kr/)).toBeInTheDocument();
     expect(screen.getByText(/❤️와 React로 만들어졌습니다/)).toBeInTheDocument();
-    expect(screen.getByText('디지털 하늘을 날아오르며')).toBeInTheDocument();
+    expect(screen.getByText("디지털 하늘을 날아오르며")).toBeInTheDocument();
   });
 
-  it('has correct main structure', () => {
+  it("has correct main structure", () => {
     const { container } = render(
       <BrowserRouter>
         <HomePage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    const mainElement = container.querySelector('main');
+
+    const mainElement = container.querySelector("main");
     expect(mainElement).toBeInTheDocument();
-    expect(mainElement).toHaveClass('pt-16');
+    expect(mainElement).toHaveClass("pt-16");
   });
 
-  it('has correct footer structure', () => {
+  it("has correct footer structure", () => {
     const { container } = render(
       <BrowserRouter>
         <HomePage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    const footerElement = container.querySelector('footer');
+
+    const footerElement = container.querySelector("footer");
     expect(footerElement).toBeInTheDocument();
-    expect(footerElement).toHaveClass('text-center', 'py-8', 'border-t', 'border-border');
+    expect(footerElement).toHaveClass("text-center", "py-8", "border-t", "border-border");
   });
 
-  it('has correct background and text colors', () => {
+  it("has correct background and text colors", () => {
     const { container } = render(
       <BrowserRouter>
         <HomePage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
+
     const layoutDiv = container.querySelector('[data-testid="layout"]') as HTMLElement;
     expect(layoutDiv).toBeInTheDocument();
   });
-}); 
+});

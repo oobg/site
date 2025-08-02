@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getSystemTheme, getStoredTheme, setStoredTheme, applyTheme } from '../shared/lib/theme';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+
+import { getSystemTheme, getStoredTheme, setStoredTheme, applyTheme } from "../shared/lib/theme";
 
 // Mock localStorage
 const mockLocalStorage = {
@@ -11,16 +12,16 @@ const mockLocalStorage = {
 // Mock matchMedia
 const mockMatchMedia = vi.fn();
 
-describe('theme utilities', () => {
+describe("theme utilities", () => {
   beforeEach(() => {
     // Mock localStorage
-    Object.defineProperty(window, 'localStorage', {
+    Object.defineProperty(window, "localStorage", {
       value: mockLocalStorage,
       writable: true,
     });
 
     // Mock matchMedia
-    Object.defineProperty(window, 'matchMedia', {
+    Object.defineProperty(window, "matchMedia", {
       value: mockMatchMedia,
       writable: true,
     });
@@ -30,7 +31,7 @@ describe('theme utilities', () => {
     const mockRemoveClass = vi.fn();
     const mockSetProperty = vi.fn();
 
-    Object.defineProperty(document, 'documentElement', {
+    Object.defineProperty(document, "documentElement", {
       value: {
         classList: {
           add: mockAddClass,
@@ -43,7 +44,7 @@ describe('theme utilities', () => {
       writable: true,
     });
 
-    Object.defineProperty(document, 'body', {
+    Object.defineProperty(document, "body", {
       value: {
         classList: {
           add: mockAddClass,
@@ -58,38 +59,38 @@ describe('theme utilities', () => {
     vi.clearAllMocks();
   });
 
-  describe('getSystemTheme', () => {
+  describe("getSystemTheme", () => {
     it('returns "dark" when system prefers dark', () => {
       mockMatchMedia.mockReturnValue({
         matches: true,
-        media: '(prefers-color-scheme: dark)',
+        media: "(prefers-color-scheme: dark)",
       });
 
       const theme = getSystemTheme();
-      expect(theme).toBe('dark');
+      expect(theme).toBe("dark");
     });
 
     it('returns "light" when system prefers light', () => {
       mockMatchMedia.mockReturnValue({
         matches: false,
-        media: '(prefers-color-scheme: dark)',
+        media: "(prefers-color-scheme: dark)",
       });
 
       const theme = getSystemTheme();
-      expect(theme).toBe('light');
+      expect(theme).toBe("light");
     });
   });
 
-  describe('getStoredTheme', () => {
-    it('returns stored theme from localStorage', () => {
-      mockLocalStorage.getItem.mockReturnValue('dark');
+  describe("getStoredTheme", () => {
+    it("returns stored theme from localStorage", () => {
+      mockLocalStorage.getItem.mockReturnValue("dark");
 
       const theme = getStoredTheme();
-      expect(theme).toBe('dark');
-      expect(mockLocalStorage.getItem).toHaveBeenCalledWith('theme');
+      expect(theme).toBe("dark");
+      expect(mockLocalStorage.getItem).toHaveBeenCalledWith("theme");
     });
 
-    it('returns null when no theme is stored', () => {
+    it("returns null when no theme is stored", () => {
       mockLocalStorage.getItem.mockReturnValue(null);
 
       const theme = getStoredTheme();
@@ -97,26 +98,26 @@ describe('theme utilities', () => {
     });
   });
 
-  describe('setStoredTheme', () => {
-    it('stores theme in localStorage', () => {
-      setStoredTheme('dark');
+  describe("setStoredTheme", () => {
+    it("stores theme in localStorage", () => {
+      setStoredTheme("dark");
 
-      expect(mockLocalStorage.setItem).toHaveBeenCalledWith('theme', 'dark');
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith("theme", "dark");
     });
 
-    it('stores light theme in localStorage', () => {
-      setStoredTheme('light');
+    it("stores light theme in localStorage", () => {
+      setStoredTheme("light");
 
-      expect(mockLocalStorage.setItem).toHaveBeenCalledWith('theme', 'light');
+      expect(mockLocalStorage.setItem).toHaveBeenCalledWith("theme", "light");
     });
   });
 
-  describe('applyTheme', () => {
-    it('applies dark theme correctly', () => {
+  describe("applyTheme", () => {
+    it("applies dark theme correctly", () => {
       const mockAddClass = vi.fn();
       const mockSetProperty = vi.fn();
 
-      Object.defineProperty(document, 'documentElement', {
+      Object.defineProperty(document, "documentElement", {
         value: {
           classList: {
             add: mockAddClass,
@@ -129,7 +130,7 @@ describe('theme utilities', () => {
         writable: true,
       });
 
-      Object.defineProperty(document, 'body', {
+      Object.defineProperty(document, "body", {
         value: {
           classList: {
             add: mockAddClass,
@@ -139,16 +140,16 @@ describe('theme utilities', () => {
         writable: true,
       });
 
-      applyTheme('dark');
+      applyTheme("dark");
 
-      expect(mockAddClass).toHaveBeenCalledWith('dark');
+      expect(mockAddClass).toHaveBeenCalledWith("dark");
     });
 
-    it('applies light theme correctly', () => {
+    it("applies light theme correctly", () => {
       const mockAddClass = vi.fn();
       const mockRemoveClass = vi.fn();
 
-      Object.defineProperty(document, 'documentElement', {
+      Object.defineProperty(document, "documentElement", {
         value: {
           classList: {
             add: mockAddClass,
@@ -161,7 +162,7 @@ describe('theme utilities', () => {
         writable: true,
       });
 
-      Object.defineProperty(document, 'body', {
+      Object.defineProperty(document, "body", {
         value: {
           classList: {
             add: mockAddClass,
@@ -171,9 +172,9 @@ describe('theme utilities', () => {
         writable: true,
       });
 
-      applyTheme('light');
+      applyTheme("light");
 
-      expect(mockRemoveClass).toHaveBeenCalledWith('dark');
+      expect(mockRemoveClass).toHaveBeenCalledWith("dark");
     });
   });
-}); 
+});

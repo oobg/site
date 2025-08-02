@@ -1,4 +1,4 @@
-import { type Theme } from '@src/shared/lib/theme';
+import { type Theme } from "@src/shared/lib/theme";
 
 export interface ThemeState {
   theme: Theme;
@@ -11,4 +11,4 @@ export interface ThemeActions {
   setSystemTheme: (isSystem: boolean) => void;
 }
 
-export type ThemeStore = ThemeState & ThemeActions; 
+export type ThemeStore = ThemeState & ThemeActions;

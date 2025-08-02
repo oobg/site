@@ -38,61 +38,63 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   .text-gradient-gold {
     background: linear-gradient(135deg, #f6e05e, #fbbf24);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   .text-glow {
     text-shadow: 0 0 20px var(--color-glow);
   }
-  
+
   /* Apple-style Glass Effect */
   .glass {
     @apply bg-black/20 backdrop-blur-2xl border border-white/10;
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
   }
-  
+
   .glass-glow {
     @apply bg-black/30 backdrop-blur-2xl border border-purple-500/20;
     box-shadow: 0 8px 32px 0 rgba(128, 90, 213, 0.1);
   }
-  
+
   /* Apple-style Shadows */
   .apple-shadow {
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
   }
-  
+
   .apple-shadow-glow {
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(128, 90, 213, 0.2);
+    box-shadow:
+      0 20px 40px rgba(0, 0, 0, 0.3),
+      0 0 20px rgba(128, 90, 213, 0.2);
   }
-  
+
   .mystical-bg {
     background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0a0a0a 100%);
   }
-  
+
   .mystical-card {
     background: linear-gradient(145deg, #1e1e1e, #1a1a1a);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
   }
-  
+
   .floating {
     animation: float 6s ease-in-out infinite;
   }
-  
+
   .pulse-glow {
     animation: pulse-glow 3s ease-in-out infinite alternate;
   }
-  
+
   .shimmer {
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.03), transparent);
     background-size: 200% 100%;
     animation: shimmer 3s infinite;
   }
-  
+
   /* Apple-style Raven Icon */
   .raven-icon-bg {
     background: linear-gradient(45deg, #805ad5, #9f7aea);
@@ -100,20 +102,20 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   /* Apple-style Code Editor */
   .code-editor {
     background: #1e1e1e;
     border: 1px solid #3c3c3c;
-    box-shadow: 
+    box-shadow:
       0 8px 32px 0 rgba(0, 0, 0, 0.4),
       inset 0 1px 0 rgba(255, 255, 255, 0.05);
     white-space: pre;
-    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-family: "SF Mono", "Monaco", "Menlo", "Ubuntu Mono", monospace;
   }
-  
+
   .code-editor::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 0;
     left: 0;
@@ -121,38 +123,38 @@
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(128, 90, 213, 0.3), transparent);
   }
-  
+
   /* Apple-style Code Highlighting */
   .code-keyword {
     color: #569cd6;
     font-weight: 600;
   }
-  
+
   .code-string {
     color: #ce9178;
   }
-  
+
   .code-number {
     color: #b5cea8;
   }
-  
+
   .code-comment {
     color: #6a9955;
     font-style: italic;
   }
-  
+
   .code-property {
     color: #9cdcfe;
   }
-  
+
   .code-operator {
     color: #d4d4d4;
   }
-  
+
   .code-bracket {
     color: #ffd700;
   }
-  
+
   /* Apple-style Typing Animation */
   .dynamic-skill {
     display: inline-block;
@@ -163,85 +165,125 @@
     vertical-align: text-bottom;
     line-height: inherit;
   }
-  
+
   .dynamic-skill.typing {
-    animation: typing-skill 2s steps(10, end), blink-caret 0.75s step-end infinite;
+    animation:
+      typing-skill 2s steps(10, end),
+      blink-caret 0.75s step-end infinite;
   }
-  
+
   @keyframes typing-skill {
-    0% { max-width: 0; }
-    50% { max-width: 100px; }
-    80% { max-width: 100px; }
-    100% { max-width: 0; }
+    0% {
+      max-width: 0;
+    }
+    50% {
+      max-width: 100px;
+    }
+    80% {
+      max-width: 100px;
+    }
+    100% {
+      max-width: 0;
+    }
   }
-  
+
   /* Apple-style Tab Space */
   .code-line {
     white-space: pre;
-    font-family: 'SF Mono', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-family: "SF Mono", "Monaco", "Menlo", "Ubuntu Mono", monospace;
     line-height: 1.2;
   }
-  
+
   .code-line .tab-space {
     display: inline-block;
     width: 2em;
   }
-  
+
   /* Apple-style String Container */
   .code-string-container {
     display: inline;
   }
-  
+
   .code-string-container .dynamic-skill {
     display: inline-block;
     vertical-align: baseline;
   }
-  
+
   /* Apple-style Typing Cursor */
   .typing-cursor {
     animation: blink 1s infinite;
   }
-  
+
   @keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
+    0%,
+    50% {
+      opacity: 1;
+    }
+    51%,
+    100% {
+      opacity: 0;
+    }
   }
-  
+
   /* Apple-style Typing Text */
   .typing-text {
     overflow: hidden;
     border-right: 2px solid #569cd6;
     white-space: nowrap;
-    animation: typing 2s steps(20, end), blink-caret 0.75s step-end infinite;
+    animation:
+      typing 2s steps(20, end),
+      blink-caret 0.75s step-end infinite;
     display: inline-block;
     min-width: 0;
   }
-  
+
   @keyframes typing {
-    from { width: 0; }
-    to { width: 100%; }
+    from {
+      width: 0;
+    }
+    to {
+      width: 100%;
+    }
   }
-  
+
   @keyframes blink-caret {
-    from, to { border-color: transparent; }
-    50% { border-color: #569cd6; }
+    from,
+    to {
+      border-color: transparent;
+    }
+    50% {
+      border-color: #569cd6;
+    }
   }
 }
 
 /* Animations */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes pulse-glow {
-  0% { box-shadow: 0 0 10px rgba(128, 90, 213, 0.3); }
-  100% { box-shadow: 0 0 20px rgba(128, 90, 213, 0.5); }
+  0% {
+    box-shadow: 0 0 10px rgba(128, 90, 213, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(128, 90, 213, 0.5);
+  }
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 @keyframes fade-in-up {
@@ -262,7 +304,7 @@ body {
   background: radial-gradient(circle at 50% 50%, #1a1a1a 0%, #0a0a0a 100%);
   min-height: 100vh;
   width: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 html {

@@ -1,5 +1,5 @@
-import '@testing-library/jest-dom';
-import { vi } from 'vitest';
+import "@testing-library/jest-dom";
+import { vi } from "vitest";
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
@@ -18,7 +18,7 @@ global.ResizeObserver = class ResizeObserver {
 } as any;
 
 // Mock matchMedia
-Object.defineProperty(window, 'matchMedia', {
+Object.defineProperty(window, "matchMedia", {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
     matches: false,
@@ -36,14 +36,17 @@ Object.defineProperty(window, 'matchMedia', {
 Element.prototype.scrollIntoView = vi.fn();
 
 // Mock getBoundingClientRect
-Element.prototype.getBoundingClientRect = vi.fn(() => ({
-  width: 120,
-  height: 120,
-  top: 0,
-  left: 0,
-  bottom: 120,
-  right: 120,
-  x: 0,
-  y: 0,
-  toJSON: () => ({}),
-} as DOMRect)); 
+Element.prototype.getBoundingClientRect = vi.fn(
+  () =>
+    ({
+      width: 120,
+      height: 120,
+      top: 0,
+      left: 0,
+      bottom: 120,
+      right: 120,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    }) as DOMRect,
+);

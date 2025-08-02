@@ -1,10 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-import PortfolioPage from '../pages/portfolio/ui/PortfolioPage';
+import React from "react";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+import PortfolioPage from "../pages/portfolio/ui/PortfolioPage";
 
 // Mock Layout
-vi.mock('@src/shared/ui', () => ({
+vi.mock("@src/shared/ui", () => ({
   Layout: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="layout">
       <div data-testid="header">Header</div>
@@ -17,179 +19,181 @@ vi.mock('@src/shared/ui', () => ({
 const mockScrollIntoView = vi.fn();
 Element.prototype.scrollIntoView = mockScrollIntoView;
 
-describe('PortfolioPage', () => {
+describe("PortfolioPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders header and main sections', () => {
+  it("renders header and main sections", () => {
     render(
       <BrowserRouter>
         <PortfolioPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    expect(screen.getByTestId('header')).toBeInTheDocument();
-    expect(screen.getByText('Portfolio')).toBeInTheDocument();
+
+    expect(screen.getByTestId("header")).toBeInTheDocument();
+    expect(screen.getByText("Portfolio")).toBeInTheDocument();
     expect(screen.getByText(/까마귀가 보물을 수집하듯/)).toBeInTheDocument();
   });
 
-  it('displays raven emoji in hero section', () => {
+  it("displays raven emoji in hero section", () => {
     render(
       <BrowserRouter>
         <PortfolioPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    const emojis = screen.getAllByText('🦅');
+
+    const emojis = screen.getAllByText("🦅");
     expect(emojis.length).toBeGreaterThan(0);
-    emojis.forEach(emoji => {
-      expect(emoji).toHaveClass('raven-icon-bg');
+    emojis.forEach((emoji) => {
+      expect(emoji).toHaveClass("raven-icon-bg");
     });
   });
 
-  it('renders category filter buttons', () => {
+  it("renders category filter buttons", () => {
     render(
       <BrowserRouter>
         <PortfolioPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    expect(screen.getByText('All')).toBeInTheDocument();
-    expect(screen.getByText('Full-Stack')).toBeInTheDocument();
-    expect(screen.getByText('Frontend')).toBeInTheDocument();
-    expect(screen.getByText('AI/ML')).toBeInTheDocument();
-    expect(screen.getByText('Data')).toBeInTheDocument();
-    expect(screen.getByText('Real-time')).toBeInTheDocument();
-    expect(screen.getByText('Productivity')).toBeInTheDocument();
+
+    expect(screen.getByText("All")).toBeInTheDocument();
+    expect(screen.getByText("Full-Stack")).toBeInTheDocument();
+    expect(screen.getByText("Frontend")).toBeInTheDocument();
+    expect(screen.getByText("AI/ML")).toBeInTheDocument();
+    expect(screen.getByText("Data")).toBeInTheDocument();
+    expect(screen.getByText("Real-time")).toBeInTheDocument();
+    expect(screen.getByText("Productivity")).toBeInTheDocument();
   });
 
-  it('filters projects when category is selected', () => {
+  it("filters projects when category is selected", () => {
     render(
       <BrowserRouter>
         <PortfolioPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
+
     // Initially shows all projects
-    expect(screen.getByText('Raven E-Commerce')).toBeInTheDocument();
-    expect(screen.getByText('AI Raven Assistant')).toBeInTheDocument();
-    
+    expect(screen.getByText("Raven E-Commerce")).toBeInTheDocument();
+    expect(screen.getByText("AI Raven Assistant")).toBeInTheDocument();
+
     // Click on Full-Stack category
-    const fullStackButton = screen.getByText('Full-Stack');
+    const fullStackButton = screen.getByText("Full-Stack");
     fireEvent.click(fullStackButton);
-    
+
     // Should still show Full-Stack projects
-    expect(screen.getByText('Raven E-Commerce')).toBeInTheDocument();
+    expect(screen.getByText("Raven E-Commerce")).toBeInTheDocument();
   });
 
-  it('displays project cards with correct information', () => {
+  it("displays project cards with correct information", () => {
     render(
       <BrowserRouter>
         <PortfolioPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
+
     // Check for project titles
-    expect(screen.getByText('Raven E-Commerce')).toBeInTheDocument();
-    expect(screen.getByText('AI Raven Assistant')).toBeInTheDocument();
-    expect(screen.getByText('Raven Portfolio')).toBeInTheDocument();
-    
+    expect(screen.getByText("Raven E-Commerce")).toBeInTheDocument();
+    expect(screen.getByText("AI Raven Assistant")).toBeInTheDocument();
+    expect(screen.getByText("Raven Portfolio")).toBeInTheDocument();
+
     // Check for project descriptions
-    expect(screen.getByText(/React, Node.js, MongoDB를 활용한 풀스택 이커머스/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/React, Node.js, MongoDB를 활용한 풀스택 이커머스/),
+    ).toBeInTheDocument();
     expect(screen.getByText(/OpenAI GPT-4로 구동되는 지능형 챗봇/)).toBeInTheDocument();
-    
+
     // Check for tech stacks (multiple instances exist)
-    const reactElements = screen.getAllByText('React');
-    const nodeElements = screen.getAllByText('Node.js');
-    const mongoElements = screen.getAllByText('MongoDB');
-    
+    const reactElements = screen.getAllByText("React");
+    const nodeElements = screen.getAllByText("Node.js");
+    const mongoElements = screen.getAllByText("MongoDB");
+
     expect(reactElements.length).toBeGreaterThan(0);
     expect(nodeElements.length).toBeGreaterThan(0);
     expect(mongoElements.length).toBeGreaterThan(0);
   });
 
-  it('displays project status badges', () => {
+  it("displays project status badges", () => {
     render(
       <BrowserRouter>
         <PortfolioPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    const liveBadges = screen.getAllByText('서비스중');
-    const betaBadges = screen.getAllByText('베타');
-    
+
+    const liveBadges = screen.getAllByText("서비스중");
+    const betaBadges = screen.getAllByText("베타");
+
     expect(liveBadges.length).toBeGreaterThan(0);
     expect(betaBadges.length).toBeGreaterThan(0);
   });
 
-  it('displays project years', () => {
+  it("displays project years", () => {
     render(
       <BrowserRouter>
         <PortfolioPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    const year2024Elements = screen.getAllByText('2024');
+
+    const year2024Elements = screen.getAllByText("2024");
     expect(year2024Elements.length).toBeGreaterThan(0);
   });
 
-  it('has project links', () => {
+  it("has project links", () => {
     render(
       <BrowserRouter>
         <PortfolioPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    const projectLinks = screen.getAllByText('프로젝트 보기');
+
+    const projectLinks = screen.getAllByText("프로젝트 보기");
     expect(projectLinks.length).toBeGreaterThan(0);
   });
 
-  it('renders pagination controls when needed', () => {
+  it("renders pagination controls when needed", () => {
     render(
       <BrowserRouter>
         <PortfolioPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
+
     // Should have pagination dots
     const paginationDots = document.querySelectorAll('[class*="w-3 h-3 rounded-full"]');
     expect(paginationDots.length).toBeGreaterThan(0);
   });
 
-  it('has contact section', () => {
+  it("has contact section", () => {
     render(
       <BrowserRouter>
         <PortfolioPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    expect(screen.getByText('함께 작업해요')).toBeInTheDocument();
+
+    expect(screen.getByText("함께 작업해요")).toBeInTheDocument();
     expect(screen.getByText(/새로운 프로젝트에 대한 아이디어가 있으신가요/)).toBeInTheDocument();
-    const contactButtons = screen.getAllByText('연락하기');
+    const contactButtons = screen.getAllByText("연락하기");
     expect(contactButtons.length).toBeGreaterThan(0);
   });
 
-  it('has correct main structure', () => {
+  it("has correct main structure", () => {
     const { container } = render(
       <BrowserRouter>
         <PortfolioPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    const mainElement = container.querySelector('main');
+
+    const mainElement = container.querySelector("main");
     expect(mainElement).toBeInTheDocument();
-    expect(mainElement).toHaveClass('pt-16');
+    expect(mainElement).toHaveClass("pt-16");
   });
 
-  it('has correct background and text colors', () => {
+  it("has correct background and text colors", () => {
     const { container } = render(
       <BrowserRouter>
         <PortfolioPage />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
+
     const layoutDiv = container.querySelector('[data-testid="layout"]') as HTMLElement;
     expect(layoutDiv).toBeInTheDocument();
   });
-}); 
+});
