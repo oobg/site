@@ -13,14 +13,14 @@ export function Hero() {
 
   const codeLines = [
     { text: 'const raven = {', type: 'keyword', delay: 0 },
-    { text: '  name: "Raven Developer",', type: 'property', delay: 0 },
+    { text: '  name: "Raven Developer",', type: 'property', delay: 0, hasString: true },
     { text: '  skills: [', type: 'property', delay: 0 },
     { text: '    "React",', type: 'string', delay: 0 },
     { text: '    "TypeScript",', type: 'string', delay: 0 },
     { text: '    "' + dynamicSkill + '",', type: 'string', delay: 0, isDynamic: true },
     { text: '  ],', type: 'property', delay: 0 },
-    { text: '  domain: "raven.kr",', type: 'property', delay: 0 },
-    { text: '  spirit: "Soaring through code"', type: 'property', delay: 0 },
+    { text: '  domain: "raven.kr",', type: 'property', delay: 0, hasString: true },
+    { text: '  spirit: "Soaring through code"', type: 'property', delay: 0, hasString: true },
     { text: '};', type: 'keyword', delay: 0 },
     { text: '// Ready to craft amazing projects', type: 'comment', delay: 0 }
   ];
@@ -136,6 +136,11 @@ export function Hero() {
                       <>
                         <span dangerouslySetInnerHTML={{ __html: line.text.replace('"' + dynamicSkill + '",', '') }} />
                         "<span className={`dynamic-skill ${isTyping ? 'typing' : ''}`}>{dynamicSkill}</span>",
+                      </>
+                    ) : line.hasString ? (
+                      <>
+                        <span dangerouslySetInnerHTML={{ __html: line.text.split('"')[0] }} />
+                        "<span className="code-string">{line.text.split('"')[1]}</span>",
                       </>
                     ) : (
                       <span dangerouslySetInnerHTML={{ __html: line.text }} />
