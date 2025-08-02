@@ -2,10 +2,52 @@ import { useState, useEffect } from 'react';
 
 export function Hero() {
   const [isVisible, setIsVisible] = useState(false);
+  const [codeVisible, setCodeVisible] = useState(false);
+  const [typingIndex, setTypingIndex] = useState(0);
+
+  const codeLines = [
+    { text: 'const raven = {', type: 'keyword', delay: 0 },
+    { text: '  name: "Raven Developer",', type: 'property', delay: 500 },
+    { text: '  skills: [', type: 'property', delay: 1000 },
+    { text: '    "React",', type: 'string', delay: 1500 },
+    { text: '    "TypeScript",', type: 'string', delay: 2000 },
+    { text: '    "Node.js",', type: 'string', delay: 2500 },
+    { text: '    "Tailwind CSS"', type: 'string', delay: 3000 },
+    { text: '  ],', type: 'property', delay: 3500 },
+    { text: '  domain: "raven.kr",', type: 'property', delay: 4000 },
+    { text: '  spirit: "Soaring through code"', type: 'property', delay: 4500 },
+    { text: '};', type: 'keyword', delay: 5000 },
+    { text: '// Ready to craft amazing projects', type: 'comment', delay: 5500 }
+  ];
 
   useEffect(() => {
     setIsVisible(true);
+    setTimeout(() => setCodeVisible(true), 500);
+    
+    // 타이핑 애니메이션
+    const typingInterval = setInterval(() => {
+      setTypingIndex(prev => {
+        if (prev < codeLines.length - 1) {
+          return prev + 1;
+        } else {
+          clearInterval(typingInterval);
+          return prev;
+        }
+      });
+    }, 500);
+
+    return () => clearInterval(typingInterval);
   }, []);
+
+  const getCodeClass = (type: string) => {
+    switch (type) {
+      case 'keyword': return 'code-keyword';
+      case 'string': return 'code-string';
+      case 'property': return 'code-property';
+      case 'comment': return 'code-comment';
+      default: return 'text-text-primary';
+    }
+  };
 
   return (
     <section className={`min-h-screen flex items-center px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto ${
@@ -45,14 +87,35 @@ export function Hero() {
         </div>
         
         <div className="flex-1 flex justify-center">
-          <div className="glass p-8 rounded-2xl raven-shadow">
-            <div className="font-mono text-sm space-y-2">
-              <div className="text-text-primary">const raven = {`{`}</div>
-              <div className="text-text-accent ml-4">name: "Raven Developer",</div>
-              <div className="text-text-accent ml-4">skills: ["React", "TypeScript"],</div>
-              <div className="text-text-accent ml-4">domain: "raven.kr",</div>
-              <div className="text-text-accent ml-4">spirit: "Soaring through code"</div>
-              <div className="text-text-primary">{`}`}</div>
+          <div className="glass p-8 rounded-2xl raven-shadow code-editor relative">
+            <div className="flex items-center mb-4">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+              </div>
+              <div className="ml-4 text-xs text-text-muted">raven.js</div>
+            </div>
+            <div className="font-mono text-sm space-y-1">
+              {codeLines.map((line, index) => (
+                <div
+                  key={index}
+                  className={`transition-all duration-500 ${
+                    index <= typingIndex ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  style={{ 
+                    transitionDelay: `${line.delay}ms`,
+                    transform: index <= typingIndex ? 'translateX(0)' : 'translateX(-10px)'
+                  }}
+                >
+                  <span className={getCodeClass(line.type)}>
+                    {line.text}
+                  </span>
+                  {index === typingIndex && (
+                    <span className="typing-cursor ml-1">|</span>
+                  )}
+                </div>
+              ))}
             </div>
             <div className="mt-4 pt-4 border-t border-border">
               <div className="text-xs text-text-muted">

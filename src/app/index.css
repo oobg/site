@@ -129,6 +129,84 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+  
+  /* VS Code 다크모드 스타일 코드 에디터 */
+  .code-editor {
+    background: #1e1e1e;
+    border: 1px solid #3c3c3c;
+    box-shadow: 
+      0 8px 32px 0 rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  
+  .code-editor::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(128, 90, 213, 0.3), transparent);
+  }
+  
+  /* VS Code 다크모드 코드 하이라이팅 */
+  .code-keyword {
+    color: #569cd6;
+    font-weight: 600;
+  }
+  
+  .code-string {
+    color: #ce9178;
+  }
+  
+  .code-number {
+    color: #b5cea8;
+  }
+  
+  .code-comment {
+    color: #6a9955;
+    font-style: italic;
+  }
+  
+  .code-property {
+    color: #9cdcfe;
+  }
+  
+  .code-operator {
+    color: #d4d4d4;
+  }
+  
+  .code-bracket {
+    color: #ffd700;
+  }
+  
+  /* 타이핑 애니메이션 */
+  .typing-cursor {
+    animation: blink 1s infinite;
+  }
+  
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+  
+  /* 타이핑 효과 */
+  .typing-text {
+    overflow: hidden;
+    border-right: 2px solid #569cd6;
+    white-space: nowrap;
+    animation: typing 3s steps(40, end), blink-caret 0.75s step-end infinite;
+  }
+  
+  @keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+  }
+  
+  @keyframes blink-caret {
+    from, to { border-color: transparent; }
+    50% { border-color: #569cd6; }
+  }
 }
 
 /* Animations */
