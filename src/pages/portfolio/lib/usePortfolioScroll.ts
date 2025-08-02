@@ -105,7 +105,7 @@ export const usePortfolioScroll = (
       currentY = e.touches[0].clientY;
     };
 
-    const handleTouchEnd = (e: TouchEvent) => {
+    const handleTouchEnd = (_e: TouchEvent) => {
       if (!isTouching || isScrolling) return;
 
       isTouching = false;

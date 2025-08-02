@@ -5,10 +5,7 @@ export function Hero() {
   const [codeVisible, setCodeVisible] = useState(false);
   const [typingIndex, setTypingIndex] = useState(0);
   const [dynamicSkill, setDynamicSkill] = useState("");
-  const [skillIndex, setSkillIndex] = useState(0);
   const [isTyping, setIsTyping] = useState(false);
-
-  const staticSkills = ["React", "TypeScript"];
   const dynamicSkills = ["Vue", "Node.js", "Next.js"];
 
   const codeLines = [
@@ -100,9 +97,8 @@ export function Hero() {
 
   return (
     <section
-      className={`min-h-screen flex items-center px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto ${
-        isVisible ? "animate-fade-in" : "opacity-0 translate-y-8"
-      }`}
+      className={`min-h-screen flex items-center px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto ${isVisible ? "animate-fade-in" : "opacity-0 translate-y-8"
+        }`}
     >
       <div className="flex flex-col lg:flex-row items-center gap-12 w-full">
         <div className="flex-1 max-w-2xl">
@@ -152,9 +148,8 @@ export function Hero() {
               {codeLines.map((line, index) => (
                 <div
                   key={index}
-                  className={`code-line transition-all duration-500 ${
-                    index <= typingIndex ? "opacity-100" : "opacity-0"
-                  }`}
+                  className={`code-line transition-all duration-500 ${index <= typingIndex ? "opacity-100" : "opacity-0"
+                    }`}
                   style={{
                     transitionDelay: `${line.delay}ms`,
                     transform: index <= typingIndex ? "translateX(0)" : "translateX(-10px)",
