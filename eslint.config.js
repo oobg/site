@@ -118,9 +118,10 @@ export default tsEslint.config(
           devDependencies: [
             "**/*.test.ts",
             "**/*.test.tsx",
-            "**/*.stories.tsx",
             "**/__tests__/**",
             "**/__mocks__/**",
+            "**/test/**",
+            "**/setup.ts",
           ],
         },
       ],
