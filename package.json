@@ -14,7 +14,7 @@
     "test": "vitest run src/__test__",
     "test:ui": "vitest --ui src/__test__",
     "test:coverage": "vitest run --coverage src/__test__",
-    "predeploy": "pnpm test && pnpm lint && pnpm type-check"
+    "predeploy": "pnpm test && pnpm lint:deploy && pnpm type-check"
   },
   "dependencies": {
     "react": "^19.1.0",
