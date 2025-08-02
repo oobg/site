@@ -9,6 +9,7 @@ interface Project {
   status: string;
   link?: string;
   category: string;
+  year: string;
 }
 
 const projects: Project[] = [
@@ -19,7 +20,8 @@ const projects: Project[] = [
     image: "🛒",
     status: "Live",
     link: "https://raven-ecommerce.vercel.app",
-    category: "Full-Stack"
+    category: "Full-Stack",
+    year: "2024"
   },
   {
     title: "AI Raven Assistant",
@@ -28,7 +30,8 @@ const projects: Project[] = [
     image: "🤖",
     status: "Beta",
     link: "https://ai-raven.vercel.app",
-    category: "AI/ML"
+    category: "AI/ML",
+    year: "2024"
   },
   {
     title: "Raven Portfolio",
@@ -37,7 +40,8 @@ const projects: Project[] = [
     image: "💼",
     status: "Live",
     link: "https://raven.kr",
-    category: "Frontend"
+    category: "Frontend",
+    year: "2024"
   },
   {
     title: "Raven Analytics",
@@ -46,7 +50,8 @@ const projects: Project[] = [
     image: "📊",
     status: "Live",
     link: "https://raven-analytics.vercel.app",
-    category: "Data"
+    category: "Data",
+    year: "2023"
   },
   {
     title: "Raven Chat",
@@ -55,7 +60,8 @@ const projects: Project[] = [
     image: "💬",
     status: "Live",
     link: "https://raven-chat.vercel.app",
-    category: "Real-time"
+    category: "Real-time",
+    year: "2023"
   },
   {
     title: "Raven Task Manager",
@@ -64,7 +70,8 @@ const projects: Project[] = [
     image: "📋",
     status: "Beta",
     link: "https://raven-tasks.vercel.app",
-    category: "Productivity"
+    category: "Productivity",
+    year: "2023"
   }
 ];
 
@@ -320,10 +327,10 @@ function PortfolioPage() {
             <div className="mb-8">
               <span className="text-8xl raven-icon-bg">🦅</span>
             </div>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8">
-              <span className="text-gradient">포트폴리오</span>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-8 font-apple">
+              <span className="text-gradient">Portfolio</span>
             </h1>
-            <p className="text-xl sm:text-2xl text-text-secondary mb-12 leading-relaxed">
+            <p className="text-xl sm:text-2xl text-text-secondary mb-12 leading-relaxed font-apple">
               까마귀가 보물을 수집하듯, 혁신과 장인정신을 보여주는<br />
               가장 훌륭한 작품들입니다.
             </p>
@@ -334,7 +341,7 @@ function PortfolioPage() {
                 <button
                   key={category}
                   onClick={() => handleCategoryChange(category)}
-                  className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+                  className={`px-6 py-3 rounded-full font-medium transition-all duration-300 font-apple ${
                     selectedCategory === category
                       ? 'bg-gradient-to-r from-accent to-accent-hover text-white shadow-lg'
                       : 'bg-background-secondary text-text-secondary hover:text-accent hover:bg-background-tertiary'
@@ -357,30 +364,29 @@ function PortfolioPage() {
                 .map((project, index) => (
                 <div 
                   key={index} 
-                  className="group relative glass rounded-2xl p-8 hover:-translate-y-2 hover:shadow-lg transition-all duration-500 raven-shadow overflow-hidden"
+                  className="group relative glass rounded-2xl p-8 hover:-translate-y-2 hover:shadow-lg transition-all duration-500 apple-shadow overflow-hidden"
                   style={{
                     animationDelay: `${index * 200}ms`
                   }}
                 >
-                  {/* Status Badge */}
-                  <div className="absolute top-4 right-4">
-                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(project.status)}`}>
-                      {getStatusText(project.status)}
-                    </span>
-                  </div>
-                  
-                  {/* Project Icon */}
-                  <div className="text-6xl mb-6 group-hover:scale-110 transition-transform duration-300">
-                    {project.image}
+                  {/* Project Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <div className="text-4xl">{project.image}</div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-sm text-text-muted font-apple">{project.year}</span>
+                      <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(project.status)}`}>
+                        {getStatusText(project.status)}
+                      </span>
+                    </div>
                   </div>
                   
                   {/* Project Title */}
-                  <h3 className="text-2xl font-bold mb-4 text-text-primary group-hover:text-accent transition-all duration-300">
+                  <h3 className="text-2xl font-bold mb-4 text-text-primary group-hover:text-accent transition-all duration-300 font-apple">
                     {project.title}
                   </h3>
                   
                   {/* Project Description */}
-                  <p className="text-text-secondary mb-6 leading-relaxed text-sm">
+                  <p className="text-text-secondary mb-6 leading-relaxed text-sm font-apple">
                     {project.description}
                   </p>
                   
@@ -389,7 +395,7 @@ function PortfolioPage() {
                     {project.tech.map((tech, techIndex) => (
                       <span 
                         key={techIndex} 
-                        className="px-3 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full border border-accent/20 hover:bg-accent hover:text-white transition-all duration-300"
+                        className="px-3 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full border border-accent/20 hover:bg-accent hover:text-white transition-all duration-300 font-apple"
                       >
                         {tech}
                       </span>
@@ -402,7 +408,7 @@ function PortfolioPage() {
                       href={project.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center space-x-2 text-accent hover:text-accent-hover transition-colors group/link"
+                      className="inline-flex items-center space-x-2 text-accent hover:text-accent-hover transition-colors group/link font-apple"
                     >
                       <span className="text-sm font-medium">프로젝트 보기</span>
                       <span className="text-xs group-hover/link:translate-x-1 transition-transform">→</span>
@@ -421,7 +427,7 @@ function PortfolioPage() {
                 <button
                   onClick={() => handlePageChange(Math.max(0, currentPage - 1))}
                   disabled={currentPage === 0}
-                  className="px-4 py-2 rounded-lg bg-background-secondary text-text-secondary hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                  className="px-4 py-2 rounded-lg bg-background-secondary text-text-secondary hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-apple"
                 >
                   ← 이전
                 </button>
@@ -443,7 +449,7 @@ function PortfolioPage() {
                 <button
                   onClick={() => handlePageChange(Math.min(totalPages - 1, currentPage + 1))}
                   disabled={currentPage === totalPages - 1}
-                  className="px-4 py-2 rounded-lg bg-background-secondary text-text-secondary hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+                  className="px-4 py-2 rounded-lg bg-background-secondary text-text-secondary hover:text-accent disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-apple"
                 >
                   다음 →
                 </button>
@@ -458,14 +464,14 @@ function PortfolioPage() {
             <div className="mb-8">
               <span className="text-6xl raven-icon-bg">🦅</span>
             </div>
-            <h2 className="text-4xl sm:text-5xl font-bold mb-8">
+            <h2 className="text-4xl sm:text-5xl font-bold mb-8 font-apple">
               <span className="text-gradient">함께 작업해요</span>
             </h2>
-            <p className="text-xl text-text-secondary mb-12 leading-relaxed">
+            <p className="text-xl text-text-secondary mb-12 leading-relaxed font-apple">
               새로운 프로젝트에 대한 아이디어가 있으신가요?<br />
               함께 멋진 것을 만들어봐요!
             </p>
-            <button className="px-12 py-6 bg-gradient-to-r from-accent to-accent-hover text-white font-semibold rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 raven-shadow text-lg">
+            <button className="px-12 py-6 bg-gradient-to-r from-accent to-accent-hover text-white font-semibold rounded-lg hover:shadow-lg hover:-translate-y-1 transition-all duration-300 apple-shadow text-lg font-apple">
               연락하기
             </button>
           </div>
