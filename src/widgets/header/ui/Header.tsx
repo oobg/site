@@ -35,11 +35,10 @@ export function Header() {
               <Link
                 key={item.path}
                 to={item.path}
-                className={`font-medium transition-all duration-300 relative group ${
-                  location.pathname === item.path
+                className={`font-medium transition-all duration-300 relative group ${location.pathname === item.path
                     ? "text-accent"
                     : "text-text-primary hover:text-accent"
-                }`}
+                  }`}
               >
                 {item.label}
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-accent to-accent-hover transition-all duration-300 group-hover:w-full"></span>
@@ -63,19 +62,16 @@ export function Header() {
               aria-label="Toggle menu"
             >
               <div
-                className={`w-6 h-0.5 bg-text-primary transition-all ${
-                  isMenuOpen ? "rotate-45 translate-y-1" : ""
-                }`}
+                className={`w-6 h-0.5 bg-text-primary transition-all ${isMenuOpen ? "rotate-45 translate-y-1" : ""
+                  }`}
               ></div>
               <div
-                className={`w-6 h-0.5 bg-text-primary my-1 transition-all ${
-                  isMenuOpen ? "opacity-0" : ""
-                }`}
+                className={`w-6 h-0.5 bg-text-primary my-1 transition-all ${isMenuOpen ? "opacity-0" : ""
+                  }`}
               ></div>
               <div
-                className={`w-6 h-0.5 bg-text-primary transition-all ${
-                  isMenuOpen ? "-rotate-45 -translate-y-1" : ""
-                }`}
+                className={`w-6 h-0.5 bg-text-primary transition-all ${isMenuOpen ? "-rotate-45 -translate-y-1" : ""
+                  }`}
               ></div>
             </button>
           </div>
@@ -83,20 +79,18 @@ export function Header() {
 
         {/* Mobile Navigation */}
         <div
-          className={`md:hidden transition-all duration-300 ${
-            isMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
-          } overflow-hidden`}
+          className={`md:hidden transition-all duration-300 ${isMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
+            } overflow-hidden`}
         >
           <div className="py-4 space-y-2">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`block px-4 py-2 rounded-lg transition-all duration-300 ${
-                  location.pathname === item.path
+                className={`block px-4 py-2 rounded-lg transition-all duration-300 ${location.pathname === item.path
                     ? "bg-gradient-to-r from-accent to-accent-hover text-white shadow-lg"
                     : "text-text-primary hover:bg-background-secondary hover:text-accent"
-                }`}
+                  }`}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.label}
