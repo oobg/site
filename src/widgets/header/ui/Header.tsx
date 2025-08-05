@@ -14,11 +14,18 @@ const navItems: NavItem[] = [
   { label: "포트폴리오", path: "/portfolio" },
   { label: "도구", path: "/tools" },
   { label: "소개", path: "/about" },
+  { label: "음악", path: "/music" },
 ];
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+
+  // 메뉴 아이템 개수에 따라 동적으로 높이 계산
+  const menuItemHeight = 48; // 각 메뉴 아이템의 높이 (py-2 = 16px, padding 16px)
+  const menuPadding = 32; // py-4 = 16px * 2
+  const menuSpacing = 8; // space-y-2 = 8px
+  const totalMenuHeight = navItems.length * menuItemHeight + (navItems.length - 1) * menuSpacing + menuPadding;
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 glass border-b border-border raven-shadow">
@@ -47,6 +54,7 @@ export function Header() {
           </nav>
 
           <div className="flex items-center space-x-4">
+            <ThemeSwitcher />
             {/* Mobile Menu Button */}
             <button
               className="md:hidden p-2 rounded-lg hover:bg-background-secondary transition-colors"
@@ -54,15 +62,15 @@ export function Header() {
               aria-label="Toggle menu"
             >
               <div
-                className={`w-6 h-0.5 border border-white transition-all ${isMenuOpen ? "rotate-45 translate-y-2" : ""
+                className={`w-6 h-0.5 border border-white transition-all duration-300 ease-in-out ${isMenuOpen ? "rotate-45 translate-y-2" : ""
                   }`}
               />
               <div
-                className={`w-6 h-0.5 border border-white my-1 transition-all ${isMenuOpen ? "opacity-0" : ""
+                className={`w-6 h-0.5 border border-white my-1 transition-all duration-300 ease-in-out ${isMenuOpen ? "opacity-0" : ""
                   }`}
               />
               <div
-                className={`w-6 h-0.5 border border-white transition-all ${isMenuOpen ? "-rotate-45 -translate-y-1" : ""
+                className={`w-6 h-0.5 border border-white transition-all duration-300 ease-in-out ${isMenuOpen ? "-rotate-45 -translate-y-1" : ""
                   }`}
               />
             </button>
@@ -71,18 +79,29 @@ export function Header() {
 
         {/* Mobile Navigation */}
         <div
-          className={`md:hidden transition-all duration-300 ${isMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
-            } overflow-hidden`}
+          className={`md:hidden transition-all duration-500 ease-in-out overflow-hidden ${isMenuOpen
+            ? "max-h-[var(--menu-height)] opacity-100"
+            : "max-h-0 opacity-0"
+            }`}
+          style={{
+            '--menu-height': `${totalMenuHeight}px`
+          } as React.CSSProperties}
         >
           <div className="py-4 space-y-2">
-            {navItems.map((item) => (
+            {navItems.map((item, index) => (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`block px-4 py-2 rounded-lg transition-all duration-300 ${location.pathname === item.path
+                className={`block px-4 py-2 rounded-lg transition-all duration-300 transform ${location.pathname === item.path
                   ? "bg-gradient-to-r from-accent to-accent-hover text-white shadow-lg"
                   : "text-text-primary hover:bg-background-secondary hover:text-accent"
+                  } ${isMenuOpen
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-2 opacity-0"
                   }`}
+                style={{
+                  transitionDelay: `${index * 50}ms`
+                }}
                 onClick={() => setIsMenuOpen(false)}
               >
                 {item.label}
