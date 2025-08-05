@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+
 import { AlbumCover } from "@src/pages/music/ui/AlbumCover";
 import { MusicPlayer } from "@src/pages/music/ui/MusicPlayer";
 import { YouTubeEmbed } from "@src/pages/music/ui/YouTubeEmbed";
