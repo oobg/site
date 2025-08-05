@@ -36,8 +36,8 @@ export function Header() {
                 key={item.path}
                 to={item.path}
                 className={`font-medium transition-all duration-300 relative group ${location.pathname === item.path
-                    ? "text-accent"
-                    : "text-text-primary hover:text-accent"
+                  ? "text-accent"
+                  : "text-text-primary hover:text-accent"
                   }`}
               >
                 {item.label}
@@ -62,17 +62,17 @@ export function Header() {
               aria-label="Toggle menu"
             >
               <div
-                className={`w-6 h-0.5 bg-text-primary transition-all ${isMenuOpen ? "rotate-45 translate-y-1" : ""
+                className={`w-6 h-0.5 border border-white transition-all ${isMenuOpen ? "rotate-45 translate-y-1" : ""
                   }`}
-              ></div>
+              />
               <div
-                className={`w-6 h-0.5 bg-text-primary my-1 transition-all ${isMenuOpen ? "opacity-0" : ""
+                className={`w-6 h-0.5 border border-white my-1 transition-all ${isMenuOpen ? "opacity-0" : ""
                   }`}
-              ></div>
+              />
               <div
-                className={`w-6 h-0.5 bg-text-primary transition-all ${isMenuOpen ? "-rotate-45 -translate-y-1" : ""
+                className={`w-6 h-0.5 border border-white transition-all ${isMenuOpen ? "-rotate-45 -translate-y-1" : ""
                   }`}
-              ></div>
+              />
             </button>
           </div>
         </div>
@@ -88,8 +88,8 @@ export function Header() {
                 key={item.path}
                 to={item.path}
                 className={`block px-4 py-2 rounded-lg transition-all duration-300 ${location.pathname === item.path
-                    ? "bg-gradient-to-r from-accent to-accent-hover text-white shadow-lg"
-                    : "text-text-primary hover:bg-background-secondary hover:text-accent"
+                  ? "bg-gradient-to-r from-accent to-accent-hover text-white shadow-lg"
+                  : "text-text-primary hover:bg-background-secondary hover:text-accent"
                   }`}
                 onClick={() => setIsMenuOpen(false)}
               >
