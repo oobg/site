@@ -41,17 +41,10 @@ jobs:
         uses: actions/setup-node@v4.0.2
         with:
           node-version: 22
+          cache: "pnpm"
 
       - name: pnpm 설치
         run: npm install -g pnpm
-
-      - name: pnpm 의존성 캐시
-        uses: actions/cache@v4
-        with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
 
       - name: pnpm 의존성 설치
         run: pnpm install --frozen-lockfile
