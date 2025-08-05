@@ -47,14 +47,6 @@ export function Header() {
           </nav>
 
           <div className="flex items-center space-x-4">
-            {/* Theme Switcher */}
-            <ThemeSwitcher />
-
-            {/* Contact Button */}
-            <Button variant="primary" size="md">
-              연락하기
-            </Button>
-
             {/* Mobile Menu Button */}
             <button
               className="md:hidden p-2 rounded-lg hover:bg-background-secondary transition-colors"
