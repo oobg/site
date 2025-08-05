@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Layout } from "@src/shared";
 
-import { YouTubeEmbed } from "./YouTubeEmbed";
-import { MusicPlayer } from "./MusicPlayer";
-import { AlbumCover } from "./AlbumCover";
+import { YouTubeEmbed } from "@src/pages/music/ui/YouTubeEmbed";
+import { MusicPlayer } from "@src/pages/music/ui/MusicPlayer";
+import { AlbumCover } from "@src/pages/music/ui/AlbumCover";
 
 // 윤하 유튜브 인기 상위 20곡 데이터
 const yoonhaSongs = [
