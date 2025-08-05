@@ -399,4 +399,4 @@ const MusicPage: React.FC = () => {
     );
 };
 
-export { MusicPage }; 
+export default MusicPage;
