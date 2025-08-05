@@ -43,8 +43,10 @@ jobs:
           node-version: 22
           cache: "pnpm"
 
-      - name: pnpm 설치
-        run: corepack enable
+      - name: corepack 활성화 및 pnpm 버전 지정
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
 
       - name: pnpm 의존성 설치
         run: pnpm install --frozen-lockfile
