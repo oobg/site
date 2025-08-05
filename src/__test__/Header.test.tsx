@@ -27,11 +27,11 @@ describe("Header", () => {
     );
 
     expect(screen.getByText("Raven.kr")).toBeInTheDocument();
-    expect(screen.getAllByText("홈")).toHaveLength(2); // Desktop and mobile
+    expect(screen.getAllByText("홈")).toHaveLength(2);
     expect(screen.getAllByText("포트폴리오")).toHaveLength(2);
     expect(screen.getAllByText("도구")).toHaveLength(2);
     expect(screen.getAllByText("소개")).toHaveLength(2);
-    expect(screen.getByText("연락하기")).toBeInTheDocument();
+    expect(screen.getAllByText("음악")).toHaveLength(2);
   });
 
   it("displays raven emoji", () => {
@@ -73,12 +73,14 @@ describe("Header", () => {
     // Mobile menu should be hidden initially
     const mobileMenu = hamburgerButton.parentElement?.parentElement?.nextElementSibling;
     expect(mobileMenu).toHaveClass("max-h-0");
+    expect(mobileMenu).toHaveClass("opacity-0");
 
     // Click hamburger button
     fireEvent.click(hamburgerButton);
 
-    // Mobile menu should be visible
-    expect(mobileMenu).toHaveClass("max-h-64");
+    // Mobile menu should be visible with dynamic height
+    expect(mobileMenu).toHaveClass("max-h-[var(--menu-height)]");
+    expect(mobileMenu).toHaveClass("opacity-100");
   });
 
   it("has correct navigation links", () => {
@@ -92,23 +94,35 @@ describe("Header", () => {
     const portfolioLinks = screen.getAllByText("포트폴리오");
     const toolsLinks = screen.getAllByText("도구");
     const aboutLinks = screen.getAllByText("소개");
+    const musicLinks = screen.getAllByText("음악");
 
     // Check desktop links (first ones)
     expect(homeLinks[0].closest("a")).toHaveAttribute("href", "/");
     expect(portfolioLinks[0].closest("a")).toHaveAttribute("href", "/portfolio");
     expect(toolsLinks[0].closest("a")).toHaveAttribute("href", "/tools");
     expect(aboutLinks[0].closest("a")).toHaveAttribute("href", "/about");
+    expect(musicLinks[0].closest("a")).toHaveAttribute("href", "/music");
   });
 
-  it("has contact button", () => {
+  it("closes mobile menu when navigation link is clicked", () => {
     render(
       <BrowserRouter>
         <Header />
       </BrowserRouter>,
     );
 
-    const contactButton = screen.getByText("연락하기");
-    expect(contactButton).toBeInTheDocument();
-    expect(contactButton.tagName).toBe("BUTTON");
+    const hamburgerButton = screen.getByLabelText("Toggle menu");
+    const mobileMenu = hamburgerButton.parentElement?.parentElement?.nextElementSibling;
+
+    // Open menu
+    fireEvent.click(hamburgerButton);
+    expect(mobileMenu).toHaveClass("opacity-100");
+
+    // Click a navigation link
+    const mobileHomeLink = screen.getAllByText("홈")[1]; // Second one is mobile
+    fireEvent.click(mobileHomeLink);
+
+    // Menu should be closed
+    expect(mobileMenu).toHaveClass("opacity-0");
   });
 });
