@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      APP_IDENTIFIER: ${{ github.ref_name }}-${{ secrets.PROJECT_NAME }}
+      APP_IDENTIFIER: ${{ github.base_ref || github.ref_name }}-${{ secrets.PROJECT_NAME }}
       DEPLOY_DIR: ${{ secrets.SERVER_DEFAULT_PATH }}/${{ github.ref_name }}-${{ secrets.PROJECT_NAME }}
 
     steps:
