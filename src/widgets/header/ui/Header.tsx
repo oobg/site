@@ -1,9 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import { ThemeSwitcher } from "@src/features/theme-switcher";
-import { Button } from "@src/shared/ui";
-
 interface NavItem {
   label: string;
   path: string;
@@ -54,7 +51,6 @@ export function Header() {
           </nav>
 
           <div className="flex items-center space-x-4">
-            <ThemeSwitcher />
             {/* Mobile Menu Button */}
             <button
               className="md:hidden p-2 rounded-lg hover:bg-background-secondary transition-colors"
