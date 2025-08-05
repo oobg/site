@@ -3,6 +3,7 @@ import { type FC, type ReactNode, lazy } from "react";
 const HomePage = lazy(() => import("@src/pages/home/ui/HomePage"));
 const AboutPage = lazy(() => import("@src/pages/about/ui/AboutPage"));
 const PortfolioPage = lazy(() => import("@src/pages/portfolio/ui/PortfolioPage"));
+const MusicPage = lazy(() => import("@src/pages/music/ui/MusicPage"));
 const NotFoundPage = lazy(() => import("@src/pages/not-found/ui/NotFoundPage"));
 
 export interface RouteConfig {
@@ -26,6 +27,11 @@ export const routes: RouteConfig[] = [
     path: "/portfolio",
     fallback: "포트폴리오 로딩중...",
     Component: PortfolioPage,
+  },
+  {
+    path: "/music",
+    fallback: "음악 로딩중...",
+    Component: MusicPage,
   },
   {
     path: "*",
