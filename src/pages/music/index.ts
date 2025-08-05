@@ -1,1 +1,1 @@
-export { MusicPage } from "./ui/MusicPage"; 
+export { default as MusicPage } from "./ui/MusicPage"; 
