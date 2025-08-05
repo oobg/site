@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-
 import { AlbumCover } from "@src/pages/music/ui/AlbumCover";
 import { MusicPlayer } from "@src/pages/music/ui/MusicPlayer";
 import { YouTubeEmbed } from "@src/pages/music/ui/YouTubeEmbed";
-
 import { Layout } from "@src/shared";
 
 // 윤하 유튜브 인기 상위 20곡 데이터
