@@ -54,7 +54,7 @@ export function Header() {
               aria-label="Toggle menu"
             >
               <div
-                className={`w-6 h-0.5 border border-white transition-all ${isMenuOpen ? "rotate-45 translate-y-1" : ""
+                className={`w-6 h-0.5 border border-white transition-all ${isMenuOpen ? "rotate-45 translate-y-2" : ""
                   }`}
               />
               <div
