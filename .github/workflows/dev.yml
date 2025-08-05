@@ -44,7 +44,7 @@ jobs:
           cache: "pnpm"
 
       - name: pnpm 설치
-        run: npm install -g pnpm
+        run: corepack enable
 
       - name: pnpm 의존성 설치
         run: pnpm install --frozen-lockfile
