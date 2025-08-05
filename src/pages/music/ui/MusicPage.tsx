@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 
-import { YouTubeEmbed } from "@src/pages/music/ui/YouTubeEmbed";
-import { MusicPlayer } from "@src/pages/music/ui/MusicPlayer";
 import { AlbumCover } from "@src/pages/music/ui/AlbumCover";
+import { MusicPlayer } from "@src/pages/music/ui/MusicPlayer";
+import { YouTubeEmbed } from "@src/pages/music/ui/YouTubeEmbed";
 
 import { Layout } from "@src/shared";
 
