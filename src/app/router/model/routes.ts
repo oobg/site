@@ -4,6 +4,7 @@ const HomePage = lazy(() => import("@src/pages/home/ui/HomePage"));
 const AboutPage = lazy(() => import("@src/pages/about/ui/AboutPage"));
 const PortfolioPage = lazy(() => import("@src/pages/portfolio/ui/PortfolioPage"));
 const MusicPage = lazy(() => import("@src/pages/music/ui/MusicPage"));
+const ToolsPage = lazy(() => import("@src/pages/tools/ui/ToolsPage"));
 const NotFoundPage = lazy(() => import("@src/pages/not-found/ui/NotFoundPage"));
 
 export interface RouteConfig {
@@ -32,6 +33,11 @@ export const routes: RouteConfig[] = [
     path: "/music",
     fallback: "음악 로딩중...",
     Component: MusicPage,
+  },
+  {
+    path: "/tools",
+    fallback: "도구 로딩중...",
+    Component: ToolsPage,
   },
   {
     path: "*",
