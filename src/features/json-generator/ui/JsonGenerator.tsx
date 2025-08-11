@@ -211,7 +211,6 @@ function renderColoredObjectRow(
     obj: Record<string, unknown>,
     fieldTypeMap: Record<string, FieldType | "date" | "uuid">,
     indent: number,
-    arrayItem?: boolean,
 ) {
     const pad = "  ".repeat(indent);
     const entries = Object.entries(obj);
@@ -223,15 +222,13 @@ function renderColoredObjectRow(
                 const t = fieldTypeMap[k] || typeof v;
                 const isLast = idx === lastIdx;
                 if (Array.isArray(v)) {
-                    const arrType = t === "array" ? (fieldTypeMap[k] === "array" ? (undefined) : undefined) : undefined;
-                    const itemType = (t === "array" ? (v.length > 0 ? typeof v[0] : "unknown") : "unknown");
+                    // const itemType = (t === "array" ? (v.length > 0 ? typeof v[0] : "unknown") : "unknown");
                     return (
                         <span key={k}>
                             <span className={typeToColorClass.key}>{"  ".repeat(indent + 1)}"{k}"</span>
                             <span className={typeToColorClass.punctuation}>: [</span>
                             {v.map((iv, i) => {
                                 const comma = i < (v as unknown[]).length - 1 ? "," : "";
-                                const ivType = itemType;
                                 const cls =
                                     typeof iv === "number" ? typeToColorClass.number :
                                         typeof iv === "boolean" ? typeToColorClass.boolean :
@@ -341,17 +338,17 @@ export function JsonGenerator() {
     }, [fields]);
 
     // 타임존 라벨 계산
-    const formatOffset = (mins: number) => {
-        const sign = mins >= 0 ? "+" : "-";
-        const abs = Math.abs(mins);
-        const hh = Math.floor(abs / 60);
-        const mm = abs % 60;
-        return `${sign}${String(hh).padStart(2, "0")}${mm ? ":" + String(mm).padStart(2, "0") : ""}`;
-    };
+    // reserved
+    // const formatOffset = (mins: number) => {
+    //     const sign = mins >= 0 ? "+" : "-";
+    //     const abs = Math.abs(mins);
+    //     const hh = Math.floor(abs / 60);
+    //     const mm = abs % 60;
+    //     return `${sign}${String(hh).padStart(2, "0")}${mm ? ":" + String(mm).padStart(2, "0") : ""}`;
+    // };
     const localTzName = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local";
     const localOffsetMinutes = -new Date().getTimezoneOffset(); // east=+
-    const localTzLabel = `${formatOffsetLabel(localOffsetMinutes)} (${localTzName})`;
-    const utcTzLabel = `UTC+00:00 (UTC)`;
+    // const localTzLabel = `${formatOffsetLabel(localOffsetMinutes)} (${localTzName})`;
     const allTimeZones: string[] = typeof (Intl as any).supportedValuesOf === "function" ? (Intl as any).supportedValuesOf("timeZone") : [localTzName, "UTC"];
     const tzOptions = allTimeZones.map((tz) => {
         const off = tz === "UTC" ? 0 : getTimeZoneOffsetMinutes(tz, new Date());
@@ -521,7 +518,7 @@ export function JsonGenerator() {
                 <div className="flex-1 space-y-5">
                     <div className="flex items-center justify-between">
                         <span className="text-sm text-text-secondary">필드 정의</span>
-                        <button onClick={addField} className="text-sm px-3 py-2 rounded-lg bg-gradient-to-r from-accent to-accent-hover text-white hover:opacity-95 transition-all shadow">
+                        <button onClick={addField} className="text-sm px-4 py-2 rounded-xl bg-gradient-to-r from-accent to-accent-hover text-white shadow-lg hover:shadow-xl hover:brightness-105 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50">
                             + 필드 추가
                         </button>
                     </div>
@@ -531,13 +528,13 @@ export function JsonGenerator() {
                         <summary className="cursor-pointer text-sm font-semibold">빠른 필드 추가</summary>
                         <div className="mt-3 grid grid-cols-12 gap-2 items-start">
                             <input
-                                className="col-span-3 px-3 py-2 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                className="col-span-3 px-3 py-2 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition"
                                 placeholder="필드명"
                                 value={newName}
                                 onChange={(e) => setNewName(e.target.value)}
                             />
                             <select
-                                className="col-span-2 px-3 py-2 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                className="col-span-2 px-3 py-2 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 transition"
                                 value={newType}
                                 onChange={(e) => setNewType(e.target.value as FieldType)}
                             >
@@ -552,11 +549,11 @@ export function JsonGenerator() {
                             {newType === "string" && (
                                 <div className="col-span-6 grid grid-cols-2 gap-2">
                                     <label className="text-xs text-text-secondary">min
-                                        <input type="number" className="w-full mt-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                        <input type="number" className="w-full mt-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                             value={nfStringMin} onChange={(e) => setNfStringMin(Number(e.target.value))} />
                                     </label>
                                     <label className="text-xs text-text-secondary">max
-                                        <input type="number" className="w-full mt-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                        <input type="number" className="w-full mt-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                             value={nfStringMax} onChange={(e) => setNfStringMax(Number(e.target.value))} />
                                     </label>
                                 </div>
@@ -564,11 +561,11 @@ export function JsonGenerator() {
                             {newType === "number" && (
                                 <div className="col-span-6 grid grid-cols-2 gap-2">
                                     <label className="text-xs text-text-secondary">min
-                                        <input type="number" className="w-full mt-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                        <input type="number" className="w-full mt-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                             value={nfNumberMin} onChange={(e) => setNfNumberMin(Number(e.target.value))} />
                                     </label>
                                     <label className="text-xs text-text-secondary">max
-                                        <input type="number" className="w-full mt-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                        <input type="number" className="w-full mt-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                             value={nfNumberMax} onChange={(e) => setNfNumberMax(Number(e.target.value))} />
                                     </label>
                                 </div>
@@ -577,16 +574,16 @@ export function JsonGenerator() {
                                 <div className="col-span-7 grid grid-cols-7 gap-2 items-start">
                                     <div className="col-span-2 grid grid-cols-2 gap-2">
                                         <label className="text-xs text-text-secondary">days min
-                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                                 value={nfDateMin} onChange={(e) => setNfDateMin(Number(e.target.value))} />
                                         </label>
                                         <label className="text-xs text-text-secondary">days max
-                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                                 value={nfDateMax} onChange={(e) => setNfDateMax(Number(e.target.value))} />
                                         </label>
                                     </div>
                                     <select
-                                        className="col-span-2 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                        className="col-span-2 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                         value={nfDateTZ}
                                         onChange={(e) => setNfDateTZ(e.target.value)}
                                     >
@@ -599,7 +596,7 @@ export function JsonGenerator() {
                             {newType === "array" && (
                                 <div className="col-span-7 grid grid-cols-7 gap-2 items-start">
                                     <select
-                                        className="col-span-2 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                        className="col-span-2 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                         value={nfArrayType}
                                         onChange={(e) => setNfArrayType(e.target.value as PrimitiveType)}
                                     >
@@ -609,19 +606,19 @@ export function JsonGenerator() {
                                         <option value="date">item: date</option>
                                         <option value="uuid">item: uuid</option>
                                     </select>
-                                    <input type="number" className="col-span-1 px-2 py-1 rounded-md bg-background-secondary border border-border" value={nfArrayLenMin} onChange={(e) => setNfArrayLenMin(Number(e.target.value))} placeholder="len min" />
-                                    <input type="number" className="col-span-1 px-2 py-1 rounded-md bg-background-secondary border border-border" value={nfArrayLenMax} onChange={(e) => setNfArrayLenMax(Number(e.target.value))} placeholder="len max" />
+                                    <input type="number" className="col-span-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" value={nfArrayLenMin} onChange={(e) => setNfArrayLenMin(Number(e.target.value))} placeholder="len min" />
+                                    <input type="number" className="col-span-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40" value={nfArrayLenMax} onChange={(e) => setNfArrayLenMax(Number(e.target.value))} placeholder="len max" />
 
                                     {nfArrayType === "string" && (
                                         <div className="col-span-7 grid grid-cols-2 gap-2 mt-2">
-                                            <input type="number" className="px-2 py-1 rounded-md bg-background-secondary border border-border" value={nfArrStrMin} onChange={(e) => setNfArrStrMin(Number(e.target.value))} placeholder="item min" />
-                                            <input type="number" className="px-2 py-1 rounded-md bg-background-secondary border border-border" value={nfArrStrMax} onChange={(e) => setNfArrStrMax(Number(e.target.value))} placeholder="item max" />
+                                            <input type="number" className="px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner" value={nfArrStrMin} onChange={(e) => setNfArrStrMin(Number(e.target.value))} placeholder="item min" />
+                                            <input type="number" className="px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner" value={nfArrStrMax} onChange={(e) => setNfArrStrMax(Number(e.target.value))} placeholder="item max" />
                                         </div>
                                     )}
                                     {nfArrayType === "number" && (
                                         <div className="col-span-7 grid grid-cols-2 gap-2 mt-2">
-                                            <input type="number" className="px-2 py-1 rounded-md bg-background-secondary border border-border" value={nfArrNumMin} onChange={(e) => setNfArrNumMin(Number(e.target.value))} placeholder="item min" />
-                                            <input type="number" className="px-2 py-1 rounded-md bg-background-secondary border border-border" value={nfArrNumMax} onChange={(e) => setNfArrNumMax(Number(e.target.value))} placeholder="item max" />
+                                            <input type="number" className="px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner" value={nfArrNumMin} onChange={(e) => setNfArrNumMin(Number(e.target.value))} placeholder="item min" />
+                                            <input type="number" className="px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner" value={nfArrNumMax} onChange={(e) => setNfArrNumMax(Number(e.target.value))} placeholder="item max" />
                                         </div>
                                     )}
                                     {nfArrayType === "date" && (
@@ -645,7 +642,7 @@ export function JsonGenerator() {
                             <div className="col-span-12 md:col-span-1">
                                 <button
                                     onClick={addFieldFromForm}
-                                    className="w-full px-3 py-2 rounded-md bg-accent text-white hover:bg-accent-hover"
+                                    className="w-full px-4 py-2 rounded-xl bg-gradient-to-r from-accent to-accent-hover text-white shadow-lg hover:shadow-xl hover:brightness-105 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50"
                                     title="필드 추가"
                                 >
                                     추가
@@ -658,13 +655,13 @@ export function JsonGenerator() {
                         {fields.map((f) => (
                             <div key={f.id} className="grid grid-cols-12 gap-2 items-start">
                                 <input
-                                    className="col-span-3 px-3 py-2 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                    className="col-span-3 px-3 py-2 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                     placeholder="필드명 (예: email)"
                                     value={f.name}
                                     onChange={(e) => updateField(f.id, { name: e.target.value })}
                                 />
                                 <select
-                                    className="col-span-2 px-3 py-2 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                    className="col-span-2 px-3 py-2 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                     value={f.type}
                                     onChange={(e) => {
                                         const t = e.target.value as FieldType;
@@ -687,13 +684,13 @@ export function JsonGenerator() {
                                 {f.type === "string" && (
                                     <div className="col-span-5 grid grid-cols-2 gap-2">
                                         <label className="text-xs text-text-secondary">min
-                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                                 value={f.stringOpts?.minLen ?? 5}
                                                 onChange={(e) => updateField(f.id, { stringOpts: { minLen: Number(e.target.value), maxLen: f.stringOpts?.maxLen ?? 12 } })}
                                             />
                                         </label>
                                         <label className="text-xs text-text-secondary">max
-                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                                 value={f.stringOpts?.maxLen ?? 12}
                                                 onChange={(e) => updateField(f.id, { stringOpts: { minLen: f.stringOpts?.minLen ?? 5, maxLen: Number(e.target.value) } })}
                                             />
@@ -704,13 +701,13 @@ export function JsonGenerator() {
                                 {f.type === "number" && (
                                     <div className="col-span-5 grid grid-cols-2 gap-2">
                                         <label className="text-xs text-text-secondary">min
-                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                                 value={f.numberOpts?.min ?? 0}
                                                 onChange={(e) => updateField(f.id, { numberOpts: { min: Number(e.target.value), max: f.numberOpts?.max ?? 10000 } })}
                                             />
                                         </label>
                                         <label className="text-xs text-text-secondary">max
-                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                                 value={f.numberOpts?.max ?? 10000}
                                                 onChange={(e) => updateField(f.id, { numberOpts: { min: f.numberOpts?.min ?? 0, max: Number(e.target.value) } })}
                                             />
@@ -721,19 +718,19 @@ export function JsonGenerator() {
                                 {f.type === "date" && (
                                     <div className="col-span-5 grid grid-cols-5 gap-2 items-start">
                                         <label className="col-span-2 text-xs text-text-secondary">days min
-                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                                 value={f.dateOpts?.daysBackMin ?? 0}
                                                 onChange={(e) => updateField(f.id, { dateOpts: { ...(f.dateOpts || {}), daysBackMin: Number(e.target.value), daysBackMax: f.dateOpts?.daysBackMax ?? 365 } })}
                                             />
                                         </label>
                                         <label className="col-span-2 text-xs text-text-secondary">days max
-                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                            <input type="number" className="w-full mt-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                                 value={f.dateOpts?.daysBackMax ?? 365}
                                                 onChange={(e) => updateField(f.id, { dateOpts: { ...(f.dateOpts || {}), daysBackMin: f.dateOpts?.daysBackMin ?? 0, daysBackMax: Number(e.target.value) } })}
                                             />
                                         </label>
                                         <select
-                                            className="col-span-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                            className="col-span-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                             value={f.dateOpts?.timeZoneId ?? localTzName}
                                             onChange={(e) => updateField(f.id, { dateOpts: { ...(f.dateOpts || { daysBackMin: 0, daysBackMax: 365 }), timeZoneId: e.target.value } })}
                                         >
@@ -747,7 +744,7 @@ export function JsonGenerator() {
                                 {f.type === "array" && f.arrayOpts && (
                                     <div className="col-span-5 grid grid-cols-5 gap-2">
                                         <select
-                                            className="col-span-2 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                            className="col-span-2 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                             value={f.arrayOpts.itemType}
                                             onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemType: e.target.value as PrimitiveType } })}
                                         >
@@ -759,61 +756,61 @@ export function JsonGenerator() {
                                         </select>
                                         <input
                                             type="number"
-                                            className="col-span-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                            className="col-span-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                             value={f.arrayOpts.lengthMin}
                                             onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, lengthMin: Number(e.target.value) } })}
                                             placeholder="len min"
                                         />
                                         <input
                                             type="number"
-                                            className="col-span-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                            className="col-span-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                             value={f.arrayOpts.lengthMax}
                                             onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, lengthMax: Number(e.target.value) } })}
                                             placeholder="len max"
                                         />
                                         {/* 아이템 타입별 세부옵션(간단) */}
-                                        {f.arrayOpts?.itemType === "string" && (
+                                        {f.arrayOpts && f.arrayOpts.itemType === "string" && (
                                             <div className="col-span-5 grid grid-cols-2 gap-2 mt-2">
-                                                <input type="number" className="px-2 py-1 rounded-md bg-background-secondary border border-border"
+                                                <input type="number" className="px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner"
                                                     value={f.arrayOpts.itemStringOpts?.minLen ?? 3}
                                                     onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemStringOpts: { minLen: Number(e.target.value), maxLen: f.arrayOpts.itemStringOpts?.maxLen ?? 8 } } })}
                                                     placeholder="item min"
                                                 />
-                                                <input type="number" className="px-2 py-1 rounded-md bg-background-secondary border border-border"
+                                                <input type="number" className="px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner"
                                                     value={f.arrayOpts.itemStringOpts?.maxLen ?? 8}
                                                     onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemStringOpts: { minLen: f.arrayOpts.itemStringOpts?.minLen ?? 3, maxLen: Number(e.target.value) } } })}
                                                     placeholder="item max"
                                                 />
                                             </div>
                                         )}
-                                        {f.arrayOpts?.itemType === "number" && (
+                                        {f.arrayOpts && f.arrayOpts.itemType === "number" && (
                                             <div className="col-span-5 grid grid-cols-2 gap-2 mt-2">
-                                                <input type="number" className="px-2 py-1 rounded-md bg-background-secondary border border-border"
+                                                <input type="number" className="px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner"
                                                     value={f.arrayOpts.itemNumberOpts?.min ?? 0}
                                                     onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemNumberOpts: { min: Number(e.target.value), max: f.arrayOpts.itemNumberOpts?.max ?? 100 } } })}
                                                     placeholder="item min"
                                                 />
-                                                <input type="number" className="px-2 py-1 rounded-md bg-background-secondary border border-border"
+                                                <input type="number" className="px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner"
                                                     value={f.arrayOpts.itemNumberOpts?.max ?? 100}
                                                     onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemNumberOpts: { min: f.arrayOpts.itemNumberOpts?.min ?? 0, max: Number(e.target.value) } } })}
                                                     placeholder="item max"
                                                 />
                                             </div>
                                         )}
-                                        {f.arrayOpts?.itemType === "date" && (
+                                        {f.arrayOpts && f.arrayOpts.itemType === "date" && (
                                             <div className="col-span-5 grid grid-cols-5 gap-2 mt-2 items-start">
-                                                <input type="number" className="col-span-2 px-2 py-1 rounded-md bg-background-secondary border border-border"
+                                                <input type="number" className="col-span-2 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner"
                                                     value={f.arrayOpts.itemDateOpts?.daysBackMin ?? 0}
                                                     onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemDateOpts: { ...(f.arrayOpts.itemDateOpts || { daysBackMin: 0, daysBackMax: 365 }), daysBackMin: Number(e.target.value) } } })}
                                                     placeholder="days min"
                                                 />
-                                                <input type="number" className="col-span-2 px-2 py-1 rounded-md bg-background-secondary border border-border"
+                                                <input type="number" className="col-span-2 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner"
                                                     value={f.arrayOpts.itemDateOpts?.daysBackMax ?? 365}
                                                     onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemDateOpts: { ...(f.arrayOpts.itemDateOpts || { daysBackMin: 0, daysBackMax: 365 }), daysBackMax: Number(e.target.value) } } })}
                                                     placeholder="days max"
                                                 />
                                                 <select
-                                                    className="col-span-1 px-2 py-1 rounded-md bg-background-secondary border border-border focus:outline-none"
+                                                    className="col-span-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                                                     value={f.arrayOpts.itemDateOpts?.timeZoneId ?? localTzName}
                                                     onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemDateOpts: { ...(f.arrayOpts.itemDateOpts || { daysBackMin: 0, daysBackMax: 365 }), timeZoneId: e.target.value } } })}
                                                 >
@@ -828,7 +825,7 @@ export function JsonGenerator() {
 
                                 <button
                                     onClick={() => removeField(f.id)}
-                                    className="col-span-1 px-3 py-2 rounded-lg border border-red-500/30 text-red-300 hover:bg-red-500/10 transition"
+                                    className="col-span-1 px-3 py-2 rounded-xl border border-red-500/40 text-red-300 hover:bg-red-500/10 hover:shadow-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/40"
                                     aria-label="remove field"
                                     title="삭제"
                                 >
@@ -861,7 +858,7 @@ export function JsonGenerator() {
                         <span className="text-sm text-text-secondary">생성 개수</span>
                         <input
                             type="number"
-                            className="mt-1 w-full px-3 py-2 rounded-lg bg-background-secondary border border-border focus:outline-none"
+                            className="mt-1 w-full px-3 py-2 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner placeholder:text-text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                             min={0}
                             max={10000}
                             value={count}
@@ -872,7 +869,7 @@ export function JsonGenerator() {
                     <label className="block">
                         <span className="text-sm text-text-secondary">출력 포맷</span>
                         <select
-                            className="mt-1 w-full px-3 py-2 rounded-lg bg-background-secondary border border-border focus:outline-none"
+                            className="mt-1 w-full px-3 py-2 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
                             value={format}
                             onChange={(e) => setFormat(e.target.value as FileFormat)}
                         >
@@ -893,13 +890,13 @@ export function JsonGenerator() {
                     </label>
 
                     <div className="flex gap-2">
-                        <button onClick={generate} className="flex-1 px-4 py-2 rounded-lg bg-gradient-to-r from-accent to-accent-hover text-white hover:opacity-95 transition-all shadow">
+                        <button onClick={generate} className="flex-1 px-4 py-2 rounded-xl bg-gradient-to-r from-accent to-accent-hover text-white shadow-lg hover:shadow-xl hover:brightness-105 active:scale-[0.98] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/50">
                             생성
                         </button>
-                        <button onClick={copy} className="px-3 py-2 rounded-lg border border-border hover:bg-background-secondary transition">
+                        <button onClick={copy} className="px-3 py-2 rounded-xl border border-border/60 bg-background-secondary/60 hover:bg-background-secondary/80 hover:shadow-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
                             {copied ? "복사됨!" : "복사"}
                         </button>
-                        <button onClick={download} className="px-3 py-2 rounded-lg border border-border hover:bg-background-secondary transition">
+                        <button onClick={download} className="px-3 py-2 rounded-xl border border-border/60 bg-background-secondary/60 hover:bg-background-secondary/80 hover:shadow-md transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/30">
                             저장
                         </button>
                     </div>
