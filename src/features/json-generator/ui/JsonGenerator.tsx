@@ -204,7 +204,7 @@ function decodeVisibleEscapes(s: string): string {
 function escapeString(str: string): string {
     return str
         .replace(/\\/g, "\\\\")
-        .replace(/\"/g, '\\"');
+        .replace(/"/g, '\\"');
 }
 
 function renderColoredObjectRow(
@@ -366,7 +366,7 @@ export function JsonGenerator() {
                 if (parsed?.format) setFormat(parsed.format);
                 if (typeof parsed?.useUTC === "boolean") setUseUTC(parsed.useUTC);
             }
-        } catch { }
+        } catch { void 0; }
     }, []);
     // save (debounced)
     const saveTimer = useRef<number | null>(null);
@@ -375,7 +375,7 @@ export function JsonGenerator() {
         saveTimer.current = window.setTimeout(() => {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify({ fields, count, pretty, format, useUTC }));
-            } catch { }
+            } catch { void 0; }
         }, 300);
         return () => {
             if (saveTimer.current) window.clearTimeout(saveTimer.current);
@@ -492,7 +492,7 @@ export function JsonGenerator() {
             await navigator.clipboard.writeText(output);
             setCopied(true);
             setTimeout(() => setCopied(false), 1200);
-        } catch { }
+        } catch { void 0; }
     }
 
     function download() {

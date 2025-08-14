@@ -1,5 +1,5 @@
-import { Layout } from "@src/shared/ui";
 import { JsonGenerator } from "@src/features/json-generator";
+import { Layout } from "@src/shared/ui";
 
 function ToolsPage() {
     return (
