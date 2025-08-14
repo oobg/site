@@ -347,7 +347,6 @@ export function JsonGenerator() {
     //     return `${sign}${String(hh).padStart(2, "0")}${mm ? ":" + String(mm).padStart(2, "0") : ""}`;
     // };
     const localTzName = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local";
-    const localOffsetMinutes = -new Date().getTimezoneOffset(); // east=+
     // const localTzLabel = `${formatOffsetLabel(localOffsetMinutes)} (${localTzName})`;
     const allTimeZones: string[] = typeof (Intl as any).supportedValuesOf === "function" ? (Intl as any).supportedValuesOf("timeZone") : [localTzName, "UTC"];
     const tzOptions = allTimeZones.map((tz) => {
@@ -772,13 +771,13 @@ export function JsonGenerator() {
                                         {f.arrayOpts && f.arrayOpts.itemType === "string" && (
                                             <div className="col-span-5 grid grid-cols-2 gap-2 mt-2">
                                                 <input type="number" className="px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner"
-                                                    value={f.arrayOpts.itemStringOpts?.minLen ?? 3}
-                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemStringOpts: { minLen: Number(e.target.value), maxLen: f.arrayOpts.itemStringOpts?.maxLen ?? 8 } } })}
+                                                    value={f.arrayOpts!.itemStringOpts?.minLen ?? 3}
+                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemStringOpts: { minLen: Number(e.target.value), maxLen: f.arrayOpts!.itemStringOpts?.maxLen ?? 8 } } })}
                                                     placeholder="item min"
                                                 />
                                                 <input type="number" className="px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner"
-                                                    value={f.arrayOpts.itemStringOpts?.maxLen ?? 8}
-                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemStringOpts: { minLen: f.arrayOpts.itemStringOpts?.minLen ?? 3, maxLen: Number(e.target.value) } } })}
+                                                    value={f.arrayOpts!.itemStringOpts?.maxLen ?? 8}
+                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemStringOpts: { minLen: f.arrayOpts!.itemStringOpts?.minLen ?? 3, maxLen: Number(e.target.value) } } })}
                                                     placeholder="item max"
                                                 />
                                             </div>
@@ -786,13 +785,13 @@ export function JsonGenerator() {
                                         {f.arrayOpts && f.arrayOpts.itemType === "number" && (
                                             <div className="col-span-5 grid grid-cols-2 gap-2 mt-2">
                                                 <input type="number" className="px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner"
-                                                    value={f.arrayOpts.itemNumberOpts?.min ?? 0}
-                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemNumberOpts: { min: Number(e.target.value), max: f.arrayOpts.itemNumberOpts?.max ?? 100 } } })}
+                                                    value={f.arrayOpts!.itemNumberOpts?.min ?? 0}
+                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemNumberOpts: { min: Number(e.target.value), max: f.arrayOpts!.itemNumberOpts?.max ?? 100 } } })}
                                                     placeholder="item min"
                                                 />
                                                 <input type="number" className="px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner"
-                                                    value={f.arrayOpts.itemNumberOpts?.max ?? 100}
-                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemNumberOpts: { min: f.arrayOpts.itemNumberOpts?.min ?? 0, max: Number(e.target.value) } } })}
+                                                    value={f.arrayOpts!.itemNumberOpts?.max ?? 100}
+                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemNumberOpts: { min: f.arrayOpts!.itemNumberOpts?.min ?? 0, max: Number(e.target.value) } } })}
                                                     placeholder="item max"
                                                 />
                                             </div>
@@ -800,19 +799,19 @@ export function JsonGenerator() {
                                         {f.arrayOpts && f.arrayOpts.itemType === "date" && (
                                             <div className="col-span-5 grid grid-cols-5 gap-2 mt-2 items-start">
                                                 <input type="number" className="col-span-2 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner"
-                                                    value={f.arrayOpts.itemDateOpts?.daysBackMin ?? 0}
-                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemDateOpts: { ...(f.arrayOpts.itemDateOpts || { daysBackMin: 0, daysBackMax: 365 }), daysBackMin: Number(e.target.value) } } })}
+                                                    value={f.arrayOpts!.itemDateOpts?.daysBackMin ?? 0}
+                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemDateOpts: { ...(f.arrayOpts!.itemDateOpts || { daysBackMin: 0, daysBackMax: 365 }), daysBackMin: Number(e.target.value) } } })}
                                                     placeholder="days min"
                                                 />
                                                 <input type="number" className="col-span-2 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner"
-                                                    value={f.arrayOpts.itemDateOpts?.daysBackMax ?? 365}
-                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemDateOpts: { ...(f.arrayOpts.itemDateOpts || { daysBackMin: 0, daysBackMax: 365 }), daysBackMax: Number(e.target.value) } } })}
+                                                    value={f.arrayOpts!.itemDateOpts?.daysBackMax ?? 365}
+                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemDateOpts: { ...(f.arrayOpts!.itemDateOpts || { daysBackMin: 0, daysBackMax: 365 }), daysBackMax: Number(e.target.value) } } })}
                                                     placeholder="days max"
                                                 />
                                                 <select
                                                     className="col-span-1 px-2 py-1 rounded-xl bg-background-secondary/70 border border-border/60 shadow-inner focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                                                    value={f.arrayOpts.itemDateOpts?.timeZoneId ?? localTzName}
-                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemDateOpts: { ...(f.arrayOpts.itemDateOpts || { daysBackMin: 0, daysBackMax: 365 }), timeZoneId: e.target.value } } })}
+                                                    value={f.arrayOpts!.itemDateOpts?.timeZoneId ?? localTzName}
+                                                    onChange={(e) => updateField(f.id, { arrayOpts: { ...f.arrayOpts!, itemDateOpts: { ...(f.arrayOpts!.itemDateOpts || { daysBackMin: 0, daysBackMax: 365 }), timeZoneId: e.target.value } } })}
                                                 >
                                                     {tzOptions.map(opt => (
                                                         <option key={opt.id} value={opt.id}>{opt.label}</option>
