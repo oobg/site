@@ -14,7 +14,8 @@
     "test": "vitest run src/__test__",
     "test:ui": "vitest --ui src/__test__",
     "test:coverage": "vitest run --coverage src/__test__",
-    "predeploy": "pnpm test && pnpm lint:deploy && pnpm type-check"
+    "predeploy": "pnpm test && pnpm lint:deploy && pnpm type-check",
+    "prepare": "husky"
   },
   "dependencies": {
     "react": "^19.1.0",
@@ -23,6 +24,7 @@
     "zustand": "^5.0.6"
   },
   "devDependencies": {
+    "husky": "^9.1.6",
     "@tailwindcss/vite": "^4.1.11",
     "@types/node": "^22.0.0",
     "@types/react": "^19.1.8",
