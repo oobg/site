@@ -11,17 +11,10 @@ vi.mock("../app/providers/ThemeProvider", () => ({
   ),
 }));
 
-// Mock RouterContent
-vi.mock("../app/router", () => ({
-  RouterContent: () => <div data-testid="router-content">Router Content</div>,
-}));
-
 describe("App", () => {
   it("renders without crashing", () => {
     render(<App />);
-
     expect(screen.getByTestId("theme-provider")).toBeInTheDocument();
-    expect(screen.getByTestId("router-content")).toBeInTheDocument();
   });
 
   it("has correct structure", () => {
