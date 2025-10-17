@@ -15,7 +15,7 @@
     "test:ui": "vitest --ui src/__test__",
     "test:coverage": "vitest run --coverage src/__test__",
     "predeploy": "pnpm test && pnpm lint:deploy && pnpm type-check",
-    "prepare": "husky"
+    "prepare": "husky install"
   },
   "dependencies": {
     "react": "^19.1.0",
