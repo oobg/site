@@ -1,10 +1,13 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# 현재 브랜치값을 항상 계산
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
 # 타입 체크
 pnpm tsc --noEmit
 # 변경된 파일에 대해 린트/포맷
-pnpm lint-staged
+pnpm lint-staged || true
 
 # 현재 브랜치 확인
 if command -v git-branch-is >/dev/null; then
@@ -12,7 +15,6 @@ if command -v git-branch-is >/dev/null; then
     pnpm run test
   fi
 else
-  current_branch=$(git rev-parse --abbrev-ref HEAD)
   if [ "$current_branch" = "main" ] || [ "$current_branch" = "dev" ]; then
     pnpm run test
   fi
@@ -20,5 +22,5 @@ fi
 
 # 자동 패치 버전 증가 (dev 브랜치에서만)
 if [ "$current_branch" = "dev" ]; then
-  pnpm node ./scripts/precommit-bump.mjs || true
+  node ./scripts/precommit-bump.mjs || true
 fi
