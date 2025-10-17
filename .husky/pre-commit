@@ -17,3 +17,8 @@ else
     pnpm run test
   fi
 fi
+
+# 자동 패치 버전 증가 (dev 브랜치에서만)
+if [ "$current_branch" = "dev" ]; then
+  pnpm node ./scripts/precommit-bump.mjs || true
+fi
