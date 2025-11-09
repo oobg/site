@@ -1,18 +1,15 @@
-import { Hero } from '@widgets/hero';
 import { About } from '@widgets/about';
+import { Contact } from '@widgets/contact';
+import { Hero } from '@widgets/hero';
 import { Projects } from '@widgets/projects';
 import { Skills } from '@widgets/skills';
-import { Contact } from '@widgets/contact';
 
-export const LandingPage = () => {
-  return (
-    <>
-      <Hero />
-      <About />
-      <Projects />
-      <Skills />
-      <Contact />
-    </>
-  );
-};
-
+export const LandingPage = () => (
+  <>
+    <Hero />
+    <About />
+    <Projects />
+    <Skills />
+    <Contact />
+  </>
+);

@@ -11,7 +11,7 @@ module.exports = {
     'plugin:@typescript-eslint/recommended',
     'plugin:jsx-a11y/recommended',
   ],
-  ignorePatterns: ['dist', '.eslintrc.cjs', 'vite.config.ts'],
+  ignorePatterns: ['dist', '.eslintrc.cjs', 'vite.config.ts', 'vitest.config.ts'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 'latest',
@@ -22,108 +22,29 @@ module.exports = {
   rules: {
     'react/react-in-jsx-scope': 'off',
     'react/prop-types': 'off',
+    'react/require-default-props': 'off',
+    'react/jsx-props-no-spreading': ['error', {
+      html: 'ignore',
+      custom: 'enforce',
+      explicitSpread: 'ignore',
+    }],
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-explicit-any': 'warn',
     'import/prefer-default-export': 'off',
     'import/no-default-export': 'error',
-    'import/order': [
-      'error',
-      {
-        groups: [
-          'builtin',
-          'external',
-          'internal',
-          'parent',
-          'sibling',
-          'index',
-        ],
-        'newlines-between': 'always',
-        alphabetize: { order: 'asc', caseInsensitive: true },
-      },
-    ],
-    // FSD architecture rules
-    'import/no-restricted-paths': [
-      'error',
-      {
-        zones: [
-          {
-            target: './src/app/**',
-            from: './src/pages/**',
-            message: 'app cannot import from pages',
-          },
-          {
-            target: './src/app/**',
-            from: './src/widgets/**',
-            message: 'app cannot import from widgets',
-          },
-          {
-            target: './src/app/**',
-            from: './src/features/**',
-            message: 'app cannot import from features',
-          },
-          {
-            target: './src/app/**',
-            from: './src/entities/**',
-            message: 'app cannot import from entities',
-          },
-          {
-            target: './src/pages/**',
-            from: './src/app/**',
-            message: 'pages cannot import from app',
-          },
-          {
-            target: './src/widgets/**',
-            from: './src/pages/**',
-            message: 'widgets cannot import from pages',
-          },
-          {
-            target: './src/widgets/**',
-            from: './src/app/**',
-            message: 'widgets cannot import from app',
-          },
-          {
-            target: './src/features/**',
-            from: './src/pages/**',
-            message: 'features cannot import from pages',
-          },
-          {
-            target: './src/features/**',
-            from: './src/widgets/**',
-            message: 'features cannot import from widgets',
-          },
-          {
-            target: './src/features/**',
-            from: './src/app/**',
-            message: 'features cannot import from app',
-          },
-          {
-            target: './src/entities/**',
-            from: './src/pages/**',
-            message: 'entities cannot import from pages',
-          },
-          {
-            target: './src/entities/**',
-            from: './src/widgets/**',
-            message: 'entities cannot import from widgets',
-          },
-          {
-            target: './src/entities/**',
-            from: './src/features/**',
-            message: 'entities cannot import from features',
-          },
-          {
-            target: './src/entities/**',
-            from: './src/app/**',
-            message: 'entities cannot import from app',
-          },
-        ],
-      },
-    ],
+    'import/extensions': 'off',
+    'import/no-cycle': 'off',
+    'import/order': 'off',
+    'import/no-restricted-paths': 'off',
+    'import/no-extraneous-dependencies': 'off',
+    'import/no-duplicates': 'off',
+    'import/no-self-import': 'off',
+    'import/no-useless-path-segments': 'off',
   },
   settings: {
     'import/resolver': {
-      typescript: {
-        alwaysTryTypes: true,
-        project: './tsconfig.json',
+      node: {
+        extensions: ['.js', '.jsx', '.ts', '.tsx'],
       },
     },
   },

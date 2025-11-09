@@ -1,4 +1,5 @@
 import { createServer } from 'miragejs';
+
 import { handlers } from './handlers';
 
 export const createMockServer = () => {
@@ -13,4 +14,3 @@ export const createMockServer = () => {
   }
   return null;
 };
-

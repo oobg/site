@@ -5,7 +5,9 @@ interface ContainerProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 export const Container = forwardRef<HTMLDivElement, ContainerProps>(
-  ({ size = 'xl', className = '', children, ...props }, ref) => {
+  ({
+    size = 'xl', className = '', children, ...props
+  }, ref) => {
     const sizes = {
       sm: 'max-w-3xl',
       md: 'max-w-4xl',
@@ -27,4 +29,3 @@ export const Container = forwardRef<HTMLDivElement, ContainerProps>(
 );
 
 Container.displayName = 'Container';
-

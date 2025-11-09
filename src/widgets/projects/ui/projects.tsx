@@ -1,5 +1,5 @@
-import { Container } from '@shared/ui/container';
 import { Card } from '@shared/ui/card';
+import { Container } from '@shared/ui/container';
 
 const projects = [
   {
@@ -22,31 +22,28 @@ const projects = [
   // },
 ];
 
-export const Projects = () => {
-  return (
-    <section id="projects" className="py-16 sm:py-24">
-      <Container>
-        <h2 className="mb-12 text-center text-3xl sm:text-4xl font-bold text-white">Projects</h2>
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
-          {projects.map((project) => (
-            <Card key={project.id} hover>
-              <h3 className="mb-3 text-xl font-semibold text-white">{project.title}</h3>
-              <p className="mb-4 text-gray-300">{project.description}</p>
-              <div className="flex flex-wrap gap-2">
-                {project.tech.map((tech) => (
-                  <span
-                    key={tech}
-                    className="rounded-full bg-primary-900/50 px-3 py-1 text-sm text-primary-300"
-                  >
-                    {tech}
-                  </span>
-                ))}
-              </div>
-            </Card>
-          ))}
-        </div>
-      </Container>
-    </section>
-  );
-};
-
+export const Projects = () => (
+  <section id="projects" className="py-16 sm:py-24">
+    <Container>
+      <h2 className="mb-12 text-center text-3xl sm:text-4xl font-bold text-white">Projects</h2>
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-1">
+        {projects.map((project) => (
+          <Card key={project.id} hover>
+            <h3 className="mb-3 text-xl font-semibold text-white">{project.title}</h3>
+            <p className="mb-4 text-gray-300">{project.description}</p>
+            <div className="flex flex-wrap gap-2">
+              {project.tech.map((tech) => (
+                <span
+                  key={tech}
+                  className="rounded-full bg-primary-900/50 px-3 py-1 text-sm text-primary-300"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
+          </Card>
+        ))}
+      </div>
+    </Container>
+  </section>
+);

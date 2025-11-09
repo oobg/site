@@ -1,7 +1,7 @@
 import ReactMarkdown from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter/dist/esm';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import type { Components } from 'react-markdown';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface MarkdownRendererProps {
   content: string;
@@ -9,17 +9,18 @@ interface MarkdownRendererProps {
 
 export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
   const components: Components = {
-    code({ node, inline, className, children, ...props }) {
+    code({ className, children, ...props }) {
+      const inline = !className;
       const match = /language-(\w+)/.exec(className || '');
       const language = match ? match[1] : '';
 
       return !inline && match ? (
         <SyntaxHighlighter
-          style={vscDarkPlus}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          style={vscDarkPlus as any}
           language={language}
           PreTag="div"
           className="rounded-lg"
-          {...props}
         >
           {String(children).replace(/\n$/, '')}
         </SyntaxHighlighter>
@@ -84,4 +85,3 @@ export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
     </div>
   );
 };
-

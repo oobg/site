@@ -1,18 +1,23 @@
+import { blogApi } from '@shared/api/blog';
+import { Button } from '@shared/ui/button';
+import { Card } from '@shared/ui/card';
+import { Container } from '@shared/ui/container';
+import { LoadingSpinner } from '@shared/ui/loading-spinner';
+import { MarkdownRenderer } from '@shared/ui/markdown-renderer';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
-import { blogApi } from '@shared/api/blog';
-import { Container } from '@shared/ui/container';
-import { Card } from '@shared/ui/card';
-import { LoadingSpinner } from '@shared/ui/loading-spinner';
-import { Button } from '@shared/ui/button';
-import { MarkdownRenderer } from '@shared/ui/markdown-renderer';
 
 export const BlogDetailPage = () => {
   const { id } = useParams<{ id: string }>();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['blog', 'detail', id],
-    queryFn: () => blogApi.getDetail(id!),
+    queryFn: () => {
+      if (!id) {
+        throw new Error('Blog post ID is required');
+      }
+      return blogApi.getDetail(id);
+    },
     enabled: !!id,
   });
 
@@ -46,7 +51,10 @@ export const BlogDetailPage = () => {
           <div className="mb-6 flex items-center gap-4 text-sm text-gray-400">
             <span>{new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
             <span>•</span>
-            <span>{post.readTime}분 읽기</span>
+            <span>
+              {post.readTime}
+              분 읽기
+            </span>
             <span>•</span>
             <span>{post.author}</span>
           </div>
@@ -68,4 +76,3 @@ export const BlogDetailPage = () => {
     </Container>
   );
 };
-

@@ -1,4 +1,5 @@
 import { Server } from 'miragejs';
+
 import { blogHandlers } from './blog';
 
 export const handlers = [
@@ -6,4 +7,3 @@ export const handlers = [
     blogHandlers(server);
   },
 ];
-

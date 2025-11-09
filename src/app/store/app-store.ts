@@ -1,8 +1,5 @@
 import { create } from 'zustand';
 
-interface AppState {
-  // Add your global state here
-}
+type AppState = Record<string, never>;
 
 export const useAppStore = create<AppState>()(() => ({}));
-

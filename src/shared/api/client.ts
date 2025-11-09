@@ -6,4 +6,3 @@ export const apiClient = ky.create({
     'Content-Type': 'application/json',
   },
 });
-

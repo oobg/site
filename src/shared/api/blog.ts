@@ -16,12 +16,7 @@ export interface BlogDetailResponse {
 }
 
 export const blogApi = {
-  getList: async (page = 1, limit = 10): Promise<BlogListResponse> => {
-    return apiClient.get('blog', { searchParams: { page, limit } }).json();
-  },
+  getList: async (page = 1, limit = 10): Promise<BlogListResponse> => apiClient.get('blog', { searchParams: { page, limit } }).json(),
 
-  getDetail: async (id: string): Promise<BlogDetailResponse> => {
-    return apiClient.get(`blog/${id}`).json();
-  },
+  getDetail: async (id: string): Promise<BlogDetailResponse> => apiClient.get(`blog/${id}`).json(),
 };
-

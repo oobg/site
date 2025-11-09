@@ -1,9 +1,9 @@
+import { blogApi } from '@shared/api/blog';
+import { Card } from '@shared/ui/card';
+import { Container } from '@shared/ui/container';
+import { LoadingSpinner } from '@shared/ui/loading-spinner';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { blogApi } from '@shared/api/blog';
-import { Container } from '@shared/ui/container';
-import { Card } from '@shared/ui/card';
-import { LoadingSpinner } from '@shared/ui/loading-spinner';
 
 export const BlogListPage = () => {
   const { data, isLoading, error } = useQuery({
@@ -35,7 +35,10 @@ export const BlogListPage = () => {
               <div className="flex items-center gap-4 text-sm text-gray-500">
                 <span>{new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
                 <span>•</span>
-                <span>{post.readTime}분 읽기</span>
+                <span>
+                  {post.readTime}
+                  분 읽기
+                </span>
                 <span>•</span>
                 <span>{post.author}</span>
               </div>
@@ -56,4 +59,3 @@ export const BlogListPage = () => {
     </Container>
   );
 };
-
