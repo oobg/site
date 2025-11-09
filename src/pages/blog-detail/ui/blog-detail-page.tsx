@@ -5,6 +5,7 @@ import { Container } from '@shared/ui/container';
 import { Card } from '@shared/ui/card';
 import { LoadingSpinner } from '@shared/ui/loading-spinner';
 import { Button } from '@shared/ui/button';
+import { MarkdownRenderer } from '@shared/ui/markdown-renderer';
 
 export const BlogDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +61,7 @@ export const BlogDetailPage = () => {
             ))}
           </div>
           <div className="prose prose-invert max-w-none">
-            <div className="whitespace-pre-wrap text-gray-300">{post.content}</div>
+            <MarkdownRenderer content={post.content} />
           </div>
         </article>
       </Card>

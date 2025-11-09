@@ -28,5 +28,29 @@
   .container-custom {
     @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
   }
+
+  .markdown-content {
+    @apply text-gray-300;
+  }
+
+  .markdown-content pre {
+    @apply my-4 overflow-x-auto rounded-lg bg-gray-900 p-4;
+  }
+
+  .markdown-content pre code {
+    @apply bg-transparent p-0 text-sm;
+  }
+
+  .markdown-content code {
+    @apply rounded bg-gray-800 px-1.5 py-0.5 text-sm text-primary-300;
+  }
+
+  .markdown-content img {
+    @apply my-4 rounded-lg;
+  }
+
+  .markdown-content p:last-child {
+    @apply mb-0;
+  }
 }
 
