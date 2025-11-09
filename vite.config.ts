@@ -7,7 +7,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react({
+    babel: {
+      // 반드시 첫 번째 플러그인으로
+      plugins: ['babel-plugin-react-compiler'],
+    },
+  })],
   resolve: {
     alias: {
       '@app': path.resolve(__dirname, './src/app'),
