@@ -14,7 +14,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "type-check": "tsc --noEmit",
-    "precommit": "lint-staged"
+    "precommit": "lint-staged",
+    "predeploy": "npm run type-check && npm run lint"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.11",
