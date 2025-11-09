@@ -12,6 +12,7 @@ jobs:
     env:
       APP_IDENTIFIER: ${{ github.base_ref || github.ref_name }}-${{ secrets.PROJECT_NAME }}
       DEPLOY_DIR: ${{ secrets.SERVER_DEFAULT_PATH }}/${{ github.ref_name }}-${{ secrets.PROJECT_NAME }}
+      NGINX_CONFIG_DIR: ${{ secrets.SERVER_DEFAULT_PATH }}/nginx-conf
 
     steps:
       - name: 실행 알림
@@ -107,6 +108,7 @@ jobs:
               --name ${{ env.APP_IDENTIFIER }} \
               --network nginx-proxy-manager_default \
               -v $(pwd):/usr/share/nginx/html \
+              -v ${{ env.NGINX_CONFIG_DIR }}/spa.conf:/etc/nginx/conf.d/default.conf:ro \
               nginx:alpine
 
       - run: echo "🚀 서버에서 Docker 컨테이너가 package.json 버전 ${{ env.VERSION }}으로 성공적으로 실행되었습니다."
