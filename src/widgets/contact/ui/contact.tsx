@@ -6,16 +6,18 @@ export const Contact = () => {
     <section id="contact" className="py-20 min-h-screen flex items-center glass-section">
       <Container>
         <div className="mx-auto max-w-2xl">
-          <h2 className="mb-8 text-center text-4xl font-bold text-white">Contact</h2>
-          <Card>
-            <div className="space-y-4 text-center">
-              <p className="text-lg text-gray-200">
+          <h2 className="mb-8 text-center text-4xl sm:text-5xl font-bold text-white animate-fade-in-up">
+            Contact
+          </h2>
+          <Card className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+            <div className="space-y-6 text-center">
+              <p className="text-lg sm:text-xl text-gray-200 leading-relaxed">
                 프로젝트나 협업에 관심이 있으시다면 언제든지 연락주세요.
               </p>
-              <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+              <div className="flex flex-col items-center gap-6 sm:flex-row sm:justify-center">
                 <a
                   href="mailto:contact@raven.kr"
-                  className="text-primary-400 hover:text-primary-300 transition-colors"
+                  className="text-primary-400 hover:text-primary-300 transition-all duration-300 text-lg font-medium hover:scale-110"
                 >
                   Email
                 </a>
@@ -23,7 +25,7 @@ export const Contact = () => {
                   href="https://github.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary-400 hover:text-primary-300 transition-colors"
+                  className="text-primary-400 hover:text-primary-300 transition-all duration-300 text-lg font-medium hover:scale-110"
                 >
                   GitHub
                 </a>
@@ -31,7 +33,7 @@ export const Contact = () => {
                   href="https://linkedin.com"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary-400 hover:text-primary-300 transition-colors"
+                  className="text-primary-400 hover:text-primary-300 transition-all duration-300 text-lg font-medium hover:scale-110"
                 >
                   LinkedIn
                 </a>

@@ -26,19 +26,24 @@ export const Projects = () => {
   return (
     <section id="projects" className="py-20 min-h-screen flex items-center glass-section">
       <Container>
-        <div className="mb-12 text-center">
-          <h2 className="text-4xl font-bold text-white">Projects</h2>
+        <div className="mb-12 text-center animate-fade-in-up">
+          <h2 className="text-4xl sm:text-5xl font-bold text-white">Projects</h2>
         </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <Card key={project.id} hover>
+          {projects.map((project, index) => (
+            <Card
+              key={project.id}
+              hover
+              className="animate-fade-in-up"
+              style={{ animationDelay: `${0.2 + index * 0.1}s` }}
+            >
               <h3 className="mb-2 text-xl font-semibold text-white">{project.title}</h3>
               <p className="mb-4 text-gray-200">{project.description}</p>
               <div className="flex flex-wrap gap-2">
                 {project.tech.map((tech) => (
                   <span
                     key={tech}
-                    className="rounded-full bg-primary-900/50 px-3 py-1 text-sm text-primary-300"
+                    className="rounded-full bg-primary-900/50 px-3 py-1 text-sm text-primary-300 backdrop-blur-sm"
                   >
                     {tech}
                   </span>
