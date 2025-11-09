@@ -1,0 +1,62 @@
+# 프로젝트 개발 가이드라인
+
+## 중요 규칙
+- **모든 커밋 메시지는 반드시 한국어로 작성합니다.**
+- **AI가 커밋 메시지를 생성할 때는 항상 한국어로 생성해야 합니다.**
+
+## ESLint 규칙 - 매우 엄격한 설정
+
+## 아키텍처
+- FSD (Feature-Sliced Design) 아키텍처를 엄격히 준수합니다.
+- 레이어 간 의존성 규칙을 반드시 지켜야 합니다:
+  - app → pages, widgets, features, entities, shared
+  - pages → widgets, features, entities, shared
+  - widgets → features, entities, shared
+  - features → entities, shared
+  - entities → shared
+  - shared → (의존성 없음)
+
+## 코드 스타일
+- Airbnb 스타일 가이드를 따릅니다.
+- Prettier로 자동 포맷팅됩니다.
+- default export는 사용하지 않습니다 (import/no-default-export).
+- 모든 컴포넌트는 named export를 사용합니다.
+
+## 타입 안전성
+- TypeScript의 strict 모드를 사용합니다.
+- any 타입 사용을 최대한 피합니다.
+- 모든 함수와 컴포넌트에 명시적인 타입을 지정합니다.
+
+## 컴포넌트 작성
+- 컴포넌트는 함수형 컴포넌트로 작성합니다.
+- forwardRef를 사용하여 ref를 전달할 수 있도록 합니다.
+- Props 인터페이스는 명확하게 정의합니다.
+
+## 상태 관리
+- 전역 상태는 Zustand를 사용합니다.
+- 서버 상태는 TanStack Query (React Query)를 사용합니다.
+- 로컬 상태는 useState를 사용합니다.
+
+## API 통신
+- ky를 사용하여 HTTP 요청을 수행합니다.
+- API 클라이언트는 shared/api에 위치합니다.
+- Mock 데이터는 miragejs를 사용하며, 모듈화된 핸들러 구조를 유지합니다.
+
+## 스타일링
+- Tailwind CSS를 사용합니다.
+- 다크모드가 기본 테마입니다.
+- 메인 컬러는 보라색(primary)입니다.
+- 반응형 디자인을 필수로 지원합니다.
+
+## 테스트
+- Vitest를 사용하여 테스트를 작성합니다.
+- 컴포넌트 테스트는 React Testing Library를 사용합니다.
+
+## Git 커밋
+- 커밋 전에 자동으로 타입 체크와 린트가 실행됩니다.
+- lint-staged를 통해 변경된 파일만 검사합니다.
+
+## 성능
+- 코드 스플리팅을 위해 React.lazy를 사용합니다.
+- 불필요한 리렌더링을 방지하기 위해 React Compiler를 활용합니다.
+
