@@ -1,6 +1,6 @@
-# Woong - Portfolio & Blog
+# Raven - Portfolio & Blog
 
-React 19.2 + Vite + TypeScript 기반의 포트폴리오 및 블로그 웹사이트입니다.
+raven.kr 도메인의 포트폴리오 및 블로그 웹사이트입니다. React 19.2 + Vite + TypeScript 기반으로 구축되었습니다.
 
 ## 기술 스택
 

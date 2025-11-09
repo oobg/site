@@ -6,7 +6,7 @@ export const Header = () => {
       <nav className="container-custom">
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="text-xl font-bold text-primary-400 hover:text-primary-300">
-            Woong
+            Raven
           </Link>
           <div className="flex items-center gap-6">
             <Link

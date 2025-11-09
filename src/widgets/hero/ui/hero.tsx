@@ -10,7 +10,7 @@ export const Hero = () => {
             안녕하세요,
             <br />
             <span className="bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-              Woong
+              Raven
             </span>
             입니다
           </h1>

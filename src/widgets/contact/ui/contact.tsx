@@ -14,7 +14,7 @@ export const Contact = () => {
               </p>
               <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                 <a
-                  href="mailto:contact@example.com"
+                  href="mailto:contact@raven.kr"
                   className="text-primary-400 hover:text-primary-300"
                 >
                   Email

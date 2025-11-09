@@ -35,7 +35,7 @@ React Compiler가 공식적으로 지원되기 시작했습니다. 이는 개발
 React 19는 더 나은 성능과 개발자 경험을 제공합니다.
     `.trim(),
     excerpt: 'React 19의 새로운 기능들과 변경사항을 살펴봅니다.',
-    author: 'Woong',
+    author: 'Raven',
     createdAt: '2024-01-15T10:00:00Z',
     updatedAt: '2024-01-15T10:00:00Z',
     tags: ['React', 'Frontend', 'JavaScript'],
@@ -62,7 +62,7 @@ TypeScript는 JavaScript에 타입 시스템을 추가하여 더 안전하고 �
 - 유니온 타입과 제네릭 적극 활용
     `.trim(),
     excerpt: 'TypeScript를 활용한 타입 안전한 개발 방법을 알아봅니다.',
-    author: 'Woong',
+    author: 'Raven',
     createdAt: '2024-01-20T14:30:00Z',
     updatedAt: '2024-01-20T14:30:00Z',
     tags: ['TypeScript', 'Programming', 'Best Practices'],
@@ -92,7 +92,7 @@ Feature-Sliced Design (FSD)는 확장 가능하고 유지보수하기 쉬운 프
 - 팀 협업에 유리
     `.trim(),
     excerpt: 'FSD 아키텍처를 활용한 프로젝트 구조화 방법을 소개합니다.',
-    author: 'Woong',
+    author: 'Raven',
     createdAt: '2024-01-25T09:15:00Z',
     updatedAt: '2024-01-25T09:15:00Z',
     tags: ['Architecture', 'Frontend', 'FSD'],
