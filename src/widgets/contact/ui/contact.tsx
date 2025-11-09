@@ -3,7 +3,7 @@ import { Card } from '@shared/ui/card';
 
 export const Contact = () => {
   return (
-    <section id="contact" className="py-20 min-h-screen flex items-center glass-section">
+    <section id="contact" className="py-20 glass-section">
       <Container>
         <div className="mx-auto max-w-2xl">
           <h2 className="mb-8 text-center text-4xl sm:text-5xl font-bold text-white animate-fade-in-up">

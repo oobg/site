@@ -3,7 +3,7 @@ import { Button } from '@shared/ui/button';
 
 export const Hero = () => {
   return (
-    <section className="relative overflow-hidden py-20 sm:py-32 min-h-screen flex items-center">
+    <section className="relative overflow-hidden py-20 sm:py-32">
       {/* 배경 그라데이션 오버레이 */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary-900/30 via-purple-900/40 to-primary-800/30"></div>
       

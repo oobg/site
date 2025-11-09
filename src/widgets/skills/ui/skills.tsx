@@ -11,7 +11,7 @@ const skills = [
 
 export const Skills = () => {
   return (
-    <section id="skills" className="py-20 min-h-screen flex items-center">
+    <section id="skills" className="py-20">
       <Container>
         <div className="mx-auto max-w-2xl">
           <div className="glass-card rounded-2xl p-8 sm:p-12 animate-fade-in-up">
