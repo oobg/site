@@ -24,7 +24,7 @@ const projects = [
 
 export const Projects = () => {
   return (
-    <section id="projects" className="py-20 glass-section">
+    <section id="projects" className="py-20">
       <Container>
         <div className="mb-12 text-center animate-fade-in-up">
           <h2 className="text-4xl sm:text-5xl font-bold text-white">Projects</h2>

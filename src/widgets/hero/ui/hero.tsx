@@ -4,16 +4,10 @@ import { Button } from '@shared/ui/button';
 export const Hero = () => {
   return (
     <section className="relative overflow-hidden py-20 sm:py-32">
-      {/* 배경 그라데이션 오버레이 */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary-900/30 via-purple-900/40 to-primary-800/30"></div>
-      
       {/* 장식적 그라데이션 원들 */}
       <div className="gradient-orb gradient-orb-1"></div>
       <div className="gradient-orb gradient-orb-2"></div>
       <div className="gradient-orb gradient-orb-3"></div>
-      
-      {/* 추가 배경 그라데이션 레이어 */}
-      <div className="absolute inset-0 bg-gradient-to-t from-transparent via-primary-900/10 to-transparent"></div>
       
       <div className="container-custom relative z-10">
         <div className="mx-auto max-w-4xl">

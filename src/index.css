@@ -15,15 +15,26 @@
 }
 
 @layer base {
+  html {
+    background-color: #0a0f1a;
+  }
+
   :root {
     @apply bg-gray-900 text-gray-100;
   }
 
   body {
     @apply min-h-screen antialiased;
-    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 25%, #312e81 50%, #1e1b4b 75%, #0f172a 100%);
+    background-color: #0a0f1a;
+    background-image: linear-gradient(135deg, #0a0f1a 0%, #0f172a 15%, #1e1b4b 30%, #312e81 50%, #1e1b4b 70%, #0f172a 85%, #0a0f1a 100%);
     background-size: 400% 400%;
+    background-attachment: fixed;
     animation: gradientShift 15s ease infinite;
+  }
+
+  section {
+    background-color: transparent;
+    position: relative;
   }
 
   @keyframes gradientShift {
