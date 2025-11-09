@@ -24,14 +24,16 @@ const projects = [
 
 export const Projects = () => {
   return (
-    <section id="projects" className="bg-gray-800/50 py-20">
+    <section id="projects" className="py-20 min-h-screen flex items-center glass-section">
       <Container>
-        <h2 className="mb-12 text-center text-4xl font-bold text-white">Projects</h2>
+        <div className="mb-12 text-center">
+          <h2 className="text-4xl font-bold text-white">Projects</h2>
+        </div>
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
             <Card key={project.id} hover>
               <h3 className="mb-2 text-xl font-semibold text-white">{project.title}</h3>
-              <p className="mb-4 text-gray-400">{project.description}</p>
+              <p className="mb-4 text-gray-200">{project.description}</p>
               <div className="flex flex-wrap gap-2">
                 {project.tech.map((tech) => (
                   <span
