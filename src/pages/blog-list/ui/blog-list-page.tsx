@@ -28,7 +28,7 @@ export const BlogListPage = () => {
       <h1 className="mb-8 text-4xl font-bold text-white">Blog</h1>
       <div className="space-y-6">
         {data?.data.map((post) => (
-          <Link key={post.id} to={`/blog/${post.id}`}>
+          <Link key={post.id} to={`/blog/${encodeURIComponent(post.title)}`}>
             <Card hover>
               <h2 className="mb-2 text-2xl font-semibold text-white">{post.title}</h2>
               <p className="mb-4 text-gray-400">{post.excerpt}</p>

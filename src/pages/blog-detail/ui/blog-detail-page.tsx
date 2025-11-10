@@ -8,17 +8,18 @@ import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 
 export const BlogDetailPage = () => {
-  const { id } = useParams<{ id: string }>();
+  const { title } = useParams<{ title: string }>();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['blog', 'detail', id],
+    queryKey: ['blog', 'detail', title],
     queryFn: () => {
-      if (!id) {
-        throw new Error('Blog post ID is required');
+      if (!title) {
+        throw new Error('Blog post title is required');
       }
-      return blogApi.getDetail(id);
+      const decodedTitle = decodeURIComponent(title);
+      return blogApi.getDetail(decodedTitle);
     },
-    enabled: !!id,
+    enabled: !!title,
   });
 
   if (isLoading) {

@@ -17,7 +17,7 @@ export const Router = () => (
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/blog" element={<BlogListPage />} />
-          <Route path="/blog/:id" element={<BlogDetailPage />} />
+          <Route path="/blog/:title" element={<BlogDetailPage />} />
         </Routes>
       </Suspense>
     </Layout>
