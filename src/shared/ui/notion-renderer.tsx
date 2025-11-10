@@ -1,5 +1,5 @@
 import { NotionRenderer } from 'react-notion-x';
-import type { ExtendedRecordMap, BlockType } from 'notion-types';
+import type { ExtendedRecordMap, BlockType, Decoration } from 'notion-types';
 import 'react-notion-x/src/styles.css';
 import type { NotionBlock } from '@shared/api/blog';
 
@@ -22,8 +22,18 @@ function mapNotionBlockTypeToBlockType(notionType: string): BlockType {
   return notionType as BlockType;
 }
 
+// rich_text를 Decoration[] 형식으로 변환
+function convertRichTextToDecorations(
+  richText: Array<{ plain_text?: string; [key: string]: unknown }>,
+): Decoration[] {
+  return richText.map((text) => [text.plain_text || ''] as Decoration);
+}
+
 // NotionBlock[]을 react-notion-x의 recordMap 형식으로 변환
-function convertBlocksToRecordMap(blocks: NotionBlock[]): ExtendedRecordMap {
+function convertBlocksToRecordMap(blocks: NotionBlock[]): {
+  recordMap: ExtendedRecordMap;
+  rootPageId: string;
+} {
   const recordMap: ExtendedRecordMap = {
     block: {},
     collection: {},
@@ -33,39 +43,50 @@ function convertBlocksToRecordMap(blocks: NotionBlock[]): ExtendedRecordMap {
     signed_urls: {},
   };
 
+  if (blocks.length === 0) {
+    return { recordMap, rootPageId: '' };
+  }
+
+  const blockIds: string[] = [];
+
+  // 모든 블록 생성
   blocks.forEach((block, index) => {
     const blockId = `block-${index}`;
+    blockIds.push(blockId);
     const blockType = mapNotionBlockTypeToBlockType(block.type);
 
-    // 각 블록 타입에 맞는 properties 생성
-    // react-notion-x는 properties를 any로 받으므로 유연하게 처리
-    let properties: unknown = {};
+    // 각 블록 타입에 맞는 properties 생성 (Decoration[] 형식)
+    let properties: { title: Decoration[] } = { title: [] };
 
-    if (blockType === 'paragraph' && block.paragraph?.rich_text) {
+    if (block.type === 'paragraph' && block.paragraph?.rich_text) {
       properties = {
-        title: block.paragraph.rich_text.map((text) => [text.plain_text || '']),
+        title: convertRichTextToDecorations(block.paragraph.rich_text),
       };
-    } else if (blockType === 'heading_1' && block.heading_1?.rich_text) {
+    } else if (block.type === 'heading_1' && block.heading_1?.rich_text) {
       properties = {
-        title: block.heading_1.rich_text.map((text) => [text.plain_text || '']),
+        title: convertRichTextToDecorations(block.heading_1.rich_text),
       };
-    } else if (blockType === 'heading_2' && block.heading_2?.rich_text) {
+    } else if (block.type === 'heading_2' && block.heading_2?.rich_text) {
       properties = {
-        title: block.heading_2.rich_text.map((text) => [text.plain_text || '']),
+        title: convertRichTextToDecorations(block.heading_2.rich_text),
       };
-    } else if (blockType === 'heading_3' && block.heading_3?.rich_text) {
+    } else if (block.type === 'heading_3' && block.heading_3?.rich_text) {
       properties = {
-        title: block.heading_3.rich_text.map((text) => [text.plain_text || '']),
+        title: convertRichTextToDecorations(block.heading_3.rich_text),
       };
-    } else if (blockType === 'bulleted_list_item' && block.bulleted_list_item?.rich_text) {
+    } else if (block.type === 'bulleted_list_item' && block.bulleted_list_item?.rich_text) {
       properties = {
-        title: block.bulleted_list_item.rich_text.map((text) => [text.plain_text || '']),
+        title: convertRichTextToDecorations(block.bulleted_list_item.rich_text),
       };
-    } else if (blockType === 'numbered_list_item' && block.numbered_list_item?.rich_text) {
+    } else if (block.type === 'numbered_list_item' && block.numbered_list_item?.rich_text) {
       properties = {
-        title: block.numbered_list_item.rich_text.map((text) => [text.plain_text || '']),
+        title: convertRichTextToDecorations(block.numbered_list_item.rich_text),
       };
     }
+
+    // 첫 번째 블록은 루트로 설정, 나머지는 첫 번째 블록의 자식으로 설정
+    const isRoot = index === 0;
+    const parentId = isRoot ? '' : blockIds[0];
 
     recordMap.block[blockId] = {
       role: 'reader',
@@ -76,7 +97,7 @@ function convertBlocksToRecordMap(blocks: NotionBlock[]): ExtendedRecordMap {
         format: {},
         content: [],
         parent_table: 'block',
-        parent_id: index > 0 ? `block-${index - 1}` : '',
+        parent_id: parentId,
         version: 1,
         created_time: Date.now(),
         last_edited_time: Date.now(),
@@ -90,7 +111,15 @@ function convertBlocksToRecordMap(blocks: NotionBlock[]): ExtendedRecordMap {
     };
   });
 
-  return recordMap;
+  // 첫 번째 블록의 content에 나머지 블록들을 추가
+  if (blockIds.length > 1) {
+    const rootBlock = recordMap.block[blockIds[0]];
+    if (rootBlock) {
+      rootBlock.value.content = blockIds.slice(1);
+    }
+  }
+
+  return { recordMap, rootPageId: blockIds[0] };
 }
 
 interface NotionRendererProps {
@@ -102,12 +131,25 @@ export const NotionContentRenderer = ({ content }: NotionRendererProps) => {
     return <div className="text-gray-400">콘텐츠가 없습니다.</div>;
   }
 
-  const recordMap = convertBlocksToRecordMap(content);
+  const { recordMap, rootPageId } = convertBlocksToRecordMap(content);
+
+  if (!rootPageId) {
+    return <div className="text-gray-400">콘텐츠를 렌더링할 수 없습니다.</div>;
+  }
+
+  // 디버깅용 콘솔 로그 (개발 환경에서만)
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('Notion recordMap:', recordMap);
+    // eslint-disable-next-line no-console
+    console.log('Root page ID:', rootPageId);
+  }
 
   return (
     <div className="notion-container">
       <NotionRenderer
         recordMap={recordMap}
+        rootPageId={rootPageId}
         fullPage={false}
         darkMode
         previewImages={false}
