@@ -47,9 +47,36 @@ function convertBlocksToRecordMap(blocks: NotionBlock[]): {
     return { recordMap, rootPageId: '' };
   }
 
+  // 가상의 page 블록을 루트로 생성
+  const rootPageId = 'root-page';
   const blockIds: string[] = [];
 
-  // 모든 블록 생성
+  // 가상의 page 블록 생성
+  recordMap.block[rootPageId] = {
+    role: 'reader',
+    value: {
+      id: rootPageId,
+      type: 'page',
+      properties: {
+        title: [],
+      },
+      format: {},
+      content: [],
+      parent_table: 'block',
+      parent_id: '',
+      version: 1,
+      created_time: Date.now(),
+      last_edited_time: Date.now(),
+      alive: true,
+      created_by_table: 'notion_user',
+      created_by_id: '',
+      last_edited_by_table: 'notion_user',
+      last_edited_by_id: '',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any,
+  };
+
+  // 모든 실제 블록 생성
   blocks.forEach((block, index) => {
     const blockId = `block-${index}`;
     blockIds.push(blockId);
@@ -84,10 +111,7 @@ function convertBlocksToRecordMap(blocks: NotionBlock[]): {
       };
     }
 
-    // 첫 번째 블록은 루트로 설정, 나머지는 첫 번째 블록의 자식으로 설정
-    const isRoot = index === 0;
-    const parentId = isRoot ? '' : blockIds[0];
-
+    // 모든 블록을 가상의 page 블록의 자식으로 설정
     recordMap.block[blockId] = {
       role: 'reader',
       value: {
@@ -97,7 +121,7 @@ function convertBlocksToRecordMap(blocks: NotionBlock[]): {
         format: {},
         content: [],
         parent_table: 'block',
-        parent_id: parentId,
+        parent_id: rootPageId,
         version: 1,
         created_time: Date.now(),
         last_edited_time: Date.now(),
@@ -111,15 +135,13 @@ function convertBlocksToRecordMap(blocks: NotionBlock[]): {
     };
   });
 
-  // 첫 번째 블록의 content에 나머지 블록들을 추가
-  if (blockIds.length > 1) {
-    const rootBlock = recordMap.block[blockIds[0]];
-    if (rootBlock) {
-      rootBlock.value.content = blockIds.slice(1);
-    }
+  // 가상의 page 블록의 content에 모든 실제 블록을 추가
+  const rootBlock = recordMap.block[rootPageId];
+  if (rootBlock) {
+    rootBlock.value.content = blockIds;
   }
 
-  return { recordMap, rootPageId: blockIds[0] };
+  return { recordMap, rootPageId };
 }
 
 interface NotionRendererProps {
