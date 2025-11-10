@@ -106,77 +106,6 @@ function getPropertyValue(properties: Record<string, unknown>, key: string): unk
   return null;
 }
 
-// Notion 블록에서 텍스트 추출
-function extractTextFromRichText(
-  richText: Array<{ plain_text?: string; [key: string]: unknown }>,
-): string {
-  return richText.map((item) => item.plain_text || '').join('');
-}
-
-// Notion 블록 배열을 마크다운 문자열로 변환
-function convertNotionBlocksToMarkdown(blocks: NotionBlock[]): string {
-  return blocks
-    .map((block) => {
-      const { type } = block;
-
-      switch (type) {
-        case 'paragraph': {
-          if (block.paragraph?.rich_text) {
-            return extractTextFromRichText(block.paragraph.rich_text);
-          }
-          return '';
-        }
-        case 'heading_1': {
-          if (block.heading_1?.rich_text) {
-            const text = extractTextFromRichText(block.heading_1.rich_text);
-            return text ? `# ${text}` : '';
-          }
-          return '';
-        }
-        case 'heading_2': {
-          if (block.heading_2?.rich_text) {
-            const text = extractTextFromRichText(block.heading_2.rich_text);
-            return text ? `## ${text}` : '';
-          }
-          return '';
-        }
-        case 'heading_3': {
-          if (block.heading_3?.rich_text) {
-            const text = extractTextFromRichText(block.heading_3.rich_text);
-            return text ? `### ${text}` : '';
-          }
-          return '';
-        }
-        case 'bulleted_list_item': {
-          if (block.bulleted_list_item?.rich_text) {
-            const text = extractTextFromRichText(block.bulleted_list_item.rich_text);
-            return text ? `- ${text}` : '';
-          }
-          return '';
-        }
-        case 'numbered_list_item': {
-          if (block.numbered_list_item?.rich_text) {
-            const text = extractTextFromRichText(block.numbered_list_item.rich_text);
-            return text ? `1. ${text}` : '';
-          }
-          return '';
-        }
-        default: {
-          // 기타 블록 타입: rich_text가 있는 경우 텍스트 추출 시도
-          const blockData = block[type] as {
-            rich_text?: Array<{ plain_text?: string; [key: string]: unknown }>;
-          } | undefined;
-          if (blockData?.rich_text) {
-            return extractTextFromRichText(blockData.rich_text);
-          }
-          return '';
-        }
-      }
-    })
-    .filter((line) => line.trim().length > 0)
-    .join('\n\n');
-}
-
 // NotionPage를 BlogPost로 변환하는 함수
 export function convertNotionPageToBlogPost(notionPage: NotionPage): BlogPost {
   const { properties } = notionPage;
@@ -188,14 +117,9 @@ export function convertNotionPageToBlogPost(notionPage: NotionPage): BlogPost {
     || '';
 
   // content 배열이 있으면 우선 사용 (페이지 상세보기에서 제공)
-  let content = '';
+  let content: NotionBlock[] = [];
   if (notionPage.content && Array.isArray(notionPage.content) && notionPage.content.length > 0) {
-    content = convertNotionBlocksToMarkdown(notionPage.content);
-  } else {
-    // content 배열이 없으면 properties에서 추출 (기존 로직)
-    content = (getPropertyValue(properties, '내용') as string)
-      || (getPropertyValue(properties, 'content') as string)
-      || '';
+    content = notionPage.content;
   }
 
   const excerpt = (getPropertyValue(properties, '요약') as string)

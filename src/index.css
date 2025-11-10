@@ -135,6 +135,37 @@
     @apply mb-0;
   }
 
+  /* Notion Content Renderer 스타일링 */
+  .notion-container {
+    @apply text-gray-300;
+  }
+
+  .notion-container .notion-page {
+    @apply bg-transparent;
+  }
+
+  .notion-container .notion-text {
+    @apply text-gray-300;
+  }
+
+  .notion-container .notion-h1,
+  .notion-container .notion-h2,
+  .notion-container .notion-h3 {
+    @apply text-white;
+  }
+
+  .notion-container .notion-code {
+    @apply bg-gray-800 text-primary-300;
+  }
+
+  .notion-container .notion-list {
+    @apply text-gray-300;
+  }
+
+  .notion-content-wrapper {
+    @apply text-gray-300;
+  }
+
   /* Glassmorphism 유틸리티 클래스 */
   .glass {
     background: rgba(255, 255, 255, 0.05);

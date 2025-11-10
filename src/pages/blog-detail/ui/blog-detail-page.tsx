@@ -3,7 +3,7 @@ import { Button } from '@shared/ui/button';
 import { Card } from '@shared/ui/card';
 import { Container } from '@shared/ui/container';
 import { LoadingSpinner } from '@shared/ui/loading-spinner';
-import { MarkdownRenderer } from '@shared/ui/markdown-renderer';
+import { NotionContentRenderer } from '@shared/ui/notion-renderer';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 
@@ -69,8 +69,8 @@ export const BlogDetailPage = () => {
               </span>
             ))}
           </div>
-          <div className="prose prose-invert max-w-none">
-            <MarkdownRenderer content={post.content} />
+          <div className="notion-content-wrapper">
+            <NotionContentRenderer content={post.content} />
           </div>
         </article>
       </Card>

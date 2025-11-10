@@ -1,6 +1,6 @@
 import type { NotionPage, NotionBlock } from '../../blog';
 
-// 마크다운 문자열을 Notion 블록 배열로 변환하는 헬퍼 함수
+// 마크다운 문자열을 Notion 블록 배열로 변환하는 헬퍼 함수 (Mock 데이터용)
 function markdownToNotionBlocks(markdown: string): NotionBlock[] {
   const lines = markdown.split('\n').filter((line) => line.trim().length > 0);
   return lines.map((line) => {
@@ -69,7 +69,7 @@ function markdownToNotionBlocks(markdown: string): NotionBlock[] {
 export interface BlogPost {
   id: string;
   title: string;
-  content: string;
+  content: NotionBlock[];
   excerpt: string;
   author: string;
   createdAt: string;
@@ -231,7 +231,7 @@ export const blogPosts: BlogPost[] = notionPages.map((page) => {
   return {
     id: page.id,
     title: page.title || '',
-    content: (props['내용'] as { rich_text?: Array<{ plain_text?: string }> })?.rich_text?.map((t) => t.plain_text || '').join('') || '',
+    content: page.content || [],
     excerpt: (props['요약'] as { rich_text?: Array<{ plain_text?: string }> })?.rich_text?.map((t) => t.plain_text || '').join('') || '',
     author: (props['작성자'] as { rich_text?: Array<{ plain_text?: string }> })?.rich_text?.map((t) => t.plain_text || '').join('') || '',
     createdAt: page.createdAt,
