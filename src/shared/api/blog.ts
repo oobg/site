@@ -26,6 +26,10 @@ export interface NotionBlock {
     rich_text: Array<{ plain_text?: string; [key: string]: unknown }>;
     language?: string;
   };
+  callout?: {
+    rich_text: Array<{ plain_text?: string; [key: string]: unknown }>;
+    icon?: string;
+  };
   [key: string]: unknown;
 }
 

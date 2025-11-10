@@ -13,6 +13,7 @@ function mapNotionBlockTypeToBlockType(notionType: string): BlockType {
     bulleted_list_item: 'bulleted_list',
     numbered_list_item: 'numbered_list',
     code: 'code',
+    callout: 'callout',
   };
 
   const mapped = typeMap[notionType];
@@ -87,6 +88,7 @@ function convertBlocksToRecordMap(blocks: NotionBlock[]): {
     let properties: { title: Decoration[]; language?: Decoration[]; caption?: Decoration[] } = {
       title: [],
     };
+    let format: Record<string, unknown> = {};
 
     if (block.type === 'paragraph' && block.paragraph?.rich_text) {
       properties = {
@@ -119,6 +121,14 @@ function convertBlocksToRecordMap(blocks: NotionBlock[]): {
         language: [[language] as Decoration] as Decoration[],
         caption: [],
       };
+    } else if (block.type === 'callout' && block.callout) {
+      properties = {
+        title: convertRichTextToDecorations(block.callout.rich_text || []),
+      };
+      format = {
+        page_icon: block.callout.icon || '💡',
+        block_color: 'gray_background',
+      };
     }
 
     // 모든 블록을 가상의 page 블록의 자식으로 설정
@@ -128,7 +138,7 @@ function convertBlocksToRecordMap(blocks: NotionBlock[]): {
         id: blockId,
         type: blockType,
         properties,
-        format: {},
+        format,
         content: [],
         parent_table: 'block',
         parent_id: rootPageId,

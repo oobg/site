@@ -82,6 +82,15 @@ function markdownToNotionBlocks(markdown: string): NotionBlock[] {
             rich_text: [{ plain_text: trimmed.replace(/^\d+\.\s/, '') }],
           },
         } as NotionBlock);
+      } else if (trimmed.startsWith('> ')) {
+        // Callout (blockquote 형식)
+        blocks.push({
+          type: 'callout',
+          callout: {
+            rich_text: [{ plain_text: trimmed.substring(2) }],
+            icon: '💡',
+          },
+        } as NotionBlock);
       } else {
         // Paragraph (기본)
         blocks.push({
