@@ -1,4 +1,70 @@
-import type { NotionPage } from '../../blog';
+import type { NotionPage, NotionBlock } from '../../blog';
+
+// 마크다운 문자열을 Notion 블록 배열로 변환하는 헬퍼 함수
+function markdownToNotionBlocks(markdown: string): NotionBlock[] {
+  const lines = markdown.split('\n').filter((line) => line.trim().length > 0);
+  return lines.map((line) => {
+    const trimmed = line.trim();
+
+    // Heading 1
+    if (trimmed.startsWith('# ')) {
+      return {
+        type: 'heading_1',
+        heading_1: {
+          rich_text: [{ plain_text: trimmed.substring(2) }],
+        },
+      } as NotionBlock;
+    }
+
+    // Heading 2
+    if (trimmed.startsWith('## ')) {
+      return {
+        type: 'heading_2',
+        heading_2: {
+          rich_text: [{ plain_text: trimmed.substring(3) }],
+        },
+      } as NotionBlock;
+    }
+
+    // Heading 3
+    if (trimmed.startsWith('### ')) {
+      return {
+        type: 'heading_3',
+        heading_3: {
+          rich_text: [{ plain_text: trimmed.substring(4) }],
+        },
+      } as NotionBlock;
+    }
+
+    // Bulleted list
+    if (trimmed.startsWith('- ')) {
+      return {
+        type: 'bulleted_list_item',
+        bulleted_list_item: {
+          rich_text: [{ plain_text: trimmed.substring(2) }],
+        },
+      } as NotionBlock;
+    }
+
+    // Numbered list
+    if (/^\d+\.\s/.test(trimmed)) {
+      return {
+        type: 'numbered_list_item',
+        numbered_list_item: {
+          rich_text: [{ plain_text: trimmed.replace(/^\d+\.\s/, '') }],
+        },
+      } as NotionBlock;
+    }
+
+    // Paragraph (기본)
+    return {
+      type: 'paragraph',
+      paragraph: {
+        rich_text: [{ plain_text: trimmed }],
+      },
+    } as NotionBlock;
+  });
+}
 
 export interface BlogPost {
   id: string;
@@ -59,6 +125,7 @@ function createNotionPage(
         status: { name: '발행됨' },
       },
     },
+    content: markdownToNotionBlocks(content), // 페이지 상세보기용 블록 배열
     syncedAt: updatedAt,
     createdAt,
     updatedAt,
