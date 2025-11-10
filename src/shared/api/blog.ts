@@ -22,6 +22,10 @@ export interface NotionBlock {
   numbered_list_item?: {
     rich_text: Array<{ plain_text?: string; [key: string]: unknown }>;
   };
+  code?: {
+    rich_text: Array<{ plain_text?: string; [key: string]: unknown }>;
+    language?: string;
+  };
   [key: string]: unknown;
 }
 

@@ -12,6 +12,7 @@ function mapNotionBlockTypeToBlockType(notionType: string): BlockType {
     heading_3: 'sub_sub_header',
     bulleted_list_item: 'bulleted_list',
     numbered_list_item: 'numbered_list',
+    code: 'code',
   };
 
   const mapped = typeMap[notionType];
@@ -83,7 +84,9 @@ function convertBlocksToRecordMap(blocks: NotionBlock[]): {
     const blockType = mapNotionBlockTypeToBlockType(block.type);
 
     // 각 블록 타입에 맞는 properties 생성 (Decoration[] 형식)
-    let properties: { title: Decoration[] } = { title: [] };
+    let properties: { title: Decoration[]; language?: Decoration[]; caption?: Decoration[] } = {
+      title: [],
+    };
 
     if (block.type === 'paragraph' && block.paragraph?.rich_text) {
       properties = {
@@ -108,6 +111,13 @@ function convertBlocksToRecordMap(blocks: NotionBlock[]): {
     } else if (block.type === 'numbered_list_item' && block.numbered_list_item?.rich_text) {
       properties = {
         title: convertRichTextToDecorations(block.numbered_list_item.rich_text),
+      };
+    } else if (block.type === 'code' && block.code) {
+      const language = block.code.language || 'plain text';
+      properties = {
+        title: convertRichTextToDecorations(block.code.rich_text || []),
+        language: [[language] as Decoration] as Decoration[],
+        caption: [],
       };
     }
 

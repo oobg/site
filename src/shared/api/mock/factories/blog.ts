@@ -2,68 +2,111 @@ import type { NotionPage, NotionBlock } from '../../blog';
 
 // 마크다운 문자열을 Notion 블록 배열로 변환하는 헬퍼 함수 (Mock 데이터용)
 function markdownToNotionBlocks(markdown: string): NotionBlock[] {
-  const lines = markdown.split('\n').filter((line) => line.trim().length > 0);
-  return lines.map((line) => {
+  const blocks: NotionBlock[] = [];
+  const lines = markdown.split('\n');
+  let i = 0;
+  let inCodeBlock = false;
+  let codeBlockLanguage = '';
+  let codeBlockContent: string[] = [];
+
+  while (i < lines.length) {
+    const line = lines[i];
     const trimmed = line.trim();
 
-    // Heading 1
-    if (trimmed.startsWith('# ')) {
-      return {
-        type: 'heading_1',
-        heading_1: {
-          rich_text: [{ plain_text: trimmed.substring(2) }],
-        },
-      } as NotionBlock;
+    // 코드 블록 시작/종료 처리
+    if (trimmed.startsWith('```')) {
+      if (inCodeBlock) {
+        // 코드 블록 종료
+        blocks.push({
+          type: 'code',
+          code: {
+            rich_text: [{ plain_text: codeBlockContent.join('\n') }],
+            language: codeBlockLanguage || undefined,
+          },
+        } as NotionBlock);
+        codeBlockContent = [];
+        codeBlockLanguage = '';
+        inCodeBlock = false;
+      } else {
+        // 코드 블록 시작
+        const languageMatch = trimmed.match(/^```(\w+)?/);
+        codeBlockLanguage = languageMatch?.[1] || '';
+        inCodeBlock = true;
+      }
+      i += 1;
+    } else if (inCodeBlock) {
+      // 코드 블록 내부 내용
+      codeBlockContent.push(line);
+      i += 1;
+    } else if (trimmed.length === 0) {
+      // 빈 줄은 건너뛰기
+      i += 1;
+    } else {
+      // Heading 1
+      if (trimmed.startsWith('# ')) {
+        blocks.push({
+          type: 'heading_1',
+          heading_1: {
+            rich_text: [{ plain_text: trimmed.substring(2) }],
+          },
+        } as NotionBlock);
+      } else if (trimmed.startsWith('## ')) {
+        // Heading 2
+        blocks.push({
+          type: 'heading_2',
+          heading_2: {
+            rich_text: [{ plain_text: trimmed.substring(3) }],
+          },
+        } as NotionBlock);
+      } else if (trimmed.startsWith('### ')) {
+        // Heading 3
+        blocks.push({
+          type: 'heading_3',
+          heading_3: {
+            rich_text: [{ plain_text: trimmed.substring(4) }],
+          },
+        } as NotionBlock);
+      } else if (trimmed.startsWith('- ')) {
+        // Bulleted list
+        blocks.push({
+          type: 'bulleted_list_item',
+          bulleted_list_item: {
+            rich_text: [{ plain_text: trimmed.substring(2) }],
+          },
+        } as NotionBlock);
+      } else if (/^\d+\.\s/.test(trimmed)) {
+        // Numbered list
+        blocks.push({
+          type: 'numbered_list_item',
+          numbered_list_item: {
+            rich_text: [{ plain_text: trimmed.replace(/^\d+\.\s/, '') }],
+          },
+        } as NotionBlock);
+      } else {
+        // Paragraph (기본)
+        blocks.push({
+          type: 'paragraph',
+          paragraph: {
+            rich_text: [{ plain_text: trimmed }],
+          },
+        } as NotionBlock);
+      }
+      i += 1;
     }
+  }
 
-    // Heading 2
-    if (trimmed.startsWith('## ')) {
-      return {
-        type: 'heading_2',
-        heading_2: {
-          rich_text: [{ plain_text: trimmed.substring(3) }],
-        },
-      } as NotionBlock;
-    }
-
-    // Heading 3
-    if (trimmed.startsWith('### ')) {
-      return {
-        type: 'heading_3',
-        heading_3: {
-          rich_text: [{ plain_text: trimmed.substring(4) }],
-        },
-      } as NotionBlock;
-    }
-
-    // Bulleted list
-    if (trimmed.startsWith('- ')) {
-      return {
-        type: 'bulleted_list_item',
-        bulleted_list_item: {
-          rich_text: [{ plain_text: trimmed.substring(2) }],
-        },
-      } as NotionBlock;
-    }
-
-    // Numbered list
-    if (/^\d+\.\s/.test(trimmed)) {
-      return {
-        type: 'numbered_list_item',
-        numbered_list_item: {
-          rich_text: [{ plain_text: trimmed.replace(/^\d+\.\s/, '') }],
-        },
-      } as NotionBlock;
-    }
-
-    // Paragraph (기본)
-    return {
-      type: 'paragraph',
-      paragraph: {
-        rich_text: [{ plain_text: trimmed }],
+  // 코드 블록이 닫히지 않은 경우 처리
+  if (inCodeBlock && codeBlockContent.length > 0) {
+    blocks.push({
+      type: 'code',
+      code: {
+        rich_text: [{ plain_text: codeBlockContent.join('\n') }],
+        language: codeBlockLanguage || undefined,
       },
-    } as NotionBlock;
-  });
+    } as NotionBlock);
+  }
+
+  return blocks;
 }
 
 export interface BlogPost {
