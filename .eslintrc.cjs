@@ -28,6 +28,7 @@ module.exports = {
       custom: 'enforce',
       explicitSpread: 'ignore',
     }],
+    'react/jsx-one-expression-per-line': 'off',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-explicit-any': 'warn',
     'import/prefer-default-export': 'off',
