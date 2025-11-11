@@ -6,6 +6,7 @@ import { Routes, Route } from 'react-router-dom';
 
 import { ScrollRestoration } from './scroll-restoration';
 
+/* eslint-disable implicit-arrow-linebreak, function-paren-newline */
 const LandingPage = lazy(() =>
   import('@src/pages/landing').then((module) => ({ default: module.LandingPage })),
 );
@@ -17,6 +18,7 @@ const BlogListPage = lazy(() =>
 const BlogDetailPage = lazy(() =>
   import('@src/pages/blog-detail').then((module) => ({ default: module.BlogDetailPage })),
 );
+/* eslint-enable implicit-arrow-linebreak, function-paren-newline */
 
 export const Router = () => (
   <ErrorBoundary>

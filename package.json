@@ -14,7 +14,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "type-check": "tsc --noEmit",
-    "precommit": "lint-staged",
+    "precommit": "lint-staged --allow-empty",
     "predeploy": "npm run type-check && npm run lint"
   },
   "dependencies": {
