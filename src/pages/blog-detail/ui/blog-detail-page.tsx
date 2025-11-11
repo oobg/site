@@ -3,7 +3,8 @@ import { Button } from '@src/shared/ui/button';
 import { Card } from '@src/shared/ui/card';
 import { Container } from '@src/shared/ui/container';
 import { LoadingSpinner } from '@src/shared/ui/loading-spinner';
-import { NotionContentRenderer } from '@src/shared/ui/notion-renderer';
+import { notionToMarkdown } from '@src/shared/ui/notion-renderer';
+import { MarkdownRenderer } from '@src/shared/ui/markdown-renderer';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 
@@ -40,6 +41,7 @@ export const BlogDetailPage = () => {
   }
 
   const post = data.data;
+  const markdownContent = notionToMarkdown(post.content);
 
   return (
     <Container className="py-12">
@@ -66,8 +68,8 @@ export const BlogDetailPage = () => {
               </span>
             ))}
           </div>
-          <div className="notion-content-wrapper">
-            <NotionContentRenderer content={post.content} />
+          <div className="markdown-content-wrapper">
+            <MarkdownRenderer content={markdownContent} />
           </div>
         </article>
       </Card>

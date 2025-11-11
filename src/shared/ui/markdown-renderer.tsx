@@ -4,6 +4,15 @@ import type { Components } from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
+// 플러그인들
+import remarkGfm from 'remark-gfm';
+import rehypeRaw from 'rehype-raw';
+import remarkToc from 'remark-toc';
+import rehypeHighlight from 'rehype-highlight';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+import 'highlight.js/styles/base16/dracula.min.css';
+
 interface MarkdownRendererProps {
   content: string;
 }
@@ -97,7 +106,13 @@ export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
 
   return (
     <div className="markdown-content">
-      <ReactMarkdown components={components}>{content}</ReactMarkdown>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkToc]}
+        rehypePlugins={[rehypeRaw, rehypeHighlight, rehypeSlug, rehypeAutolinkHeadings]}
+        components={components}
+      >
+        {content}
+      </ReactMarkdown>
     </div>
   );
 };

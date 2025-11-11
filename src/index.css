@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
   --color-primary-50: #faf5ff;
@@ -26,7 +26,16 @@
   body {
     @apply min-h-screen antialiased;
     background-color: #0a0f1a;
-    background-image: linear-gradient(135deg, #0a0f1a 0%, #0f172a 15%, #1e1b4b 30%, #312e81 50%, #1e1b4b 70%, #0f172a 85%, #0a0f1a 100%);
+    background-image: linear-gradient(
+      135deg,
+      #0a0f1a 0%,
+      #0f172a 15%,
+      #1e1b4b 30%,
+      #312e81 50%,
+      #1e1b4b 70%,
+      #0f172a 85%,
+      #0a0f1a 100%
+    );
     background-size: 400% 400%;
     background-attachment: fixed;
     animation: gradientShift 15s ease infinite;
@@ -70,7 +79,8 @@
   }
 
   @keyframes float {
-    0%, 100% {
+    0%,
+    100% {
       transform: translateY(0px);
     }
     50% {
@@ -79,7 +89,8 @@
   }
 
   @keyframes glow {
-    0%, 100% {
+    0%,
+    100% {
       box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
     }
     50% {
@@ -97,7 +108,8 @@
   }
 
   @keyframes pulse {
-    0%, 100% {
+    0%,
+    100% {
       opacity: 1;
     }
     50% {
@@ -135,34 +147,7 @@
     @apply mb-0;
   }
 
-  /* Notion Content Renderer 스타일링 */
-  .notion-container {
-    @apply text-gray-300;
-  }
-
-  .notion-container .notion-page {
-    @apply bg-transparent;
-  }
-
-  .notion-container .notion-text {
-    @apply text-gray-300;
-  }
-
-  .notion-container .notion-h1,
-  .notion-container .notion-h2,
-  .notion-container .notion-h3 {
-    @apply text-white;
-  }
-
-  .notion-container .notion-code {
-    @apply bg-gray-800 text-primary-300;
-  }
-
-  .notion-container .notion-list {
-    @apply text-gray-300;
-  }
-
-  .notion-content-wrapper {
+  .markdown-content-wrapper {
     @apply text-gray-300;
   }
 
@@ -180,14 +165,18 @@
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.15),
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
     transition: all 0.3s ease;
   }
 
   .glass-card:hover {
     background: rgba(255, 255, 255, 0.12);
     border-color: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    box-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset;
     transform: translateY(-2px);
   }
 
@@ -303,4 +292,3 @@
     transform: translateY(-2px);
   }
 }
-
