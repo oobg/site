@@ -47,6 +47,25 @@ npm run dev
 npm run build
 ```
 
+## 빌드 최적화
+
+이 프로젝트는 Vite의 수동 청크 분할을 통해 빌드 성능을 최적화합니다:
+
+### 경로 별칭
+
+- `@src`: src 디렉토리
+- `/`: public 디렉토리
+
+### 청크 분할 전략
+
+빌드 시 다음과 같이 vendor 라이브러리를 별도 청크로 분리합니다:
+
+- **@react-vendor**: React, React DOM, React Router 등 React 관련 라이브러리
+- **@store-vendor**: Zustand 상태 관리 라이브러리
+- **@network-vendor**: ky HTTP 클라이언트
+
+이를 통해 캐싱 효율성을 높이고 초기 로딩 시간을 단축합니다.
+
 ### 린트
 
 ```bash
@@ -110,4 +129,3 @@ src/
 ## 라이선스
 
 MIT
-

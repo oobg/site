@@ -1,14 +1,20 @@
-import { ErrorBoundary } from '@shared/ui/error-boundary';
-import { LoadingSpinner } from '@shared/ui/loading-spinner';
-import { Layout } from '@widgets/layout';
+import { ErrorBoundary } from '@src/shared/ui/error-boundary';
+import { LoadingSpinner } from '@src/shared/ui/loading-spinner';
+import { Layout } from '@src/widgets/layout';
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
-const LandingPage = lazy(() => import('@pages/landing').then((module) => ({ default: module.LandingPage })));
+const LandingPage = lazy(() =>
+  import('@src/pages/landing').then((module) => ({ default: module.LandingPage })),
+);
 
-const BlogListPage = lazy(() => import('@pages/blog-list').then((module) => ({ default: module.BlogListPage })));
+const BlogListPage = lazy(() =>
+  import('@src/pages/blog-list').then((module) => ({ default: module.BlogListPage })),
+);
 
-const BlogDetailPage = lazy(() => import('@pages/blog-detail').then((module) => ({ default: module.BlogDetailPage })));
+const BlogDetailPage = lazy(() =>
+  import('@src/pages/blog-detail').then((module) => ({ default: module.BlogDetailPage })),
+);
 
 export const Router = () => (
   <ErrorBoundary>

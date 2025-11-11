@@ -1,18 +1,20 @@
-import { Server } from 'miragejs';
+import { Server, Request } from 'miragejs';
 
 import { notionPages } from '../factories/blog';
 
 // 상태가 "발행됨"인 페이지만 필터링
 function filterPublishedPages(pages: typeof notionPages) {
   return pages.filter((page) => {
-    const statusProp = page.properties['상태'] as { type?: string; status?: { name?: string } } | undefined;
+    const statusProp = page.properties['상태'] as
+      | { type?: string; status?: { name?: string } }
+      | undefined;
     return statusProp?.type === 'status' && statusProp?.status?.name === '발행됨';
   });
 }
 
 export const blogHandlers = (server: Server) => {
   // Get all blog posts (Notion API: /api/notion/pages)
-  server.get('/notion/pages', (_schema, request) => {
+  server.get('/notion/pages', (_schema: unknown, request: Request) => {
     const pageParam = request.queryParams.page;
     const limitParam = request.queryParams.limit;
     const page = parseInt(Array.isArray(pageParam) ? pageParam[0] : pageParam || '1', 10);
@@ -38,7 +40,7 @@ export const blogHandlers = (server: Server) => {
   });
 
   // Get single blog post by title (Notion API: /api/notion/page?title=...)
-  server.get('/notion/page', (_schema, request) => {
+  server.get('/notion/page', (_schema: unknown, request: Request) => {
     const titleParam = request.queryParams.title;
     const title = Array.isArray(titleParam) ? titleParam[0] : titleParam;
 

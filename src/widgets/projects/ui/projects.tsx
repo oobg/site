@@ -1,5 +1,5 @@
-import { Card } from '@shared/ui/card';
-import { Container } from '@shared/ui/container';
+import { Card } from '@src/shared/ui/card';
+import { Container } from '@src/shared/ui/container';
 
 const projects = [
   {

@@ -61,3 +61,19 @@
 - 코드 스플리팅을 위해 React.lazy를 사용합니다.
 - 불필요한 리렌더링을 방지하기 위해 React Compiler를 활용합니다.
 
+## Vite 빌드 설정 및 최적화
+
+### 설정 파일
+- 메인 설정: [vite.config.ts](mdc:vite.config.ts)
+- TypeScript 설정: [tsconfig.json](mdc:tsconfig.json)
+
+### 경로 별칭
+- `@src`: src 디렉토리
+- `/`: public 디렉토리
+
+### 빌드 최적화
+- 수동 청크 분할 설정
+- React 관련 라이브러리: `@react-vendor`
+- Zustand: `@store-vendor`
+- ky 네트워크 라이브러리: `@network-vendor`
+

@@ -1,9 +1,9 @@
-import { blogApi } from '@shared/api/blog';
-import { Button } from '@shared/ui/button';
-import { Card } from '@shared/ui/card';
-import { Container } from '@shared/ui/container';
-import { LoadingSpinner } from '@shared/ui/loading-spinner';
-import { NotionContentRenderer } from '@shared/ui/notion-renderer';
+import { blogApi } from '@src/shared/api/blog';
+import { Button } from '@src/shared/ui/button';
+import { Card } from '@src/shared/ui/card';
+import { Container } from '@src/shared/ui/container';
+import { LoadingSpinner } from '@src/shared/ui/loading-spinner';
+import { NotionContentRenderer } from '@src/shared/ui/notion-renderer';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 
@@ -52,15 +52,12 @@ export const BlogDetailPage = () => {
           <div className="mb-6 flex items-center gap-4 text-sm text-gray-400">
             <span>{new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
             <span>•</span>
-            <span>
-              {post.readTime}
-              분 읽기
-            </span>
+            <span>{post.readTime}분 읽기</span>
             <span>•</span>
             <span>{post.author}</span>
           </div>
           <div className="mb-6 flex flex-wrap gap-2">
-            {post.tags.map((tag) => (
+            {post.tags.map((tag: string) => (
               <span
                 key={tag}
                 className="rounded-full bg-primary-900/50 px-3 py-1 text-sm text-primary-300"

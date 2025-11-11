@@ -1,7 +1,7 @@
 import { NotionRenderer } from 'react-notion-x';
 import type { ExtendedRecordMap, BlockType, Decoration } from 'notion-types';
 import 'react-notion-x/src/styles.css';
-import type { NotionBlock } from '@shared/api/blog';
+import type { NotionBlock } from '@src/shared/api/blog';
 
 // NotionBlock 타입을 react-notion-x의 BlockType으로 매핑
 function mapNotionBlockTypeToBlockType(notionType: string): BlockType {
@@ -229,7 +229,7 @@ export const NotionContentRenderer = ({ content }: NotionRendererProps) => {
         fullPage={false}
         darkMode
         previewImages={false}
-        mapPageUrl={(pageId) => `/blog/${pageId}`}
+        mapPageUrl={(pageId: string) => `/blog/${pageId}`}
       />
     </div>
   );

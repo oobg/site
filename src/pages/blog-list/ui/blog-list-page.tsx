@@ -1,7 +1,8 @@
-import { blogApi } from '@shared/api/blog';
-import { Card } from '@shared/ui/card';
-import { Container } from '@shared/ui/container';
-import { LoadingSpinner } from '@shared/ui/loading-spinner';
+import { blogApi } from '@src/shared/api/blog';
+import type { BlogPost } from '@src/shared/api/mock/factories/blog';
+import { Card } from '@src/shared/ui/card';
+import { Container } from '@src/shared/ui/container';
+import { LoadingSpinner } from '@src/shared/ui/loading-spinner';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 
@@ -27,7 +28,7 @@ export const BlogListPage = () => {
     <Container className="py-12">
       <h1 className="mb-8 text-4xl font-bold text-white">Blog</h1>
       <div className="space-y-6">
-        {data?.data.map((post) => (
+        {data?.data.map((post: BlogPost) => (
           <Link key={post.id} to={`/blog/${encodeURIComponent(post.title)}`}>
             <Card hover>
               <h2 className="mb-2 text-2xl font-semibold text-white">{post.title}</h2>
@@ -35,15 +36,12 @@ export const BlogListPage = () => {
               <div className="flex items-center gap-4 text-sm text-gray-500">
                 <span>{new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
                 <span>•</span>
-                <span>
-                  {post.readTime}
-                  분 읽기
-                </span>
+                <span>{post.readTime}분 읽기</span>
                 <span>•</span>
                 <span>{post.author}</span>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
-                {post.tags.map((tag) => (
+                {post.tags.map((tag: string) => (
                   <span
                     key={tag}
                     className="rounded-full bg-primary-900/50 px-3 py-1 text-sm text-primary-300"

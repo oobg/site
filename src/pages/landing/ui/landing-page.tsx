@@ -1,8 +1,8 @@
-import { About } from '@widgets/about';
-import { Contact } from '@widgets/contact';
-import { Hero } from '@widgets/hero';
-import { Projects } from '@widgets/projects';
-import { Skills } from '@widgets/skills';
+import { About } from '@src/widgets/about';
+import { Contact } from '@src/widgets/contact';
+import { Hero } from '@src/widgets/hero';
+import { Projects } from '@src/widgets/projects';
+import { Skills } from '@src/widgets/skills';
 
 export const LandingPage = () => (
   <>

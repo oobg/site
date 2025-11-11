@@ -1,4 +1,4 @@
-import { Container } from '@shared/ui/container';
+import { Container } from '@src/shared/ui/container';
 
 const skills = [
   { name: 'React', level: 90 },
@@ -19,10 +19,7 @@ export const Skills = () => (
             <div key={skill.name}>
               <div className="mb-2 flex justify-between">
                 <span className="font-medium text-white">{skill.name}</span>
-                <span className="text-gray-300 text-sm">
-                  {skill.level}
-                  %
-                </span>
+                <span className="text-gray-300 text-sm">{skill.level}%</span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-gray-700/50">
                 <div

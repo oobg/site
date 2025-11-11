@@ -1,4 +1,4 @@
-import { Container } from '@shared/ui/container';
+import { Container } from '@src/shared/ui/container';
 
 export const Contact = () => (
   <section id="contact" className="py-16 sm:py-24">
