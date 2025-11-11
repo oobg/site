@@ -4,6 +4,8 @@ import { Layout } from '@src/widgets/layout';
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
+import { ScrollRestoration } from './scroll-restoration';
+
 const LandingPage = lazy(() =>
   import('@src/pages/landing').then((module) => ({ default: module.LandingPage })),
 );
@@ -18,6 +20,7 @@ const BlogDetailPage = lazy(() =>
 
 export const Router = () => (
   <ErrorBoundary>
+    <ScrollRestoration />
     <Layout>
       <Suspense fallback={<LoadingSpinner />}>
         <Routes>
