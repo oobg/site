@@ -37,10 +37,6 @@ export default defineConfig({
           if (id.includes('react-syntax-highlighter') || id.includes('highlight.js')) {
             return '@parser-vendor';
           }
-          // Notion 관련 라이브러리
-          if (id.includes('notion-client') || id.includes('notion-to-md')) {
-            return '@notion-vendor';
-          }
           // React 관련 라이브러리
           if (id.includes('react')) {
             return '@react-vendor';

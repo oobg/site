@@ -4,14 +4,11 @@ import { Card } from '@src/shared/ui/card';
 import { Container } from '@src/shared/ui/container';
 import { LoadingSpinner } from '@src/shared/ui/loading-spinner';
 import { MarkdownRenderer } from '@src/shared/ui/markdown-renderer';
-import { convertNotionBlocksToMarkdown } from '@src/shared/utils/notion-to-markdown';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
-import { useState, useEffect } from 'react';
 
 export const BlogDetailPage = () => {
   const { title } = useParams<{ title: string }>();
-  const [markdownContent, setMarkdownContent] = useState<string>('');
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['blog', 'detail', title],
@@ -25,24 +22,7 @@ export const BlogDetailPage = () => {
     enabled: !!title,
   });
 
-  useEffect(() => {
-    const convertContent = async () => {
-      const content = data?.data?.content;
-      if (!content || content.length === 0) {
-        setMarkdownContent('');
-        return;
-      }
-      const markdown = await convertNotionBlocksToMarkdown(content);
-      setMarkdownContent(markdown);
-    };
-
-    if (isLoading) {
-      return;
-    }
-    convertContent();
-  }, [data?.data?.content, isLoading]);
-
-  if (isLoading || !markdownContent) {
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 
@@ -92,7 +72,7 @@ export const BlogDetailPage = () => {
             ))}
           </div>
           <div className="markdown-content-wrapper">
-            <MarkdownRenderer content={markdownContent} />
+            <MarkdownRenderer content={post.content || ''} />
           </div>
         </article>
       </Card>

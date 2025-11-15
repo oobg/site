@@ -184,7 +184,7 @@ export interface BlogPost {
   createdBy: string;
   created: string;
   edited: string;
-  content: NotionBlock[];
+  content: string; // 마크다운 문자열
 }
 
 // Notion API 응답 구조로 Mock 데이터 생성
@@ -429,6 +429,10 @@ export function convertNotionPageToBlogPost(page: NotionPage): BlogPost {
     || ''
   );
 
+  // content는 마크다운 문자열로 반환
+  // NotionPage의 content는 NotionBlock[]이지만, 원본 마크다운은 properties에서 가져옴
+  const contentMarkdown = (getPropValue('내용', 'content') as string) || '';
+
   return {
     title,
     category,
@@ -436,6 +440,6 @@ export function convertNotionPageToBlogPost(page: NotionPage): BlogPost {
     createdBy,
     created: page.createdAt,
     edited: page.updatedAt,
-    content: page.content || [],
+    content: contentMarkdown,
   };
 }
