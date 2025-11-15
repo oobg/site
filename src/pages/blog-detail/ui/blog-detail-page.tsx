@@ -27,10 +27,12 @@ export const BlogDetailPage = () => {
 
   useEffect(() => {
     const convertContent = async () => {
-      if (data?.data?.content && data.data.content.length > 0) {
-        const markdown = await convertNotionBlocksToMarkdown(data.data.content);
-        setMarkdownContent(markdown);
+      const content = data?.data?.content;
+      if (!content || content.length === 0) {
+        return;
       }
+      const markdown = await convertNotionBlocksToMarkdown(content);
+      setMarkdownContent(markdown);
     };
     if (isLoading) {
       return;
