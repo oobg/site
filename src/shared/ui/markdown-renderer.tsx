@@ -17,6 +17,42 @@ interface MarkdownRendererProps {
   content: string;
 }
 
+// children을 안전하게 문자열로 변환하는 헬퍼 함수
+const childrenToString = (children: React.ReactNode): string => {
+  if (children == null) {
+    return '';
+  }
+
+  if (typeof children === 'string') {
+    return children;
+  }
+
+  if (typeof children === 'number') {
+    return String(children);
+  }
+
+  if (Array.isArray(children)) {
+    return children.map(childrenToString).join('');
+  }
+
+  // React 요소인 경우 children을 재귀적으로 처리
+  if (typeof children === 'object' && 'props' in children && children.props) {
+    return childrenToString(children.props.children);
+  }
+
+  // React.Children.toArray를 사용하여 안전하게 변환
+  const childrenArray = React.Children.toArray(children);
+  return childrenArray.map((child) => {
+    if (typeof child === 'string' || typeof child === 'number') {
+      return String(child);
+    }
+    if (typeof child === 'object' && 'props' in child && child.props) {
+      return childrenToString(child.props.children);
+    }
+    return '';
+  }).join('');
+};
+
 export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
   const components: Components = {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,6 +60,8 @@ export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
       const inline = !className;
       const match = /language-(\w+)/.exec(className || '');
       const language = match ? match[1] : '';
+
+      const codeString = childrenToString(children);
 
       return !inline && match ? (
         <SyntaxHighlighter
@@ -33,11 +71,11 @@ export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
           PreTag="div"
           className="rounded-lg"
         >
-          {String(children).replace(/\n$/, '')}
+          {codeString.replace(/\n$/, '')}
         </SyntaxHighlighter>
       ) : (
         <code className="rounded bg-gray-800 px-1.5 py-0.5 text-sm text-primary-300" {...props}>
-          {children}
+          {codeString}
         </code>
       );
     },
