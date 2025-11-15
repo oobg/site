@@ -118,14 +118,30 @@ export interface BlogListResponse {
 
 export type BlogDetailResponse = BlogPost;
 
+export interface CategoryItem {
+  name: string;
+  count: number;
+}
+
+export type CategoryResponse = CategoryItem[];
+
 export const blogApi = {
-  getList: async (page = 1, limit = 20): Promise<BlogListResponse> => {
-    const response = await apiClient.get('pages', { searchParams: { page, limit } }).json<BlogListResponse>();
+  getList: async (page = 1, limit = 20, category?: string): Promise<BlogListResponse> => {
+    const searchParams: Record<string, string | number> = { page, limit };
+    if (category) {
+      searchParams.category = category;
+    }
+    const response = await apiClient.get('pages', { searchParams }).json<BlogListResponse>();
     return response;
   },
 
   getDetail: async (title: string): Promise<BlogDetailResponse> => {
     const response = await apiClient.get('page', { searchParams: { title } }).json<BlogDetailResponse>();
+    return response;
+  },
+
+  getCategories: async (): Promise<CategoryResponse> => {
+    const response = await apiClient.get('category').json<CategoryResponse>();
     return response;
   },
 };

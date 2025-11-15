@@ -197,14 +197,22 @@ export const blogHandlers = (server: Server) => {
   server.get('/notion/pages', (_schema: unknown, request: Request) => {
     const pageParam = request.queryParams.page;
     const limitParam = request.queryParams.limit;
+    const categoryParam = request.queryParams.category;
     const page = parseInt(Array.isArray(pageParam) ? pageParam[0] : pageParam || '1', 10);
     const limit = parseInt(Array.isArray(limitParam) ? limitParam[0] : limitParam || '20', 10);
+    const category = Array.isArray(categoryParam) ? categoryParam[0] : categoryParam;
 
-    const total = mockBlogListData.length;
+    // 카테고리 필터링
+    let filteredData = mockBlogListData;
+    if (category) {
+      filteredData = mockBlogListData.filter((post) => post.category === category);
+    }
+
+    const total = filteredData.length;
     const start = (page - 1) * limit;
     const end = start + limit;
 
-    const paginatedData = mockBlogListData.slice(start, end);
+    const paginatedData = filteredData.slice(start, end);
 
     return {
       data: paginatedData,
@@ -239,5 +247,24 @@ export const blogHandlers = (server: Server) => {
     }
 
     return matchingPost;
+  });
+
+  // Get categories (Notion API: /api/notion/category)
+  server.get('/notion/category', () => {
+    // 카테고리별 개수 계산
+    const categoryCounts = new Map<string, number>();
+    mockBlogListData.forEach((post) => {
+      if (post.category) {
+        const count = categoryCounts.get(post.category) || 0;
+        categoryCounts.set(post.category, count + 1);
+      }
+    });
+
+    // 배열로 변환
+    const categories = Array.from(categoryCounts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return categories;
   });
 };
