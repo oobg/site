@@ -1,6 +1,6 @@
 import { Server, Request } from 'miragejs';
 
-import { notionPages } from '../factories/blog';
+import { notionPages, convertNotionPageToBlogPostListItem } from '../factories/blog';
 
 // 상태가 "발행됨"인 페이지만 필터링
 function filterPublishedPages(pages: typeof notionPages) {
@@ -29,7 +29,7 @@ export const blogHandlers = (server: Server) => {
     const paginatedPages = publishedPages.slice(start, end);
 
     return {
-      data: paginatedPages,
+      data: paginatedPages.map(convertNotionPageToBlogPostListItem),
       meta: {
         total,
         page,

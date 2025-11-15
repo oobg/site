@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { BlogPost } from './mock/factories/blog';
+import type { BlogPost, BlogPostListItem } from './mock/factories/blog';
 
 // Notion 블록 타입 정의
 export interface NotionBlock {
@@ -56,11 +56,11 @@ export interface PaginatedNotionPages {
 }
 
 export interface BlogListResponse {
-  data: BlogPost[];
-  pagination: {
+  data: BlogPostListItem[];
+  meta: {
+    total: number;
     page: number;
     limit: number;
-    total: number;
     totalPages: number;
   };
 }
@@ -161,16 +161,8 @@ export function convertNotionPageToBlogPost(notionPage: NotionPage): BlogPost {
 
 export const blogApi = {
   getList: async (page = 1, limit = 20): Promise<BlogListResponse> => {
-    const response = await apiClient.get('pages', { searchParams: { page, limit } }).json<PaginatedNotionPages>();
-    return {
-      data: response.data.map(convertNotionPageToBlogPost),
-      pagination: {
-        page: response.meta.page,
-        limit: response.meta.limit,
-        total: response.meta.total,
-        totalPages: response.meta.totalPages,
-      },
-    };
+    const response = await apiClient.get('pages', { searchParams: { page, limit } }).json<BlogListResponse>();
+    return response;
   },
 
   getDetail: async (title: string): Promise<BlogDetailResponse> => {

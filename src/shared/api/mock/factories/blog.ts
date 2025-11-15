@@ -118,6 +118,17 @@ function markdownToNotionBlocks(markdown: string): NotionBlock[] {
   return blocks;
 }
 
+// 블로그 목록용 타입 (간소화된 구조)
+export interface BlogPostListItem {
+  title: string;
+  category: string;
+  tags: string[];
+  createdBy: string;
+  created: string;
+  edited: string;
+}
+
+// 블로그 상세용 타입 (기존 구조 유지)
 export interface BlogPost {
   id: string;
   title: string;
@@ -276,6 +287,59 @@ Feature-Sliced Design (FSD)는 확장 가능하고 유지보수하기 쉬운 프
     6,
   ),
 ];
+
+// NotionPage를 BlogPostListItem으로 변환하는 함수
+export function convertNotionPageToBlogPostListItem(page: NotionPage): BlogPostListItem {
+  const props = page.properties;
+
+  // properties에서 값 추출 (한글/영문 키 모두 시도)
+  const getPropValue = (key: string, fallbackKey?: string): unknown => {
+    const prop = (
+      props[key] || (fallbackKey ? props[fallbackKey] : undefined)
+    ) as { type?: string; [key: string]: unknown } | undefined;
+    if (!prop) return null;
+
+    if (prop.type === 'title' && Array.isArray(prop.title)) {
+      const titleArray = prop.title as Array<{ plain_text?: string }>;
+      return titleArray.map((item) => item.plain_text || '').join('');
+    }
+
+    if (prop.type === 'rich_text' && Array.isArray(prop.rich_text)) {
+      const richTextArray = prop.rich_text as Array<{ plain_text?: string }>;
+      return richTextArray.map((item) => item.plain_text || '').join('');
+    }
+
+    if (prop.type === 'select' && prop.select) {
+      const select = prop.select as { name?: string };
+      return select.name || null;
+    }
+
+    if (prop.type === 'multi_select' && Array.isArray(prop.multi_select)) {
+      const multiSelect = prop.multi_select as Array<{ name?: string }>;
+      return multiSelect.map((item) => item.name || '').filter(Boolean);
+    }
+
+    return null;
+  };
+
+  const title = (getPropValue('제목', 'title') as string) || page.title || '';
+  const category = (getPropValue('카테고리', 'category') as string) || '';
+  const tags = (getPropValue('태그', 'tags') as string[]) || [];
+  const createdBy = (
+    (getPropValue('작성자', 'createdBy') as string)
+    || (getPropValue('author') as string)
+    || ''
+  );
+
+  return {
+    title,
+    category,
+    tags: Array.isArray(tags) ? tags : [],
+    createdBy,
+    created: page.createdAt,
+    edited: page.updatedAt,
+  };
+}
 
 // 하위 호환성을 위해 BlogPost 배열도 유지 (변환 로직 테스트용)
 export const blogPosts: BlogPost[] = notionPages.map((page) => {

@@ -1,5 +1,5 @@
 import { blogApi } from '@src/shared/api/blog';
-import type { BlogPost } from '@src/shared/api/mock/factories/blog';
+import type { BlogPostListItem } from '@src/shared/api/mock/factories/blog';
 import { Card } from '@src/shared/ui/card';
 import { Container } from '@src/shared/ui/container';
 import { LoadingSpinner } from '@src/shared/ui/loading-spinner';
@@ -28,19 +28,23 @@ export const BlogListPage = () => {
     <Container className="py-12">
       <h1 className="mb-8 text-4xl font-bold text-white">Blog</h1>
       <div className="space-y-6">
-        {data?.data.map((post: BlogPost) => (
-          <Link key={post.id} to={`/blog/${encodeURIComponent(post.title)}`}>
+        {data?.data.map((post: BlogPostListItem) => (
+          <Link key={post.title} to={`/blog/${encodeURIComponent(post.title)}`}>
             <Card hover>
-              <h2 className="mb-2 text-2xl font-semibold text-white">{post.title}</h2>
-              <p className="mb-4 text-gray-400">{post.excerpt}</p>
-              <div className="flex items-center gap-4 text-sm text-gray-500">
-                <span>{new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
-                <span>•</span>
-                <span>{post.readTime}분 읽기</span>
-                <span>•</span>
-                <span>{post.author}</span>
+              <div className="mb-2 flex items-center gap-3">
+                <h2 className="text-2xl font-semibold text-white">{post.title}</h2>
+                {post.category && (
+                  <span className="rounded-full bg-primary-800/50 px-3 py-1 text-sm text-primary-200">
+                    {post.category}
+                  </span>
+                )}
               </div>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <div className="mb-4 flex items-center gap-4 text-sm text-gray-500">
+                <span>{new Date(post.created).toLocaleDateString('ko-KR')}</span>
+                <span>•</span>
+                <span>{post.createdBy}</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
                 {post.tags.map((tag: string) => (
                   <span
                     key={tag}
