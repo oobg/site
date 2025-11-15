@@ -22,13 +22,11 @@ export const BlogDetailPage = () => {
     enabled: !!title,
   });
 
-  console.debug({ data, isLoading, error });
-
   if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  if (error || !data) {
+  if (error || !data || !data.data) {
     return (
       <Container className="py-12">
         <div className="text-center">
