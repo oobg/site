@@ -23,12 +23,53 @@ export const LunchPage = () => {
   const scrollToCategorySelection = () => {
     const categoryElement = document.getElementById('category-selection');
     if (categoryElement) {
-      const elementPosition = categoryElement.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - 100; // 헤더 여유 공간
+      requestAnimationFrame(() => {
+        // 카테고리 영역이 화면 맨 위에 오도록 스크롤
+        categoryElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'start',
+        });
 
-      window.scrollTo({
-        top: Math.max(0, offsetPosition),
-        behavior: 'smooth',
+        // 헤더 여유 공간을 위한 추가 조정
+        setTimeout(() => {
+          const cardRect = categoryElement.getBoundingClientRect();
+          const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+          const headerOffset = 100; // 헤더 높이 + 여유 공간
+          const targetScroll = cardRect.top + scrollY - headerOffset;
+
+          window.scrollTo({
+            top: Math.max(0, targetScroll),
+            behavior: 'smooth',
+          });
+        }, 50);
+      });
+    }
+  };
+
+  const scrollToResultCard = () => {
+    const resultCard = document.getElementById('result-card');
+    if (resultCard) {
+      // 모바일 사파리 호환성을 위해 여러 방법 시도
+      requestAnimationFrame(() => {
+        const cardRect = resultCard.getBoundingClientRect();
+        const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+        const cardBottom = cardRect.bottom + scrollY;
+        const targetScroll = cardBottom - viewportHeight + 32; // 하단 여유 공간
+
+        // scrollIntoView 시도 (모바일에서 더 안정적)
+        resultCard.scrollIntoView({
+          behavior: 'smooth',
+          block: 'end',
+        });
+
+        // 추가로 정확한 위치 조정
+        setTimeout(() => {
+          window.scrollTo({
+            top: Math.max(0, targetScroll),
+            behavior: 'smooth',
+          });
+        }, 50);
       });
     }
   };
@@ -38,9 +79,6 @@ export const LunchPage = () => {
 
     setIsLoading(true);
     setShowResult(false);
-
-    // 추천 버튼 클릭 시 카테고리 선택 영역으로 스크롤
-    scrollToCategorySelection();
 
     try {
       const result = await menuApi.recommend(selectedCategory);
@@ -57,18 +95,18 @@ export const LunchPage = () => {
     }
   };
 
-  // 결과가 표시될 때 카테고리 선택 영역으로 스크롤
+  // 결과가 표시될 때 결과 카드가 하단에 오도록 스크롤
   useEffect(() => {
     if (showResult) {
-      // 약간의 지연을 두어 DOM 업데이트 후 스크롤
+      // DOM 업데이트와 애니메이션 완료를 위한 충분한 지연
       setTimeout(() => {
-        scrollToCategorySelection();
-      }, 100);
+        scrollToResultCard();
+      }, 500);
     }
   }, [showResult]);
 
   return (
-    <Container size="lg" className="py-12 min-h-screen">
+    <Container size="lg" className="py-12 pb-32 min-h-screen">
       <div className="text-center mb-12">
         <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
           오늘 점심 뭐 먹지? 🍽️
@@ -89,6 +127,8 @@ export const LunchPage = () => {
                   setSelectedCategory(category.value);
                   setRecommendedMenu(null);
                   setShowResult(false);
+                  // 카테고리 영역이 맨 위에 오도록 스크롤
+                  scrollToCategorySelection();
                 }}
                 className={`
                   p-6 rounded-xl transition-all duration-300 h-32 flex flex-col items-center justify-center
@@ -130,6 +170,7 @@ export const LunchPage = () => {
         {/* 추천 결과 */}
         {recommendedMenu && (
           <div
+            id="result-card"
             className={`
               transition-all duration-500 ease-out
               ${showResult ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
