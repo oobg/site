@@ -99,7 +99,7 @@ const createHeadingComponent = (
           {children}
           <LinkIcon
             onClick={handleLinkClick}
-            className="ml-2 inline-flex items-center text-primary-400 opacity-0 transition-opacity duration-200 hover:text-primary-300 group-hover:opacity-100"
+            className="ml-2 h-4 w-4 inline-flex items-center text-primary-400 opacity-0 transition-opacity duration-200 hover:text-primary-300 group-hover:opacity-100"
           />
         </h1>
       );
@@ -110,7 +110,7 @@ const createHeadingComponent = (
           {children}
           <LinkIcon
             onClick={handleLinkClick}
-            className="ml-2 inline-flex items-center text-primary-400 opacity-0 transition-opacity duration-200 hover:text-primary-300 group-hover:opacity-100"
+            className="ml-2 h-4 w-4 inline-flex items-center text-primary-400 opacity-0 transition-opacity duration-200 hover:text-primary-300 group-hover:opacity-100"
           />
         </h2>
       );
@@ -120,7 +120,7 @@ const createHeadingComponent = (
         {children}
         <LinkIcon
           onClick={handleLinkClick}
-          className="ml-2 inline-flex items-center text-primary-400 opacity-0 transition-opacity duration-200 hover:text-primary-300 group-hover:opacity-100"
+          className="ml-2 h-4 w-4 inline-flex items-center text-primary-400 opacity-0 transition-opacity duration-200 hover:text-primary-300 group-hover:opacity-100"
         />
       </h3>
     );
