@@ -34,11 +34,11 @@ export const BlogListPage = () => {
 
   return (
     <Container className="py-12">
-      <h1 className="mb-8 text-4xl font-bold text-white">Blog</h1>
+      <div className="mb-10">
+        <h1 className="mb-6 text-4xl font-bold text-white">Blog</h1>
 
-      {/* 카테고리 필터 버튼 */}
-      <div className="mb-8 overflow-x-auto">
-        <div className="flex gap-3 pb-2">
+        {/* 카테고리 필터 버튼 */}
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setSelectedCategory(undefined)}
             className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors ${
@@ -65,32 +65,62 @@ export const BlogListPage = () => {
         </div>
       </div>
 
-      <div className="space-y-3 flex flex-col">
+      <div className="flex flex-col gap-4">
         {data?.data.map((post: BlogPostListItem) => (
           <Link key={post.title} to={`/blog/${encodeURIComponent(post.title)}`}>
             <Card hover>
-              {post.category && (
-                <div className="mb-2">
-                  <span className="rounded-md bg-primary-600/80 px-3 py-1 text-xs font-semibold text-white">
-                    {post.category}
+              <div className="space-y-4">
+                {post.category && (
+                  <div>
+                    <span className="inline-block rounded-md bg-primary-600/80 px-3 py-1 text-xs font-semibold text-white">
+                      {post.category}
+                    </span>
+                  </div>
+                )}
+                <h2 className="text-2xl font-semibold leading-tight text-white">{post.title}</h2>
+                <div className="flex flex-wrap items-center gap-3 text-sm">
+                  <div className="inline-flex items-center gap-2 rounded-lg bg-gray-800/40 px-3 py-1.5">
+                    <svg
+                      className="h-4 w-4 text-primary-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                      />
+                    </svg>
+                    <span className="font-medium text-gray-300">{post.createdBy}</span>
+                  </div>
+                  <span className="text-gray-500">•</span>
+                  <span className="text-gray-400">
+                    {new Date(post.created).toLocaleDateString('ko-KR')}
                   </span>
+                  {post.edited && post.edited !== post.created && (
+                    <>
+                      <span className="text-gray-500">•</span>
+                      <span className="text-gray-400">
+                        수정: {new Date(post.edited).toLocaleDateString('ko-KR')}
+                      </span>
+                    </>
+                  )}
                 </div>
-              )}
-              <h2 className="mb-2 text-2xl font-semibold text-white">{post.title}</h2>
-              <div className="mb-4 flex items-center gap-4 text-sm text-gray-500">
-                <span>{new Date(post.created).toLocaleDateString('ko-KR')}</span>
-                <span>•</span>
-                <span>{post.createdBy}</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {post.tags.map((tag: string) => (
-                  <span
-                    key={tag}
-                    className="rounded-md border border-gray-600/50 bg-gray-800/30 px-2.5 py-1 text-xs text-gray-400"
-                  >
-                    #{tag}
-                  </span>
-                ))}
+                {post.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {post.tags.map((tag: string) => (
+                      <span
+                        key={tag}
+                        className="rounded-md border border-gray-600/50 bg-gray-800/30 px-2.5 py-1 text-xs text-gray-400"
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             </Card>
           </Link>

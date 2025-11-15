@@ -43,39 +43,88 @@ export const BlogDetailPage = () => {
 
   return (
     <Container className="py-12">
-      <Link to="/blog" className="mb-6 inline-block text-primary-400 hover:text-primary-300">
-        ← 목록으로
+      <Link
+        to="/blog"
+        className="mb-8 inline-flex items-center gap-2 text-primary-400 transition-colors hover:text-primary-300"
+      >
+        <svg
+          className="h-4 w-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+        목록으로
       </Link>
-      <Card>
-        <article>
-          {post.category && (
-            <div className="mb-2">
-              <span className="rounded-md bg-primary-600/80 px-3 py-1 text-xs font-semibold text-white">
-                {post.category}
+      <div className="space-y-6">
+        <Card>
+          <div className="space-y-6">
+            {post.category && (
+              <div>
+                <span className="inline-block rounded-md bg-primary-600/80 px-3 py-1 text-xs font-semibold text-white">
+                  {post.category}
+                </span>
+              </div>
+            )}
+            <h1 className="text-4xl font-bold leading-tight text-white">{post.title}</h1>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <div className="inline-flex items-center gap-2 rounded-lg bg-gray-800/40 px-3 py-1.5">
+                <svg
+                  className="h-4 w-4 text-primary-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+                <span className="font-medium text-gray-300">{post.createdBy}</span>
+              </div>
+              <span className="text-gray-500">•</span>
+              <span className="text-gray-400">
+                {new Date(post.created).toLocaleDateString('ko-KR')}
               </span>
+              {post.edited && post.edited !== post.created && (
+                <>
+                  <span className="text-gray-500">•</span>
+                  <span className="text-gray-400">
+                    수정: {new Date(post.edited).toLocaleDateString('ko-KR')}
+                  </span>
+                </>
+              )}
             </div>
-          )}
-          <h1 className="mb-4 text-4xl font-bold text-white">{post.title}</h1>
-          <div className="mb-6 flex items-center gap-4 text-sm text-gray-400">
-            <span>{new Date(post.created).toLocaleDateString('ko-KR')}</span>
-            <span>•</span>
-            <span>{post.createdBy}</span>
+            {post.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map((tag: string) => (
+                  <span
+                    key={tag}
+                    className="rounded-md border border-gray-600/50 bg-gray-800/30 px-2.5 py-1 text-xs text-gray-400"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-          <div className="mb-6 flex flex-wrap gap-2">
-            {post.tags.map((tag: string) => (
-              <span
-                key={tag}
-                className="rounded-md border border-gray-600/50 bg-gray-800/30 px-2.5 py-1 text-xs text-gray-400"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-          <div className="markdown-content-wrapper">
+        </Card>
+        <Card>
+          <article className="markdown-content-wrapper">
             <MarkdownRenderer content={post.content || ''} />
-          </div>
-        </article>
-      </Card>
+          </article>
+        </Card>
+      </div>
     </Container>
   );
 };
