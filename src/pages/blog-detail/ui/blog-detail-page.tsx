@@ -26,7 +26,7 @@ export const BlogDetailPage = () => {
     return <LoadingSpinner />;
   }
 
-  if (error || !data || !data.data) {
+  if (error || !data) {
     return (
       <Container className="py-12">
         <div className="text-center">
@@ -39,7 +39,7 @@ export const BlogDetailPage = () => {
     );
   }
 
-  const post = data.data;
+  const post = data;
 
   return (
     <Container className="py-12">
