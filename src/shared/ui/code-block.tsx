@@ -131,26 +131,25 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
       });
     };
 
-    // 즉시 실행
-    applyTagColors();
+    // SyntaxHighlighter가 렌더링된 후 색상 적용
+    // requestAnimationFrame으로 한 프레임 후 실행
+    let rafId: number;
+    let timeoutId: NodeJS.Timeout;
 
-    // MutationObserver로 DOM 변경 감지
-    const observer = new MutationObserver(() => {
-      applyTagColors();
+    rafId = requestAnimationFrame(() => {
+      timeoutId = setTimeout(() => {
+        applyTagColors();
+      }, 100);
     });
 
-    if (codeRef.current) {
-      observer.observe(codeRef.current, {
-        childList: true,
-        subtree: true,
-      });
-    }
-
     // 추가로 약간의 지연 후에도 실행 (SyntaxHighlighter가 늦게 렌더링될 수 있음)
-    const timer = setTimeout(applyTagColors, 300);
+    const timer = setTimeout(() => {
+      applyTagColors();
+    }, 500);
 
     return () => {
-      observer.disconnect();
+      if (rafId) cancelAnimationFrame(rafId);
+      if (timeoutId) clearTimeout(timeoutId);
       clearTimeout(timer);
     };
   }, [code, language]);
