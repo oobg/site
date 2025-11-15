@@ -25,8 +25,24 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
+          // Router 관련 라이브러리
+          if (id.includes('react-dom') || id.includes('react-router')) {
+            return '@router-vendor';
+          }
+          // Query 관련 라이브러리
+          if (id.includes('react-query')) {
+            return '@query-vendor';
+          }
+          // Highlight.js 관련 라이브러리
+          if (id.includes('react-syntax-highlighter') || id.includes('highlight.js')) {
+            return '@parser-vendor';
+          }
+          // Notion 관련 라이브러리
+          if (id.includes('notion-client') || id.includes('notion-to-md')) {
+            return '@notion-vendor';
+          }
           // React 관련 라이브러리
-          if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) {
+          if (id.includes('react')) {
             return '@react-vendor';
           }
           // Zustand
