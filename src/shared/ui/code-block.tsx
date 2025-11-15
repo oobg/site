@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
@@ -9,6 +9,7 @@ interface CodeBlockProps {
 
 export const CodeBlock = ({ code, language }: CodeBlockProps) => {
   const [copyState, setCopyState] = useState<'idle' | 'copying' | 'copied'>('idle');
+  const codeRef = useRef<HTMLDivElement>(null);
 
   const handleCopy = async () => {
     setCopyState('copying');
@@ -23,6 +24,128 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
       setCopyState('idle');
     }
   };
+
+  useEffect(() => {
+    if (!codeRef.current) return;
+
+    const applyTagColors = () => {
+      const codeElement = codeRef.current?.querySelector('code');
+      if (!codeElement) return;
+
+      // 기존 tag-name 클래스 제거 및 분리된 span 복원
+      codeElement.querySelectorAll('.tag-name, .js-builtin').forEach((el) => {
+        const element = el as HTMLElement;
+        const dataOriginalText = element.getAttribute('data-original-text');
+        if (dataOriginalText) {
+          // 원래 텍스트로 복원
+          element.textContent = dataOriginalText;
+          element.removeAttribute('data-original-text');
+        }
+        element.classList.remove('tag-name');
+        element.style.color = '';
+      });
+      
+      // 분리된 span 제거 (원래 span과 합치기 위해)
+      codeElement.querySelectorAll('span[data-is-props]').forEach((el) => {
+        const prevSibling = el.previousElementSibling;
+        if (prevSibling && prevSibling.classList.contains('tag-name')) {
+          const originalText = prevSibling.getAttribute('data-original-text') || 
+                              (prevSibling.textContent || '') + (el.textContent || '');
+          prevSibling.textContent = originalText;
+          prevSibling.removeAttribute('data-original-text');
+        }
+        el.remove();
+      });
+
+      // JavaScript 내장 객체 초록색으로 변경 (Object, Array, String 등)
+      const builtinObjects = [
+        'Object', 'Array', 'String', 'Number', 'Boolean', 'Date', 'Math', 'JSON',
+        'Promise', 'Map', 'Set', 'WeakMap', 'WeakSet', 'RegExp', 'Error',
+        'Function', 'Symbol', 'BigInt', 'Intl', 'Reflect', 'Proxy'
+      ];
+      
+      builtinObjects.forEach((objName) => {
+        const elements = codeElement.querySelectorAll(`span:not(.token)`);
+        elements.forEach((el) => {
+          const text = el.textContent?.trim() || '';
+          // 정확히 일치하는 경우만 (다른 단어의 일부가 아닌 경우)
+          if (text === objName && !el.classList.contains('token')) {
+            (el as HTMLElement).style.color = '#4EC9B0';
+            el.classList.add('js-builtin');
+          }
+        });
+      });
+
+      // 태그 이름만 선택: <, ., / 다음에 오는 것만
+      const tokenSpans = codeElement.querySelectorAll('span.token');
+      tokenSpans.forEach((tokenSpan) => {
+        const tokenText = tokenSpan.textContent?.trim() || '';
+        // 태그 관련 토큰만 선택: <, ., /, >
+        if (tokenText === '<' || tokenText === '.' || tokenText === '/' || tokenText === '>') {
+          const nextSibling = tokenSpan.nextElementSibling;
+          if (nextSibling && nextSibling.tagName === 'SPAN' && !nextSibling.classList.contains('token')) {
+            const text = nextSibling.textContent || '';
+            // 공백이나 줄바꿈만 있는 경우 제외
+            if (text.trim() && !/^\s+$/.test(text)) {
+              const element = nextSibling as HTMLElement;
+              
+              // 태그 이름과 props가 함께 있는 경우 분리
+              // 예: "h2 className" -> "h2"만 초록색, " className"은 원래 색상
+              if (text.includes(' ') && tokenText === '<') {
+                const firstSpaceIndex = text.indexOf(' ');
+                const tagName = text.substring(0, firstSpaceIndex);
+                const rest = text.substring(firstSpaceIndex);
+                
+                // 원래 텍스트 저장
+                element.setAttribute('data-original-text', text);
+                
+                // 원래 span을 태그 이름만 남기고
+                element.textContent = tagName;
+                element.style.color = '#4EC9B0';
+                element.classList.add('tag-name');
+                
+                // 나머지 부분을 새로운 span으로 추가
+                if (rest.trim()) {
+                  const restSpan = document.createElement('span');
+                  restSpan.textContent = rest;
+                  restSpan.setAttribute('data-is-props', 'true');
+                  restSpan.style.color = ''; // 원래 색상 유지
+                  element.parentNode?.insertBefore(restSpan, element.nextSibling);
+                }
+              } else {
+                // 공백이 없거나 . 다음인 경우 (예: Dialog.Trigger)
+                element.style.color = '#4EC9B0';
+                element.classList.add('tag-name');
+              }
+            }
+          }
+        }
+      });
+    };
+
+    // 즉시 실행
+    applyTagColors();
+
+    // MutationObserver로 DOM 변경 감지
+    const observer = new MutationObserver(() => {
+      applyTagColors();
+    });
+
+    if (codeRef.current) {
+      observer.observe(codeRef.current, {
+        childList: true,
+        subtree: true,
+      });
+    }
+
+    // 추가로 약간의 지연 후에도 실행 (SyntaxHighlighter가 늦게 렌더링될 수 있음)
+    const timer = setTimeout(applyTagColors, 300);
+
+    return () => {
+      observer.disconnect();
+      clearTimeout(timer);
+    };
+  }, [code, language]);
 
   return (
     <div className="relative my-6 overflow-hidden rounded-2xl border border-white/10 bg-[#1E1E1E] shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] backdrop-blur-xl">
@@ -129,21 +252,33 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
 
       {/* 코드 영역 */}
       <div className="overflow-x-auto bg-[#1E1E1E]">
-        <SyntaxHighlighter
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          style={vscDarkPlus as any}
-          language={language}
-          PreTag="div"
-          customStyle={{
-            margin: 0,
-            padding: '1.5rem',
-            backgroundColor: 'transparent',
-            fontSize: '0.875rem',
-            lineHeight: '1.7',
-          }}
-        >
-          {code}
-        </SyntaxHighlighter>
+        <style>{`
+          .code-block-container .tag-name {
+            color: #4EC9B0 !important;
+          }
+          /* JavaScript 예약어와 내장 객체 초록색 */
+          .code-block-container .token.keyword,
+          .code-block-container .token.builtin {
+            color: #4EC9B0 !important;
+          }
+        `}</style>
+        <div className="code-block-container" ref={codeRef}>
+          <SyntaxHighlighter
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            style={vscDarkPlus as any}
+            language={language}
+            PreTag="div"
+            customStyle={{
+              margin: 0,
+              padding: '1.5rem',
+              backgroundColor: 'transparent',
+              fontSize: '0.875rem',
+              lineHeight: '1.7',
+            }}
+          >
+            {code}
+          </SyntaxHighlighter>
+        </div>
       </div>
     </div>
   );
