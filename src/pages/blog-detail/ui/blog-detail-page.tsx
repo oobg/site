@@ -3,13 +3,15 @@ import { Button } from '@src/shared/ui/button';
 import { Card } from '@src/shared/ui/card';
 import { Container } from '@src/shared/ui/container';
 import { LoadingSpinner } from '@src/shared/ui/loading-spinner';
-import { notionToMarkdown } from '@src/shared/ui/notion-renderer';
 import { MarkdownRenderer } from '@src/shared/ui/markdown-renderer';
+import { convertNotionBlocksToMarkdown } from '@src/shared/utils/notion-to-markdown';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 export const BlogDetailPage = () => {
   const { title } = useParams<{ title: string }>();
+  const [markdownContent, setMarkdownContent] = useState<string>('');
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['blog', 'detail', title],
@@ -22,6 +24,16 @@ export const BlogDetailPage = () => {
     },
     enabled: !!title,
   });
+
+  useEffect(() => {
+    const convertContent = async () => {
+      if (data?.data.content && data.data.content.length > 0) {
+        const markdown = await convertNotionBlocksToMarkdown(data.data.content);
+        setMarkdownContent(markdown);
+      }
+    };
+    convertContent();
+  }, [data?.data.content]);
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -41,7 +53,6 @@ export const BlogDetailPage = () => {
   }
 
   const post = data.data;
-  const markdownContent = notionToMarkdown(post.content);
 
   return (
     <Container className="py-12">
