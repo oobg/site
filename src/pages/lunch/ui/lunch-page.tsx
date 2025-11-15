@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@src/shared/ui/button';
 import { Card } from '@src/shared/ui/card';
 import { Container } from '@src/shared/ui/container';
@@ -20,11 +20,27 @@ export const LunchPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showResult, setShowResult] = useState(false);
 
+  const scrollToCategorySelection = () => {
+    const categoryElement = document.getElementById('category-selection');
+    if (categoryElement) {
+      const elementPosition = categoryElement.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - 100; // 헤더 여유 공간
+
+      window.scrollTo({
+        top: Math.max(0, offsetPosition),
+        behavior: 'smooth',
+      });
+    }
+  };
+
   const handleRecommend = async () => {
     if (!selectedCategory) return;
 
     setIsLoading(true);
     setShowResult(false);
+
+    // 추천 버튼 클릭 시 카테고리 선택 영역으로 스크롤
+    scrollToCategorySelection();
 
     try {
       const result = await menuApi.recommend(selectedCategory);
@@ -41,6 +57,16 @@ export const LunchPage = () => {
     }
   };
 
+  // 결과가 표시될 때 카테고리 선택 영역으로 스크롤
+  useEffect(() => {
+    if (showResult) {
+      // 약간의 지연을 두어 DOM 업데이트 후 스크롤
+      setTimeout(() => {
+        scrollToCategorySelection();
+      }, 100);
+    }
+  }, [showResult]);
+
   return (
     <Container size="lg" className="py-12 min-h-screen">
       <div className="text-center mb-12">
@@ -52,7 +78,7 @@ export const LunchPage = () => {
 
       <div className="max-w-2xl mx-auto">
         {/* 카테고리 선택 */}
-        <Card className="mb-8">
+        <Card id="category-selection" className="mb-8">
           <h2 className="text-2xl font-semibold mb-6 text-center">카테고리 선택</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {CATEGORIES.map((category) => (
