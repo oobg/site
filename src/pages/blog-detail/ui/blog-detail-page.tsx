@@ -42,7 +42,7 @@ export const BlogDetailPage = () => {
     convertContent();
   }, [data?.data?.content, isLoading]);
 
-  if (isLoading) {
+  if (isLoading || !markdownContent) {
     return <LoadingSpinner />;
   }
 
