@@ -332,6 +332,173 @@ Feature-Sliced Design (FSD)는 확장 가능하고 유지보수하기 쉬운 프
     ['Architecture', 'Frontend', 'FSD'],
     6,
   ),
+  createNotionPage(
+    '4',
+    'notion-4',
+    '합성 컴포넌트 패턴으로 Dialog 구현하기',
+    `
+React 프로젝트에서 빠질 수 없는 UI가 바로 Dialog(모달)다.
+처음엔 페이지별로 모달을 따로 구현했지만, 점점 상태 관리와 디자인 일관성이 깨졌다. 그래서 이번엔 디자인 시스템 차원에서 합성 컴포넌트 패턴을 적용해 Dialog를 다시 만들었다.
+
+---
+
+### 왜 합성 컴포넌트인가?
+
+처음에는 \`Dialog\` 하나 안에 모든 UI를 다 넣고 props로 제어했다.
+
+\`hasFooter\`, \`variant="alert"\` 같은 옵션을 계속 늘려가다 보니 코드가 점점 지저분해졌다.
+
+하지만 실제로 쓰다 보면 모달마다 구조가 제각각이다.
+
+- 어떤 건 헤더/본문/푸터가 모두 필요
+- 어떤 건 본문만 있는 단순 알림창
+- 또 어떤 건 특수한 버튼이 들어가야 함
+
+즉, **상황에 맞게 유연하게 조합할 수 있는 구조**가 필요했다.
+
+그래서 최종적으로 \`<Dialog>\`를 부모 요소로 두고,
+
+그 안에 \`<Dialog.Content>\`, \`<Dialog.Trigger>\` 같은 서브 컴포넌트를 붙여 쓰는 **합성 컴포넌트 패턴**을 도입했다.
+
+---
+
+### 출저
+
+사실 합성 컴포넌트의 개념을 도입하고자 마음먹은 것은, tailwind labs 가 운영하고 있는 사이트, headlessUI 에서 가져왔다.
+
+[https://headlessui.com/](https://headlessui.com/)
+
+---
+
+### 합성 구조 설계
+
+Dialog의 entry point를 하나 두고, 내부에 필요한 서브 컴포넌트를 붙였다.
+
+\`\`\`typescript
+import DialogTrigger from "./Trigger";
+import DialogTriggerIcon from "./TriggerIcon";
+import DialogOverlay from "./Overlay";
+import DialogCloseButton from "./CloseButton";
+import DialogContent from "./Content";
+import DialogDim from "./Dim";
+
+export const Dialog = Object.assign(DialogOverlay, {
+  Trigger: Object.assign(DialogTrigger, {
+    Icon: DialogTriggerIcon,
+  }),
+  Close: DialogCloseButton,
+  Content: DialogContent,
+  Dim: DialogDim,
+});
+\`\`\`
+
+이렇게 하면 사용하는 쪽에서 이런 식으로 쓸 수 있다:
+
+\`\`\`typescript
+<Dialog.Trigger>
+  <Dialog.Trigger.Icon />
+</Dialog.Trigger>
+
+<Dialog>
+  <Dialog.Dim />
+  <Dialog.Close />
+  <Dialog.Content />
+</Dialog>
+\`\`\`
+
+---
+
+### Zustand로 상태 관리하기
+
+Dialog의 열림/닫힘 상태는 여전히 Zustand로 관리한다.
+
+단순히 모달만 띄울 때는 \`isOpen\`, \`open\`, \`close\` 세 가지만 있으면 충분하다.
+
+\`\`\`typescript
+// store/dialogStore.ts
+import { create } from "zustand";
+
+interface DialogState {
+  isOpen: boolean;
+  open: () => void;
+  close: () => void;
+}
+
+export const useDialogStore = create<DialogState>((set) => ({
+  isOpen: false,
+  open: () => set({ isOpen: true }),
+  close: () => set({ isOpen: false }),
+}));
+\`\`\`
+
+---
+
+### 실제 사용 예시
+
+\`\`\`typescript
+import { Dialog } from "@src/shared";
+import { useDialogStore } from "../store/dialogStore";
+
+export default function Page() {
+  const { open } = useDialogStore();
+
+  return (
+    <div>
+      <Dialog.Trigger>
+        <Dialog.Trigger.Icon />
+      </Dialog.Trigger>
+
+      <Dialog>
+        <Dialog.Dim />
+        <Dialog.Close />
+        <Dialog.Content>
+          <h2 className="text-lg font-bold">Dialog Title</h2>
+          <p className="mt-2 text-gray-600">여기에 내용을 넣습니다.</p>
+        </Dialog.Content>
+      </Dialog>
+    </div>
+  );
+}
+\`\`\`
+
+---
+
+### 심화과정
+
+큰 틀에서의 합성 컴포넌트로 구현한 Dialog 컴포넌트는 어느정도 완성이 되었다.
+
+이제 조금씩 기능을 덧붙여보도록 하자.
+
+---
+
+### 단점
+
+이렇게 showModal 메서드를 호출하여 모달을 불러오는 방식은 다음과 같은 한계를 갖게 된다.
+
+Notification 안내 모달이 showModal 뒤로 들어간다.
+
+---
+
+### 작업하면서 느낀 점
+
+- \`Object.assign\`으로 합성 컴포넌트를 묶으니, **API 사용성이 직관적**이었다.
+- \`Dialog.Trigger.Icon\` 같은 깊은 네이밍도 가능해서, 디자인 시스템에서 **조립식으로 쓸 수 있는 형태**가 됐다.
+- \`props\`로 모든 걸 제어하는 방식보다 훨씬 유연했고, 필요 없는 부분은 빼고 쓰면 되니 가볍다.
+- 다만 접근성(esc 키, focus trap)과 애니메이션은 별도의 레이어로 다루는 게 좋겠다.
+
+---
+
+👉 이번 구조는 디자인 시스템에서 **확장성과 직관적 API**를 모두 챙길 수 있었다.
+
+다음 단계는 **접근성 보강**과 **애니메이션 적용 경험**을 정리할 예정이다.
+    `.trim(),
+    '합성 컴포넌트 패턴을 활용한 Dialog 컴포넌트 구현 경험을 공유합니다.',
+    'Raven',
+    '2024-02-01T11:00:00Z',
+    '2024-02-01T11:00:00Z',
+    ['React', 'Component', 'Design System'],
+    10,
+  ),
 ];
 
 // NotionPage를 BlogPostListItem으로 변환하는 함수
