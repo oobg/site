@@ -128,17 +128,15 @@ export interface BlogPostListItem {
   edited: string;
 }
 
-// 블로그 상세용 타입 (기존 구조 유지)
+// 블로그 상세용 타입 (새로운 구조)
 export interface BlogPost {
-  id: string;
   title: string;
-  content: NotionBlock[];
-  excerpt: string;
-  author: string;
-  createdAt: string;
-  updatedAt: string;
+  category: string;
   tags: string[];
-  readTime: number;
+  createdBy: string;
+  created: string;
+  edited: string;
+  content: NotionBlock[];
 }
 
 // Notion API 응답 구조로 Mock 데이터 생성
@@ -341,18 +339,55 @@ export function convertNotionPageToBlogPostListItem(page: NotionPage): BlogPostL
   };
 }
 
-// 하위 호환성을 위해 BlogPost 배열도 유지 (변환 로직 테스트용)
-export const blogPosts: BlogPost[] = notionPages.map((page) => {
+// NotionPage를 BlogPost로 변환하는 함수 (상세보기용)
+export function convertNotionPageToBlogPost(page: NotionPage): BlogPost {
   const props = page.properties;
-  return {
-    id: page.id,
-    title: page.title || '',
-    content: page.content || [],
-    excerpt: (props['요약'] as { rich_text?: Array<{ plain_text?: string }> })?.rich_text?.map((t) => t.plain_text || '').join('') || '',
-    author: (props['작성자'] as { rich_text?: Array<{ plain_text?: string }> })?.rich_text?.map((t) => t.plain_text || '').join('') || '',
-    createdAt: page.createdAt,
-    updatedAt: page.updatedAt,
-    tags: ((props['태그'] as { multi_select?: Array<{ name?: string }> })?.multi_select?.map((t) => t.name || '').filter(Boolean) || []) as string[],
-    readTime: (props['읽기시간'] as { number?: number })?.number || 0,
+
+  const getPropValue = (key: string, fallbackKey?: string): unknown => {
+    const prop = (
+      props[key] || (fallbackKey ? props[fallbackKey] : undefined)
+    ) as { type?: string; [key: string]: unknown } | undefined;
+    if (!prop) return null;
+
+    if (prop.type === 'title' && Array.isArray(prop.title)) {
+      const titleArray = prop.title as Array<{ plain_text?: string }>;
+      return titleArray.map((item) => item.plain_text || '').join('');
+    }
+
+    if (prop.type === 'rich_text' && Array.isArray(prop.rich_text)) {
+      const richTextArray = prop.rich_text as Array<{ plain_text?: string }>;
+      return richTextArray.map((item) => item.plain_text || '').join('');
+    }
+
+    if (prop.type === 'select' && prop.select) {
+      const select = prop.select as { name?: string };
+      return select.name || null;
+    }
+
+    if (prop.type === 'multi_select' && Array.isArray(prop.multi_select)) {
+      const multiSelect = prop.multi_select as Array<{ name?: string }>;
+      return multiSelect.map((item) => item.name || '').filter(Boolean);
+    }
+
+    return null;
   };
-});
+
+  const title = (getPropValue('제목', 'title') as string) || page.title || '';
+  const category = (getPropValue('카테고리', 'category') as string) || '';
+  const tags = (getPropValue('태그', 'tags') as string[]) || [];
+  const createdBy = (
+    (getPropValue('작성자', 'createdBy') as string)
+    || (getPropValue('author') as string)
+    || ''
+  );
+
+  return {
+    title,
+    category,
+    tags: Array.isArray(tags) ? tags : [],
+    createdBy,
+    created: page.createdAt,
+    edited: page.updatedAt,
+    content: page.content || [],
+  };
+}

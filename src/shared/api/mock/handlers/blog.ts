@@ -1,6 +1,10 @@
 import { Server, Request } from 'miragejs';
 
-import { notionPages, convertNotionPageToBlogPostListItem } from '../factories/blog';
+import {
+  notionPages,
+  convertNotionPageToBlogPostListItem,
+  convertNotionPageToBlogPost,
+} from '../factories/blog';
 
 // 상태가 "발행됨"인 페이지만 필터링
 function filterPublishedPages(pages: typeof notionPages) {
@@ -69,6 +73,8 @@ export const blogHandlers = (server: Server) => {
       });
     }
 
-    return matchingPages[0];
+    return {
+      data: convertNotionPageToBlogPost(matchingPages[0]),
+    };
   });
 };
