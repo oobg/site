@@ -65,7 +65,7 @@ export const BlogListPage = () => {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-3 flex flex-col">
         {data?.data.map((post: BlogPostListItem) => (
           <Link key={post.title} to={`/blog/${encodeURIComponent(post.title)}`}>
             <Card hover>
