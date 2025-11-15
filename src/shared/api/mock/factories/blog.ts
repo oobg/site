@@ -168,6 +168,7 @@ function markdownToNotionBlocks(markdown: string): NotionBlock[] {
 
 // 블로그 목록용 타입 (간소화된 구조)
 export interface BlogPostListItem {
+  id: string;
   title: string;
   category: string;
   tags: string[];
@@ -545,6 +546,7 @@ export function convertNotionPageToBlogPostListItem(page: NotionPage): BlogPostL
   );
 
   return {
+    id: page.id,
     title,
     category,
     tags: Array.isArray(tags) ? tags : [],
