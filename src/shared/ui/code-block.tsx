@@ -133,10 +133,9 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
 
     // SyntaxHighlighter가 렌더링된 후 색상 적용
     // requestAnimationFrame으로 한 프레임 후 실행
-    let rafId: number;
     let timeoutId: NodeJS.Timeout;
 
-    rafId = requestAnimationFrame(() => {
+    const rafId = requestAnimationFrame(() => {
       timeoutId = setTimeout(() => {
         applyTagColors();
       }, 100);

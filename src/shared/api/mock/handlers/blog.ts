@@ -128,9 +128,8 @@ export const blogHandlers = (server: Server) => {
       });
     }
 
-    // 상태가 "발행됨"인 페이지만 필터링
-    const publishedPages = filterPublishedPages(notionPages);
-    const matchingPages = publishedPages.filter((page) => page.title === title);
+    // 백엔드에서 이미 발행됨 상태를 필터링해서 내려보내주므로 여기서는 필터링 불필요
+    const matchingPages = notionPages.filter((page) => page.title === title);
 
     if (matchingPages.length === 0) {
       return new Response(JSON.stringify({ error: 'Page not found' }), {
