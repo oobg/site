@@ -1,75 +1,53 @@
-import { useEffect, useRef } from 'react';
-import { useLocation, useNavigationType } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
-const SCROLL_POSITION_KEY = 'scrollPositions';
-
-interface ScrollPositions {
-  [key: string]: number;
-}
-
-const getScrollPositions = (): ScrollPositions => {
-  try {
-    const stored = sessionStorage.getItem(SCROLL_POSITION_KEY);
-    return stored ? JSON.parse(stored) : {};
-  } catch {
-    return {};
-  }
-};
-
-const saveScrollPosition = (path: string, position: number) => {
-  try {
-    const positions = getScrollPositions();
-    positions[path] = position;
-    sessionStorage.setItem(SCROLL_POSITION_KEY, JSON.stringify(positions));
-  } catch {
-    // sessionStorage가 사용 불가능한 경우 무시
-  }
-};
-
-const getScrollPosition = (path: string): number | null => {
-  try {
-    const positions = getScrollPositions();
-    return positions[path] ?? null;
-  } catch {
-    return null;
-  }
-};
-
-export const ScrollRestoration = () => {
-  const location = useLocation();
-  const navigationType = useNavigationType();
-  const previousPathRef = useRef<string>('');
+/**
+ * 주소창의 해시값을 감지하여 해당 위치로 부드럽게 스크롤하는 훅
+ * @param enabled - 해시 스크롤을 실행할지 여부 (데이터 로딩 완료 여부 등)
+ */
+export function useScrollToHash(enabled = true) {
+  const { hash } = useLocation();
 
   useEffect(() => {
-    const currentPath = `${location.pathname}${location.search}`;
+    if (!hash || !enabled) return;
 
-    // 이전 경로의 스크롤 위치 저장
-    if (previousPathRef.current && previousPathRef.current !== currentPath) {
-      const { scrollY } = window;
-      saveScrollPosition(previousPathRef.current, scrollY);
-    }
+    // hash → "#section1" → "section1"
+    // URL 인코딩된 ID를 디코딩
+    const rawId = hash.replace('#', '');
+    const decodedId = decodeURIComponent(rawId);
 
-    // 현재 경로로의 스크롤 처리
-    if (navigationType === 'POP') {
-      // 뒤로가기/앞으로가기: 저장된 스크롤 위치로 복원
-      const savedPosition = getScrollPosition(currentPath);
-      if (savedPosition !== null) {
-        // 약간의 지연을 두어 DOM이 완전히 렌더링된 후 스크롤 복원
-        requestAnimationFrame(() => {
-          window.scrollTo(0, savedPosition);
+    // 마크다운이 완전히 렌더링될 때까지 딜레이
+    const scrollToElement = () => {
+      // 인코딩된 ID와 디코딩된 ID 모두 시도
+      const el = document.getElementById(decodedId) || document.getElementById(rawId);
+
+      if (!el) return;
+
+      // 헤더 높이 고려
+      const headerOffset = 80;
+      const elementPosition = el.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      // 렌더 타이밍 보장 (특히 Suspense/loader)
+      requestAnimationFrame(() => {
+        window.scrollTo({
+          top: Math.max(0, offsetPosition),
+          behavior: 'smooth',
         });
-      } else {
-        // 저장된 위치가 없으면 맨 위로
-        window.scrollTo(0, 0);
-      }
-    } else {
-      // PUSH/REPLACE: 맨 위로 이동
-      window.scrollTo(0, 0);
-    }
+      });
+    };
 
-    // 현재 경로를 이전 경로로 업데이트
-    previousPathRef.current = currentPath;
-  }, [location.pathname, location.search, navigationType]);
+    // 마크다운 렌더링을 위한 딜레이
+    setTimeout(() => {
+      scrollToElement();
+    }, 500);
+  }, [hash, enabled]);
+}
 
+/**
+ * 주소창의 해시값을 감지하여 해당 위치로 부드럽게 스크롤하는 컴포넌트
+ */
+export const HashScroll = () => {
+  useScrollToHash();
   return null;
 };

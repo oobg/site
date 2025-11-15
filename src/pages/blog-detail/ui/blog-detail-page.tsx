@@ -7,6 +7,7 @@ import { MarkdownRenderer } from '@src/shared/ui/markdown-renderer';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { useScrollToHash } from '@src/app/providers/scroll-restoration';
 
 export const BlogDetailPage = () => {
   const { title } = useParams<{ title: string }>();
@@ -23,6 +24,9 @@ export const BlogDetailPage = () => {
     },
     enabled: !!title,
   });
+
+  // 데이터 로딩이 완료된 후에만 해시 스크롤 실행
+  useScrollToHash(!isLoading && !!data);
 
   useEffect(() => {
     const handleScroll = () => {

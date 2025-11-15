@@ -1,10 +1,8 @@
 import { ErrorBoundary } from '@src/shared/ui/error-boundary';
 import { LoadingSpinner } from '@src/shared/ui/loading-spinner';
 import { Layout } from '@src/widgets/layout';
+import { createBrowserRouter, Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
-
-import { ScrollRestoration } from './scroll-restoration';
 
 /* eslint-disable implicit-arrow-linebreak, function-paren-newline */
 const LandingPage = lazy(() =>
@@ -20,17 +18,40 @@ const BlogDetailPage = lazy(() =>
 );
 /* eslint-enable implicit-arrow-linebreak, function-paren-newline */
 
-export const Router = () => (
-  <ErrorBoundary>
-    <ScrollRestoration />
-    <Layout>
-      <Suspense fallback={<LoadingSpinner />}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/blog" element={<BlogListPage />} />
-          <Route path="/blog/:title" element={<BlogDetailPage />} />
-        </Routes>
-      </Suspense>
-    </Layout>
-  </ErrorBoundary>
-);
+const RootLayout = () => {
+  const location = useLocation();
+  const hasHash = !!(location.hash || window.location.hash);
+
+  return (
+    <ErrorBoundary>
+      {/* 해시가 없을 때만 ScrollRestoration 사용 */}
+      {!hasHash && <ScrollRestoration />}
+      <Layout>
+        <Suspense fallback={<LoadingSpinner />}>
+          <Outlet />
+        </Suspense>
+      </Layout>
+    </ErrorBoundary>
+  );
+};
+
+export const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <RootLayout />,
+    children: [
+      {
+        index: true,
+        element: <LandingPage />,
+      },
+      {
+        path: 'blog',
+        element: <BlogListPage />,
+      },
+      {
+        path: 'blog/:title',
+        element: <BlogDetailPage />,
+      },
+    ],
+  },
+]);
