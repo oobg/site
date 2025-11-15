@@ -73,8 +73,6 @@ export const blogHandlers = (server: Server) => {
       });
     }
 
-    return {
-      data: convertNotionPageToBlogPost(matchingPages[0]),
-    };
+    return convertNotionPageToBlogPost(matchingPages[0]);
   });
 };
