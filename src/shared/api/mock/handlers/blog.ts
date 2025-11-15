@@ -1,10 +1,5 @@
 import { Server, Request } from 'miragejs';
-import type { BlogPostListItem } from '../factories/blog';
-
-import {
-  notionPages,
-  convertNotionPageToBlogPost,
-} from '../factories/blog';
+import type { BlogPostListItem, BlogPost } from '../factories/blog';
 
 // Mock 블로그 리스트 데이터
 const mockBlogListData: BlogPostListItem[] = [
@@ -91,6 +86,112 @@ const mockBlogListData: BlogPostListItem[] = [
   },
 ];
 
+// Mock 블로그 상세보기 데이터
+const mockBlogDetailData: BlogPost[] = [
+  {
+    id: '01864cd4-bb27-45b6-9844-1fb93b0be366',
+    title: 'i18n 키 네이밍 규칙',
+    category: 'i18n',
+    tags: ['naming-rule'],
+    createdBy: 'raven',
+    created: '2025-10-01T05:20:00.000Z',
+    edited: '2025-11-10T16:35:00.000Z',
+    content: '\n개인적으로 사용할 다국어 네이밍 룰을 작성해보았다.\n\n\n## 1. 네이밍 구조\n\n\n```plain text\nbroad.limited.ui.state\n```\n\n- **broad**: 큰 기능 단위\n    - 예: `auth`, `editor`, `dashboard`, `common`\n- **limited**: 세부 영역/기능\n    - 예: `login`, `toolbar`, `sidebar`, `save`\n- **ui**: UI 요소 유형\n    - 예: `title`, `description`, `button`, `label`, `tooltip`, `message`\n- **state**: 상태/맥락 (필요한 경우에만 사용)\n    - 예: `success`, `error`, `loading`, `retry`, `disabled`\n\n---\n\n\n## 2. 작성 규칙\n\n1. **소문자만 사용**한다.\n2. **점(****`.`****)** 으로만 구분한다.\n3. `state`는 선택적(optional)이다.\n가능하면 broad.limited.ui까지만 작성하고, state는 상황 메시지일 때만 추가한다.\n4. 전역 공용 키는 `common` broad 네임스페이스를 사용한다.\n    - 예: `common.ok`, `common.cancel`\n\n---\n\n\n## 3. UI 요소 타입\n\n\n### 1. 텍스트 계열\n\n- `title` : 제목 (페이지/섹션/모달 헤더 등)\n- `subtitle` : 부제목 (보조 타이틀)\n- `description` : 설명문, 안내문\n- `message` : 메시지 (성공/오류/알림 등 상태 기반 텍스트)\n- `tooltip` : 툴팁\n\n---\n\n\n### 2. 입력/폼 계열\n\n- `label` : 입력 필드 라벨\n- `placeholder` : 입력창 플레이스홀더\n- `helper` : 보조 설명 (폼 하단 작은 텍스트)\n- `error` : 유효성 검사 실패 메시지\n\n---\n\n\n### 3. 버튼/액션 계열\n\n- `button` : 일반 버튼\n- `link` : 텍스트 링크, 네비게이션 링크\n- `cta` : 주요 Call To Action 버튼 (예: "구독하기")\n\n---\n\n\n### 4. 상태/피드백 계열\n\n- `alert` : 경고창 메시지\n- `toast` : 토스트 알림\n- `dialog` : 다이얼로그/모달 내 텍스트\n- `badge` : 작은 뱃지 라벨 (상태, 태그 등)\n\n---\n\n\n### 5. 기타 UI\n\n- `item` : 리스트 아이템 이름\n- `menu` : 메뉴 항목\n- `tab` : 탭 이름\n- `step` : 멀티 스텝 프로세스 단계명\n\n---\n\n\n## 4. 예시\n\n\n### 로그인 페이지\n\n\n```json\n{\n  "auth.login.title": "로그인",\n  "auth.login.description": "계정 정보를 입력하세요",\n  "auth.login.button": "로그인",\n  "auth.login.message.success": "로그인에 성공했습니다",\n  "auth.login.message.error": "로그인에 실패했습니다",\n  "auth.login.message.retry": "다시 시도해주세요"\n}\n```\n\n\n### 에디터 툴바\n\n\n```json\n{\n  "editor.toolbar.save.button": "저장",\n  "editor.toolbar.save.button.error": "저장 실패",\n  "editor.toolbar.undo.button": "되돌리기",\n  "editor.toolbar.redo.button": "다시하기"\n}\n```\n\n\n### 공통 요소\n\n\n```json\n{\n  "common.ok": "확인",\n  "common.cancel": "취소",\n  "common.retry": "다시 시도"\n}\n```\n\n\n---\n\n\n---\n\n\n## 5. 마무리\n\n\n여기까지 진행하면, 대부분의 케이스는 대응 될 것으로 생각한다.\n\n\n일부 예외케이스 제외하고 추가가 필요한 부분은 더 고민해보고 추가해봐야겠다.\n\n',
+  },
+  {
+    id: '94afb127-1525-4b69-a2fb-43f5b61cdd91',
+    title: 'Github Copilot 커밋 룰 지정하기',
+    category: 'Ai',
+    tags: ['github-copilot', 'webstorm'],
+    createdBy: 'raven',
+    created: '2025-09-19T05:50:00.000Z',
+    edited: '2025-11-10T16:35:00.000Z',
+    content: '\n# 경로\n\n\n```typescript\n~/.config/github-copilot/intellij/global-git-commit-instructions.md\n```\n\n\n# 문서 내용\n\n\n```typescript\n# Git Commit 메시지 규칙 (한국어 가이드)\n\n## 기본 구조\n<타입>: <변경 내용 요약>\n\n[선택] 본문 (왜, 어떻게 변경했는지 상세 설명)\n[선택] 꼬리말 (이슈 번호, 브레이킹 체인지 등)\n\nmarkdown\n코드 복사\n\n---\n\n## 1. 타입 (영문 유지 권장)\n\n- **feat**: 새로운 기능 추가\n- **fix**: 버그 수정\n- **docs**: 문서 수정\n- **style**: 코드 포맷, 세미콜론 누락 등 (비즈니스 로직 없음)\n- **refactor**: 리팩토링\n- **test**: 테스트 추가/수정\n- **chore**: 빌드, 설정, 패키지 작업\n- **perf**: 성능 개선\n- **ci**: CI/CD 관련 변경\n- **build**: 빌드 시스템, 의존성 관련 변경\n- **revert**: 이전 커밋 되돌리기\n\n---\n\n## 2. 설명 (한국어로 작성)\n\n- **현재형**, **간결하게**\n- **마침표(.) 없이 끝내기**\n\n**예시**\n- `feat: 이미지 편집 히스토리 되돌리기 기능 추가`\n- `fix: 세션 만료 시 에디터 저장 안 되는 문제 수정`\n- `docs: 커밋 메시지 작성 가이드 문서 추가`\n- `refactor: BroadcastChannel 훅 내부 로직 단순화`\n\n---\n\n## 3. 본문 (선택, 상세 설명)\n\n- 변경 이유, 의도, 방법을 구체적으로 작성\n- 여러 줄 작성 가능 (리스트 권장)\n\n**예시**\nfeat: AI 리믹스 히스토리 관리 기능 추가\n\nundo/redo 시 이미지 레이어 가시성 동기화\n\ntempLayer를 활용해 편집 중 상태 관리\n\nyaml\n코드 복사\n\n---\n\n## 4. 꼬리말 (선택)\n\n- **BREAKING CHANGE:** 호환성 깨지는 변경 설명\n- **Closes #123:** 관련 이슈 닫기\n```\n\n',
+  },
+  {
+    id: '6a82ff26-09e4-4519-abad-d2279a05f8a6',
+    title: 'React + Zustand + Tailwind로 합성 컴포넌트 기반 Dialog 만들기',
+    category: 'Design-System',
+    tags: ['zustand', 'tailwind'],
+    createdBy: 'raven',
+    created: '2025-09-12T05:08:00.000Z',
+    edited: '2025-11-10T16:35:00.000Z',
+    content: '\nReact 프로젝트에서 빠질 수 없는 UI가 바로 Dialog(모달)다.\n처음엔 페이지별로 모달을 따로 구현했지만, 점점 상태 관리와 디자인 일관성이 깨졌다. 그래서 이번엔 디자인 시스템 차원에서 합성 컴포넌트 패턴을 적용해 Dialog를 다시 만들었다.\n\n\n---\n\n\n### 왜 합성 컴포넌트인가?\n\n\n처음에는 `Dialog` 하나 안에 모든 UI를 다 넣고 props로 제어했다.\n\n\n`hasFooter`, `variant="alert"` 같은 옵션을 계속 늘려가다 보니 코드가 점점 지저분해졌다.\n\n\n하지만 실제로 쓰다 보면 모달마다 구조가 제각각이다.\n\n- 어떤 건 헤더/본문/푸터가 모두 필요\n- 어떤 건 본문만 있는 단순 알림창\n- 또 어떤 건 특수한 버튼이 들어가야 함\n\n즉, **상황에 맞게 유연하게 조합할 수 있는 구조**가 필요했다.\n\n\n그래서 최종적으로 `<Dialog>`를 부모 요소로 두고,\n\n\n그 안에 `<Dialog.Content>`, `<Dialog.Trigger>` 같은 서브 컴포넌트를 붙여 쓰는 **합성 컴포넌트 패턴**을 도입했다.\n\n\n---\n\n\n### 출저…\n\n\n사실 합성 컴포넌트의 개념을 도입하고자 마음먹은 것은, tailwind labs 가 운영하고 있는 사이트, headlessUI 에서 가져왔다.\n\n\n[https://headlessui.com/](https://headlessui.com/)\n\n\n---\n\n\n### 합성 구조 설계\n\n\nDialog의 entry point를 하나 두고, 내부에 필요한 서브 컴포넌트를 붙였다.\n\n\n```typescript\nimport DialogTrigger from "./Trigger";\nimport DialogTriggerIcon from "./TriggerIcon";\nimport DialogOverlay from "./Overlay";\nimport DialogCloseButton from "./CloseButton";\nimport DialogContent from "./Content";\nimport DialogDim from "./Dim";\n\nexport const Dialog = Object.assign(DialogOverlay, {\n  Trigger: Object.assign(DialogTrigger, {\n    Icon: DialogTriggerIcon,\n  }),\n  Close: DialogCloseButton,\n  Content: DialogContent,\n  Dim: DialogDim,\n});\n```\n\n\n이렇게 하면 사용하는 쪽에서 이런 식으로 쓸 수 있다:\n\n\n```typescript\n<Dialog.Trigger>\n  <Dialog.Trigger.Icon />\n</Dialog.Trigger>\n\n<Dialog>\n  <Dialog.Dim />\n  <Dialog.Close />\n  <Dialog.Content />\n</Dialog>\n```\n\n\n---\n\n\n### Zustand로 상태 관리하기\n\n\nDialog의 열림/닫힘 상태는 여전히 Zustand로 관리한다.\n\n\n단순히 모달만 띄울 때는 `isOpen`, `open`, `close` 세 가지만 있으면 충분하다.\n\n\n```typescript\n// store/dialogStore.ts\nimport { create } from "zustand";\n\ninterface DialogState {\n  isOpen: boolean;\n  open: () => void;\n  close: () => void;\n}\n\nexport const useDialogStore = create<DialogState>((set) => ({\n  isOpen: false,\n  open: () => set({ isOpen: true }),\n  close: () => set({ isOpen: false }),\n}));\n```\n\n\n---\n\n\n### 실제 사용 예시\n\n\n```typescript\nimport { Dialog } from "@src/shared";\nimport { useDialogStore } from "../store/dialogStore";\n\nexport default function Page() {\n  const { open } = useDialogStore();\n\n  return (\n    <div>\n      <Dialog.Trigger>\n        <Dialog.Trigger.Icon />\n      </Dialog.Trigger>\n\n      <Dialog>\n        <Dialog.Dim />\n        <Dialog.Close />\n        <Dialog.Content>\n          <h2 className="text-lg font-bold">Dialog Title</h2>\n          <p className="mt-2 text-gray-600">여기에 내용을 넣습니다.</p>\n        </Dialog.Content>\n      </Dialog>\n    </div>\n  );\n}\n```\n\n\n---\n\n\n### 심화과정\n\n\n큰 틀에서의 합성 컴포넌트로 구현한 Dialog 컴포넌트는 어느정도 완성이 되었다.\n\n\n이제 조금씩 기능을 덧붙여보도록 하자.\n\n\n---\n\n\n### 단점\n\n\n이렇게 showModal 메서드를 호출하여 모달을 불러오는 방식은 다음과 같은 한계를 갖게 된다.\n\n\nNotification 안내 모달이 showModal 뒤로 들어간다.\n\n\n---\n\n\n### 작업하면서 느낀 점\n\n- `Object.assign`으로 합성 컴포넌트를 묶으니, **API 사용성이 직관적**이었다.\n- `Dialog.Trigger.Icon` 같은 깊은 네이밍도 가능해서, 디자인 시스템에서 **조립식으로 쓸 수 있는 형태**가 됐다.\n- `props`로 모든 걸 제어하는 방식보다 훨씬 유연했고, 필요 없는 부분은 빼고 쓰면 되니 가볍다.\n- 다만 접근성(esc 키, focus trap)과 애니메이션은 별도의 레이어로 다루는 게 좋겠다.\n\n---\n\n\n👉 이번 구조는 디자인 시스템에서 **확장성과 직관적 API**를 모두 챙길 수 있었다.\n\n\n다음 단계는 **접근성 보강**과 **애니메이션 적용 경험**을 정리할 예정이다.\n\n',
+  },
+  {
+    id: '6ef4ab10-68c4-4405-ad29-c87c3f91397a',
+    title: 'React 프로젝트에서 CSR, SSR, SSG, ISR 차이와 선택 기준',
+    category: 'React',
+    tags: ['CSR', 'SSR', 'SSG', 'ISR'],
+    createdBy: 'raven',
+    created: '2025-09-12T04:55:00.000Z',
+    edited: '2025-11-10T16:35:00.000Z',
+    content: '\nReact로 프로젝트를 하다 보면, 반드시 부딪히는 질문이 있다.\n\n\n"우리 서비스는 **어떤 렌더링 방식**을 써야 하지?"\n\n\nCSR(Client-Side Rendering), SSR(Server-Side Rendering), SSG(Static Site Generation), ISR(Incremental Static Regeneration).\n\n\n용어는 많고 헷갈리지만, 사실 각각의 장단점과 선택 기준은 명확하다.\n\n\n---\n\n\n### CSR: 가장 익숙한 기본기\n\n\nCSR은 브라우저가 빈 HTML을 받고, 이후 자바스크립트를 실행해 UI를 만드는 방식이다.\n\n\nCRA(create-react-app)로 만든 프로젝트가 전형적인 CSR이다.\n\n\n장점은 단순하다. 빌드와 배포가 쉽고, 클라이언트에서만 상태 관리하면 된다.\n\n\n하지만 단점은 치명적이다. 첫 로딩 때 SEO에 약하고, 흰 화면을 오래 보여줄 수 있다.\n\n\n내 경험상, **관리자 페이지나 내부 도구**라면 CSR로도 충분하다. SEO가 중요하지 않고, 초기 로딩 몇 초 차이는 치명적이지 않기 때문이다.\n\n\n---\n\n\n### SSR: 서버에서 그려주는 즉시 응답\n\n\nSSR은 서버가 HTML을 렌더링해서 사용자에게 바로 보내주는 방식이다.\n\n\nNext.js에서 흔히 사용하는 `getServerSideProps`가 여기에 해당한다.\n\n\n장점은 첫 화면이 즉시 뜨고 SEO에도 강하다.\n\n\n하지만 단점은 서버 부하가 크고, 요청마다 렌더링하니 캐싱 전략이 없으면 비용이 커진다.\n\n\n내가 진행했던 커머스 프로젝트에서는 SSR을 택했다.\n\n\n상품 상세 페이지를 들어올 때마다 **최신 가격과 재고**를 보여주는 게 핵심이었기 때문이다.\n\n\n---\n\n\n### SSG: 빌드 타임에 미리 뽑아두기\n\n\nSSG는 빌드 시점에 HTML을 만들어두는 방식이다.\n\n\n`getStaticProps`와 `getStaticPaths`를 쓰면 된다.\n\n\n장점은 속도다. CDN에 캐싱해두면 전 세계 어디서든 빠르게 응답된다.\n\n\n단점은 빌드 이후 데이터가 바뀌면 반영이 어렵다는 점이다.\n\n\n예를 들어 블로그나 문서 사이트는 글이 하루에 한 번 바뀌어도 충분하다.\n\n\n이런 경우엔 SSG가 최고의 선택이다. 나는 개인 블로그를 Next.js SSG로 배포했는데, Cloudflare CDN에 얹으니 로딩 속도가 체감상 0.5초 안팎이었다.\n\n\n---\n\n\n### ISR: 정적이지만 업데이트도 한다\n\n\nISR은 SSG의 단점을 보완한 방식이다.\n\n\n빌드된 페이지를 기본으로 서비스하지만, 특정 주기마다 백그라운드에서 새 HTML을 갱신한다.\n\n\nNext.js의 `revalidate` 옵션이 대표적이다.\n\n\n덕분에 **빠른 응답성과 최신성**을 동시에 챙길 수 있다.\n\n\n예전에 뉴스 요약 서비스를 만들 때 ISR을 적용했다.\n\n\n기사 데이터가 10분 단위로 갱신되는데, 매 요청마다 SSR을 쓰기엔 서버 부담이 컸다.\n\n\nISR로 10분마다 페이지를 새로 빌드하니 비용과 속도 모두 안정적이었다.\n\n\n---\n\n\n### 정리: 어떤 기준으로 선택할까?\n\n- **CSR** → 내부 툴, SEO 필요 없는 서비스\n- **SSR** → 최신성이 중요하고, SEO도 챙겨야 하는 서비스\n- **SSG** → 자주 안 바뀌는 정적 페이지 (블로그, 문서)\n- **ISR** → 빠르면서도 주기적 업데이트가 필요한 서비스\n\n한 줄로 정리하자면,\n\n\n"데이터 변경 주기"와 "SEO 필요 여부"가 선택의 핵심이다.\n\n\n---\n\n\nReact 생태계는 이제 단순 CSR만으로는 부족하다.\n\n\nNext.js 같은 프레임워크를 쓰는 이유도 결국 이 네 가지 렌더링 전략을 상황에 맞게 고를 수 있기 때문이다.\n\n',
+  },
+  {
+    id: 'bbbd4f0c-66c3-4ca6-8f69-6a2e3ad2d9cb',
+    title: '활성 사용자 세션 관리하기',
+    category: 'Project',
+    tags: ['react-query', 'localStorage', 'BroadcastChannel'],
+    createdBy: 'raven',
+    created: '2025-09-09T05:11:00.000Z',
+    edited: '2025-11-10T16:36:00.000Z',
+    // eslint-disable-next-line no-template-curly-in-string
+    content: '\n### 프로젝트를 여러 탭에서 열었을 때\n\n\n사이드 프로젝트로 에디터를 만들다 보면 이런 상황을 자주 만납니다.\n\n\n내가 같은 프로젝트를 새로고침하거나, 새 탭에서 동시에 열었을 때 세션이 꼬이는 문제죠.\n\n\n처음엔 단순히 "서버에 activeSessions 배열 두고 expiresAt으로 만료 체크하면 되겠지"라고 생각했습니다.\n\n\n근데 실제로 써보니, 같은 브라우저 안에서 열리는 탭들끼리 충돌이 생겼습니다.\n\n\n서버만 믿으면 되지 않냐고요? 현실은 그렇게 단순하지 않았습니다.\n\n\n---\n\n\n### 세션을 어떻게 관리할까\n\n\n제가 정리한 방식은 크게 세 단계입니다.\n\n1. **서버(activeSessions)**\n\n    서버는 권위(authoritative)를 갖습니다.\n\n\n    `expiresAt`이 지난 세션은 무효 처리하고, 새 세션이 들어오면 배열에 추가합니다.\n\n2. **localStorage**\n\n    브라우저 새로고침 같은 경우에는 같은 `sessionId`를 이어가야 합니다.\n\n\n    그래서 프로젝트별로 sessionId를 localStorage에 저장합니다.\n\n\n    ```typescript\n    {\n      "123": {\n        "sessionId": "uuid-111",\n        "userId": 42,\n        "expiresAt": "2025-09-09T12:00:00Z"\n      }\n    }\n    ```\n\n\n    이렇게 두면 새로고침해도 이어갈 수 있습니다.\n\n3. **BroadcastChannel**\n\n    같은 브라우저에서 여러 탭을 열었을 때는 localStorage만으로 부족합니다.\n\n\n    한쪽에서 나가면 다른 탭도 바로 알 수 있어야 하니까요.\n\n\n    그래서 `BroadcastChannel`을 써서 실시간으로 "세션 갱신/삭제"를 알립니다.\n\n\n---\n\n\n### React Query로 자동 갱신\n\n\n세션 유지의 핵심은 갱신 주기입니다.\n\n\n저는 `react-query`의 `useQuery`를 써서 3분마다 `PatchSession`을 호출합니다.\n\n\n세션의 실제 만료 시간은 5분으로 두고, 2분의 버퍼를 확보하는 셈입니다.\n\n\n```typescript\nimport { useQuery } from "react-query";\nimport { patchSession } from "./api";\n\nexport function useAutoSession(sessionId: string) {\n  return useQuery({\n    queryKey: ["editor-session", sessionId],\n    queryFn: () => patchSession(sessionId),\n    refetchInterval: 180_000, // 3분\n    refetchOnWindowFocus: false,\n    refetchIntervalInBackground: true,\n  });\n}\n```\n\n\n이렇게 두면 탭이 백그라운드에 있어도 갱신이 돌아갑니다.\n\n\n편집 작업을 저장하거나, "이미지 적용" 버튼을 눌렀을 때는 수동으로 `refetch()`를 불러서 만료 시간을 늘려줍니다.\n\n\n---\n\n\n### 탭 간 통신 처리\n\n\nBroadcastChannel은 생각보다 쓰기 간단합니다.\n\n\n```typescript\nconst channel = new BroadcastChannel(`editor-session-${projectId}`);\n\nchannel.postMessage({ type: "SESSION_REMOVE" });\n\nchannel.onmessage = (event) => {\n  if (event.data.type === "SESSION_REMOVE") {\n    // 다른 탭에서 종료됨 → 현재 탭도 정리\n    alert("다른 탭에서 프로젝트를 종료했습니다.");\n    window.location.href = "/";\n  }\n};\n```\n\n\nlocalStorage는 "재진입 시 세션 복원"에 쓰고,\n\n\nBroadcastChannel은 "같은 브라우저 내 실시간 동기화"에 쓰는 겁니다.\n\n\n---\n\n\n### 정리\n\n\n이 구조로 가면 거의 모든 상황을 대응할 수 있습니다.\n\n- 새로고침 → localStorage로 동일 세션 유지\n- 다른 브라우저/기기 → 서버 activeSessions로 차단\n- 같은 브라우저 다른 탭 → BroadcastChannel로 즉시 감지\n\n즉, **1유저 1프로젝트 1세션**을 안정적으로 보장할 수 있습니다.\n\n\n처음엔 단순히 서버 expiresAt만 두면 된다고 생각했는데,\n\n\n실제로는 localStorage와 BroadcastChannel을 조합해야 머리가 덜 빠집니다.\n\n\n저처럼 탈모 걱정하기 전에, 세션 관리 로직을 먼저 챙기시길 바랍니다 \n\n',
+  },
+  {
+    id: '45f3e7b5-f768-4a8a-8b1e-0a0eab2ebd54',
+    title: 'React 코드 스플리팅, Suspense와 React.lazy 제대로 활용하기',
+    category: 'React',
+    tags: [
+      'Suspense',
+      'React.lazy',
+    ],
+    createdBy: 'raven',
+    created: '2025-09-05T05:48:00.000Z',
+    edited: '2025-11-10T16:36:00.000Z',
+    content: '\nReact 프로젝트를 어느 정도 키워보다 보면, 자연스럽게 **번들 크기** 문제에 부딪히게 된다.\n초기 로딩 속도가 점점 느려지고, 사용자는 흰 화면에서 오랫동안 기다려야 한다.\n이럴 때 우리가 사용해 볼 수 있는 방법이 바로 코드 스플리팅(Code Splitting)이다.\n\n\n---\n\n\n### React.lazy와 Suspense 기본기\n\n\nReact 16.6부터 제공되는 `React.lazy`는 동적으로 컴포넌트를 불러올 수 있게 해준다.\n보통은 아래처럼 사용한다.\n\n\n```typescript\nimport { Suspense, lazy } from "react";\n\nconst Chart = lazy(() => import("./Chart"));\n\nexport default function Dashboard() {\n  return (\n    <Suspense fallback={<div>로딩 중...</div>}>\n      <Chart />\n    </Suspense>\n  );\n}\n```\n\n\n이렇게 하면 `Chart` 컴포넌트는 초기 번들에 포함되지 않고, 실제로 렌더링될 때 네트워크 요청으로 불러온다. 사용자는 필요한 순간에만 코드를 다운로드받으니 초기 로딩 속도가 빨라진다.\n\n\n단, `React.lazy`로 불러올 컴포넌트는 반드시 **default export**여야 한다는 점을 잊지 말자.\n\n\n---\n\n\n### 실무에서 부딪힌 문제들\n\n\n하지만 단순히 `lazy`만 쓴다고 끝이 아니다. 실제로 사용해보면 몇 가지 문제에 부딪힌다.\n\n1. **Fallback UI의 단순함**\n\n    `<div>로딩 중...</div>` 같은 메시지는 너무 단조롭다.\n    보통은 Skeleton UI나 스피너 같은 공통 로딩 컴포넌트를 만들어서 일관된 UX를 제공한다.\n\n2. **라우트 단위 코드 스플리팅**\n\n    페이지 단위에서 코드 스플리팅을 적용하는 게 가장 효과적이다.\n\n\n    예를 들어 React Router와 함께 쓰면 이렇게 된다.\n\n\n    ```typescript\n    const Home = lazy(() => import("./pages/Home"));\n    const Profile = lazy(() => import("./pages/Profile"));\n    \n    <Routes>\n      <Route\n    \t  path="/"\n        element={\n          <Suspense fallback={<PageSkeleton />}>\n            <Home />\n          </Suspense>\n        }\n      />\n      <Route\n    \t  path="/profile"\n        element={\n          <Suspense fallback={<PageSkeleton />}>\n            <Profile />\n          </Suspense>\n        }\n      />\n    </Routes>\n    ```\n\n\n    이렇게 하면 사용자 입장에서 당장 필요한 페이지 코드만 다운로드되기 때문에 속도 차이가 확실하다.\n\n3. **중첩된 Suspense 관리**\n\n    컴포넌트마다 `Suspense`를 따로 두면 복잡해진다.\n\n\n    보통은 **상위에 큰 틀의 Suspense**를 두고, 하위는 최소한만 관리하는 게 편하다.\n\n\n    ```javascript\n    <Suspense fallback={<AppSkeleton />}>\n      <AppRoutes />\n    </Suspense>\n    ```\n\n\n    이렇게 하면 전체 페이지 로딩은 상위에서 관리하고, 정말 필요한 경우에만 하위 Suspense를 사용하면 된다.\n\n\n---\n\n\n### 실무에서 얻은 교훈\n\n\n필자도 초반에는 “모든 컴포넌트를 lazy로 감싸면 성능이 좋아지겠지”라고 생각했다.\n하지만 작은 버튼이나 공용 UI까지 전부 분리하니 오히려 네트워크 요청이 늘어나서 성능이 떨어졌다.\n\n\n결국 답은 사용자가 당장 보지 않는 페이지 단위에서만 코드 스플리팅을 적용하는 것이었다.\n특히 관리자 페이지처럼 규모가 크고, 접근 빈도가 낮은 영역에 적용했을 때 효과가 확실했다.\n\n\n---\n\n\n### 페이지 캐싱과 KeepAlive\n\n\n코드 스플리팅만으로는 부족해서, 페이지 자체를 캐싱(KeepAlive) 해보는 시도를 했다.\n목표는 “다시 들어올 때 로딩 없이 즉시 보여주자”였다.\n\n\n하지만 여기서 문제가 생겼다.\n단순히 `<Outlet />`을 보존해두니, 내부에서 쓰는 React Query 캐시까지 그대로 남아버린 것이다.\n결과적으로 화면은 빠르게 뜨지만, 데이터는 최신화되지 않았다.\n\n\n---\n\n\n### 내가 겪었던 사례\n\n\n예전에 React Query를 쓰는 프로젝트에서, 페이지 단위 캐싱을 해본 적이 있다.\n\n\n라우터 전환 시 `<Outlet />`을 그대로 보존해서 페이지 컴포넌트를 유지했는데, 이게 문제였다.\n\n- 장점: 돌아왔을 때 화면이 바로 뜸.\n- 단점: 내부에서 쓰는 React Query 캐시까지 그대로 남아있음 → 최신 데이터 반영 안 됨.\n\n결국 "페이지는 보존하되, 쿼리는 리패치"하는 절충안을 찾아야 했다.\n\n\n---\n\n\n### 해결 방법\n\n1. **React Query의** **`staleTime`****과** **`refetchOnMount`** **조정**\n\n    ```typescript\n    useQuery({\n      queryKey: ["users"],\n      queryFn: fetchUsers,\n      staleTime: 0, // 항상 fresh 취급\n      refetchOnMount: true, // 다시 마운트될 때 refetch\n    });\n    ```\n\n\n    이렇게 하면 페이지 캐싱은 유지되더라도, 다시 들어올 때 쿼리는 새로 불러온다.\n\n2. **페이지 단위 캐싱 vs 쿼리 캐싱을 분리**\n    - UI 상태(스크롤 위치, 입력 값, 탭 선택 등)는 `zustand` 같은 클라이언트 스토어에 저장.\n    - 서버 데이터는 React Query에 맡기고, mount 시점에서 자동으로 최신화.\n3. **라우터 전환 이벤트에 맞춰 데이터 수신**\n    - `react-router-dom`의 `useLocation` 훅을 감지해서, 특정 페이지로 들어올 때 사용한다.\n    - 이렇게 하면 UI는 캐싱되고, 데이터는 새로고침된다.\n\n---\n\n\n### 데이터 최신화 전략\n\n\nUI는 그대로 두더라도, 데이터는 최신 상태로 맞추는 게 중요하다.\nReact Query 기준으로 보면 크게 두 가지 방식이 있다.\n\n1. **낙관적 업데이트 (Optimistic Update)**\n    - 사용자의 액션에 맞춰 캐시를 먼저 업데이트하고, 실패 시 롤백.\n    - UX는 빠르지만, 실패 처리 로직을 꼼꼼히 넣어야 한다.\n\n    ```typescript\n    const mutation = useMutation(updateUser, {\n      onMutate: async (newUser) => {\n        await queryClient.cancelQueries({ queryKey: ["user"] });\n        const prevUser = queryClient.getQueryData(["user"]);\n        queryClient.setQueryData(["user"], newUser);\n        return { prevUser };\n      },\n      onError: (_err, _newUser, ctx) => {\n        queryClient.setQueryData(["user"], ctx?.prevUser);\n      },\n      onSettled: () => {\n        queryClient.invalidateQueries({ queryKey: ["user"] });\n      },\n    });\n    ```\n\n2. **쿼리 무효화 후 다시 조회 (Invalidate + Refetch)**\n    - `queryClient.invalidateQueries`로 캐시를 무효화하고 서버에서 최신 데이터를 다시 가져온다.\n    - 단순하고 안전하지만, 네트워크 요청이 늘어난다.\n\n    ```typescript\n    useEffect(() => {\n      queryClient.invalidateQueries({ queryKey: ["users"] });\n    }, [location.pathname]);\n    ```\n\n\n위 2가지 방법 중, 본인의 상황에 맞는 방식을 사용하면 될 것 같다.\n\n- 빠른 반응성이 필요하다면 낙관적 업데이트\n- 안정성이 더 중요하다면 무효화 & refetch\n\n---\n\n\n### 경험에서 얻은 포인트\n\n\n페이지 전체 캐싱은 매력적이지만, 결국 화면 상태와 데이터는 분리해서 관리해야 한다.\n\n- UI는 KeepAlive 느낌으로 보존\n- 데이터는 항상 fresh하게 유지\n\n이렇게 나누니 사용자 경험도 좋아지고, 유지보수도 한결 편해졌다.\n특히 관리자 페이지에서 필터/검색 상태가 그대로 살아있으면서도, 데이터는 최신으로 바뀌는 경험을 제공할 수 있다.\n\n\n---\n\n\n### 정리\n\n- `React.lazy`와 `Suspense`는 초기 로딩 속도를 줄이는 좋은 도구다.\n- 하지만 **무조건 남발하기보다는, 페이지 단위**로 적용하는 게 현실적이다.\n- Fallback UI를 잘 설계하면 UX까지 개선할 수 있다.\n- 작은 컴포넌트보다는 **사용자 흐름에 따라 로딩될 수 있는 큰 단위**를 쪼개는 게 핵심이다.\n- React KeepAlive 패턴을 UI 상태 보존용으로만 쓰고, 데이터는 반드시 refetch로 관리하는 것이 안정적이었다.\n',
+  },
+  {
+    id: 'e2fb860c-7108-449b-8be7-14e1a25bf515',
+    title: 'React 성능 최적화를 위해 ',
+    category: 'React',
+    tags: [
+      'useCallback',
+      'useMemo',
+    ],
+    createdBy: 'raven',
+    created: '2025-09-05T05:39:00.000Z',
+    edited: '2025-11-10T16:36:00.000Z',
+    content: '\nReact를 쓰다 보면 성능 최적화 이야기가 꼭 나온다. 특히 `useCallback`, `useMemo`는 무조건 넣어야 할 것처럼 보이기도 한다. 하지만 막상 실무에서는 “언제 써야 하는지”가 더 중요하다. 괜히 남용했다가 코드만 복잡해지고 성능 차이는 없는 경우도 많다.\n\n\n---\n\n\n### 메모이제이션 훅의 목적\n\n\n`useCallback`과 `useMemo`는 공통적으로 **값을 메모이제이션**한다.\n\n- `useCallback`: 함수 객체를 메모이제이션\n- `useMemo`: 연산 결과를 메모이제이션\n\n즉, 렌더링이 반복되어도 동일한 참조를 유지하거나, 무거운 연산을 다시 계산하지 않도록 해준다.\n\n\n---\n\n\n### 실무에서 자주 겪는 사례\n\n1. **자식 컴포넌트 불필요한 리렌더링**\n\n    ```typescript\n    const Parent = () => {\n      const [count, setCount] = useState(0);\n    \n      const handleClick = () => {\n        console.log("clicked");\n      };\n    \n      return (\n        <>\n    \t    <Child onClick={handleClick} />\n          <button onClick={() => setCount((c) => c + 1)}>+</button>\n        </>\n      );\n    };\n    \n    const Child = memo(({ onClick }: { onClick: () => void }) => {\n      console.log("child render");\n      return <button onClick={onClick}>Child</button>;\n    });\n    ```\n\n\n    `Child`는 `memo`로 감쌌는데도 매번 리렌더링된다. 이유는 `handleClick` 함수가 렌더링마다 새로운 객체로 생성되기 때문이다.\n\n\n    이때 `useCallback`으로 묶어주면 해결된다.\n\n\n    ```typescript\n    const handleClick = useCallback(() => {\n      console.log("clicked");\n    }, []);\n    ```\n\n2. **무거운 연산 결과 재사용**\n\n    ```typescript\n    const Expensive = ({ num }: { num: number }) => {\n      const result = useMemo(() => {\n        console.log("expensive calc...");\n        return Array.from({ length: 1_000_000 }).reduce((a, _, i) => a + i, 0) + num;\n      }, [num]);\n    \n      return <div>{result}</div>;\n    };\n    ```\n\n\n    이런 경우 `useMemo`가 없으면 매 렌더마다 100만 번 계산을 다시 하게 된다.\n\n\n---\n\n\n### 언제 쓰지 말아야 할까?\n\n- 함수나 연산이 **가벼운 경우**\n    - 오히려 `useMemo`, `useCallback`의 비용(메모이제이션 관리)이 더 커질 수 있다.\n- 렌더링 최적화가 **눈에 띄게 필요 없는 경우**\n    - 무조건 감싸는 습관은 코드만 장황해진다.\n\n내 경험상, **자식 컴포넌트에 props로 함수/객체를 넘길 때** 그리고 **데이터 계산 비용이 클 때**만 신경 써도 충분했다. 그 외에는 그냥 두고, 정말 성능 이슈가 보일 때 리팩토링하는 게 더 낫다.\n\n\n---\n\n\n### 정리\n\n- `useCallback`: 자식에게 내려주는 함수 props가 문제 될 때\n- `useMemo`: 연산이 무겁거나 객체 참조를 유지해야 할 때\n- 기본은 “최적화는 필요할 때만”\n',
+  },
+  {
+    id: '19cd0a1c-71b4-4e45-a47d-498384fb9ccf',
+    title: 'React Context API 한계와 Zustand 같은 대안 비교',
+    category: 'React',
+    tags: [
+      'context',
+      'zustand',
+    ],
+    createdBy: 'raven',
+    created: '2025-09-05T02:46:00.000Z',
+    edited: '2025-11-10T16:36:00.000Z',
+    content: '\n리액트 개발을 하다 보면 전역 상태 관리가 필요해지는 순간이 온다.\n\n\n처음엔 Context API로 간단히 해결할 수 있을 것 같지만, 규모가 커지면 문제가 눈에 띄게 드러난다. 오늘은 Context API의 한계와, 실무에서 많이 쓰이는 대안인 Zustand를 비교해 보려고 한다.\n\n\n---\n\n\n### Context API, 어디까지 쓸 수 있을까?\n\n\nContext API는 전역적으로 데이터를 공유하는 데 꽤 편리하다. 로그인 사용자 정보, 다크모드 여부, 다국어 설정 같은 전역 상태는 Context로 충분히 해결된다.\n\n\n하지만 문제는 **리렌더링**이다. Context Provider에 들어 있는 값이 바뀌면, 그 값을 쓰고 있지 않은 하위 컴포넌트까지 전부 리렌더링된다. 상태가 많아질수록, UI 구조가 깊어질수록 성능에 부담이 된다.\n\n\n실제로 프로젝트에서 테마 설정을 Context로 관리했을 때, 버튼 클릭 하나로 화면 전반이 리렌더링되어 성능 이슈가 생긴 적이 있었다. 작은 프로젝트라면 눈에 잘 안 띄지만, 규모가 커지면 무시하기 힘들다.\n\n\n또 다른 사례도 있다.\nContext API로 공용 모달 호출기를 만들었을 때인데, 적용 자체는 잘 되었지만 호출이 `hook` 안에서만 가능했다.\n게다가 Vitest로 테스트를 작성할 때도 제약이 컸다.\nProvider를 모든 테스트 환경에 주입해줘야 했기 때문에, 테스트 설정이 불필요하게 무거워졌다.\n단순히 “전역 모달 열고 닫기” 같은 기능에도 이런 불편이 생기니, Context의 한계를 실감할 수 있었다.\n\n\n---\n\n\n### Zustand, 왜 대안이 될까?\n\n\nZustand는 Context API와 달리 **필요한 컴포넌트만 리렌더링** 한다.\n\n\n상태를 분리하고, 컴포넌트는 자신이 구독한 부분만 업데이트를 받는다.\n\n\n```typescript\nimport { create } from "zustand";\n\ninterface BearState {\n  bears: number;\n  increase: () => void;\n}\n\nconst useBearStore = create<BearState>((set) => ({\n  bears: 0,\n  increase: () => set((state) => ({ bears: state.bears + 1 })),\n}));\n\nfunction BearCounter() {\n  const bears = useBearStore((state) => state.bears); // 필요한 상태만 구독\n  return <h1>{bears} 마리의 곰</h1>;\n}\n\nfunction Controls() {\n  const increase = useBearStore((state) => state.increase);\n  return <button onClick={increase}>곰 추가</button>;\n}\n```\n\n\n여기서 `BearCounter`는 `bears` 값이 바뀔 때만 리렌더링된다.\n반대로 `Controls`는 `increase` 함수만 구독하기 때문에 곰 수가 변해도 리렌더링되지 않는다.\nContext였다면 Provider 값이 바뀌는 순간 두 컴포넌트 모두 리렌더링됐을 것이다.\n\n\n---\n\n\n### 그럼 Context는 쓰면 안 되나?\n\n\n전혀 그렇지 않다. Context는 여전히 유용하다.\n\n\n다만 **자주 변하지 않는 값**, **전역적으로 한 번에 바뀌어야 하는 값**을 다룰 때 적합하다.\n\n- 다크 모드 여부\n- 로그인 여부\n- 사용자 환경설정(토글, UI 모드 등)\n\n이런 값은 Context로도 충분하다. 오히려 Zustand 같은 외부 라이브러리를 도입하는 게 과할 수 있다.\n\n\n다만 언어 설정 같은 경우는 다르다.\n\n\n`react-i18next` 같은 i18n 라이브러리가 이미 Context를 내부적으로 사용하면서 훨씬 풍부한 기능(캐싱, fallback 언어, 복수형 처리 등)을 제공한다. 직접 Context로 언어를 관리하는 건 바퀴를 다시 만드는 셈이니 굳이 권장하지 않는다.\n\n\n---\n\n\n### 정리\n\n- Context API → **UI 전역 설정값**(테마, 환경설정 등)에 적합\n- i18n → 언어 상태는 전용 라이브러리에 맡기는 게 정답\n- Zustand → **비즈니스 상태 관리**(서버 데이터, 복잡한 클라이언트 로직)에 최적\n\n실무에서는 보통 **섞어서** 쓴다.\n\n\nUI 전역 설정은 Context나 전용 라이브러리로, 실제 비즈니스 로직은 Zustand로 관리하는 식이다.\n\n',
+  },
+  {
+    id: '1f2cf0fe-4db0-4a56-805a-3f3881af8dee',
+    title: 'React 18 ',
+    category: 'React',
+    tags: [
+      'useEffect',
+    ],
+    createdBy: 'raven',
+    created: '2025-08-27T07:17:00.000Z',
+    edited: '2025-11-10T16:36:00.000Z',
+    content: '\nReact를 조금만 써봤다면 `useEffect`는 반드시 마주치게 된다.\n그런데 React 18 이후로 동작 방식이 미묘하게 달라져서, 기존처럼 코드를 짜면 의도치 않은 문제가 생기기도 한다.\n오늘은 그 부분을 정리해보려고 한다.\n\n\n---\n\n\n### `useEffect`의 기본 역할\n\n\n`useEffect`는 컴포넌트가 렌더링된 뒤에 실행되는 **부수 효과(side effect) 처리 훅**이다.\n\n\n대표적인 예시는 다음과 같다.\n\n- API 호출 (데이터 불러오기)\n- 이벤트 리스너 등록 및 해제\n- 외부 라이브러리 연동\n\n```javascript\nimport { useEffect, useState } from "react";\n\nexport default function UserProfile() {\n  const [user, setUser] = useState<{ name: string } | null>(null);\n\n  useEffect(() => {\n    fetch("/api/user")\n      .then((res) => res.json())\n      .then((data) => setUser(data));\n  }, []); // 최초 마운트 시에만 실행\n\n  return <div>{user ? user.name : "Loading..."}</div>;\n}\n```\n\n\n---\n\n\n### React 18에서 달라진 점: **Strict Mode의 두 번 실행**\n\n\nReact 18에서는 개발 모드(Strict Mode)에서 `useEffect`가 **의도적으로 두 번 실행**된다.\n\n\n이유는 "side effect가 안전하게 작성되었는지 확인하기 위해서"다.\n\n\n즉, 위 예제처럼 `fetch` 요청을 넣으면 개발 환경에서 두 번 호출되는 걸 볼 수 있다.\n\n\n(실제 배포 환경에서는 한 번만 실행된다.)\n\n\n### 문제 상황 예시\n\n\n```typescript\nuseEffect(() => {\n  console.log("API 호출");\n  fetch("/api/user");\n}, []);\n```\n\n\n개발 환경 콘솔에서는 다음과 같이 사용된다.\n\n\n```plain text\nAPI 호출\nAPI 호출\n```\n\n\n→ 같은 요청이 두 번 가면서 서버에 불필요한 트래픽이 생기는 것처럼 보인다.\n\n\n---\n\n\n### 어떻게 대응해야 할까?\n\n1. **Effect 내부에서 cleanup 활용하기**\n    - 이벤트 리스너나 타이머 같은 경우는 반드시 정리(cleanup)를 해줘야 한다.\n    - cleanup이 없다면 두 번 실행 시 리스너가 중복 등록된다.\n\n    ```typescript\n    useEffect(() => {\n      const handler = () => console.log("resize");\n      window.addEventListener("resize", handler);\n    \n      return () => {\n        window.removeEventListener("resize", handler);\n      };\n    }, []);\n    ```\n\n2. **API 호출은 idempotent하게**\n    - 동일 요청이 여러 번 가더라도 문제가 없게 설계하는 것이 안전하다.\n    - 서버 쪽에서 캐싱을 하거나, 프론트에서 `useRef`로 중복 방지 플래그를 둘 수도 있다.\n\n    ```typescript\n    useEffect(() => {\n      let ignore = false;\n    \n      fetch("/api/user")\n        .then((res) => res.json())\n        .then((data) => {\n          if (!ignore) {\n            setUser(data);\n          }\n        });\n    \n      return () => {\n        ignore = true;\n      };\n    }, []);\n    ```\n\n3. **React Query, SWR 같은 라이브러리 활용하기**\n    - 직접 fetch 관리 대신 검증된 라이브러리를 쓰면 중복 호출 문제를 많이 줄일 수 있다.\n    - 실무에서는 이 접근이 더 효율적이다.\n\n---\n\n\n### 정리\n\n- `useEffect`는 렌더링 후 실행되는 훅이다.\n- React 18 개발 모드에선 안전성을 위해 두 번 실행된다.\n- cleanup 함수를 잘 작성해야 중복 문제를 막을 수 있다.\n- 데이터 패칭은 라이브러리 사용을 적극 고려하는 게 좋다.\n\n실무에서 가장 많이 겪는 오류가 바로 **"왜 두 번 실행돼?"** 인데, 이건 React 18의 정상 동작이라는 점만 기억해두면 된다.\n\n',
+  },
+];
+
 export const blogHandlers = (server: Server) => {
   // Get all blog posts (Notion API: /api/notion/pages)
   server.get('/notion/pages', (_schema: unknown, request: Request) => {
@@ -128,23 +229,15 @@ export const blogHandlers = (server: Server) => {
       });
     }
 
-    // 백엔드에서 이미 발행됨 상태를 필터링해서 내려보내주므로 여기서는 필터링 불필요
-    const matchingPages = notionPages.filter((page) => page.title === title);
+    const matchingPost = mockBlogDetailData.find((post) => post.title === title);
 
-    if (matchingPages.length === 0) {
+    if (!matchingPost) {
       return new Response(JSON.stringify({ error: 'Page not found' }), {
         status: 404,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
-    if (matchingPages.length > 1) {
-      return new Response(JSON.stringify({ error: 'Multiple pages found with the same title' }), {
-        status: 404,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    return convertNotionPageToBlogPost(matchingPages[0]);
+    return matchingPost;
   });
 };
