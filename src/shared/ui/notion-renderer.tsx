@@ -1,13 +1,13 @@
-import type { NotionBlock } from '@src/shared/api/blog';
+import type { NotionBlock, NotionRichText } from '@src/shared/api/blog';
 
-// rich_text 배열에서 텍스트 추출
-function extractTextFromRichText(
-  richText: Array<{ plain_text?: string; [key: string]: unknown }>,
-): string {
+// rich_text 배열에서 텍스트 추출 (text.content와 plain_text 모두 지원)
+function extractTextFromRichText(richText: NotionRichText[]): string {
   if (!richText || richText.length === 0) {
     return '';
   }
-  return richText.map((text) => text.plain_text || '').join('');
+  return richText
+    .map((text) => text.text?.content || text.plain_text || '')
+    .join('');
 }
 
 // NotionBlock[]을 마크다운 문자열로 변환

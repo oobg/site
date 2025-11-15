@@ -8,6 +8,42 @@ function markdownToNotionBlocks(markdown: string): NotionBlock[] {
   let inCodeBlock = false;
   let codeBlockLanguage = '';
   let codeBlockContent: string[] = [];
+  let blockIdCounter = 0;
+
+  // Mock용 기본 메타데이터 생성
+  const createBlockMetadata = (type: string): Partial<NotionBlock> => {
+    blockIdCounter += 1;
+    const now = new Date().toISOString();
+    return {
+      id: `mock-block-${blockIdCounter}`,
+      object: 'block',
+      parent: { type: 'page_id', page_id: 'mock-page-id' },
+      archived: false,
+      in_trash: false,
+      created_by: { id: 'mock-user-id', object: 'user' },
+      created_time: now,
+      has_children: false,
+      last_edited_by: { id: 'mock-user-id', object: 'user' },
+      last_edited_time: now,
+      type,
+    };
+  };
+
+  // Rich text 생성 헬퍼
+  const createRichText = (text: string) => ({
+    type: 'text',
+    plain_text: text,
+    text: { content: text, link: null },
+    href: null,
+    annotations: {
+      bold: false,
+      code: false,
+      color: 'default',
+      italic: false,
+      underline: false,
+      strikethrough: false,
+    },
+  });
 
   while (i < lines.length) {
     const line = lines[i];
@@ -18,10 +54,11 @@ function markdownToNotionBlocks(markdown: string): NotionBlock[] {
       if (inCodeBlock) {
         // 코드 블록 종료
         blocks.push({
-          type: 'code',
+          ...createBlockMetadata('code'),
           code: {
-            rich_text: [{ plain_text: codeBlockContent.join('\n') }],
+            caption: [],
             language: codeBlockLanguage || undefined,
+            rich_text: [createRichText(codeBlockContent.join('\n'))],
           },
         } as NotionBlock);
         codeBlockContent = [];
@@ -45,58 +82,68 @@ function markdownToNotionBlocks(markdown: string): NotionBlock[] {
       // Heading 1
       if (trimmed.startsWith('# ')) {
         blocks.push({
-          type: 'heading_1',
+          ...createBlockMetadata('heading_1'),
           heading_1: {
-            rich_text: [{ plain_text: trimmed.substring(2) }],
+            color: 'default',
+            rich_text: [createRichText(trimmed.substring(2))],
+            is_toggleable: false,
           },
         } as NotionBlock);
       } else if (trimmed.startsWith('## ')) {
         // Heading 2
         blocks.push({
-          type: 'heading_2',
+          ...createBlockMetadata('heading_2'),
           heading_2: {
-            rich_text: [{ plain_text: trimmed.substring(3) }],
+            color: 'default',
+            rich_text: [createRichText(trimmed.substring(3))],
+            is_toggleable: false,
           },
         } as NotionBlock);
       } else if (trimmed.startsWith('### ')) {
         // Heading 3
         blocks.push({
-          type: 'heading_3',
+          ...createBlockMetadata('heading_3'),
           heading_3: {
-            rich_text: [{ plain_text: trimmed.substring(4) }],
+            color: 'default',
+            rich_text: [createRichText(trimmed.substring(4))],
+            is_toggleable: false,
           },
         } as NotionBlock);
       } else if (trimmed.startsWith('- ')) {
         // Bulleted list
         blocks.push({
-          type: 'bulleted_list_item',
+          ...createBlockMetadata('bulleted_list_item'),
           bulleted_list_item: {
-            rich_text: [{ plain_text: trimmed.substring(2) }],
+            color: 'default',
+            rich_text: [createRichText(trimmed.substring(2))],
           },
         } as NotionBlock);
       } else if (/^\d+\.\s/.test(trimmed)) {
         // Numbered list
         blocks.push({
-          type: 'numbered_list_item',
+          ...createBlockMetadata('numbered_list_item'),
           numbered_list_item: {
-            rich_text: [{ plain_text: trimmed.replace(/^\d+\.\s/, '') }],
+            color: 'default',
+            rich_text: [createRichText(trimmed.replace(/^\d+\.\s/, ''))],
           },
         } as NotionBlock);
       } else if (trimmed.startsWith('> ')) {
         // Callout (blockquote 형식)
         blocks.push({
-          type: 'callout',
+          ...createBlockMetadata('callout'),
           callout: {
-            rich_text: [{ plain_text: trimmed.substring(2) }],
+            color: 'default',
+            rich_text: [createRichText(trimmed.substring(2))],
             icon: '💡',
           },
         } as NotionBlock);
       } else {
         // Paragraph (기본)
         blocks.push({
-          type: 'paragraph',
+          ...createBlockMetadata('paragraph'),
           paragraph: {
-            rich_text: [{ plain_text: trimmed }],
+            color: 'default',
+            rich_text: [createRichText(trimmed)],
           },
         } as NotionBlock);
       }
@@ -107,10 +154,11 @@ function markdownToNotionBlocks(markdown: string): NotionBlock[] {
   // 코드 블록이 닫히지 않은 경우 처리
   if (inCodeBlock && codeBlockContent.length > 0) {
     blocks.push({
-      type: 'code',
+      ...createBlockMetadata('code'),
       code: {
-        rich_text: [{ plain_text: codeBlockContent.join('\n') }],
+        caption: [],
         language: codeBlockLanguage || undefined,
+        rich_text: [createRichText(codeBlockContent.join('\n'))],
       },
     } as NotionBlock);
   }

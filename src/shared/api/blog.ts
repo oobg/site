@@ -1,33 +1,84 @@
 import { apiClient } from './client';
 import type { BlogPost, BlogPostListItem } from './mock/factories/blog';
 
-// Notion 블록 타입 정의
-export interface NotionBlock {
+// Notion Rich Text 타입 정의
+export interface NotionRichText {
   type: string;
+  plain_text: string;
+  text?: {
+    content: string;
+    link?: string | null;
+  };
+  href?: string | null;
+  annotations?: {
+    bold?: boolean;
+    code?: boolean;
+    color?: string;
+    italic?: boolean;
+    underline?: boolean;
+    strikethrough?: boolean;
+  };
+  [key: string]: unknown;
+}
+
+// Notion 블록 타입 정의 (실제 API 구조 반영)
+export interface NotionBlock {
+  id: string;
+  type: string;
+  object: 'block';
+  parent: {
+    type: string;
+    page_id?: string;
+    [key: string]: unknown;
+  };
+  archived: boolean;
+  in_trash: boolean;
+  created_by: {
+    id: string;
+    object: 'user';
+  };
+  created_time: string;
+  has_children: boolean;
+  last_edited_by: {
+    id: string;
+    object: 'user';
+  };
+  last_edited_time: string;
   paragraph?: {
-    rich_text: Array<{ plain_text?: string; [key: string]: unknown }>;
+    color?: string;
+    rich_text: NotionRichText[];
   };
   heading_1?: {
-    rich_text: Array<{ plain_text?: string; [key: string]: unknown }>;
+    color?: string;
+    rich_text: NotionRichText[];
+    is_toggleable?: boolean;
   };
   heading_2?: {
-    rich_text: Array<{ plain_text?: string; [key: string]: unknown }>;
+    color?: string;
+    rich_text: NotionRichText[];
+    is_toggleable?: boolean;
   };
   heading_3?: {
-    rich_text: Array<{ plain_text?: string; [key: string]: unknown }>;
+    color?: string;
+    rich_text: NotionRichText[];
+    is_toggleable?: boolean;
   };
   bulleted_list_item?: {
-    rich_text: Array<{ plain_text?: string; [key: string]: unknown }>;
+    color?: string;
+    rich_text: NotionRichText[];
   };
   numbered_list_item?: {
-    rich_text: Array<{ plain_text?: string; [key: string]: unknown }>;
+    color?: string;
+    rich_text: NotionRichText[];
   };
   code?: {
-    rich_text: Array<{ plain_text?: string; [key: string]: unknown }>;
+    caption?: unknown[];
     language?: string;
+    rich_text: NotionRichText[];
   };
   callout?: {
-    rich_text: Array<{ plain_text?: string; [key: string]: unknown }>;
+    color?: string;
+    rich_text: NotionRichText[];
     icon?: string;
   };
   [key: string]: unknown;
