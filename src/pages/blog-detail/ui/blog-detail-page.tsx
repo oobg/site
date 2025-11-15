@@ -25,15 +25,16 @@ export const BlogDetailPage = () => {
     enabled: !!title,
   });
 
+  const convertContent = async () => {
+    const content = data?.data?.content;
+    if (!content || content.length === 0) {
+      return;
+    }
+    const markdown = await convertNotionBlocksToMarkdown(content);
+    setMarkdownContent(markdown);
+  };
+
   useEffect(() => {
-    const convertContent = async () => {
-      const content = data?.data?.content;
-      if (!content || content.length === 0) {
-        return;
-      }
-      const markdown = await convertNotionBlocksToMarkdown(content);
-      setMarkdownContent(markdown);
-    };
     if (isLoading) {
       return;
     }
