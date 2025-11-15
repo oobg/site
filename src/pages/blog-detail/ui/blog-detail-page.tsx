@@ -32,8 +32,11 @@ export const BlogDetailPage = () => {
         setMarkdownContent(markdown);
       }
     };
+    if (isLoading) {
+      return;
+    }
     convertContent();
-  }, [data?.data.content]);
+  }, [isLoading]);
 
   if (isLoading) {
     return <LoadingSpinner />;
