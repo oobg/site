@@ -27,7 +27,7 @@ export const BlogDetailPage = () => {
 
   useEffect(() => {
     const convertContent = async () => {
-      if (data?.data.content && data.data.content.length > 0) {
+      if (data?.data?.content && data.data.content.length > 0) {
         const markdown = await convertNotionBlocksToMarkdown(data.data.content);
         setMarkdownContent(markdown);
       }
