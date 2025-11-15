@@ -35,8 +35,11 @@ const childrenToString = (children: React.ReactNode): string => {
   }
 
   // React 요소인 경우 children을 재귀적으로 처리
-  if (typeof children === 'object' && 'props' in children && children.props) {
-    return childrenToString(children.props.children);
+  if (typeof children === 'object' && 'props' in children) {
+    const props = children.props as { children?: React.ReactNode };
+    if (props && 'children' in props) {
+      return childrenToString(props.children);
+    }
   }
 
   // React.Children.toArray를 사용하여 안전하게 변환
@@ -45,8 +48,11 @@ const childrenToString = (children: React.ReactNode): string => {
     if (typeof child === 'string' || typeof child === 'number') {
       return String(child);
     }
-    if (typeof child === 'object' && 'props' in child && child.props) {
-      return childrenToString(child.props.children);
+    if (typeof child === 'object' && 'props' in child) {
+      const props = child.props as { children?: React.ReactNode };
+      if (props && 'children' in props) {
+        return childrenToString(props.children);
+      }
     }
     return '';
   }).join('');

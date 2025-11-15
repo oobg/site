@@ -20,13 +20,18 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
         setCopyState('idle');
       }, 2000);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to copy code:', error);
       setCopyState('idle');
     }
   };
 
   useEffect(() => {
-    if (!codeRef.current) return;
+    if (!codeRef.current) {
+      return () => {
+        // cleanup function for early return case
+      };
+    }
 
     const applyTagColors = () => {
       const codeElement = codeRef.current?.querySelector('code');
@@ -41,16 +46,17 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
           element.textContent = dataOriginalText;
           element.removeAttribute('data-original-text');
         }
-        element.classList.remove('tag-name');
-        element.style.color = '';
+        const newElement = element;
+        newElement.classList.remove('tag-name');
+        newElement.style.color = '';
       });
-      
+
       // 분리된 span 제거 (원래 span과 합치기 위해)
       codeElement.querySelectorAll('span[data-is-props]').forEach((el) => {
         const prevSibling = el.previousElementSibling;
         if (prevSibling && prevSibling.classList.contains('tag-name')) {
-          const originalText = prevSibling.getAttribute('data-original-text') || 
-                              (prevSibling.textContent || '') + (el.textContent || '');
+          const originalText = prevSibling.getAttribute('data-original-text')
+                              || (prevSibling.textContent || '') + (el.textContent || '');
           prevSibling.textContent = originalText;
           prevSibling.removeAttribute('data-original-text');
         }
@@ -61,17 +67,19 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
       const builtinObjects = [
         'Object', 'Array', 'String', 'Number', 'Boolean', 'Date', 'Math', 'JSON',
         'Promise', 'Map', 'Set', 'WeakMap', 'WeakSet', 'RegExp', 'Error',
-        'Function', 'Symbol', 'BigInt', 'Intl', 'Reflect', 'Proxy'
+        'Function', 'Symbol', 'BigInt', 'Intl', 'Reflect', 'Proxy',
       ];
-      
+
       builtinObjects.forEach((objName) => {
-        const elements = codeElement.querySelectorAll(`span:not(.token)`);
+        const elements = codeElement.querySelectorAll('span:not(.token)');
         elements.forEach((el) => {
           const text = el.textContent?.trim() || '';
           // 정확히 일치하는 경우만 (다른 단어의 일부가 아닌 경우)
           if (text === objName && !el.classList.contains('token')) {
-            (el as HTMLElement).style.color = '#4EC9B0';
-            el.classList.add('js-builtin');
+            const element = el as HTMLElement;
+            element.style.color = '#4EC9B0';
+            const newEl = el;
+            newEl.classList.add('js-builtin');
           }
         });
       });
@@ -88,22 +96,22 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
             // 공백이나 줄바꿈만 있는 경우 제외
             if (text.trim() && !/^\s+$/.test(text)) {
               const element = nextSibling as HTMLElement;
-              
+
               // 태그 이름과 props가 함께 있는 경우 분리
               // 예: "h2 className" -> "h2"만 초록색, " className"은 원래 색상
               if (text.includes(' ') && tokenText === '<') {
                 const firstSpaceIndex = text.indexOf(' ');
                 const tagName = text.substring(0, firstSpaceIndex);
                 const rest = text.substring(firstSpaceIndex);
-                
+
                 // 원래 텍스트 저장
                 element.setAttribute('data-original-text', text);
-                
+
                 // 원래 span을 태그 이름만 남기고
                 element.textContent = tagName;
                 element.style.color = '#4EC9B0';
                 element.classList.add('tag-name');
-                
+
                 // 나머지 부분을 새로운 span으로 추가
                 if (rest.trim()) {
                   const restSpan = document.createElement('span');
@@ -156,6 +164,7 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
           <div className="group flex gap-1.5">
             {/* 빨간 버튼 - 닫기 (X) */}
             <button
+              type="button"
               className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#ff5f57] transition-all duration-200 hover:bg-[#ff3b30] hover:scale-110 shadow-[0_1px_2px_rgba(0,0,0,0.2)]"
               aria-label="닫기"
             >
@@ -165,6 +174,7 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
             </button>
             {/* 노란 버튼 - 최소화 (-) */}
             <button
+              type="button"
               className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#ffbd2e] transition-all duration-200 hover:bg-[#ffcc00] hover:scale-110 shadow-[0_1px_2px_rgba(0,0,0,0.2)]"
               aria-label="최소화"
             >
@@ -174,6 +184,7 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
             </button>
             {/* 초록 버튼 - 최대화 (+) */}
             <button
+              type="button"
               className="relative flex h-3 w-3 items-center justify-center rounded-full bg-[#28c840] transition-all duration-200 hover:bg-[#30d158] hover:scale-110 shadow-[0_1px_2px_rgba(0,0,0,0.2)]"
               aria-label="최대화"
             >
@@ -205,6 +216,7 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
         </div>
         {/* 복사 버튼 - 상태바 우측 */}
         <button
+          type="button"
           onClick={handleCopy}
           disabled={copyState === 'copying'}
           className="flex items-center gap-1.5 rounded-md bg-[#3e3e3e] px-2.5 py-1 text-xs font-medium text-[#cccccc] transition-all duration-200 hover:bg-[#4e4e4e] disabled:cursor-not-allowed disabled:opacity-50"
@@ -261,7 +273,8 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
           .code-block-container .token.builtin {
             color: #4EC9B0 !important;
           }
-        `}</style>
+        `}
+        </style>
         <div className="code-block-container" ref={codeRef}>
           <SyntaxHighlighter
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -283,5 +296,3 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
     </div>
   );
 };
-
-
