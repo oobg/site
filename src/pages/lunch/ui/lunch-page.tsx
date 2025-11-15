@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@src/shared/ui/button';
 import { Card } from '@src/shared/ui/card';
 import { Container } from '@src/shared/ui/container';
@@ -18,53 +18,24 @@ export const LunchPage = () => {
     menu: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showResult, setShowResult] = useState(false);
+  const [isFlipped, setIsFlipped] = useState(false);
 
-  const scrollToCategorySelection = () => {
-    const categoryElement = document.getElementById('category-selection');
-    if (categoryElement) {
+  const scrollToFlipCard = () => {
+    const flipCard = document.getElementById('flip-card');
+    if (flipCard) {
       requestAnimationFrame(() => {
-        // 카테고리 영역이 화면 맨 위에 오도록 스크롤
-        categoryElement.scrollIntoView({
+        flipCard.scrollIntoView({
           behavior: 'smooth',
           block: 'start',
         });
 
         // 헤더 여유 공간을 위한 추가 조정
         setTimeout(() => {
-          const cardRect = categoryElement.getBoundingClientRect();
+          const cardRect = flipCard.getBoundingClientRect();
           const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
-          const headerOffset = 100; // 헤더 높이 + 여유 공간
+          const headerOffset = 100;
           const targetScroll = cardRect.top + scrollY - headerOffset;
 
-          window.scrollTo({
-            top: Math.max(0, targetScroll),
-            behavior: 'smooth',
-          });
-        }, 50);
-      });
-    }
-  };
-
-  const scrollToResultCard = () => {
-    const resultCard = document.getElementById('result-card');
-    if (resultCard) {
-      // 모바일 사파리 호환성을 위해 여러 방법 시도
-      requestAnimationFrame(() => {
-        const cardRect = resultCard.getBoundingClientRect();
-        const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
-        const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-        const cardBottom = cardRect.bottom + scrollY;
-        const targetScroll = cardBottom - viewportHeight + 32; // 하단 여유 공간
-
-        // scrollIntoView 시도 (모바일에서 더 안정적)
-        resultCard.scrollIntoView({
-          behavior: 'smooth',
-          block: 'end',
-        });
-
-        // 추가로 정확한 위치 조정
-        setTimeout(() => {
           window.scrollTo({
             top: Math.max(0, targetScroll),
             behavior: 'smooth',
@@ -78,15 +49,15 @@ export const LunchPage = () => {
     if (!selectedCategory) return;
 
     setIsLoading(true);
-    setShowResult(false);
+    scrollToFlipCard();
 
     try {
       const result = await menuApi.recommend(selectedCategory);
       setRecommendedMenu(result);
-      // 애니메이션을 위한 약간의 지연
+      // API 응답 후 카드 플립 애니메이션 시작
       setTimeout(() => {
-        setShowResult(true);
         setIsLoading(false);
+        setIsFlipped(true);
       }, 300);
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -95,15 +66,11 @@ export const LunchPage = () => {
     }
   };
 
-  // 결과가 표시될 때 결과 카드가 하단에 오도록 스크롤
-  useEffect(() => {
-    if (showResult) {
-      // DOM 업데이트와 애니메이션 완료를 위한 충분한 지연
-      setTimeout(() => {
-        scrollToResultCard();
-      }, 500);
-    }
-  }, [showResult]);
+  const handleReset = () => {
+    setIsFlipped(false);
+    setRecommendedMenu(null);
+    scrollToFlipCard();
+  };
 
   return (
     <Container size="lg" className="py-12 pb-32 min-h-screen">
@@ -115,83 +82,111 @@ export const LunchPage = () => {
       </div>
 
       <div className="max-w-2xl mx-auto">
-        {/* 카테고리 선택 */}
-        <Card id="category-selection" className="mb-8">
-          <h2 className="text-2xl font-semibold mb-6 text-center">카테고리 선택</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            {CATEGORIES.map((category) => (
-              <button
-                key={category.value}
-                type="button"
-                onClick={() => {
-                  setSelectedCategory(category.value);
-                  setRecommendedMenu(null);
-                  setShowResult(false);
-                  // 카테고리 영역이 맨 위에 오도록 스크롤
-                  scrollToCategorySelection();
-                }}
-                className={`
-                  p-6 rounded-xl transition-all duration-300 h-32 flex flex-col items-center justify-center
-                  ${
-                    selectedCategory === category.value
-                      ? 'bg-gradient-to-br from-primary-600 to-primary-700 shadow-lg shadow-primary-500/50 border-2 border-primary-400'
-                      : 'glass-card hover:shadow-lg border-2 border-transparent'
-                  }
-                `}
-              >
-                <div className="text-4xl mb-2">{category.emoji}</div>
-                <div className={`font-medium ${selectedCategory === category.value ? 'text-white' : 'text-gray-300'}`}>
-                  {category.label}
-                </div>
-              </button>
-            ))}
-          </div>
-        </Card>
-
-        {/* 추천 버튼 */}
-        <div className="text-center mb-8">
-          <Button
-            onClick={handleRecommend}
-            disabled={!selectedCategory || isLoading}
-            size="lg"
-            className="min-w-[200px]"
-          >
-            {isLoading ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                추천 중...
-              </span>
-            ) : (
-              '메뉴 추천받기 ✨'
-            )}
-          </Button>
-        </div>
-
-        {/* 추천 결과 */}
-        {recommendedMenu && (
+        {/* 플립 카드 컨테이너 */}
+        <div
+          id="flip-card"
+          className="mb-8"
+          style={{
+            perspective: '1000px',
+          }}
+        >
           <div
-            id="result-card"
-            className={`
-              transition-all duration-500 ease-out
-              ${showResult ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
-            `}
+            className="relative w-full"
+            style={{
+              transformStyle: 'preserve-3d',
+              transition: 'transform 0.6s',
+              transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
+            }}
           >
-            <Card className="text-center">
-              <div className="mb-4">
-                <div className="inline-block px-4 py-2 rounded-full bg-primary-600/20 text-primary-300 text-sm font-medium mb-4">
-                  {recommendedMenu.category}
+            {/* 앞면: 카테고리 선택 */}
+            <div
+              className="w-full"
+              style={{
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                transform: 'rotateY(0deg)',
+              }}
+            >
+              <Card className="mb-8">
+                <h2 className="text-2xl font-semibold mb-6 text-center">카테고리 선택</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+                  {CATEGORIES.map((category) => (
+                    <button
+                      key={category.value}
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory(category.value);
+                        setRecommendedMenu(null);
+                        setIsFlipped(false);
+                        scrollToFlipCard();
+                      }}
+                      className={`
+                        p-6 rounded-xl transition-all duration-300 h-32 flex flex-col items-center justify-center
+                        ${
+                          selectedCategory === category.value
+                            ? 'bg-gradient-to-br from-primary-600 to-primary-700 shadow-lg shadow-primary-500/50 border-2 border-primary-400'
+                            : 'glass-card hover:shadow-lg border-2 border-transparent'
+                        }
+                      `}
+                    >
+                      <div className="text-4xl mb-2">{category.emoji}</div>
+                      <div className={`font-medium ${selectedCategory === category.value ? 'text-white' : 'text-gray-300'}`}>
+                        {category.label}
+                      </div>
+                    </button>
+                  ))}
                 </div>
-              </div>
-              <div className="text-6xl mb-6 animate-float">
-                {CATEGORIES.find((c) => c.label === recommendedMenu.category)?.emoji || '🍽️'}
-              </div>
-              <h3 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
-                {recommendedMenu.menu}
-              </h3>
-              <p className="text-gray-400 mt-4">맛있게 드세요! 😊</p>
-            </Card>
+                <div className="text-center">
+                  <Button
+                    onClick={handleRecommend}
+                    disabled={!selectedCategory || isLoading}
+                    size="lg"
+                    className="min-w-[200px]"
+                  >
+                    {isLoading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                        추천 중...
+                      </span>
+                    ) : (
+                      '메뉴 추천받기 ✨'
+                    )}
+                  </Button>
+                </div>
+              </Card>
+            </div>
+
+            {/* 뒷면: 추천 결과 */}
+            <div
+              className="w-full absolute top-0 left-0"
+              style={{
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden',
+                transform: 'rotateY(180deg)',
+              }}
+            >
+              {recommendedMenu && (
+                <Card className="text-center">
+                  <div className="mb-4">
+                    <div className="inline-block px-4 py-2 rounded-full bg-primary-600/20 text-primary-300 text-sm font-medium mb-4">
+                      {recommendedMenu.category}
+                    </div>
+                  </div>
+                  <div className="text-6xl mb-6 animate-float">
+                    {CATEGORIES.find((c) => c.label === recommendedMenu.category)?.emoji || '🍽️'}
+                  </div>
+                  <h3 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+                    {recommendedMenu.menu}
+                  </h3>
+                  <p className="text-gray-400 mt-4 mb-6">맛있게 드세요! 😊</p>
+                  <Button onClick={handleReset} variant="outline" size="md">
+                    다시 선택하기
+                  </Button>
+                </Card>
+              )}
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </Container>
   );
