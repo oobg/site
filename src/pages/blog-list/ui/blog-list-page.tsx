@@ -69,14 +69,14 @@ export const BlogListPage = () => {
         {data?.data.map((post: BlogPostListItem) => (
           <Link key={post.title} to={`/blog/${encodeURIComponent(post.title)}`}>
             <Card hover>
-              <div className="mb-2 flex items-center gap-3">
-                <h2 className="text-2xl font-semibold text-white">{post.title}</h2>
-                {post.category && (
-                  <span className="rounded-full bg-primary-800/50 px-3 py-1 text-sm text-primary-200">
+              {post.category && (
+                <div className="mb-2">
+                  <span className="rounded-md bg-primary-600/80 px-3 py-1 text-xs font-semibold text-white">
                     {post.category}
                   </span>
-                )}
-              </div>
+                </div>
+              )}
+              <h2 className="mb-2 text-2xl font-semibold text-white">{post.title}</h2>
               <div className="mb-4 flex items-center gap-4 text-sm text-gray-500">
                 <span>{new Date(post.created).toLocaleDateString('ko-KR')}</span>
                 <span>•</span>
@@ -86,9 +86,9 @@ export const BlogListPage = () => {
                 {post.tags.map((tag: string) => (
                   <span
                     key={tag}
-                    className="rounded-full bg-primary-900/50 px-3 py-1 text-sm text-primary-300"
+                    className="rounded-md border border-gray-600/50 bg-gray-800/30 px-2.5 py-1 text-xs text-gray-400"
                   >
-                    {tag}
+                    #{tag}
                   </span>
                 ))}
               </div>

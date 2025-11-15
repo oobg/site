@@ -48,14 +48,14 @@ export const BlogDetailPage = () => {
       </Link>
       <Card>
         <article>
-          <div className="mb-4 flex items-center gap-3">
-            <h1 className="text-4xl font-bold text-white">{post.title}</h1>
-            {post.category && (
-              <span className="rounded-full bg-primary-800/50 px-3 py-1 text-sm text-primary-200">
+          {post.category && (
+            <div className="mb-2">
+              <span className="rounded-md bg-primary-600/80 px-3 py-1 text-xs font-semibold text-white">
                 {post.category}
               </span>
-            )}
-          </div>
+            </div>
+          )}
+          <h1 className="mb-4 text-4xl font-bold text-white">{post.title}</h1>
           <div className="mb-6 flex items-center gap-4 text-sm text-gray-400">
             <span>{new Date(post.created).toLocaleDateString('ko-KR')}</span>
             <span>•</span>
@@ -65,9 +65,9 @@ export const BlogDetailPage = () => {
             {post.tags.map((tag: string) => (
               <span
                 key={tag}
-                className="rounded-full bg-primary-900/50 px-3 py-1 text-sm text-primary-300"
+                className="rounded-md border border-gray-600/50 bg-gray-800/30 px-2.5 py-1 text-xs text-gray-400"
               >
-                {tag}
+                #{tag}
               </span>
             ))}
           </div>
