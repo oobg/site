@@ -16,6 +16,7 @@ export const LunchPage = () => {
   const [recommendedMenu, setRecommendedMenu] = useState<{
     category: string;
     menu: string;
+    icon?: string;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
@@ -144,7 +145,9 @@ export const LunchPage = () => {
                     </div>
                   </div>
                   <div className="text-6xl mb-6 animate-float">
-                    {CATEGORIES.find((c) => c.label === recommendedMenu.category)?.emoji || '🍽️'}
+                    {recommendedMenu.icon
+                      || CATEGORIES.find((c) => c.label === recommendedMenu.category)?.emoji
+                      || '🍽️'}
                   </div>
                   <h3 className="text-4xl font-bold mb-2 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
                     {recommendedMenu.menu}

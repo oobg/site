@@ -3,6 +3,7 @@ import ky from 'ky';
 export interface MenuRecommendResponse {
   category: string;
   menu: string;
+  icon?: string;
 }
 
 export type MenuCategory = 'korean' | 'japanese' | 'western' | 'chinese';
