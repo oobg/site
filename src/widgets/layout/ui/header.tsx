@@ -15,7 +15,7 @@ export const Header = () => (
             to="/"
             className="text-gray-200 transition-colors hover:text-primary-400"
           >
-            Portfolio
+            Home
           </Link>
           <Link
             to="/blog"
