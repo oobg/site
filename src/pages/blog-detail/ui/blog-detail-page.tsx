@@ -22,6 +22,8 @@ export const BlogDetailPage = () => {
     enabled: !!title,
   });
 
+  console.debug({ data, isLoading, error });
+
   if (isLoading) {
     return <LoadingSpinner />;
   }
