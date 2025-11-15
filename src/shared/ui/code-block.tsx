@@ -37,21 +37,22 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
       const codeElement = codeRef.current?.querySelector('code');
       if (!codeElement) return;
 
+      // 이미 처리된 경우 스킵 (성능 최적화)
+      if (codeElement.hasAttribute('data-colors-applied')) return;
+
       // 기존 tag-name 클래스 제거 및 분리된 span 복원
       codeElement.querySelectorAll('.tag-name, .js-builtin').forEach((el) => {
         const element = el as HTMLElement;
         const dataOriginalText = element.getAttribute('data-original-text');
         if (dataOriginalText) {
-          // 원래 텍스트로 복원
           element.textContent = dataOriginalText;
           element.removeAttribute('data-original-text');
         }
-        const newElement = element;
-        newElement.classList.remove('tag-name');
-        newElement.style.color = '';
+        element.classList.remove('tag-name', 'js-builtin');
+        element.style.color = '';
       });
 
-      // 분리된 span 제거 (원래 span과 합치기 위해)
+      // 분리된 span 제거
       codeElement.querySelectorAll('span[data-is-props]').forEach((el) => {
         const prevSibling = el.previousElementSibling;
         if (prevSibling && prevSibling.classList.contains('tag-name')) {
@@ -63,65 +64,52 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
         el.remove();
       });
 
-      // JavaScript 내장 객체 초록색으로 변경 (Object, Array, String 등)
-      const builtinObjects = [
+      // JavaScript 내장 객체 초록색으로 변경 (최적화: 한 번만 querySelectorAll 호출)
+      const builtinObjects = new Set([
         'Object', 'Array', 'String', 'Number', 'Boolean', 'Date', 'Math', 'JSON',
         'Promise', 'Map', 'Set', 'WeakMap', 'WeakSet', 'RegExp', 'Error',
         'Function', 'Symbol', 'BigInt', 'Intl', 'Reflect', 'Proxy',
-      ];
+      ]);
 
-      builtinObjects.forEach((objName) => {
-        const elements = codeElement.querySelectorAll('span:not(.token)');
-        elements.forEach((el) => {
-          const text = el.textContent?.trim() || '';
-          // 정확히 일치하는 경우만 (다른 단어의 일부가 아닌 경우)
-          if (text === objName && !el.classList.contains('token')) {
-            const element = el as HTMLElement;
-            element.style.color = '#4EC9B0';
-            const newEl = el;
-            newEl.classList.add('js-builtin');
-          }
-        });
+      const allSpans = codeElement.querySelectorAll('span:not(.token)');
+      allSpans.forEach((el) => {
+        const text = el.textContent?.trim() || '';
+        if (builtinObjects.has(text) && !el.classList.contains('token')) {
+          const element = el as HTMLElement;
+          element.style.color = '#4EC9B0';
+          element.classList.add('js-builtin');
+        }
       });
 
       // 태그 이름만 선택: <, ., / 다음에 오는 것만
       const tokenSpans = codeElement.querySelectorAll('span.token');
       tokenSpans.forEach((tokenSpan) => {
         const tokenText = tokenSpan.textContent?.trim() || '';
-        // 태그 관련 토큰만 선택: <, ., /, >
         if (tokenText === '<' || tokenText === '.' || tokenText === '/' || tokenText === '>') {
           const nextSibling = tokenSpan.nextElementSibling;
           if (nextSibling && nextSibling.tagName === 'SPAN' && !nextSibling.classList.contains('token')) {
             const text = nextSibling.textContent || '';
-            // 공백이나 줄바꿈만 있는 경우 제외
             if (text.trim() && !/^\s+$/.test(text)) {
               const element = nextSibling as HTMLElement;
 
-              // 태그 이름과 props가 함께 있는 경우 분리
-              // 예: "h2 className" -> "h2"만 초록색, " className"은 원래 색상
               if (text.includes(' ') && tokenText === '<') {
                 const firstSpaceIndex = text.indexOf(' ');
                 const tagName = text.substring(0, firstSpaceIndex);
                 const rest = text.substring(firstSpaceIndex);
 
-                // 원래 텍스트 저장
                 element.setAttribute('data-original-text', text);
-
-                // 원래 span을 태그 이름만 남기고
                 element.textContent = tagName;
                 element.style.color = '#4EC9B0';
                 element.classList.add('tag-name');
 
-                // 나머지 부분을 새로운 span으로 추가
                 if (rest.trim()) {
                   const restSpan = document.createElement('span');
                   restSpan.textContent = rest;
                   restSpan.setAttribute('data-is-props', 'true');
-                  restSpan.style.color = ''; // 원래 색상 유지
+                  restSpan.style.color = '';
                   element.parentNode?.insertBefore(restSpan, element.nextSibling);
                 }
               } else {
-                // 공백이 없거나 . 다음인 경우 (예: Dialog.Trigger)
                 element.style.color = '#4EC9B0';
                 element.classList.add('tag-name');
               }
@@ -129,26 +117,18 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
           }
         }
       });
+
+      // 처리 완료 표시
+      codeElement.setAttribute('data-colors-applied', 'true');
     };
 
-    // SyntaxHighlighter가 렌더링된 후 색상 적용
-    // requestAnimationFrame으로 한 프레임 후 실행
-    let timeoutId: NodeJS.Timeout;
-
-    const rafId = requestAnimationFrame(() => {
-      timeoutId = setTimeout(() => {
-        applyTagColors();
-      }, 100);
-    });
-
-    // 추가로 약간의 지연 후에도 실행 (SyntaxHighlighter가 늦게 렌더링될 수 있음)
+    // SyntaxHighlighter가 렌더링된 후 색상 적용 (한 번만 실행)
+    // 모바일 성능 최적화를 위해 단일 타이머만 사용
     const timer = setTimeout(() => {
       applyTagColors();
-    }, 500);
+    }, 300);
 
     return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      if (timeoutId) clearTimeout(timeoutId);
       clearTimeout(timer);
     };
   }, [code, language]);
