@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import { CodeBlock } from './code-block';
+import { LinkIcon } from '@src/shared/ui/icons';
+import { createSlug, scrollToElement } from '@src/shared/utils';
+import { getHeaderOffset } from '@src/shared/utils/scroll';
 
 // 플러그인들
 import remarkGfm from 'remark-gfm';
@@ -14,6 +17,16 @@ import 'highlight.js/styles/base16/dracula.min.css';
 
 interface MarkdownRendererProps {
   content: string;
+}
+
+interface CodeProps extends React.HTMLAttributes<HTMLElement> {
+  className?: string;
+  children?: React.ReactNode;
+}
+
+interface HeadingProps {
+  children?: React.ReactNode;
+  id?: string;
 }
 
 // children을 안전하게 문자열로 변환하는 헬퍼 함수
@@ -58,44 +71,68 @@ const childrenToString = (children: React.ReactNode): string => {
   }).join('');
 };
 
-// 제목 텍스트에서 slug를 생성하는 헬퍼 함수 (rehypeSlug와 동일한 방식)
-const createSlug = (text: string): string => {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^\w\s-]/g, '') // 특수문자 제거
-    .replace(/[\s_-]+/g, '-') // 공백, 언더스코어, 하이픈을 하이픈으로 통일
-    .replace(/^-+|-+$/g, ''); // 앞뒤 하이픈 제거
-};
+// 제목 컴포넌트를 생성하는 팩토리 함수
+const createHeadingComponent = (
+  level: 1 | 2 | 3,
+  baseClassName: string,
+): React.FC<HeadingProps> => {
+  const HeadingComponent: React.FC<HeadingProps> = ({ children, id }) => {
+    const text = childrenToString(children);
+    const slug = id || createSlug(text);
 
-// 링크 아이콘 컴포넌트
-const LinkIcon = ({ onClick }: { onClick: (e: React.MouseEvent) => void }) => (
-  <button
-    onClick={onClick}
-    className="ml-2 inline-flex items-center text-primary-400 opacity-0 transition-opacity duration-200 hover:text-primary-300 group-hover:opacity-100"
-    aria-label="제목 링크로 이동"
-  >
-    <svg
-      className="h-4 w-4"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-      />
-    </svg>
-  </button>
-);
+    const handleLinkClick = useCallback((e: React.MouseEvent) => {
+      e.preventDefault();
+      if (scrollToElement(slug, getHeaderOffset())) {
+        // URL 해시 업데이트
+        window.history.pushState(null, '', `#${slug}`);
+      }
+    }, [slug]);
+
+    const headingProps = {
+      id: slug,
+      className: `group ${baseClassName} first:mt-0 flex items-center`,
+    };
+
+    if (level === 1) {
+      return (
+        <h1 {...headingProps}>
+          {children}
+          <LinkIcon
+            onClick={handleLinkClick}
+            className="ml-2 inline-flex items-center text-primary-400 opacity-0 transition-opacity duration-200 hover:text-primary-300 group-hover:opacity-100"
+          />
+        </h1>
+      );
+    }
+    if (level === 2) {
+      return (
+        <h2 {...headingProps}>
+          {children}
+          <LinkIcon
+            onClick={handleLinkClick}
+            className="ml-2 inline-flex items-center text-primary-400 opacity-0 transition-opacity duration-200 hover:text-primary-300 group-hover:opacity-100"
+          />
+        </h2>
+      );
+    }
+    return (
+      <h3 {...headingProps}>
+        {children}
+        <LinkIcon
+          onClick={handleLinkClick}
+          className="ml-2 inline-flex items-center text-primary-400 opacity-0 transition-opacity duration-200 hover:text-primary-300 group-hover:opacity-100"
+        />
+      </h3>
+    );
+  };
+
+  HeadingComponent.displayName = `Heading${level}`;
+  return HeadingComponent;
+};
 
 export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
   const components: Components = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    code({ className, children, ...props }: any) {
+    code({ className, children, ...props }: CodeProps) {
       const inline = !className;
       const match = /language-(\w+)/.exec(className || '');
       const language = match ? match[1] : '';
@@ -110,93 +147,9 @@ export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
         </code>
       );
     },
-    h1: ({ children, id }: { children?: React.ReactNode; id?: string }) => {
-      const text = childrenToString(children);
-      const slug = id || createSlug(text);
-      
-      const handleLinkClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        const element = document.getElementById(slug);
-        if (element) {
-          const headerOffset = 80; // 헤더 높이 고려
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth',
-          });
-          
-          // URL 해시 업데이트
-          window.history.pushState(null, '', `#${slug}`);
-        }
-      };
-
-      return (
-        <h1 id={slug} className="group mb-4 mt-6 text-3xl font-bold text-white first:mt-0 flex items-center">
-          {children}
-          <LinkIcon onClick={handleLinkClick} />
-        </h1>
-      );
-    },
-    h2: ({ children, id }: { children?: React.ReactNode; id?: string }) => {
-      const text = childrenToString(children);
-      const slug = id || createSlug(text);
-      
-      const handleLinkClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        const element = document.getElementById(slug);
-        if (element) {
-          const headerOffset = 80; // 헤더 높이 고려
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth',
-          });
-          
-          // URL 해시 업데이트
-          window.history.pushState(null, '', `#${slug}`);
-        }
-      };
-
-      return (
-        <h2 id={slug} className="group mb-3 mt-5 text-2xl font-semibold text-white first:mt-0 flex items-center">
-          {children}
-          <LinkIcon onClick={handleLinkClick} />
-        </h2>
-      );
-    },
-    h3: ({ children, id }: { children?: React.ReactNode; id?: string }) => {
-      const text = childrenToString(children);
-      const slug = id || createSlug(text);
-      
-      const handleLinkClick = (e: React.MouseEvent) => {
-        e.preventDefault();
-        const element = document.getElementById(slug);
-        if (element) {
-          const headerOffset = 80; // 헤더 높이 고려
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth',
-          });
-          
-          // URL 해시 업데이트
-          window.history.pushState(null, '', `#${slug}`);
-        }
-      };
-
-      return (
-        <h3 id={slug} className="group mb-2 mt-4 text-xl font-semibold text-white first:mt-0 flex items-center">
-          {children}
-          <LinkIcon onClick={handleLinkClick} />
-        </h3>
-      );
-    },
+    h1: createHeadingComponent(1, 'mb-4 mt-6 text-3xl font-bold text-white'),
+    h2: createHeadingComponent(2, 'mb-3 mt-5 text-2xl font-semibold text-white'),
+    h3: createHeadingComponent(3, 'mb-2 mt-4 text-xl font-semibold text-white'),
     p: ({ children }: { children?: React.ReactNode }) => (
       <p className="mb-4 text-gray-300 leading-7">{children}</p>
     ),

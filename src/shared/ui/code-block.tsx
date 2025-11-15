@@ -255,8 +255,7 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
         </style>
         <div className="code-block-container" ref={codeRef}>
           <SyntaxHighlighter
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            style={vscDarkPlus as any}
+            style={vscDarkPlus}
             language={language}
             PreTag="div"
             customStyle={{

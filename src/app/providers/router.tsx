@@ -1,7 +1,9 @@
 import { ErrorBoundary } from '@src/shared/ui/error-boundary';
 import { LoadingSpinner } from '@src/shared/ui/loading-spinner';
 import { Layout } from '@src/widgets/layout';
-import { createBrowserRouter, Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
+import {
+  createBrowserRouter, Outlet, ScrollRestoration, useLocation,
+} from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 
 /* eslint-disable implicit-arrow-linebreak, function-paren-newline */

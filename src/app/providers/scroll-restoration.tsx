@@ -1,5 +1,12 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
+import { decodeHash, findElementByIds } from '@src/shared/utils/string';
+import { scrollToElementWithAnimation } from '@src/shared/utils/scroll';
+import {
+  HASH_SCROLL_INITIAL_DELAY,
+  HASH_SCROLL_MAX_DELAY,
+  HASH_SCROLL_RETRY_INTERVAL,
+} from '@src/shared/constants/ui';
 
 /**
  * 주소창의 해시값을 감지하여 해당 위치로 부드럽게 스크롤하는 훅
@@ -7,40 +14,72 @@ import { useLocation } from 'react-router-dom';
  */
 export function useScrollToHash(enabled = true) {
   const { hash } = useLocation();
+  const retryCountRef = useRef(0);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!hash || !enabled) return;
+    if (!hash || !enabled) {
+      retryCountRef.current = 0;
+      return () => {
+        // cleanup function for early return case
+      };
+    }
+
+    // 이전 타이머 정리
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    retryCountRef.current = 0;
 
     // hash → "#section1" → "section1"
     // URL 인코딩된 ID를 디코딩
     const rawId = hash.replace('#', '');
-    const decodedId = decodeURIComponent(rawId);
+    const decodedId = decodeHash(hash);
 
-    // 마크다운이 완전히 렌더링될 때까지 딜레이
-    const scrollToElement = () => {
+    const attemptScroll = () => {
       // 인코딩된 ID와 디코딩된 ID 모두 시도
-      const el = document.getElementById(decodedId) || document.getElementById(rawId);
+      const element = findElementByIds([decodedId, rawId]);
 
-      if (!el) return;
+      if (element) {
+        // 요소를 찾았으면 스크롤 실행
+        scrollToElementWithAnimation(decodedId);
+        retryCountRef.current = 0;
+        return true;
+      }
 
-      // 헤더 높이 고려
-      const headerOffset = 80;
-      const elementPosition = el.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-
-      // 렌더 타이밍 보장 (특히 Suspense/loader)
-      requestAnimationFrame(() => {
-        window.scrollTo({
-          top: Math.max(0, offsetPosition),
-          behavior: 'smooth',
-        });
-      });
+      return false;
     };
 
-    // 마크다운 렌더링을 위한 딜레이
-    setTimeout(() => {
-      scrollToElement();
-    }, 500);
+    const scheduleScroll = (delay: number) => {
+      timeoutRef.current = setTimeout(() => {
+        if (attemptScroll()) {
+          return;
+        }
+
+        // 요소를 찾지 못했으면 재시도
+        const maxRetries = Math.floor(
+          (HASH_SCROLL_MAX_DELAY - HASH_SCROLL_INITIAL_DELAY) / HASH_SCROLL_RETRY_INTERVAL,
+        );
+
+        if (retryCountRef.current < maxRetries) {
+          retryCountRef.current += 1;
+          scheduleScroll(HASH_SCROLL_RETRY_INTERVAL);
+        }
+      }, delay);
+    };
+
+    // 초기 딜레이 후 스크롤 시도
+    scheduleScroll(HASH_SCROLL_INITIAL_DELAY);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+      retryCountRef.current = 0;
+    };
   }, [hash, enabled]);
 }
 
