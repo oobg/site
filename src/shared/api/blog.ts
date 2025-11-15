@@ -116,7 +116,7 @@ export interface BlogListResponse {
   };
 }
 
-export interface BlogDetailResponse extends BlogPost {}
+export type BlogDetailResponse = BlogPost;
 
 export const blogApi = {
   getList: async (page = 1, limit = 20): Promise<BlogListResponse> => {
