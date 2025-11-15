@@ -40,6 +40,7 @@ export const BlogListPage = () => {
         {/* 카테고리 필터 버튼 */}
         <div className="flex flex-wrap gap-2">
           <button
+            type="button"
             onClick={() => setSelectedCategory(undefined)}
             className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors ${
               selectedCategory === undefined
@@ -52,6 +53,7 @@ export const BlogListPage = () => {
           {categoriesData?.map((category) => (
             <button
               key={category.name}
+              type="button"
               onClick={() => setSelectedCategory(category.name)}
               className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                 selectedCategory === category.name
