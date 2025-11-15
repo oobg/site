@@ -116,7 +116,7 @@ export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
     em: ({ children }: { children?: React.ReactNode }) => (
       <em className="italic text-gray-200">{children}</em>
     ),
-    hr: () => <hr className="my-6 border-gray-700" />,
+    hr: () => <hr className="my-6 border-white/20" />,
     table: ({ children }: { children?: React.ReactNode }) => (
       <div className="my-4 overflow-x-auto">
         <table className="min-w-full border-collapse border border-gray-700">{children}</table>
