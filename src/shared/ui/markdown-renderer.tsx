@@ -1,8 +1,7 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { CodeBlock } from './code-block';
 
 // 플러그인들
 import remarkGfm from 'remark-gfm';
@@ -64,15 +63,7 @@ export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
       const codeString = childrenToString(children);
 
       return !inline && match ? (
-        <SyntaxHighlighter
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          style={vscDarkPlus as any}
-          language={language}
-          PreTag="div"
-          className="rounded-lg"
-        >
-          {codeString.replace(/\n$/, '')}
-        </SyntaxHighlighter>
+        <CodeBlock code={codeString.replace(/\n$/, '')} language={language} />
       ) : (
         <code className="rounded bg-gray-800 px-1.5 py-0.5 text-sm text-primary-300" {...props}>
           {codeString}
