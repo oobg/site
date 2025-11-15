@@ -1,102 +1,64 @@
+import { NotionToMarkdown } from 'notion-to-md';
+import { Client } from '@notionhq/client';
 import type { NotionBlock } from '@src/shared/api/blog';
 
 // Notion 블록 배열을 마크다운 문자열로 변환
-// API에서 받은 블록 데이터만 사용 (NotionClient 불필요)
+// notion-to-md의 toMarkdownString 기능 활용
 export async function convertNotionBlocksToMarkdown(blocks: NotionBlock[]): Promise<string> {
   // notion-to-md는 NotionClient가 필요하지만, 백엔드에서 이미 모든 블록 데이터를 제공하므로
-  // 더미 클라이언트 없이 직접 변환 로직 사용
-  // 또는 notion-to-md의 내부 변환 로직을 활용
-
-  // notion-to-md 없이 직접 변환 (API에서 받은 블록 데이터만 사용)
-  const markdownLines: string[] = [];
-
-  const extractRichText = (
-    richText: Array<{ plain_text?: string; text?: { content?: string } }>,
-  ): string => {
-    if (!richText || richText.length === 0) return '';
-    return richText
-      .map((rt) => rt.text?.content || rt.plain_text || '')
-      .join('');
-  };
-
-  blocks.forEach((block) => {
-    switch (block.type) {
-      case 'paragraph': {
-        const text = extractRichText(block.paragraph?.rich_text || []);
-        if (text.trim()) {
-          markdownLines.push(text);
-          markdownLines.push('');
-        }
-        break;
-      }
-      case 'heading_1': {
-        const text = extractRichText(block.heading_1?.rich_text || []);
-        if (text.trim()) {
-          markdownLines.push(`# ${text}`);
-          markdownLines.push('');
-        }
-        break;
-      }
-      case 'heading_2': {
-        const text = extractRichText(block.heading_2?.rich_text || []);
-        if (text.trim()) {
-          markdownLines.push(`## ${text}`);
-          markdownLines.push('');
-        }
-        break;
-      }
-      case 'heading_3': {
-        const text = extractRichText(block.heading_3?.rich_text || []);
-        if (text.trim()) {
-          markdownLines.push(`### ${text}`);
-          markdownLines.push('');
-        }
-        break;
-      }
-      case 'bulleted_list_item': {
-        const text = extractRichText(block.bulleted_list_item?.rich_text || []);
-        if (text.trim()) {
-          markdownLines.push(`- ${text}`);
-        }
-        break;
-      }
-      case 'numbered_list_item': {
-        const text = extractRichText(block.numbered_list_item?.rich_text || []);
-        if (text.trim()) {
-          markdownLines.push(`1. ${text}`);
-        }
-        break;
-      }
-      case 'code': {
-        const code = extractRichText(block.code?.rich_text || []);
-        const lang = block.code?.language || '';
-        if (code.trim()) {
-          markdownLines.push(`\`\`\`${lang}`);
-          markdownLines.push(code);
-          markdownLines.push('```');
-          markdownLines.push('');
-        }
-        break;
-      }
-      case 'callout': {
-        const text = extractRichText(block.callout?.rich_text || []);
-        const icon = block.callout?.icon || '💡';
-        if (text.trim()) {
-          markdownLines.push(`> ${icon} ${text}`);
-          markdownLines.push('');
-        }
-        break;
-      }
-      default:
-        // 알 수 없는 블록 타입은 무시
-        break;
-    }
+  // 더미 클라이언트 사용 (has_children이 false이거나 이미 모든 자식 블록이 포함된 경우)
+  const notionClient = new Client({
+    auth: 'dummy', // blocksToMarkdown 내부에서 has_children 처리 시 필요하지만 실제로는 사용되지 않음
   });
 
-  // 마지막에 빈 줄 제거
-  while (markdownLines.length > 0 && markdownLines[markdownLines.length - 1] === '') {
-    markdownLines.pop();
-  }
+  const n2m = new NotionToMarkdown({
+    notionClient,
+  });
 
-  return markdownLines.join('\n');
+  try {
+    // blocksToMarkdown을 사용하여 Notion 블록 배열을 마크다운 블록으로 변환
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mdBlocks = await n2m.blocksToMarkdown(blocks as any);
+
+    // toMarkdownString을 사용하여 마크다운 문자열로 변환
+    // 반환값은 객체 형태 { parent: string, ... } 이므로 parent를 사용
+    const mdStringObject = n2m.toMarkdownString(mdBlocks);
+    return mdStringObject.parent || mdStringObject[Object.keys(mdStringObject)[0]] || '';
+  } catch (error) {
+    // 에러 발생 시 폴백 로직 사용
+    // 폴백: 간단한 텍스트 추출
+    return blocks
+      .map((block) => {
+        if (block.paragraph?.rich_text) {
+          return block.paragraph.rich_text
+            .map((rt) => rt.text?.content || rt.plain_text || '')
+            .join('');
+        }
+        if (block.heading_1?.rich_text) {
+          return `# ${block.heading_1.rich_text
+            .map((rt) => rt.text?.content || rt.plain_text || '')
+            .join('')}`;
+        }
+        if (block.heading_2?.rich_text) {
+          return `## ${block.heading_2.rich_text
+            .map((rt) => rt.text?.content || rt.plain_text || '')
+            .join('')}`;
+        }
+        if (block.heading_3?.rich_text) {
+          return `### ${block.heading_3.rich_text
+            .map((rt) => rt.text?.content || rt.plain_text || '')
+            .join('')}`;
+        }
+        if (block.code?.rich_text) {
+          const code = block.code.rich_text
+            .map((rt) => rt.text?.content || rt.plain_text || '')
+            .join('');
+          const lang = block.code.language || '';
+          return `\`\`\`${lang}\n${code}\n\`\`\``;
+        }
+        return '';
+      })
+      .filter(Boolean)
+      .join('\n\n');
+  }
 }
