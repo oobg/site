@@ -20,36 +20,10 @@ export const LunchPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  const scrollToFlipCard = () => {
-    const flipCard = document.getElementById('flip-card');
-    if (flipCard) {
-      requestAnimationFrame(() => {
-        flipCard.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start',
-        });
-
-        // 헤더 여유 공간을 위한 추가 조정
-        setTimeout(() => {
-          const cardRect = flipCard.getBoundingClientRect();
-          const scrollY = window.scrollY || window.pageYOffset || document.documentElement.scrollTop;
-          const headerOffset = 100;
-          const targetScroll = cardRect.top + scrollY - headerOffset;
-
-          window.scrollTo({
-            top: Math.max(0, targetScroll),
-            behavior: 'smooth',
-          });
-        }, 50);
-      });
-    }
-  };
-
   const handleRecommend = async () => {
     if (!selectedCategory) return;
 
     setIsLoading(true);
-    scrollToFlipCard();
 
     try {
       const result = await menuApi.recommend(selectedCategory);
@@ -69,7 +43,6 @@ export const LunchPage = () => {
   const handleReset = () => {
     setIsFlipped(false);
     setRecommendedMenu(null);
-    scrollToFlipCard();
   };
 
   return (
@@ -84,7 +57,6 @@ export const LunchPage = () => {
       <div className="max-w-2xl mx-auto">
         {/* 플립 카드 컨테이너 */}
         <div
-          id="flip-card"
           className="mb-8"
           style={{
             perspective: '1000px',
@@ -118,7 +90,6 @@ export const LunchPage = () => {
                         setSelectedCategory(category.value);
                         setRecommendedMenu(null);
                         setIsFlipped(false);
-                        scrollToFlipCard();
                       }}
                       className={`
                         p-6 rounded-xl transition-all duration-300 h-32 flex flex-col items-center justify-center
