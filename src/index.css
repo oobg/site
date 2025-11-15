@@ -1,0 +1,304 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-primary-50: #faf5ff;
+  --color-primary-100: #f3e8ff;
+  --color-primary-200: #e9d5ff;
+  --color-primary-300: #d8b4fe;
+  --color-primary-400: #c084fc;
+  --color-primary-500: #a855f7;
+  --color-primary-600: #9333ea;
+  --color-primary-700: #7e22ce;
+  --color-primary-800: #6b21a8;
+  --color-primary-900: #581c87;
+  --color-primary-950: #3b0764;
+}
+
+@layer base {
+  html {
+    background-color: #0a0f1a;
+  }
+
+  :root {
+    @apply bg-gray-900 text-gray-100;
+  }
+
+  body {
+    @apply min-h-screen antialiased;
+    background-color: #0a0f1a;
+    background-image: linear-gradient(
+      135deg,
+      #0a0f1a 0%,
+      #0f172a 15%,
+      #1e1b4b 30%,
+      #312e81 50%,
+      #1e1b4b 70%,
+      #0f172a 85%,
+      #0a0f1a 100%
+    );
+    background-size: 400% 400%;
+    background-attachment: fixed;
+    animation: gradientShift 15s ease infinite;
+  }
+
+  section {
+    background-color: transparent;
+    position: relative;
+  }
+
+  @keyframes gradientShift {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes glow {
+    0%,
+    100% {
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(168, 85, 247, 0.8);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+}
+
+@layer components {
+  .container-custom {
+    @apply mx-auto max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .markdown-content {
+    @apply text-gray-300;
+  }
+
+  .markdown-content pre {
+    @apply my-4 overflow-x-auto rounded-lg;
+  }
+
+  .markdown-content pre div {
+    margin: 0 !important;
+  }
+
+  .markdown-content pre code {
+    @apply bg-transparent p-0 text-sm;
+  }
+
+  .markdown-content code {
+    @apply rounded bg-gray-800 px-1.5 py-0.5 text-sm text-primary-300;
+  }
+
+  .markdown-content img {
+    @apply my-4 rounded-lg;
+  }
+
+  .markdown-content p:last-child {
+    @apply mb-0;
+  }
+
+  .markdown-content-wrapper {
+    @apply text-gray-300;
+  }
+
+  /* Glassmorphism 유틸리티 클래스 */
+  .glass {
+    background: rgba(255, 255, 255, 0.05);
+    -webkit-backdrop-filter: blur(10px);
+    -moz-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .glass-card {
+    background: rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(12px);
+    -moz-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.15),
+      0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    transition: all 0.3s ease;
+  }
+
+  .glass-card:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow:
+      0 12px 40px rgba(0, 0, 0, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.1) inset;
+    transform: translateY(-2px);
+  }
+
+  .glass-section {
+    background: rgba(0, 0, 0, 0.2);
+    -webkit-backdrop-filter: blur(8px);
+    -moz-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(16px);
+    -moz-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  /* 애니메이션 유틸리티 클래스 */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.8s ease-out forwards;
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 1s ease-out forwards;
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      transparent 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 3s infinite;
+  }
+
+  /* 배경 장식 요소 */
+  .gradient-orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.5;
+    animation: float 8s ease-in-out infinite;
+  }
+
+  .gradient-orb-1 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(168, 85, 247, 0.4) 0%, transparent 70%);
+    top: -200px;
+    right: -200px;
+    animation-delay: 0s;
+  }
+
+  .gradient-orb-2 {
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.3) 0%, transparent 70%);
+    bottom: -150px;
+    left: -150px;
+    animation-delay: 2s;
+  }
+
+  .gradient-orb-3 {
+    width: 250px;
+    height: 250px;
+    background: radial-gradient(circle, rgba(192, 132, 252, 0.3) 0%, transparent 70%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: 4s;
+  }
+
+  /* 버튼 글래스 효과 */
+  .glass-button {
+    background: rgba(168, 85, 247, 0.2);
+    -webkit-backdrop-filter: blur(10px);
+    -moz-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  .glass-button:hover {
+    background: rgba(168, 85, 247, 0.3);
+    box-shadow: 0 12px 40px rgba(168, 85, 247, 0.4);
+    transform: translateY(-2px);
+  }
+
+  .glass-button-outline {
+    background: rgba(255, 255, 255, 0.05);
+    -webkit-backdrop-filter: blur(10px);
+    -moz-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(168, 85, 247, 0.5);
+    transition: all 0.3s ease;
+  }
+
+  .glass-button-outline:hover {
+    background: rgba(168, 85, 247, 0.1);
+    border-color: rgba(168, 85, 247, 0.8);
+    box-shadow: 0 8px 32px rgba(168, 85, 247, 0.3);
+    transform: translateY(-2px);
+  }
+}

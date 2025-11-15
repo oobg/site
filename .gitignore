@@ -23,5 +23,16 @@ dist-ssr
 *.sln
 *.sw?
 
-# Cursor
-.cursor/rules/*.mdc
+# Environment variables
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# Testing
+coverage
+.nyc_output
+
+# Build
+build
+

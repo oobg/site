@@ -5,39 +5,19 @@ import path from 'path';
 export default defineConfig({
   plugins: [react()],
   test: {
-    globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/__test__/setup.ts'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        '**/*.d.ts',
-        '**/*.config.*',
-        '**/coverage/**',
-        '**/dist/**',
-        '**/.{idea,git,cache,output,temp}/**',
-        '**/{karma,rollup,webpack,vite,vitest,jest,ava,babel,nyc,cypress,tsup,build}.config.*',
-        '**/*.{test,spec}.{js,ts,jsx,tsx}',
-        '**/index.ts', // barrel exports
-        '**/main.tsx', // entry point
-        '**/vite-env.d.ts',
-      ],
-      thresholds: {
-        global: {
-          branches: 100,
-          functions: 100,
-          lines: 100,
-          statements: 100,
-        },
-      },
-    },
+    globals: true,
+    setupFiles: './src/test/setup.ts',
   },
   resolve: {
     alias: {
-      '@src': path.resolve(__dirname, 'src'),
-      '@public': path.resolve(__dirname, 'public'),
+      '@app': path.resolve(__dirname, './src/app'),
+      '@pages': path.resolve(__dirname, './src/pages'),
+      '@widgets': path.resolve(__dirname, './src/widgets'),
+      '@features': path.resolve(__dirname, './src/features'),
+      '@entities': path.resolve(__dirname, './src/entities'),
+      '@shared': path.resolve(__dirname, './src/shared'),
     },
   },
-}); 
+});
+

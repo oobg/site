@@ -1,38 +1,53 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
-import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// https://vite.dev/config/
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// https://vitejs.dev/config/
 export default defineConfig({
+  plugins: [
+    react({
+      babel: {
+        // 반드시 첫 번째 플러그인으로
+        plugins: ['babel-plugin-react-compiler'],
+      },
+    }),
+  ],
   resolve: {
     alias: {
-      "@src": path.resolve(__dirname, "src"),
-      "@public": path.resolve(__dirname, "public"),
-    }
+      '@src': path.resolve(__dirname, './src'),
+      '/': path.resolve(__dirname, './public'),
+    },
   },
-  plugins: [
-    react(),
-    tailwindcss(),
-  ],
   build: {
     rollupOptions: {
       output: {
-        manualChunks(id: string) {
-          if (
-            id.includes("node_modules/react/") ||
-            id.includes("node_modules/react-dom/") ||
-            id.includes("node_modules/react-router-dom/")
-          ) {
-            return "@react-vendor";
+        manualChunks: (id) => {
+          // Router 관련 라이브러리
+          if (id.includes('react-dom') || id.includes('react-router')) {
+            return '@router-vendor';
           }
-
-          if (id.includes("node_modules/zustand")) {
-            return "@store-vendor";
+          // Query 관련 라이브러리
+          if (id.includes('react-query')) {
+            return '@query-vendor';
           }
-
-          if (id.includes("node_modules/ky/")) {
-            return "@network-vendor";
+          // Highlight.js 관련 라이브러리
+          if (id.includes('react-syntax-highlighter') || id.includes('highlight.js')) {
+            return '@parser-vendor';
+          }
+          // React 관련 라이브러리
+          if (id.includes('react')) {
+            return '@react-vendor';
+          }
+          // Zustand
+          if (id.includes('zustand')) {
+            return '@store-vendor';
+          }
+          // ky 네트워크 라이브러리
+          if (id.includes('ky')) {
+            return '@network-vendor';
           }
         },
       },

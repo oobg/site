@@ -1,74 +1,131 @@
-# React + TypeScript + Vite
+# Raven - Portfolio & Blog
 
-## 📦 UI 컴포넌트 명명 규칙 (FSD 기반)
+raven.kr 도메인의 포트폴리오 및 블로그 웹사이트입니다. React 19.2 + Vite + TypeScript 기반으로 구축되었습니다.
 
-### 📐 목적
+## 기술 스택
 
-FSD(Feature-Sliced Design) 아키텍처에 따라, UI 컴포넌트의 명명 규칙을 일관되게 유지함으로써 아래 내용들을 목표로 합니다.
+- **React 19.2** - UI 라이브러리
+- **TypeScript** - 타입 안전성
+- **Vite** - 빌드 도구
+- **Tailwind CSS** - 스타일링
+- **React Router** - 라우팅
+- **Zustand** - 상태 관리
+- **TanStack Query** - 서버 상태 관리
+- **ky** - HTTP 클라이언트
+- **MirageJS** - Mock API 서버
+- **Vitest** - 테스팅
+- **ESLint + Prettier** - 코드 품질
 
-- 도메인 응집도 강화
-- 역할 기반 정렬성 확보
-- 유지보수성과 가독성 향상
+## 아키텍처
 
-### 📁 디렉토리 기준 명명 원칙
+이 프로젝트는 **FSD (Feature-Sliced Design)** 아키텍처를 따릅니다:
 
-| 위치 | 명명 규칙 | 예시 | 설명 |
-|------|-----------|------|------|
-| `shared/ui` | **역할 우선** (타입 → 도메인/상황) | `ButtonPrimary.tsx`, `ButtonWithIcon.tsx`, `ButtonAbc.tsx` | 공통 재사용 컴포넌트이므로 정렬성과 역할 분류가 우선 |
-| `feature/[name]/ui` | **도메인 우선** (도메인 → 타입) | `LoginButton.tsx`, `DceHeader.tsx`, `AbcPanel.tsx` | 해당 도메인의 UI 구성 요소로, 기능 중심의 응집 구조 유도 |
+- `app/` - 애플리케이션 초기화, 라우팅, 프로바이더
+- `pages/` - 페이지 컴포넌트
+- `widgets/` - 독립적인 UI 블록
+- `features/` - 비즈니스 기능
+- `entities/` - 비즈니스 엔티티
+- `shared/` - 공유 리소스 (UI, 유틸리티, API)
 
-### 🧱 명명 규칙 세부 예시
+## 시작하기
 
-#### 🔹 `shared/ui`
+### 설치
 
-| 역할 | 예시 |
-|------|------|
-| 기본 버튼 | `ButtonPrimary.tsx` |
-| 아이콘 포함 버튼 | `ButtonWithIcon.tsx` |
-| 위험/삭제 버튼 | `ButtonDanger.tsx` |
-
-→ `Button*` 정렬이 유지되어 한눈에 파악 가능
-
-#### 🔸 `feature/profile/ui`
-
-| 도메인 역할 | 예시 |
-|-------------|------|
-| 프로필 카드 UI | `ProfileCard.tsx` |
-| 프로필 수정 폼 | `ProfileEditForm.tsx` |
-| 아바타 업로드 버튼 | `ProfileAvatarButton.tsx` |
-
-→ `Profile*` 으로 도메인 응집도 ↑
-
-### 🔐 접근 제한 규칙
-
-| 디렉토리 | 외부 호출 | 설명 |
-|-----------|-----------|------|
-| `ui/` | ✅ 가능 | 공식 API로 export 대상 |
-| `model/`, `lib/`, `internal/`, `components/` | ❌ 불가 | 내부 전용. 외부에 노출 금지 |
-
-→ 외부는 반드시 `ui/` 또는 `index.ts`를 통해 import
-
-### 📤 export 규칙
-
-- 오직 `index.ts`에서만 외부 export 허용
-- 내부 구성 요소(`components/`)는 비공개 유지
-
-```ts
-// features/abc/index.ts
-export { AbcButton } from "./ui/AbcButton";
-export { AbcPanel } from "./ui/AbcPanel";
+```bash
+npm install
 ```
 
-### ✅ 요약
+### 개발 서버 실행
 
-| 기준 | 규칙 |
-|------|------|
-| 역할 기준 명명 | `shared/ui/ButtonPrimary.tsx` |
-| 도메인 기준 명명 | `feature/abc/ui/AbcButton.tsx` |
-| 내부 디렉토리 | 외부 export 금지 (`lib`, `model`, `components`) |
-| export 방식 | `ui/` 또는 `index.ts`를 통해서만 |
+```bash
+npm run dev
+```
 
-### 📝 예외
+### 빌드
 
-- **`shared/ui` 컴포넌트가 도메인 의존성을 갖는 경우** → `feature`로 승격 고려
-- **도메인 내부에서만 쓰는 조각 UI** → `AbcFeature.tsx`와 동일 디렉토리에 함께 정의 가능
+```bash
+npm run build
+```
+
+## 빌드 최적화
+
+이 프로젝트는 Vite의 수동 청크 분할을 통해 빌드 성능을 최적화합니다:
+
+### 경로 별칭
+
+- `@src`: src 디렉토리
+- `/`: public 디렉토리
+
+### 청크 분할 전략
+
+빌드 시 다음과 같이 vendor 라이브러리를 별도 청크로 분리합니다:
+
+- **@react-vendor**: React, React DOM, React Router 등 React 관련 라이브러리
+- **@store-vendor**: Zustand 상태 관리 라이브러리
+- **@network-vendor**: ky HTTP 클라이언트
+
+이를 통해 캐싱 효율성을 높이고 초기 로딩 시간을 단축합니다.
+
+### 린트
+
+```bash
+npm run lint
+npm run lint:fix
+```
+
+### 포맷팅
+
+```bash
+npm run format
+npm run format:check
+```
+
+### 타입 체크
+
+```bash
+npm run type-check
+```
+
+### 테스트
+
+```bash
+npm test
+npm run test:ui
+```
+
+## 프로젝트 구조
+
+```
+src/
+├── app/              # 앱 초기화 및 라우팅
+├── pages/            # 페이지 컴포넌트
+│   ├── landing/      # 랜딩 페이지
+│   ├── blog-list/    # 블로그 목록
+│   └── blog-detail/  # 블로그 상세
+├── widgets/          # 독립적인 UI 블록
+│   ├── layout/       # 레이아웃
+│   ├── hero/         # 히어로 섹션
+│   ├── about/        # 소개 섹션
+│   ├── projects/     # 프로젝트 섹션
+│   ├── skills/       # 기술 스택 섹션
+│   └── contact/      # 연락처 섹션
+├── features/         # 비즈니스 기능
+├── entities/         # 비즈니스 엔티티
+└── shared/           # 공유 리소스
+    ├── api/          # API 클라이언트 및 Mock
+    └── ui/           # 공유 UI 컴포넌트
+```
+
+## 주요 기능
+
+- ✅ 다크모드 기본 테마 (보라색 메인 컬러)
+- ✅ 반응형 디자인
+- ✅ 코드 스플리팅
+- ✅ Mock API (MirageJS)
+- ✅ 엄격한 ESLint 규칙
+- ✅ Git Hooks (Husky + lint-staged)
+- ✅ 타입 안전성
+
+## 라이선스
+
+MIT
