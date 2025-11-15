@@ -23,6 +23,12 @@ export const Header = () => (
           >
             Blog
           </Link>
+          <Link
+            to="/lunch"
+            className="text-gray-200 transition-colors hover:text-primary-400"
+          >
+            Lunch
+          </Link>
         </div>
       </div>
     </nav>

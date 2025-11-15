@@ -18,6 +18,10 @@ const BlogListPage = lazy(() =>
 const BlogDetailPage = lazy(() =>
   import('@src/pages/blog-detail').then((module) => ({ default: module.BlogDetailPage })),
 );
+
+const LunchPage = lazy(() =>
+  import('@src/pages/lunch').then((module) => ({ default: module.LunchPage })),
+);
 /* eslint-enable implicit-arrow-linebreak, function-paren-newline */
 
 const RootLayout = () => {
@@ -53,6 +57,10 @@ export const router = createBrowserRouter([
       {
         path: 'blog/:title',
         element: <BlogDetailPage />,
+      },
+      {
+        path: 'lunch',
+        element: <LunchPage />,
       },
     ],
   },
