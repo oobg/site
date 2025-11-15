@@ -48,7 +48,7 @@ export const LunchPage = () => {
   return (
     <Container size="lg" className="py-12 pb-32 min-h-screen">
       <div className="text-center mb-12">
-        <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
+        <h1 className="text-3xl sm:text-5xl font-bold mb-4 bg-gradient-to-r from-primary-400 to-primary-600 bg-clip-text text-transparent">
           오늘 점심 뭐 먹지? 🍽️
         </h1>
         <p className="text-gray-400 text-lg">카테고리를 선택하고 추천받아보세요!</p>
