@@ -20,12 +20,16 @@ export function useIntersectionObserver(
   useEffect(() => {
     const element = elementRef.current;
     if (!element) {
+      setIsIntersecting(false);
       return undefined;
     }
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsIntersecting(entry.isIntersecting);
+      (entries) => {
+        const [entry] = entries;
+        if (entry) {
+          setIsIntersecting(entry.isIntersecting);
+        }
       },
       {
         rootMargin,

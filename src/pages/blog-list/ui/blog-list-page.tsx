@@ -50,7 +50,7 @@ export const BlogListPage = () => {
 
   // IntersectionObserver로 하단 감지 시 다음 페이지 로드
   useEffect(() => {
-    if (isIntersecting && hasNextPage && !isFetchingNextPage) {
+    if (isIntersecting && hasNextPage !== false && !isFetchingNextPage) {
       fetchNextPage();
     }
   }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
@@ -140,7 +140,7 @@ export const BlogListPage = () => {
         ))}
 
         {/* IntersectionObserver 감지 요소 */}
-        <div ref={observerRef} />
+        <div ref={hasNextPage ? observerRef : null} className="h-1" />
 
         {/* 추가 로딩 스피너 */}
         {isFetchingNextPage && <LoadingSpinnerSmall />}
