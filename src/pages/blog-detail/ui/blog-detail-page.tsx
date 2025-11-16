@@ -9,6 +9,7 @@ import { BlogCategory } from '@src/shared/ui/blog-category';
 import { BlogMeta } from '@src/shared/ui/blog-meta';
 import { BlogTags } from '@src/shared/ui/blog-tags';
 import { ScrollToTop } from '@src/shared/ui/scroll-to-top';
+import { TableOfContents } from '@src/shared/ui/table-of-contents';
 import { ArrowLeftIcon, MenuIcon } from '@src/shared/ui/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
@@ -85,12 +86,21 @@ export const BlogDetailPage = React.memo(() => {
             <BlogTags tags={data.tags} />
           </div>
         </Card>
+        {/* 모바일: 제목과 본문 사이에 목차 삽입 */}
+        <div className="block md:hidden">
+          <Card>
+            <TableOfContents content={postContent} variant="inline" />
+          </Card>
+        </div>
         <Card>
           <article className="markdown-content-wrapper">
             <MarkdownRenderer content={postContent} />
           </article>
         </Card>
       </div>
+
+      {/* PC: 우측 플로팅 바 형태로 목차 표시 */}
+      <TableOfContents content={postContent} variant="floating" />
 
       {/* 플로팅 버튼들 */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-4">

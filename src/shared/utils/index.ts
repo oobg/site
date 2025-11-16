@@ -3,6 +3,7 @@
  */
 
 export * from './date';
+export * from './extract-headings';
 export * from './scroll';
 export * from './string';
 export * from './throttle';
