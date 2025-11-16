@@ -1,4 +1,6 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import {
+  useState, useCallback, useMemo, useEffect,
+} from 'react';
 import { blogApi } from '@src/shared/api/blog';
 import type { BlogPostListItem } from '@src/shared/api/mock/factories/blog';
 import { Card } from '@src/shared/ui/card';
@@ -14,7 +16,9 @@ import { useIntersectionObserver } from '@src/shared/utils/use-intersection-obse
 
 export const BlogListPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
-  const [observerRef, isIntersecting] = useIntersectionObserver({ rootMargin: '200px' });
+  const [observerRef, isIntersecting] = useIntersectionObserver({
+    rootMargin: '200px',
+  });
 
   const { data: categoriesData } = useQuery({
     queryKey: ['blog', 'categories'],
@@ -32,8 +36,9 @@ export const BlogListPage = () => {
   } = useInfiniteQuery({
     queryKey: ['blog', 'list', selectedCategory],
     queryFn: ({ pageParam = 1 }) => blogApi.getList(pageParam, 10, selectedCategory),
-    getNextPageParam: (lastPage) =>
-      lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined,
+    getNextPageParam: (lastPage) => (
+      lastPage.meta.page < lastPage.meta.totalPages ? lastPage.meta.page + 1 : undefined
+    ),
     initialPageParam: 1,
   });
 

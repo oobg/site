@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface UseIntersectionObserverOptions {
   rootMargin?: string;
@@ -12,7 +12,7 @@ interface UseIntersectionObserverOptions {
  */
 export function useIntersectionObserver(
   options: UseIntersectionObserverOptions = {},
-): [React.RefObject<HTMLDivElement>, boolean] {
+): [React.RefObject<HTMLDivElement | null>, boolean] {
   const { rootMargin = '200px', threshold = 0 } = options;
   const [isIntersecting, setIsIntersecting] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
@@ -20,7 +20,7 @@ export function useIntersectionObserver(
   useEffect(() => {
     const element = elementRef.current;
     if (!element) {
-      return;
+      return undefined;
     }
 
     const observer = new IntersectionObserver(
@@ -42,4 +42,3 @@ export function useIntersectionObserver(
 
   return [elementRef, isIntersecting];
 }
-
