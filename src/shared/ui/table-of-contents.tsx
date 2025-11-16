@@ -226,14 +226,14 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     <nav
       className={`table-of-contents ${className} ${
         isFloating
-          ? 'fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden md:block max-h-[calc(100vh-8rem)] overflow-y-auto'
+          ? 'fixed right-6 top-1/2 -translate-y-1/2 z-40 hidden md:block pt-2'
           : 'block md:hidden'
       }`}
     >
       <div
         className={
           isFloating
-            ? 'w-64 rounded-lg p-6 glass-card'
+            ? 'w-64 rounded-lg p-6 glass-card max-h-[calc(100vh-10rem)] overflow-y-auto'
             : ''
         }
       >
