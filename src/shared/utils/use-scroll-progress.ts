@@ -13,8 +13,7 @@ export function useScrollProgress(): number {
   useEffect(() => {
     const calculateProgress = () => {
       const scrollTop = window.scrollY;
-      const documentHeight =
-        document.documentElement.scrollHeight - window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight - window.innerHeight;
       const scrollProgress = documentHeight > 0 ? scrollTop / documentHeight : 0;
       setProgress(Math.min(Math.max(scrollProgress, 0), 1));
     };
@@ -43,4 +42,3 @@ export function useScrollProgress(): number {
 
   return progress;
 }
-
