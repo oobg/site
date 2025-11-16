@@ -142,7 +142,7 @@ export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
       return !inline && match ? (
         <CodeBlock code={codeString.replace(/\n$/, '')} language={language} />
       ) : (
-        <code className="rounded bg-gray-800 px-1.5 py-0.5 text-sm text-primary-300" {...props}>
+        <code className="rounded bg-gray-800/60 px-1.5 py-0.5 text-sm text-primary-300 font-mono" {...props}>
           {codeString}
         </code>
       );
