@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { blogApi } from '@src/shared/api/blog';
 import { Button } from '@src/shared/ui/button';
 import { Card } from '@src/shared/ui/card';
@@ -9,6 +9,8 @@ import { BlogCategory } from '@src/shared/ui/blog-category';
 import { BlogMeta } from '@src/shared/ui/blog-meta';
 import { BlogTags } from '@src/shared/ui/blog-tags';
 import { ScrollToTop } from '@src/shared/ui/scroll-to-top';
+import { TableOfContents } from '@src/shared/ui/table-of-contents';
+import { Utterances } from '@src/shared/ui/utterances';
 import { ArrowLeftIcon, MenuIcon } from '@src/shared/ui/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
@@ -28,6 +30,18 @@ export const BlogDetailPage = React.memo(() => {
     },
     enabled: !!title,
   });
+
+  // 페이지 title 설정
+  useEffect(() => {
+    const defaultTitle = 'Raven - Portfolio & Blog';
+    if (title) {
+      const decodedTitle = decodeURIComponent(title);
+      document.title = `${decodedTitle} | Raven`;
+    }
+    return () => {
+      document.title = defaultTitle;
+    };
+  }, [title]);
 
   // 데이터 로딩이 완료된 후에만 해시 스크롤 실행
   useScrollToHash(!isLoading && !!data);
@@ -73,12 +87,32 @@ export const BlogDetailPage = React.memo(() => {
             <BlogTags tags={data.tags} />
           </div>
         </Card>
+        {/* 모바일: 제목과 본문 사이에 목차 삽입 */}
+        <div className="block md:hidden">
+          <Card>
+            <TableOfContents content={postContent} variant="inline" />
+          </Card>
+        </div>
         <Card>
           <article className="markdown-content-wrapper">
             <MarkdownRenderer content={postContent} />
           </article>
         </Card>
+        <Card className="!p-0 overflow-hidden">
+          <div className="px-6 w-full overflow-hidden">
+            <Utterances
+              repo="oobg/comments"
+              issueTerm="pathname"
+              label="comment"
+              theme="photon-dark"
+              className="w-full max-w-full"
+            />
+          </div>
+        </Card>
       </div>
+
+      {/* PC: 우측 플로팅 바 형태로 목차 표시 */}
+      <TableOfContents content={postContent} variant="floating" />
 
       {/* 플로팅 버튼들 */}
       <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-4">

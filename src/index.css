@@ -301,4 +301,17 @@
     box-shadow: 0 8px 32px rgba(168, 85, 247, 0.3);
     transform: translateY(-2px);
   }
+
+  /* Utterances 댓글 시스템 스타일링 */
+  #utterances-comments {
+    @apply w-full max-w-full overflow-hidden;
+  }
+
+  .utterances-frame,
+  .utterances,
+  #utterances-comments iframe,
+  #utterances-comments > * {
+    @apply !w-full !max-w-full;
+    box-sizing: border-box;
+  }
 }

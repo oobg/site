@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@src/shared/ui/button';
 import { Card } from '@src/shared/ui/card';
 import { Container } from '@src/shared/ui/container';
@@ -20,6 +20,15 @@ export const LunchPage = () => {
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFlipped, setIsFlipped] = useState(false);
+
+  // 페이지 title 설정
+  useEffect(() => {
+    const defaultTitle = 'Raven - Portfolio & Blog';
+    document.title = '점심 메뉴 추천 | Raven';
+    return () => {
+      document.title = defaultTitle;
+    };
+  }, []);
 
   const handleRecommend = async () => {
     if (!selectedCategory) return;
