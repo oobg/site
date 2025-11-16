@@ -22,11 +22,13 @@ export const Utterances = ({
   const instanceId = useMemo(() => `${repo}-${issueTerm}-${label}`, [repo, issueTerm, label]);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current) {
+      return undefined;
+    }
 
     // 이미 같은 인스턴스가 로드되어 있으면 스킵
     if (utterancesInstances.has(instanceId)) {
-      return;
+      return undefined;
     }
 
     // 기존 utterances 요소가 있으면 제거 (중복 방지)
@@ -59,13 +61,12 @@ export const Utterances = ({
     utterancesInstances.add(instanceId);
 
     // 정리 함수
+    const container = containerRef.current;
     return () => {
-      if (containerRef.current) {
-        // utterances div와 그 안의 모든 내용(iframe 포함) 제거
-        const utterancesElement = containerRef.current.querySelector('#utterances-comments');
-        if (utterancesElement) {
-          utterancesElement.remove();
-        }
+      // utterances div와 그 안의 모든 내용(iframe 포함) 제거
+      const utterancesElement = container?.querySelector('#utterances-comments');
+      if (utterancesElement) {
+        utterancesElement.remove();
       }
       // 인스턴스 ID 제거
       utterancesInstances.delete(instanceId);
@@ -74,4 +75,3 @@ export const Utterances = ({
 
   return <div ref={containerRef} className={className} />;
 };
-

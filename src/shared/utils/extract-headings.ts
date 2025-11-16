@@ -14,9 +14,9 @@ export interface Heading {
 export function extractHeadings(content: string): Heading[] {
   const headingRegex = /^(#{1,3})\s+(.+)$/gm;
   const headings: Heading[] = [];
-  let match;
 
-  while ((match = headingRegex.exec(content)) !== null) {
+  let match = headingRegex.exec(content);
+  while (match !== null) {
     const level = match[1].length as 1 | 2 | 3;
     const text = match[2].trim();
     const slug = createSlug(text);
@@ -26,8 +26,9 @@ export function extractHeadings(content: string): Heading[] {
       text,
       slug,
     });
+
+    match = headingRegex.exec(content);
   }
 
   return headings;
 }
-

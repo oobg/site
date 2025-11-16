@@ -64,7 +64,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
 
         const level = parseInt(heading.tagName.charAt(1), 10) as 1 | 2 | 3;
         const text = heading.textContent?.trim() || '';
-        const id = heading.id;
+        const { id } = heading;
 
         if (text && id) {
           extractedHeadings.push({
@@ -98,7 +98,9 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
 
   // IntersectionObserver를 사용하여 현재 보이는 섹션 추적 (플로팅 바일 때만)
   useEffect(() => {
-    if (headings.length === 0 || variant !== 'floating') return;
+    if (headings.length === 0 || variant !== 'floating') {
+      return undefined;
+    }
 
     const observerOptions = {
       rootMargin: `-${getHeaderOffset() + 20}px 0px -80% 0px`,
@@ -128,7 +130,9 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
 
   // 스크롤 이벤트로도 활성 섹션 추적 (플로팅 바일 때만)
   useEffect(() => {
-    if (headings.length === 0 || variant !== 'floating') return;
+    if (headings.length === 0 || variant !== 'floating') {
+      return undefined;
+    }
 
     const handleScroll = () => {
       const scrollPosition = window.scrollY + getHeaderOffset() + 100;
@@ -158,7 +162,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, slug: string) => {
     e.preventDefault();
-    
+
     // 여러 가능한 ID 형식 시도 (인코딩된 버전, 디코딩된 버전 등)
     const possibleIds = [
       slug,
@@ -167,16 +171,16 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
       slug.toLowerCase(),
       slug.replace(/\s+/g, '-'),
     ];
-    
+
     // 해시 먼저 업데이트
     window.history.pushState(null, '', `#${slug}`);
     setActiveId(slug);
-    
+
     // 요소가 렌더링될 때까지 대기하는 함수
     const waitForElement = (retries = 10): void => {
       // 여러 ID 후보 중에서 존재하는 첫 번째 요소를 찾음
       const element = findElementByIds(possibleIds);
-      
+
       if (element && element.id) {
         // 실제 찾은 요소의 ID를 사용하여 스크롤 실행
         scrollToElementWithAnimation(element.id, getHeaderOffset());
@@ -191,7 +195,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
         window.location.hash = slug;
       }
     };
-    
+
     // 즉시 시도
     waitForElement();
   }, []);
@@ -260,4 +264,3 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     </nav>
   );
 };
-
