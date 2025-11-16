@@ -39,6 +39,15 @@ export const BlogListPage = () => {
     initialPageParam: 1,
   });
 
+  // 페이지 title 설정
+  useEffect(() => {
+    const defaultTitle = 'Raven - Portfolio & Blog';
+    document.title = '블로그 | Raven';
+    return () => {
+      document.title = defaultTitle;
+    };
+  }, []);
+
   // 카테고리 변경 시 스크롤 위치 맨 위로 이동
   // queryKey에 selectedCategory가 포함되어 있어 자동으로 새 쿼리가 시작됨
   useEffect(() => {

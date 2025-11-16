@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { blogApi } from '@src/shared/api/blog';
 import { Button } from '@src/shared/ui/button';
 import { Card } from '@src/shared/ui/card';
@@ -28,6 +28,18 @@ export const BlogDetailPage = React.memo(() => {
     },
     enabled: !!title,
   });
+
+  // 페이지 title 설정
+  useEffect(() => {
+    const defaultTitle = 'Raven - Portfolio & Blog';
+    if (title) {
+      const decodedTitle = decodeURIComponent(title);
+      document.title = `${decodedTitle} | Raven`;
+    }
+    return () => {
+      document.title = defaultTitle;
+    };
+  }, [title]);
 
   // 데이터 로딩이 완료된 후에만 해시 스크롤 실행
   useScrollToHash(!isLoading && !!data);
