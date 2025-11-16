@@ -140,7 +140,7 @@
   }
 
   .markdown-content code {
-    @apply rounded bg-gray-800 px-1.5 py-0.5 text-sm text-primary-300;
+    @apply rounded bg-gray-800/60 px-1.5 py-0.5 text-sm text-primary-300 font-mono;
   }
 
   .markdown-content img {

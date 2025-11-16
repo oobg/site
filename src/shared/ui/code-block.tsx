@@ -233,9 +233,7 @@ export const CodeBlock = ({ code, language }: CodeBlockProps) => {
             </svg>
           )}
           <span>
-            {copyState === 'copying' && '복사 중...'}
-            {copyState === 'copied' && '복사됨!'}
-            {copyState === 'idle' && '복사'}
+            복사
           </span>
         </button>
       </div>

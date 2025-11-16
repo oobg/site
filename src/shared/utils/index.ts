@@ -6,3 +6,4 @@ export * from './date';
 export * from './scroll';
 export * from './string';
 export * from './throttle';
+export * from './use-intersection-observer';
