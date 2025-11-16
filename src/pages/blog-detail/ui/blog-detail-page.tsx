@@ -51,8 +51,6 @@ export const BlogDetailPage = React.memo(() => {
     );
   }
 
-  const post = data;
-
   return (
     <Container className="py-12">
       <Link
@@ -65,14 +63,14 @@ export const BlogDetailPage = React.memo(() => {
       <div className="space-y-6">
         <Card>
           <div className="space-y-6">
-            {post.category && <BlogCategory category={post.category} />}
-            <h1 className="text-4xl font-bold leading-tight text-white">{post.title}</h1>
+            {data.category && <BlogCategory category={data.category} />}
+            <h1 className="text-4xl font-bold leading-tight text-white">{data.title}</h1>
             <BlogMeta
-              createdBy={post.createdBy}
-              created={post.created}
-              edited={post.edited}
+              createdBy={data.createdBy}
+              created={data.created}
+              edited={data.edited}
             />
-            <BlogTags tags={post.tags} />
+            <BlogTags tags={data.tags} />
           </div>
         </Card>
         <Card>
