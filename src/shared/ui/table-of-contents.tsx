@@ -96,9 +96,9 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     return () => clearTimeout(timeoutId);
   }, [content]);
 
-  // IntersectionObserver를 사용하여 현재 보이는 섹션 추적
+  // IntersectionObserver를 사용하여 현재 보이는 섹션 추적 (플로팅 바일 때만)
   useEffect(() => {
-    if (headings.length === 0) return;
+    if (headings.length === 0 || variant !== 'floating') return;
 
     const observerOptions = {
       rootMargin: `-${getHeaderOffset() + 20}px 0px -80% 0px`,
@@ -124,11 +124,11 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     return () => {
       observer.disconnect();
     };
-  }, [headings]);
+  }, [headings, variant]);
 
-  // 스크롤 이벤트로도 활성 섹션 추적 (IntersectionObserver가 놓칠 수 있는 경우 대비)
+  // 스크롤 이벤트로도 활성 섹션 추적 (플로팅 바일 때만)
   useEffect(() => {
-    if (headings.length === 0) return;
+    if (headings.length === 0 || variant !== 'floating') return;
 
     const handleScroll = () => {
       const scrollPosition = window.scrollY + getHeaderOffset() + 100;
@@ -154,7 +154,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
     return () => {
       window.removeEventListener('scroll', throttledHandleScroll);
     };
-  }, [headings]);
+  }, [headings, variant]);
 
   const handleClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>, slug: string) => {
     e.preventDefault();
