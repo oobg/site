@@ -1,5 +1,5 @@
 import {
-  useState, useCallback, useMemo, useEffect,
+  useState, useCallback, useMemo, useEffect, useRef,
 } from 'react';
 import { blogApi } from '@src/shared/api/blog';
 import type { BlogPostListItem } from '@src/shared/api/mock/factories/blog';
@@ -12,13 +12,10 @@ import { BlogMeta } from '@src/shared/ui/blog-meta';
 import { BlogTags } from '@src/shared/ui/blog-tags';
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { useIntersectionObserver } from '@src/shared/utils/use-intersection-observer';
 
 export const BlogListPage = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | undefined>(undefined);
-  const [observerRef, isIntersecting] = useIntersectionObserver({
-    rootMargin: '200px',
-  });
+  const observerRef = useRef<HTMLDivElement>(null);
 
   const { data: categoriesData } = useQuery({
     queryKey: ['blog', 'categories'],
@@ -50,10 +47,34 @@ export const BlogListPage = () => {
 
   // IntersectionObserver로 하단 감지 시 다음 페이지 로드
   useEffect(() => {
-    if (isIntersecting && hasNextPage !== false && !isFetchingNextPage) {
-      fetchNextPage();
+    const element = observerRef.current;
+    if (!element) {
+      return undefined;
     }
-  }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    if (!hasNextPage) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      {
+        rootMargin: '200px',
+        threshold: 0,
+      },
+    );
+
+    observer.observe(element);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const handleCategorySelect = useCallback((category: string | undefined) => {
     setSelectedCategory(category);
@@ -139,8 +160,8 @@ export const BlogListPage = () => {
           </Link>
         ))}
 
-        {/* IntersectionObserver 감지 요소 */}
-        <div ref={hasNextPage ? observerRef : null} className="h-1" />
+        {/* IntersectionObserver 감지 요소 - 항상 렌더링하여 ref가 안정적으로 유지되도록 */}
+        <div ref={observerRef} className="h-1" aria-hidden="true" />
 
         {/* 추가 로딩 스피너 */}
         {isFetchingNextPage && <LoadingSpinnerSmall />}
