@@ -10,6 +10,7 @@ import { BlogMeta } from '@src/shared/ui/blog-meta';
 import { BlogTags } from '@src/shared/ui/blog-tags';
 import { ScrollToTop } from '@src/shared/ui/scroll-to-top';
 import { TableOfContents } from '@src/shared/ui/table-of-contents';
+import { Utterances } from '@src/shared/ui/utterances';
 import { ArrowLeftIcon, MenuIcon } from '@src/shared/ui/icons';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
@@ -96,6 +97,17 @@ export const BlogDetailPage = React.memo(() => {
           <article className="markdown-content-wrapper">
             <MarkdownRenderer content={postContent} />
           </article>
+        </Card>
+        <Card className="!p-0 overflow-hidden">
+          <div className="px-6 w-full overflow-hidden">
+            <Utterances
+              repo="oobg/comments"
+              issueTerm="pathname"
+              label="comment"
+              theme="photon-dark"
+              className="w-full max-w-full"
+            />
+          </div>
         </Card>
       </div>
 
