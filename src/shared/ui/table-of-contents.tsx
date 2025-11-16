@@ -237,7 +237,7 @@ export const TableOfContents: React.FC<TableOfContentsProps> = ({
             : ''
         }
       >
-        <h2 className="mb-4 text-lg font-semibold text-white">목차</h2>
+        <h2 className="mb-4 text-lg font-semibold text-white">이 페이지에서는...</h2>
         <ul className="space-y-1">
           {headings.map((heading) => {
             const isActive = activeId === heading.slug;
