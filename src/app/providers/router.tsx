@@ -22,6 +22,14 @@ const BlogDetailPage = lazy(() =>
 const LunchPage = lazy(() =>
   import('@src/pages/lunch').then((module) => ({ default: module.LunchPage })),
 );
+
+const CalculatorPage = lazy(() =>
+  import('@src/pages/calculator').then((module) => ({ default: module.CalculatorPage })),
+);
+
+const JsonGeneratorPage = lazy(() =>
+  import('@src/pages/json-generator').then((module) => ({ default: module.JsonGeneratorPage })),
+);
 /* eslint-enable implicit-arrow-linebreak, function-paren-newline */
 
 const RootLayout = () => {
@@ -61,6 +69,14 @@ export const router = createBrowserRouter([
       {
         path: 'lunch',
         element: <LunchPage />,
+      },
+      {
+        path: 'calculator',
+        element: <CalculatorPage />,
+      },
+      {
+        path: 'json-generator',
+        element: <JsonGeneratorPage />,
       },
     ],
   },

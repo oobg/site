@@ -5,6 +5,7 @@
 export * from './arrow-left-icon';
 export * from './arrow-up-icon';
 export * from './check-icon';
+export * from './close-icon';
 export * from './copy-icon';
 export * from './link-icon';
 export * from './menu-icon';
