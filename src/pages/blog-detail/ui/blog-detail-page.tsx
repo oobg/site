@@ -83,6 +83,7 @@ export const BlogDetailPage = React.memo(() => {
               createdBy={data.createdBy}
               created={data.created}
               edited={data.edited}
+              views={data.views}
             />
             <BlogTags tags={data.tags} />
           </div>

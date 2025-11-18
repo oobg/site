@@ -6,11 +6,12 @@ interface BlogMetaProps {
   createdBy: string;
   created: string;
   edited?: string;
+  views?: number;
   className?: string;
 }
 
 export const BlogMeta = React.memo(({
-  createdBy, created, edited, className = '',
+  createdBy, created, edited, views, className = '',
 }: BlogMetaProps) => (
   <div className={`flex flex-col gap-2 text-sm ${className}`}>
     <div className="flex items-center gap-2">
@@ -28,6 +29,12 @@ export const BlogMeta = React.memo(({
       <div className="flex items-center gap-2">
         <span className="text-gray-500">수정일:</span>
         <span className="text-gray-400">{formatDate(edited)}</span>
+      </div>
+    )}
+    {views !== undefined && (
+      <div className="flex items-center gap-2">
+        <span className="text-gray-500">조회수:</span>
+        <span className="text-gray-400">{views.toLocaleString()}</span>
       </div>
     )}
   </div>

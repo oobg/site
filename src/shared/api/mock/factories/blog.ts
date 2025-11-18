@@ -7,6 +7,7 @@ export interface BlogPostListItem {
   createdBy: string;
   created: string;
   edited: string;
+  views: number;
 }
 
 // 블로그 상세용 타입 (새로운 구조)
@@ -19,4 +20,5 @@ export interface BlogPost {
   created: string;
   edited: string;
   content: string; // 마크다운 문자열
+  views: number;
 }
