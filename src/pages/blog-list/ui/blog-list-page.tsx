@@ -162,6 +162,7 @@ export const BlogListPage = () => {
                   createdBy={post.createdBy}
                   created={post.created}
                   edited={post.edited}
+                  views={post.views}
                 />
                 <BlogTags tags={post.tags} />
               </div>
