@@ -4,9 +4,12 @@ const skills = [
   { name: 'React', level: 90 },
   { name: 'TypeScript', level: 85 },
   { name: 'JavaScript', level: 90 },
+  { name: 'React Router', level: 85 },
+  { name: 'React Query', level: 80 },
+  { name: 'Vite', level: 85 },
   { name: 'Tailwind CSS', level: 80 },
-  { name: 'Node.js', level: 75 },
   { name: 'Git', level: 85 },
+  { name: 'Zustand', level: 75 },
 ];
 
 export const Skills = () => (

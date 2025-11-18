@@ -12,16 +12,18 @@ export const Hero = () => (
         <div className="animate-fade-in-up">
           <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl">
             <span className="block mb-3">
-              저는{' '}
+              사용자 경험을 만드는
+            </span>
+            <span className="block">
               <span className="bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 bg-clip-text text-transparent">
-                Raven{' '}
+                개발자 Raven
               </span>
-              입니다
+              {' '}입니다
             </span>
           </h1>
           <p className="mb-8 text-lg text-gray-300 sm:text-xl max-w-2xl mx-auto text-balance break-keep">
-            프론트엔드 개발자로, 사용자 경험을 중시하며 아름답고 효율적인 웹 애플리케이션을
-            만듭니다.
+            React 19와 TypeScript로 확장 가능한 웹 애플리케이션을 개발합니다. FSD 아키텍처를 활용하여
+            유지보수하기 쉬운 코드를 작성하고, 타입 안전성과 사용자 경험을 최우선으로 생각합니다.
           </p>
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link to="/blog" className="cursor-pointer">
