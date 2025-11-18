@@ -101,6 +101,9 @@ export const BlogDetailPage = React.memo(() => {
         </Card>
         <Card className="!p-0 overflow-hidden">
           <div className="px-6 w-full overflow-hidden">
+            <div className="text-base text-gray-400 mb-4 pt-6">
+              댓글로 작성자를 응원해주세요. 여러분의 의견과 피드백은 큰 힘이 됩니다.
+            </div>
             <Utterances
               repo="oobg/comments"
               issueTerm="pathname"
