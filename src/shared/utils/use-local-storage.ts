@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 /**
  * 로컬스토리지와 동기화되는 상태를 관리하는 커스텀 훅
@@ -20,6 +20,7 @@ export function useLocalStorage<T>(
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(`Error reading localStorage key "${key}":`, error);
       return initialValue;
     }
@@ -30,17 +31,17 @@ export function useLocalStorage<T>(
     try {
       // 함수형 업데이트 지원
       const valueToStore = value instanceof Function ? value(storedValue) : value;
-      
+
       setStoredValue(valueToStore);
-      
+
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error(`Error setting localStorage key "${key}":`, error);
     }
   };
 
   return [storedValue, setValue];
 }
-
