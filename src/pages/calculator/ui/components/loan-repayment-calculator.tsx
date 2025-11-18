@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import { formatCurrency } from '@src/shared/utils/number';
@@ -26,7 +27,7 @@ export const LoanRepaymentCalculator = () => {
     let principalTotalInterest = 0;
     let remainingPrincipal = loanAmount;
 
-    for (let i = 0; i < loanPeriod; i++) {
+    for (let i = 0; i < loanPeriod; i += 1) {
       const interestPayment = remainingPrincipal * monthlyRate;
       principalTotalInterest += interestPayment;
       remainingPrincipal -= principalPayment;
@@ -144,4 +145,3 @@ export const LoanRepaymentCalculator = () => {
     </div>
   );
 };
-

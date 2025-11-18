@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import { formatCurrency, formatPercent } from '@src/shared/utils/number';
@@ -162,4 +163,3 @@ export const HousingLoanCalculator = () => {
     </div>
   );
 };
-

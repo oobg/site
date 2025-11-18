@@ -1,6 +1,7 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency, formatPercent } from '@src/shared/utils/number';
+import { formatCurrency } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const LoanLimitCalculator = () => {
@@ -38,7 +39,8 @@ export const LoanLimitCalculator = () => {
     }
 
     // 신규 대출 가능 금액 역산
-    // availableAnnualPayment = (loanAmount * monthlyRate * (1 + monthlyRate)^period) / ((1 + monthlyRate)^period - 1) * 12
+    // availableAnnualPayment = (loanAmount * monthlyRate * (1 + monthlyRate)^period)
+    //   / ((1 + monthlyRate)^period - 1) * 12
     // 이를 loanAmount에 대해 역산
     const monthlyPayment = availableAnnualPayment / 12;
     const maxLoanAmount = (monthlyPayment * ((1 + monthlyRate) ** loanPeriod - 1))
@@ -136,7 +138,7 @@ export const LoanLimitCalculator = () => {
             <div className="flex justify-between">
               <span className="text-gray-300">DSR 기준 최대 연간 상환액</span>
               <span className="text-xl font-bold text-primary-300">
-                {formatCurrency(result.maxAnnualPayment)}
+                {formatCurrency(result.maxAnnualPayment ?? 0)}
               </span>
             </div>
             {result.existingAnnualPayment > 0 && (
@@ -161,4 +163,3 @@ export const LoanLimitCalculator = () => {
     </div>
   );
 };
-

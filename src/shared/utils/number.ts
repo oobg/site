@@ -45,4 +45,3 @@ export function formatSimpleCurrency(num: number): string {
 
   return parts.join(' ') || '0원';
 }
-

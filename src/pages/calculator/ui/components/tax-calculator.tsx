@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import { formatCurrency } from '@src/shared/utils/number';
@@ -21,15 +22,22 @@ export const TaxCalculator = () => {
     } else if (taxableIncome <= 46000000) {
       incomeTax = 12000000 * 0.06 + (taxableIncome - 12000000) * 0.15;
     } else if (taxableIncome <= 88000000) {
-      incomeTax = 12000000 * 0.06 + 34000000 * 0.15 + (taxableIncome - 46000000) * 0.24;
+      incomeTax = 12000000 * 0.06 + 34000000 * 0.15
+        + (taxableIncome - 46000000) * 0.24;
     } else if (taxableIncome <= 150000000) {
-      incomeTax = 12000000 * 0.06 + 34000000 * 0.15 + 42000000 * 0.24 + (taxableIncome - 88000000) * 0.35;
+      incomeTax = 12000000 * 0.06 + 34000000 * 0.15 + 42000000 * 0.24
+        + (taxableIncome - 88000000) * 0.35;
     } else if (taxableIncome <= 300000000) {
-      incomeTax = 12000000 * 0.06 + 34000000 * 0.15 + 42000000 * 0.24 + 62000000 * 0.35 + (taxableIncome - 150000000) * 0.38;
+      incomeTax = 12000000 * 0.06 + 34000000 * 0.15 + 42000000 * 0.24
+        + 62000000 * 0.35 + (taxableIncome - 150000000) * 0.38;
     } else if (taxableIncome <= 500000000) {
-      incomeTax = 12000000 * 0.06 + 34000000 * 0.15 + 42000000 * 0.24 + 62000000 * 0.35 + 150000000 * 0.38 + (taxableIncome - 300000000) * 0.40;
+      incomeTax = 12000000 * 0.06 + 34000000 * 0.15 + 42000000 * 0.24
+        + 62000000 * 0.35 + 150000000 * 0.38
+        + (taxableIncome - 300000000) * 0.40;
     } else {
-      incomeTax = 12000000 * 0.06 + 34000000 * 0.15 + 42000000 * 0.24 + 62000000 * 0.35 + 150000000 * 0.38 + 200000000 * 0.40 + (taxableIncome - 500000000) * 0.42;
+      incomeTax = 12000000 * 0.06 + 34000000 * 0.15 + 42000000 * 0.24
+        + 62000000 * 0.35 + 150000000 * 0.38 + 200000000 * 0.40
+        + (taxableIncome - 500000000) * 0.42;
     }
 
     // 지방소득세 (소득세의 10%)
@@ -39,7 +47,7 @@ export const TaxCalculator = () => {
     const totalIncomeTax = incomeTax + localIncomeTax;
 
     // 부가가치세 (간단 계산, 매출 기준)
-    const vat = income * 0.1 / 11; // 부가세 포함 가격 기준
+    const vat = (income * 0.1) / 11; // 부가세 포함 가격 기준
 
     return {
       taxableIncome,
@@ -119,4 +127,3 @@ export const TaxCalculator = () => {
     </div>
   );
 };
-

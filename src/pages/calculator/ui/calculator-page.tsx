@@ -62,7 +62,8 @@ export const CalculatorPage = () => {
     };
   }, []);
 
-  const ActiveComponent = calculatorTabs.find((tab) => tab.id === activeTab)?.component || calculatorTabs[0].component;
+  const ActiveComponent = calculatorTabs.find((tab) => tab.id === activeTab)?.component
+    || calculatorTabs[0].component;
 
   return (
     <Container size="lg" className="py-12 pb-32 min-h-screen">
@@ -100,4 +101,3 @@ export const CalculatorPage = () => {
     </Container>
   );
 };
-

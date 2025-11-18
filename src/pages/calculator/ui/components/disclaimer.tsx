@@ -13,4 +13,3 @@ export const Disclaimer = () => (
     </div>
   </div>
 );
-

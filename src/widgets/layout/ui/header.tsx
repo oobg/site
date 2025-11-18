@@ -58,6 +58,7 @@ export const Header = () => {
             </div>
             {/* 모바일 햄버거 버튼 */}
             <button
+              type="button"
               onClick={toggleMenu}
               className="md:hidden p-2 text-gray-200 hover:text-primary-400 transition-colors"
               aria-label={isMenuOpen ? '메뉴 닫기' : '메뉴 열기'}

@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import { formatCurrency } from '@src/shared/utils/number';
@@ -36,10 +37,11 @@ export const CarLoanCalculator = () => {
         <h3 className="mb-6 text-xl font-semibold">차량할부 계산</h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
+            <label htmlFor="car-price" className="mb-2 block text-sm font-medium text-gray-300">
               차량가격 (원)
             </label>
             <input
+              id="car-price"
               type="number"
               value={carPrice}
               onChange={(e) => setCarPrice(Number(e.target.value))}
@@ -48,10 +50,11 @@ export const CarLoanCalculator = () => {
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
+            <label htmlFor="down-payment" className="mb-2 block text-sm font-medium text-gray-300">
               계약금 (원)
             </label>
             <input
+              id="down-payment"
               type="number"
               value={downPayment}
               onChange={(e) => setDownPayment(Number(e.target.value))}
@@ -60,10 +63,11 @@ export const CarLoanCalculator = () => {
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
+            <label htmlFor="interest-rate" className="mb-2 block text-sm font-medium text-gray-300">
               금리 (%)
             </label>
             <input
+              id="interest-rate"
               type="number"
               step="0.1"
               value={interestRate}
@@ -73,10 +77,11 @@ export const CarLoanCalculator = () => {
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
+            <label htmlFor="loan-period" className="mb-2 block text-sm font-medium text-gray-300">
               할부기간 (개월)
             </label>
             <input
+              id="loan-period"
               type="number"
               value={loanPeriod}
               onChange={(e) => setLoanPeriod(Number(e.target.value))}
@@ -121,4 +126,3 @@ export const CarLoanCalculator = () => {
     </div>
   );
 };
-

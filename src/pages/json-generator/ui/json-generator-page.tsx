@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/label-has-associated-control, @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from 'react';
 import { Container } from '@src/shared/ui/container';
 import { Card } from '@src/shared/ui/card';
@@ -38,54 +39,52 @@ const generateRandomString = (maxLength: number): string => {
 // 랜덤 숫자 생성
 const generateRandomNumber = (
   maxLength: number,
-  positive: boolean = true,
-  negative: boolean = true,
-  decimal: boolean = false,
+  positive = true,
+  negative = true,
+  decimal = false,
 ): number => {
-  const maxValue = Math.pow(10, maxLength) - 1;
+  const maxValue = 10 ** maxLength - 1;
   let number: number;
-  
+
   if (decimal) {
     // 소수점 포함: 0부터 maxValue 사이의 랜덤 실수
     number = Math.random() * (maxValue + 1);
     // 소수점 자릿수는 최대 maxLength - 1 자리까지 (전체 자릿수 고려)
     const decimalPlaces = Math.min(maxLength - 1, 10);
-    number = Math.round(number * Math.pow(10, decimalPlaces)) / Math.pow(10, decimalPlaces);
+    number = Math.round(number * (10 ** decimalPlaces)) / (10 ** decimalPlaces);
   } else {
     // 정수만
     number = Math.floor(Math.random() * (maxValue + 1));
   }
-  
+
   // 둘 다 선택되지 않은 경우 기본값으로 양수만
   if (!positive && !negative) {
     return number;
   }
-  
+
   // 양수만 선택된 경우
   if (positive && !negative) {
     return number;
   }
-  
+
   // 음수만 선택된 경우
   if (!positive && negative) {
     return -number;
   }
-  
+
   // 둘 다 선택된 경우
   return Math.random() > 0.5 ? number : -number;
 };
 
 // 랜덤 boolean 생성
-const generateRandomBoolean = (): boolean => {
-  return Math.random() > 0.5;
-};
+const generateRandomBoolean = (): boolean => Math.random() > 0.5;
 
 // 타입별 랜덤 값 생성 (재귀적)
 const generateRandomValue = (
   type: JsonType,
   maxLength: number,
-  depth: number = 0,
-  maxDepth: number = 3,
+  depth = 0,
+  maxDepth = 3,
   objectValueType?: JsonType,
   arrayItemType?: JsonType,
   numberPositive?: boolean,
@@ -93,8 +92,8 @@ const generateRandomValue = (
   numberDecimal?: boolean,
 ): any => {
   if (depth > maxDepth) {
-    return type === 'string' 
-      ? generateRandomString(maxLength) 
+    return type === 'string'
+      ? generateRandomString(maxLength)
       : generateRandomNumber(maxLength, numberPositive, numberNegative, numberDecimal);
   }
 
@@ -108,17 +107,38 @@ const generateRandomValue = (
     case 'array': {
       const arrayLength = Math.floor(Math.random() * maxLength) + 1;
       const itemType = arrayItemType || 'string'; // 지정된 타입이 없으면 기본값 string
-      return Array.from({ length: arrayLength }, () =>
-        generateRandomValue(itemType, maxLength, depth + 1, maxDepth, objectValueType, arrayItemType, numberPositive, numberNegative, numberDecimal),
+      return Array.from(
+        { length: arrayLength },
+        () => generateRandomValue(
+          itemType,
+          maxLength,
+          depth + 1,
+          maxDepth,
+          objectValueType,
+          arrayItemType,
+          numberPositive,
+          numberNegative,
+          numberDecimal,
+        ),
       );
     }
     case 'object': {
       const objectLength = Math.floor(Math.random() * maxLength) + 1;
       const obj: Record<string, any> = {};
       const valueType = objectValueType || 'string'; // 지정된 타입이 없으면 기본값 string
-      for (let i = 0; i < objectLength; i++) {
+      for (let i = 0; i < objectLength; i += 1) {
         const key = `key${i + 1}`;
-        obj[key] = generateRandomValue(valueType, maxLength, depth + 1, maxDepth, objectValueType, arrayItemType, numberPositive, numberNegative, numberDecimal);
+        obj[key] = generateRandomValue(
+          valueType,
+          maxLength,
+          depth + 1,
+          maxDepth,
+          objectValueType,
+          arrayItemType,
+          numberPositive,
+          numberNegative,
+          numberDecimal,
+        );
       }
       return obj;
     }
@@ -129,7 +149,9 @@ const generateRandomValue = (
 
 export const JsonGeneratorPage = () => {
   const [options, setOptions] = useState<GenerationOption[]>([
-    { id: '1', name: '', type: 'object', maxLength: 5, objectValueType: 'string' },
+    {
+      id: '1', name: '', type: 'object', maxLength: 5, objectValueType: 'string',
+    },
   ]);
   const [maxCount, setMaxCount] = useState<number>(1);
   const [generatedJson, setGeneratedJson] = useState<string>('');
@@ -144,7 +166,9 @@ export const JsonGeneratorPage = () => {
 
   const addOption = () => {
     const newId = String(Date.now());
-    setOptions([...options, { id: newId, name: '', type: 'object', maxLength: 5, objectValueType: 'string' }]);
+    setOptions([...options, {
+      id: newId, name: '', type: 'object', maxLength: 5, objectValueType: 'string',
+    }]);
   };
 
   const removeOption = (id: string) => {
@@ -153,7 +177,11 @@ export const JsonGeneratorPage = () => {
     }
   };
 
-  const updateOption = (id: string, field: keyof GenerationOption, value: string | number | undefined) => {
+  const updateOption = (
+    id: string,
+    field: keyof GenerationOption,
+    value: string | number | boolean | undefined,
+  ) => {
     setOptions(
       options.map((opt) => {
         if (opt.id === id) {
@@ -220,7 +248,7 @@ export const JsonGeneratorPage = () => {
             option.numberNegative,
             option.numberDecimal,
           );
-          
+
           // 같은 이름의 옵션이 이미 있으면 배열로 변환
           if (result[optionName]) {
             if (!Array.isArray(result[optionName])) {
@@ -230,8 +258,8 @@ export const JsonGeneratorPage = () => {
           } else {
             result[optionName] = value;
           }
-          
-          generatedCount++;
+
+          generatedCount += 1;
         }
 
         const jsonString = JSON.stringify(result, null, 2);
@@ -240,9 +268,9 @@ export const JsonGeneratorPage = () => {
         // 옵션이 2개 이상인 경우 배열로 감싸고 객체로 한번 더 감싸기
         const resultArray: Record<string, any>[] = [];
 
-        for (let i = 0; i < maxCount; i++) {
+        for (let i = 0; i < maxCount; i += 1) {
           const item: Record<string, any> = {};
-          
+
           options.forEach((option) => {
             const optionName = option.name.trim() || generateRandomName();
             const value = generateRandomValue(
@@ -256,10 +284,10 @@ export const JsonGeneratorPage = () => {
               option.numberNegative,
               option.numberDecimal,
             );
-            
+
             item[optionName] = value;
           });
-          
+
           resultArray.push(item);
         }
 
@@ -496,4 +524,3 @@ export const JsonGeneratorPage = () => {
     </Container>
   );
 };
-

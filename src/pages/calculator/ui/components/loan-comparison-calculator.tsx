@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/label-has-associated-control, react/no-array-index-key */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import { formatCurrency } from '@src/shared/utils/number';
@@ -12,39 +13,52 @@ interface LoanProduct {
 
 export const LoanComparisonCalculator = () => {
   const [products, setProducts] = useState<LoanProduct[]>([
-    { name: '대출 상품 1', loanAmount: 100000000, interestRate: 4.0, period: 240 },
-    { name: '대출 상품 2', loanAmount: 100000000, interestRate: 3.8, period: 240 },
+    {
+      name: '대출 상품 1',
+      loanAmount: 100000000,
+      interestRate: 4.0,
+      period: 240,
+    },
+    {
+      name: '대출 상품 2',
+      loanAmount: 100000000,
+      interestRate: 3.8,
+      period: 240,
+    },
   ]);
 
-  const results = useMemo(() => {
-    return products.map((product) => {
-      if (!product.loanAmount || !product.interestRate || !product.period) {
-        return null;
-      }
+  const results = useMemo(() => products.map((product) => {
+    if (!product.loanAmount || !product.interestRate || !product.period) {
+      return null;
+    }
 
-      const monthlyRate = product.interestRate / 100 / 12;
-      const monthlyPayment = (product.loanAmount * monthlyRate * (1 + monthlyRate) ** product.period)
+    const monthlyRate = product.interestRate / 100 / 12;
+    const monthlyPayment = (product.loanAmount * monthlyRate * (1 + monthlyRate) ** product.period)
         / ((1 + monthlyRate) ** product.period - 1);
-      const totalPayment = monthlyPayment * product.period;
-      const totalInterest = totalPayment - product.loanAmount;
+    const totalPayment = monthlyPayment * product.period;
+    const totalInterest = totalPayment - product.loanAmount;
 
-      return {
-        ...product,
-        monthlyPayment,
-        totalPayment,
-        totalInterest,
-      };
-    }).filter((r) => r !== null);
-  }, [products]);
+    return {
+      ...product,
+      monthlyPayment,
+      totalPayment,
+      totalInterest,
+    };
+  }).filter((r) => r !== null), [products]);
 
   const updateProduct = (index: number, field: keyof LoanProduct, value: string | number) => {
     const newProducts = [...products];
-    newProducts[index] = { ...newProducts[index], [field]: value };
+    newProducts[index] = {
+      ...newProducts[index],
+      [field]: value,
+    };
     setProducts(newProducts);
   };
 
   const addProduct = () => {
-    setProducts([...products, { name: `대출 상품 ${products.length + 1}`, loanAmount: 100000000, interestRate: 4.0, period: 240 }]);
+    setProducts([...products, {
+      name: `대출 상품 ${products.length + 1}`, loanAmount: 100000000, interestRate: 4.0, period: 240,
+    }]);
   };
 
   const removeProduct = (index: number) => {
@@ -69,7 +83,7 @@ export const LoanComparisonCalculator = () => {
         </div>
         <div className="space-y-6">
           {products.map((product, index) => (
-            <div key={index} className="rounded-lg border border-gray-700 bg-gray-800/30 p-4">
+            <div key={`product-${index}`} className="rounded-lg border border-gray-700 bg-gray-800/30 p-4">
               <div className="mb-4 flex items-center justify-between">
                 <input
                   type="text"
@@ -133,7 +147,7 @@ export const LoanComparisonCalculator = () => {
         <div className="grid gap-6 md:grid-cols-2">
           {results.map((result, index) => (
             result && (
-              <Card key={index} className="bg-gradient-to-br from-primary-600/20 to-primary-700/20">
+              <Card key={`result-${index}`} className="bg-gradient-to-br from-primary-600/20 to-primary-700/20">
                 <h3 className="mb-4 text-lg font-semibold">{result.name}</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
@@ -163,4 +177,3 @@ export const LoanComparisonCalculator = () => {
     </div>
   );
 };
-
