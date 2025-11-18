@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
+import { formatCurrency, formatCurrencyKorean, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const SavingsCalculator = () => {
@@ -39,9 +39,16 @@ export const SavingsCalculator = () => {
         <h3 className="mb-6 text-xl font-semibold">적금/예금 계산</h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              원금 (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                원금 (원)
+              </label>
+              {principal > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(principal)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(principal)}
@@ -95,36 +102,61 @@ export const SavingsCalculator = () => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-300">만기 수령액 (세전)</span>
-              <span className="text-xl font-bold text-primary-300">
-                {formatCurrency(result.maturityAmount)}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-xl font-bold text-primary-300">
+                  {formatCurrency(result.maturityAmount)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(result.maturityAmount)}
+                </span>
+              </div>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-300">이자 수익 (세전)</span>
-              <span className="text-xl font-bold text-primary-300">
-                {formatCurrency(result.interest)}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-xl font-bold text-primary-300">
+                  {formatCurrency(result.interest)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(result.interest)}
+                </span>
+              </div>
             </div>
             {!isTaxFree && (
               <>
                 <div className="flex justify-between">
                   <span className="text-gray-300">이자소득세</span>
-                  <span className="text-xl font-bold text-red-400">
-                    {formatCurrency(result.tax)}
-                  </span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-xl font-bold text-red-400">
+                      {formatCurrency(result.tax)}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {formatCurrencyKorean(result.tax)}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-300">이자 수익 (세후)</span>
-                  <span className="text-xl font-bold text-primary-300">
-                    {formatCurrency(result.afterTaxInterest)}
-                  </span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-xl font-bold text-primary-300">
+                      {formatCurrency(result.afterTaxInterest)}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {formatCurrencyKorean(result.afterTaxInterest)}
+                    </span>
+                  </div>
                 </div>
                 <div className="mt-4 border-t border-gray-700 pt-3">
                   <div className="flex justify-between">
                     <span className="text-gray-300">실제 수령액 (세후)</span>
-                    <span className="text-xl font-bold text-primary-300">
-                      {formatCurrency(result.afterTaxMaturityAmount)}
-                    </span>
+                    <div className="flex flex-col items-end">
+                      <span className="text-xl font-bold text-primary-300">
+                        {formatCurrency(result.afterTaxMaturityAmount)}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {formatCurrencyKorean(result.afterTaxMaturityAmount)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </>

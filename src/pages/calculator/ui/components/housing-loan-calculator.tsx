@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency, formatPercent, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
+import { formatCurrency, formatCurrencyKorean, formatPercent, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const HousingLoanCalculator = () => {
@@ -52,9 +52,16 @@ export const HousingLoanCalculator = () => {
         <h3 className="mb-6 text-xl font-semibold">주택대출 계산 (DSR/LTV/DTI)</h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              연소득 (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                연소득 (원)
+              </label>
+              {income > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(income)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(income)}
@@ -64,9 +71,16 @@ export const HousingLoanCalculator = () => {
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              대출금액 (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                대출금액 (원)
+              </label>
+              {loanAmount > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(loanAmount)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(loanAmount)}
@@ -76,9 +90,16 @@ export const HousingLoanCalculator = () => {
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              주택가격 (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                주택가격 (원)
+              </label>
+              {housePrice > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(housePrice)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(housePrice)}
@@ -88,9 +109,16 @@ export const HousingLoanCalculator = () => {
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              기존 대출금액 (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                기존 대출금액 (원)
+              </label>
+              {existingLoan > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(existingLoan)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(existingLoan)}
@@ -151,9 +179,14 @@ export const HousingLoanCalculator = () => {
             <div className="mt-4 border-t border-gray-700 pt-3">
               <div className="flex justify-between">
                 <span className="text-gray-300">월 상환액</span>
-                <span className="text-xl font-bold text-primary-300">
-                  {formatCurrency(result.monthlyPayment)}
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-xl font-bold text-primary-300">
+                    {formatCurrency(result.monthlyPayment)}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {formatCurrencyKorean(result.monthlyPayment)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

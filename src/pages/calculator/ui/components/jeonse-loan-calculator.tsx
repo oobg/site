@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
+import { formatCurrency, formatCurrencyKorean, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const JeonseLoanCalculator = () => {
@@ -33,9 +33,16 @@ export const JeonseLoanCalculator = () => {
         <h3 className="mb-6 text-xl font-semibold">전세대출이자 계산</h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              전세금 (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                전세금 (원)
+              </label>
+              {jeonseAmount > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(jeonseAmount)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(jeonseAmount)}
@@ -77,21 +84,36 @@ export const JeonseLoanCalculator = () => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-300">월 이자</span>
-              <span className="text-xl font-bold text-primary-300">
-                {formatCurrency(result.monthlyInterest)}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-xl font-bold text-primary-300">
+                  {formatCurrency(result.monthlyInterest)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(result.monthlyInterest)}
+                </span>
+              </div>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-300">총 이자</span>
-              <span className="text-xl font-bold text-primary-300">
-                {formatCurrency(result.totalInterest)}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-xl font-bold text-primary-300">
+                  {formatCurrency(result.totalInterest)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(result.totalInterest)}
+                </span>
+              </div>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-300">월 상환액</span>
-              <span className="text-xl font-bold text-primary-300">
-                {formatCurrency(result.monthlyPayment)}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-xl font-bold text-primary-300">
+                  {formatCurrency(result.monthlyPayment)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(result.monthlyPayment)}
+                </span>
+              </div>
             </div>
           </div>
         </Card>

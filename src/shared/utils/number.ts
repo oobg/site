@@ -73,3 +73,45 @@ export function parseNumberInput(value: string): number {
   const parsed = parseFloat(cleaned);
   return Number.isNaN(parsed) ? 0 : parsed;
 }
+
+/**
+ * 숫자를 한글 원단위로 변환 (예: 1234567890 → "12억 3456만 7890원")
+ */
+export function formatCurrencyKorean(num: number): string {
+  const rounded = Math.round(num);
+  if (rounded === 0) return '0원';
+  if (rounded < 0) return `-${formatCurrencyKorean(-rounded)}`;
+
+  const parts: string[] = [];
+
+  // 억 단위 처리
+  const eok = Math.floor(rounded / 100000000);
+  if (eok > 0) {
+    parts.push(`${eok}억`);
+  }
+
+  // 만 단위 처리 (억 단위 제외)
+  const manRemainder = rounded % 100000000;
+  const man = Math.floor(manRemainder / 10000);
+  
+  if (man > 0) {
+    parts.push(`${man}만`);
+  }
+
+  // 천 단위 처리 (만 단위 제외)
+  const cheonRemainder = rounded % 10000;
+  const cheon = Math.floor(cheonRemainder / 1000);
+  
+  if (cheon > 0) {
+    parts.push(`${cheon}천`);
+  }
+
+  // 원 단위 처리 (천 단위 제외)
+  const won = rounded % 1000;
+  
+  if (won > 0) {
+    parts.push(`${won}`);
+  }
+
+  return `${parts.join(' ')}원`;
+}

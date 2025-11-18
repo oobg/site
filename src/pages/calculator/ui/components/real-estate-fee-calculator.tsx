@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
+import { formatCurrency, formatCurrencyKorean, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const RealEstateFeeCalculator = () => {
@@ -93,9 +93,16 @@ export const RealEstateFeeCalculator = () => {
             </div>
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              {type === 'sale' ? '매매가격' : '전세금'} (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                {type === 'sale' ? '매매가격' : '전세금'} (원)
+              </label>
+              {price > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(price)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(price)}
@@ -113,12 +120,17 @@ export const RealEstateFeeCalculator = () => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-300">중개수수료 (상한액 적용)</span>
-              <span className="text-xl font-bold text-primary-300">
-                {formatCurrency(result.fee)}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-xl font-bold text-primary-300">
+                  {formatCurrency(result.fee)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(result.fee)}
+                </span>
+              </div>
             </div>
             <div className="text-xs text-gray-400">
-              * {type === 'sale' ? '매매' : '전세'} 중개수수료 상한액: {formatCurrency(result.maxFee)}
+              * {type === 'sale' ? '매매' : '전세'} 중개수수료 상한액: {formatCurrency(result.maxFee)} ({formatCurrencyKorean(result.maxFee)})
             </div>
           </div>
         </Card>

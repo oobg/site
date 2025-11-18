@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
+import { formatCurrency, formatCurrencyKorean, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const LoanLimitCalculator = () => {
@@ -61,9 +61,16 @@ export const LoanLimitCalculator = () => {
         <h3 className="mb-6 text-xl font-semibold">대출 한도 계산</h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              연소득 (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                연소득 (원)
+              </label>
+              {income > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(income)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(income)}
@@ -73,9 +80,16 @@ export const LoanLimitCalculator = () => {
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              기존 대출금액 (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                기존 대출금액 (원)
+              </label>
+              {existingLoan > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(existingLoan)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(existingLoan)}
@@ -129,30 +143,50 @@ export const LoanLimitCalculator = () => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-300">대출 가능 한도</span>
-              <span className={`text-xl font-bold ${result.maxLoanAmount <= 0 ? 'text-red-400' : 'text-primary-300'}`}>
-                {formatCurrency(result.maxLoanAmount)}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className={`text-xl font-bold ${result.maxLoanAmount <= 0 ? 'text-red-400' : 'text-primary-300'}`}>
+                  {formatCurrency(result.maxLoanAmount)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(result.maxLoanAmount)}
+                </span>
+              </div>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-300">DSR 기준 최대 연간 상환액</span>
-              <span className="text-xl font-bold text-primary-300">
-                {formatCurrency(result.maxAnnualPayment ?? 0)}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-xl font-bold text-primary-300">
+                  {formatCurrency(result.maxAnnualPayment ?? 0)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(result.maxAnnualPayment ?? 0)}
+                </span>
+              </div>
             </div>
             {result.existingAnnualPayment > 0 && (
               <div className="flex justify-between">
                 <span className="text-gray-300">기존 대출 연간 상환액</span>
-                <span className="text-xl font-bold text-red-400">
-                  {formatCurrency(result.existingAnnualPayment)}
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-xl font-bold text-red-400">
+                    {formatCurrency(result.existingAnnualPayment)}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {formatCurrencyKorean(result.existingAnnualPayment)}
+                  </span>
+                </div>
               </div>
             )}
             <div className="mt-4 border-t border-gray-700 pt-3">
               <div className="flex justify-between">
                 <span className="text-gray-300">신규 대출 가능 연간 상환액</span>
-                <span className="text-xl font-bold text-primary-300">
-                  {formatCurrency(result.availableAnnualPayment)}
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-xl font-bold text-primary-300">
+                    {formatCurrency(result.availableAnnualPayment)}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {formatCurrencyKorean(result.availableAnnualPayment)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency, formatPercent, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
+import { formatCurrency, formatCurrencyKorean, formatPercent, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const JeonseConversionCalculator = () => {
@@ -33,9 +33,16 @@ export const JeonseConversionCalculator = () => {
         <h3 className="mb-6 text-xl font-semibold">전세 전환율 계산</h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              전세금 (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                전세금 (원)
+              </label>
+              {jeonseAmount > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(jeonseAmount)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(jeonseAmount)}
@@ -45,9 +52,16 @@ export const JeonseConversionCalculator = () => {
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              월세 (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                월세 (원)
+              </label>
+              {monthlyRent > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(monthlyRent)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(monthlyRent)}
@@ -57,9 +71,16 @@ export const JeonseConversionCalculator = () => {
             />
           </div>
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              보증금 (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                보증금 (원)
+              </label>
+              {deposit > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(deposit)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(deposit)}
@@ -84,9 +105,14 @@ export const JeonseConversionCalculator = () => {
             <div className="mt-4 border-t border-gray-700 pt-3">
               <div className="flex justify-between">
                 <span className="text-gray-300">월세 기준 전세금</span>
-                <span className="text-xl font-bold text-primary-300">
-                  {formatCurrency(result.requiredJeonse)}
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-xl font-bold text-primary-300">
+                    {formatCurrency(result.requiredJeonse)}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {formatCurrencyKorean(result.requiredJeonse)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

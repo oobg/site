@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
+import { formatCurrency, formatCurrencyKorean, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const HousingSubscriptionCalculator = () => {
@@ -39,9 +39,16 @@ export const HousingSubscriptionCalculator = () => {
         <h3 className="mb-6 text-xl font-semibold">주택청약종합저축 계산</h3>
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              월 납입액 (원)
-            </label>
+            <div className="mb-2 flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-300">
+                월 납입액 (원)
+              </label>
+              {monthlyPayment > 0 && (
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(monthlyPayment)}
+                </span>
+              )}
+            </div>
             <input
               type="text"
               value={formatNumberInput(monthlyPayment)}
@@ -95,28 +102,48 @@ export const HousingSubscriptionCalculator = () => {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-300">만기 수령액</span>
-              <span className="text-xl font-bold text-primary-300">
-                {formatCurrency(result.maturityAmount)}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-xl font-bold text-primary-300">
+                  {formatCurrency(result.maturityAmount)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(result.maturityAmount)}
+                </span>
+              </div>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-300">총 납입액</span>
-              <span className="text-xl font-bold text-primary-300">
-                {formatCurrency(result.totalPayment)}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-xl font-bold text-primary-300">
+                  {formatCurrency(result.totalPayment)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(result.totalPayment)}
+                </span>
+              </div>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-300">이자 수익</span>
-              <span className="text-xl font-bold text-primary-300">
-                {formatCurrency(result.interest)}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-xl font-bold text-primary-300">
+                  {formatCurrency(result.interest)}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {formatCurrencyKorean(result.interest)}
+                </span>
+              </div>
             </div>
             <div className="mt-4 border-t border-gray-700 pt-3">
               <div className="flex justify-between">
                 <span className="text-gray-300">세액공제 (연간 최대)</span>
-                <span className="text-xl font-bold text-green-400">
-                  {formatCurrency(result.taxDeduction)}
-                </span>
+                <div className="flex flex-col items-end">
+                  <span className="text-xl font-bold text-green-400">
+                    {formatCurrency(result.taxDeduction)}
+                  </span>
+                  <span className="text-sm text-gray-500">
+                    {formatCurrencyKorean(result.taxDeduction)}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
