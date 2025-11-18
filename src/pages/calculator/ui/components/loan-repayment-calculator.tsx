@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,12 +7,12 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const LoanRepaymentCalculator = () => {
-  const [loanAmount, setLoanAmount] = useState<number>(100000000);
-  const [interestRate, setInterestRate] = useState<number>(4.0);
-  const [loanPeriod, setLoanPeriod] = useState<number>(240);
+  const [loanAmount, setLoanAmount] = useLocalStorage<number>('calculator-loan-repayment-loanAmount', 100000000);
+  const [interestRate, setInterestRate] = useLocalStorage<number>('calculator-loan-repayment-interestRate', 4.0);
+  const [loanPeriod, setLoanPeriod] = useLocalStorage<number>('calculator-loan-repayment-loanPeriod', 240);
 
   const result = useMemo(() => {
     if (!loanAmount || !interestRate || !loanPeriod) {
@@ -52,7 +52,6 @@ export const LoanRepaymentCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">대출 상환 계산</h3>
         <div className="space-y-4">

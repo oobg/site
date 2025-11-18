@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,12 +7,12 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const JeonseLoanCalculator = () => {
-  const [jeonseAmount, setJeonseAmount] = useState<number>(300000000);
-  const [interestRate, setInterestRate] = useState<number>(4.5);
-  const [loanPeriod, setLoanPeriod] = useState<number>(12);
+  const [jeonseAmount, setJeonseAmount] = useLocalStorage<number>('calculator-jeonse-loan-jeonseAmount', 300000000);
+  const [interestRate, setInterestRate] = useLocalStorage<number>('calculator-jeonse-loan-interestRate', 4.5);
+  const [loanPeriod, setLoanPeriod] = useLocalStorage<number>('calculator-jeonse-loan-loanPeriod', 12);
 
   const result = useMemo(() => {
     if (!jeonseAmount || !interestRate || !loanPeriod) {
@@ -33,7 +33,6 @@ export const JeonseLoanCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">전세대출이자 계산</h3>
         <div className="space-y-4">

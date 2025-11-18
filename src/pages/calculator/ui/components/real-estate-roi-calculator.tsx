@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -8,13 +8,13 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const RealEstateRoiCalculator = () => {
-  const [purchasePrice, setPurchasePrice] = useState<number>(500000000);
-  const [salePrice, setSalePrice] = useState<number>(600000000);
-  const [holdingPeriod, setHoldingPeriod] = useState<number>(60);
-  const [additionalCosts, setAdditionalCosts] = useState<number>(10000000);
+  const [purchasePrice, setPurchasePrice] = useLocalStorage<number>('calculator-real-estate-roi-purchasePrice', 500000000);
+  const [salePrice, setSalePrice] = useLocalStorage<number>('calculator-real-estate-roi-salePrice', 600000000);
+  const [holdingPeriod, setHoldingPeriod] = useLocalStorage<number>('calculator-real-estate-roi-holdingPeriod', 60);
+  const [additionalCosts, setAdditionalCosts] = useLocalStorage<number>('calculator-real-estate-roi-additionalCosts', 10000000);
 
   const result = useMemo(() => {
     if (!purchasePrice || !salePrice || !holdingPeriod) {
@@ -34,7 +34,6 @@ export const RealEstateRoiCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">부동산 투자 수익률(ROI) 계산</h3>
         <div className="space-y-4">

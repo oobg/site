@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,11 +7,11 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const TaxCalculator = () => {
-  const [income, setIncome] = useState<number>(50000000);
-  const [deduction, setDeduction] = useState<number>(15000000);
+  const [income, setIncome] = useLocalStorage<number>('calculator-tax-income', 50000000);
+  const [deduction, setDeduction] = useLocalStorage<number>('calculator-tax-deduction', 15000000);
 
   const result = useMemo(() => {
     if (!income) {
@@ -65,7 +65,6 @@ export const TaxCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">세금 계산</h3>
         <div className="space-y-4">

@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { Container } from '@src/shared/ui/container';
-import { Disclaimer } from './components/disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
+import { Disclaimer, Notice } from './components/disclaimer';
 import { JeonseLoanCalculator } from './components/jeonse-loan-calculator';
 import { CarLoanCalculator } from './components/car-loan-calculator';
 import { HousingLoanCalculator } from './components/housing-loan-calculator';
@@ -52,7 +53,10 @@ const calculatorTabs: CalculatorTab[] = [
 ];
 
 export const CalculatorPage = () => {
-  const [activeTab, setActiveTab] = useState<string>(calculatorTabs[0].id);
+  const [activeTab, setActiveTab] = useLocalStorage<string>(
+    'calculator-active-tab',
+    calculatorTabs[0].id,
+  );
 
   useEffect(() => {
     const defaultTitle = 'Raven - Portfolio & Blog';
@@ -75,6 +79,7 @@ export const CalculatorPage = () => {
       </div>
 
       <Disclaimer />
+      <Notice />
 
       <div className="mb-6">
         <div className="flex flex-wrap gap-2 overflow-x-auto pb-2">

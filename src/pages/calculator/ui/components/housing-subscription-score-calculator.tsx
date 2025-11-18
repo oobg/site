@@ -1,14 +1,14 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import { formatNumber, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const HousingSubscriptionScoreCalculator = () => {
-  const [membershipPeriod, setMembershipPeriod] = useState<number>(60);
-  const [totalPayment, setTotalPayment] = useState<number>(6000000);
-  const [homelessPeriod, setHomelessPeriod] = useState<number>(120);
-  const [numberOfMembers, setNumberOfMembers] = useState<number>(1);
+  const [membershipPeriod, setMembershipPeriod] = useLocalStorage<number>('calculator-housing-subscription-score-membershipPeriod', 60);
+  const [totalPayment, setTotalPayment] = useLocalStorage<number>('calculator-housing-subscription-score-totalPayment', 6000000);
+  const [homelessPeriod, setHomelessPeriod] = useLocalStorage<number>('calculator-housing-subscription-score-homelessPeriod', 120);
+  const [numberOfMembers, setNumberOfMembers] = useLocalStorage<number>('calculator-housing-subscription-score-numberOfMembers', 1);
 
   const result = useMemo(() => {
     if (!membershipPeriod || !totalPayment || !homelessPeriod) {
@@ -46,7 +46,6 @@ export const HousingSubscriptionScoreCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">주택청약 점수 계산</h3>
         <div className="space-y-4">

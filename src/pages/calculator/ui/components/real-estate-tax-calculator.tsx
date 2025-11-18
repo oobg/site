@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,13 +7,13 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const RealEstateTaxCalculator = () => {
-  const [acquisitionPrice, setAcquisitionPrice] = useState<number>(500000000);
-  const [salePrice, setSalePrice] = useState<number>(600000000);
-  const [holdingPeriod, setHoldingPeriod] = useState<number>(60);
-  const [houseType, setHouseType] = useState<'general' | 'first'>('general');
+  const [acquisitionPrice, setAcquisitionPrice] = useLocalStorage<number>('calculator-real-estate-tax-acquisitionPrice', 500000000);
+  const [salePrice, setSalePrice] = useLocalStorage<number>('calculator-real-estate-tax-salePrice', 600000000);
+  const [holdingPeriod, setHoldingPeriod] = useLocalStorage<number>('calculator-real-estate-tax-holdingPeriod', 60);
+  const [houseType, setHouseType] = useLocalStorage<'general' | 'first'>('calculator-real-estate-tax-houseType', 'general');
 
   const result = useMemo(() => {
     if (!acquisitionPrice || !salePrice || !holdingPeriod) {
@@ -47,7 +47,6 @@ export const RealEstateTaxCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">부동산 취득세/양도세 계산</h3>
         <div className="space-y-4">

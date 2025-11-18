@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,13 +7,13 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const CarLoanCalculator = () => {
-  const [carPrice, setCarPrice] = useState<number>(30000000);
-  const [downPayment, setDownPayment] = useState<number>(5000000);
-  const [interestRate, setInterestRate] = useState<number>(3.5);
-  const [loanPeriod, setLoanPeriod] = useState<number>(36);
+  const [carPrice, setCarPrice] = useLocalStorage<number>('calculator-car-loan-carPrice', 30000000);
+  const [downPayment, setDownPayment] = useLocalStorage<number>('calculator-car-loan-downPayment', 5000000);
+  const [interestRate, setInterestRate] = useLocalStorage<number>('calculator-car-loan-interestRate', 3.5);
+  const [loanPeriod, setLoanPeriod] = useLocalStorage<number>('calculator-car-loan-loanPeriod', 36);
 
   const result = useMemo(() => {
     if (!carPrice || !downPayment || !interestRate || !loanPeriod) {
@@ -37,7 +37,6 @@ export const CarLoanCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">차량할부 계산</h3>
         <div className="space-y-4">

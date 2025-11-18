@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,11 +7,11 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const RealEstateFeeCalculator = () => {
-  const [price, setPrice] = useState<number>(500000000);
-  const [type, setType] = useState<'sale' | 'jeonse'>('sale');
+  const [price, setPrice] = useLocalStorage<number>('calculator-real-estate-fee-price', 500000000);
+  const [type, setType] = useLocalStorage<'sale' | 'jeonse'>('calculator-real-estate-fee-type', 'sale');
 
   const result = useMemo(() => {
     if (!price) {
@@ -64,7 +64,6 @@ export const RealEstateFeeCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">부동산 중개수수료 계산</h3>
         <div className="space-y-4">

@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,13 +7,13 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const SavingsCalculator = () => {
-  const [principal, setPrincipal] = useState<number>(1000000);
-  const [interestRate, setInterestRate] = useState<number>(3.5);
-  const [period, setPeriod] = useState<number>(12);
-  const [isTaxFree, setIsTaxFree] = useState<boolean>(false);
+  const [principal, setPrincipal] = useLocalStorage<number>('calculator-savings-principal', 1000000);
+  const [interestRate, setInterestRate] = useLocalStorage<number>('calculator-savings-interestRate', 3.5);
+  const [period, setPeriod] = useLocalStorage<number>('calculator-savings-period', 12);
+  const [isTaxFree, setIsTaxFree] = useLocalStorage<boolean>('calculator-savings-isTaxFree', false);
 
   const result = useMemo(() => {
     if (!principal || !interestRate || !period) {
@@ -39,7 +39,6 @@ export const SavingsCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">적금/예금 계산</h3>
         <div className="space-y-4">

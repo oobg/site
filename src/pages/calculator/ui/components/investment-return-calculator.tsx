@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -8,13 +8,13 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const InvestmentReturnCalculator = () => {
-  const [principal, setPrincipal] = useState<number>(10000000);
-  const [returnRate, setReturnRate] = useState<number>(5.0);
-  const [period, setPeriod] = useState<number>(12);
-  const [isCompound, setIsCompound] = useState<boolean>(true);
+  const [principal, setPrincipal] = useLocalStorage<number>('calculator-investment-return-principal', 10000000);
+  const [returnRate, setReturnRate] = useLocalStorage<number>('calculator-investment-return-returnRate', 5.0);
+  const [period, setPeriod] = useLocalStorage<number>('calculator-investment-return-period', 12);
+  const [isCompound, setIsCompound] = useLocalStorage<boolean>('calculator-investment-return-isCompound', true);
 
   const result = useMemo(() => {
     if (!principal || !returnRate || !period) {
@@ -47,7 +47,6 @@ export const InvestmentReturnCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">복리/단리 투자 수익률 계산</h3>
         <div className="space-y-4">

@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control, react/no-array-index-key */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,7 +7,7 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 interface LoanProduct {
   name: string;
@@ -17,7 +17,7 @@ interface LoanProduct {
 }
 
 export const LoanComparisonCalculator = () => {
-  const [products, setProducts] = useState<LoanProduct[]>([
+  const [products, setProducts] = useLocalStorage<LoanProduct[]>('calculator-loan-comparison-products', [
     {
       name: '대출 상품 1',
       loanAmount: 100000000,
@@ -74,7 +74,6 @@ export const LoanComparisonCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <div className="mb-6 flex items-center justify-between">
           <h3 className="text-xl font-semibold">대출 이자 비교 계산</h3>

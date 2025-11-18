@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,12 +7,12 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const IrpCalculator = () => {
-  const [monthlyPayment, setMonthlyPayment] = useState<number>(200000);
-  const [period, setPeriod] = useState<number>(240);
-  const [expectedReturn, setExpectedReturn] = useState<number>(5.0);
+  const [monthlyPayment, setMonthlyPayment] = useLocalStorage<number>('calculator-irp-monthlyPayment', 200000);
+  const [period, setPeriod] = useLocalStorage<number>('calculator-irp-period', 240);
+  const [expectedReturn, setExpectedReturn] = useLocalStorage<number>('calculator-irp-expectedReturn', 5.0);
 
   const result = useMemo(() => {
     if (!monthlyPayment || !period || !expectedReturn) {
@@ -40,7 +40,6 @@ export const IrpCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">IRP(개인형퇴직연금) 계산</h3>
         <div className="space-y-4">

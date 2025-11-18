@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -8,12 +8,12 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const JeonseConversionCalculator = () => {
-  const [jeonseAmount, setJeonseAmount] = useState<number>(300000000);
-  const [monthlyRent, setMonthlyRent] = useState<number>(1000000);
-  const [deposit, setDeposit] = useState<number>(10000000);
+  const [jeonseAmount, setJeonseAmount] = useLocalStorage<number>('calculator-jeonse-conversion-jeonseAmount', 300000000);
+  const [monthlyRent, setMonthlyRent] = useLocalStorage<number>('calculator-jeonse-conversion-monthlyRent', 1000000);
+  const [deposit, setDeposit] = useLocalStorage<number>('calculator-jeonse-conversion-deposit', 10000000);
 
   const result = useMemo(() => {
     if (!jeonseAmount || !monthlyRent || !deposit) {
@@ -34,7 +34,6 @@ export const JeonseConversionCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">전세 전환율 계산</h3>
         <div className="space-y-4">

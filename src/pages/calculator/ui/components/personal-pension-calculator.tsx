@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,13 +7,13 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const PersonalPensionCalculator = () => {
-  const [monthlyPayment, setMonthlyPayment] = useState<number>(200000);
-  const [period, setPeriod] = useState<number>(120);
-  const [interestRate, setInterestRate] = useState<number>(4.0);
-  const [taxDeductionRate, setTaxDeductionRate] = useState<number>(15.4);
+  const [monthlyPayment, setMonthlyPayment] = useLocalStorage<number>('calculator-personal-pension-monthlyPayment', 200000);
+  const [period, setPeriod] = useLocalStorage<number>('calculator-personal-pension-period', 120);
+  const [interestRate, setInterestRate] = useLocalStorage<number>('calculator-personal-pension-interestRate', 4.0);
+  const [taxDeductionRate, setTaxDeductionRate] = useLocalStorage<number>('calculator-personal-pension-taxDeductionRate', 15.4);
 
   const result = useMemo(() => {
     if (!monthlyPayment || !period || !interestRate) {
@@ -41,7 +41,6 @@ export const PersonalPensionCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">개인연금저축 계산</h3>
         <div className="space-y-4">

@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,12 +7,12 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const InflationCalculator = () => {
-  const [currentValue, setCurrentValue] = useState<number>(1000000);
-  const [inflationRate, setInflationRate] = useState<number>(2.5);
-  const [period, setPeriod] = useState<number>(10);
+  const [currentValue, setCurrentValue] = useLocalStorage<number>('calculator-inflation-currentValue', 1000000);
+  const [inflationRate, setInflationRate] = useLocalStorage<number>('calculator-inflation-inflationRate', 2.5);
+  const [period, setPeriod] = useLocalStorage<number>('calculator-inflation-period', 10);
 
   const result = useMemo(() => {
     if (!currentValue || !inflationRate || !period) {
@@ -37,7 +37,6 @@ export const InflationCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">인플레이션 계산</h3>
         <div className="space-y-4">

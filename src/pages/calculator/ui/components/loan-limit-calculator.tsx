@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,14 +7,14 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const LoanLimitCalculator = () => {
-  const [income, setIncome] = useState<number>(50000000);
-  const [existingLoan, setExistingLoan] = useState<number>(0);
-  const [dsrLimit, setDsrLimit] = useState<number>(40);
-  const [interestRate, setInterestRate] = useState<number>(4.0);
-  const [loanPeriod, setLoanPeriod] = useState<number>(240);
+  const [income, setIncome] = useLocalStorage<number>('calculator-loan-limit-income', 50000000);
+  const [existingLoan, setExistingLoan] = useLocalStorage<number>('calculator-loan-limit-existingLoan', 0);
+  const [dsrLimit, setDsrLimit] = useLocalStorage<number>('calculator-loan-limit-dsrLimit', 40);
+  const [interestRate, setInterestRate] = useLocalStorage<number>('calculator-loan-limit-interestRate', 4.0);
+  const [loanPeriod, setLoanPeriod] = useLocalStorage<number>('calculator-loan-limit-loanPeriod', 240);
 
   const result = useMemo(() => {
     if (!income || !dsrLimit || !interestRate || !loanPeriod) {
@@ -61,7 +61,6 @@ export const LoanLimitCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">대출 한도 계산</h3>
         <div className="space-y-4">

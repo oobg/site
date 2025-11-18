@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -8,15 +8,15 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const HousingLoanCalculator = () => {
-  const [income, setIncome] = useState<number>(50000000);
-  const [loanAmount, setLoanAmount] = useState<number>(300000000);
-  const [housePrice, setHousePrice] = useState<number>(500000000);
-  const [existingLoan, setExistingLoan] = useState<number>(0);
-  const [interestRate, setInterestRate] = useState<number>(4.0);
-  const [loanPeriod, setLoanPeriod] = useState<number>(240);
+  const [income, setIncome] = useLocalStorage<number>('calculator-housing-loan-income', 50000000);
+  const [loanAmount, setLoanAmount] = useLocalStorage<number>('calculator-housing-loan-loanAmount', 300000000);
+  const [housePrice, setHousePrice] = useLocalStorage<number>('calculator-housing-loan-housePrice', 500000000);
+  const [existingLoan, setExistingLoan] = useLocalStorage<number>('calculator-housing-loan-existingLoan', 0);
+  const [interestRate, setInterestRate] = useLocalStorage<number>('calculator-housing-loan-interestRate', 4.0);
+  const [loanPeriod, setLoanPeriod] = useLocalStorage<number>('calculator-housing-loan-loanPeriod', 240);
 
   const result = useMemo(() => {
     if (!income || !loanAmount || !housePrice || !interestRate || !loanPeriod) {
@@ -53,7 +53,6 @@ export const HousingLoanCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">주택대출 계산 (DSR/LTV/DTI)</h3>
         <div className="space-y-4">

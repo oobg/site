@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,14 +7,14 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const PensionCalculator = () => {
-  const [currentAge, setCurrentAge] = useState<number>(30);
-  const [retirementAge, setRetirementAge] = useState<number>(65);
-  const [lifeExpectancy, setLifeExpectancy] = useState<number>(85);
-  const [targetPension, setTargetPension] = useState<number>(3000000);
-  const [expectedReturn, setExpectedReturn] = useState<number>(5.0);
+  const [currentAge, setCurrentAge] = useLocalStorage<number>('calculator-pension-currentAge', 30);
+  const [retirementAge, setRetirementAge] = useLocalStorage<number>('calculator-pension-retirementAge', 65);
+  const [lifeExpectancy, setLifeExpectancy] = useLocalStorage<number>('calculator-pension-lifeExpectancy', 85);
+  const [targetPension, setTargetPension] = useLocalStorage<number>('calculator-pension-targetPension', 3000000);
+  const [expectedReturn, setExpectedReturn] = useLocalStorage<number>('calculator-pension-expectedReturn', 5.0);
 
   const result = useMemo(() => {
     if (!currentAge || !retirementAge || !lifeExpectancy || !targetPension || !expectedReturn) {
@@ -44,7 +44,6 @@ export const PensionCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">연금 계산</h3>
         <div className="space-y-4">

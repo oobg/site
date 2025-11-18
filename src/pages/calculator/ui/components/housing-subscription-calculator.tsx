@@ -1,5 +1,5 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
 import {
   formatCurrency,
@@ -7,13 +7,13 @@ import {
   formatNumberInput,
   parseNumberInput,
 } from '@src/shared/utils/number';
-import { Disclaimer } from './disclaimer';
+import { useLocalStorage } from '@src/shared/utils';
 
 export const HousingSubscriptionCalculator = () => {
-  const [monthlyPayment, setMonthlyPayment] = useState<number>(100000);
-  const [period, setPeriod] = useState<number>(60);
-  const [interestRate, setInterestRate] = useState<number>(3.5);
-  const [preferentialRate, setPreferentialRate] = useState<number>(1.0);
+  const [monthlyPayment, setMonthlyPayment] = useLocalStorage<number>('calculator-housing-subscription-monthlyPayment', 100000);
+  const [period, setPeriod] = useLocalStorage<number>('calculator-housing-subscription-period', 60);
+  const [interestRate, setInterestRate] = useLocalStorage<number>('calculator-housing-subscription-interestRate', 3.5);
+  const [preferentialRate, setPreferentialRate] = useLocalStorage<number>('calculator-housing-subscription-preferentialRate', 1.0);
 
   const result = useMemo(() => {
     if (!monthlyPayment || !period || !interestRate) {
@@ -39,7 +39,6 @@ export const HousingSubscriptionCalculator = () => {
 
   return (
     <div className="space-y-6">
-      <Disclaimer />
       <Card>
         <h3 className="mb-6 text-xl font-semibold">주택청약종합저축 계산</h3>
         <div className="space-y-4">
