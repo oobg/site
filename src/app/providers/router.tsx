@@ -26,6 +26,10 @@ const LunchPage = lazy(() =>
 const CalculatorPage = lazy(() =>
   import('@src/pages/calculator').then((module) => ({ default: module.CalculatorPage })),
 );
+
+const JsonGeneratorPage = lazy(() =>
+  import('@src/pages/json-generator').then((module) => ({ default: module.JsonGeneratorPage })),
+);
 /* eslint-enable implicit-arrow-linebreak, function-paren-newline */
 
 const RootLayout = () => {
@@ -69,6 +73,10 @@ export const router = createBrowserRouter([
       {
         path: 'calculator',
         element: <CalculatorPage />,
+      },
+      {
+        path: 'json-generator',
+        element: <JsonGeneratorPage />,
       },
     ],
   },

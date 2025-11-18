@@ -35,6 +35,12 @@ export const Header = () => (
           >
             Calculator
           </Link>
+          <Link
+            to="/json-generator"
+            className="text-gray-200 transition-colors hover:text-primary-400"
+          >
+            JSON Generator
+          </Link>
         </div>
       </div>
     </nav>
