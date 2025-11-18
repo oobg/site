@@ -29,6 +29,12 @@ export const Header = () => (
           >
             Lunch
           </Link>
+          <Link
+            to="/calculator"
+            className="text-gray-200 transition-colors hover:text-primary-400"
+          >
+            Calculator
+          </Link>
         </div>
       </div>
     </nav>
