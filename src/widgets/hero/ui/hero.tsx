@@ -12,11 +12,13 @@ export const Hero = () => (
         <div className="animate-fade-in-up">
           <h1 className="mb-6 text-5xl font-extrabold tracking-tight text-white sm:text-6xl lg:text-7xl">
             <span className="block mb-3">
-              저는{' '}
+              사용자 경험을 만드는
+            </span>
+            <span className="block">
               <span className="bg-gradient-to-r from-primary-400 via-primary-500 to-primary-600 bg-clip-text text-transparent">
-                Raven{' '}
+                개발자 Raven
               </span>
-              입니다
+              {' '}입니다
             </span>
           </h1>
           <p className="mb-8 text-lg text-gray-300 sm:text-xl max-w-2xl mx-auto text-balance break-keep">
