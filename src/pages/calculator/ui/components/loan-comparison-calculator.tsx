@@ -1,7 +1,12 @@
 /* eslint-disable jsx-a11y/label-has-associated-control, react/no-array-index-key */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency, formatCurrencyKorean, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
+import {
+  formatCurrency,
+  formatCurrencyKorean,
+  formatNumberInput,
+  parseNumberInput,
+} from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 interface LoanProduct {

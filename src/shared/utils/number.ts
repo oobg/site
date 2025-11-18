@@ -53,12 +53,12 @@ export function formatSimpleCurrency(num: number): string {
 export function formatNumberInput(num: number): string {
   if (num === null || num === undefined || Number.isNaN(num)) return '';
   const numStr = String(num);
-  
+
   // 소수점 처리
   const parts = numStr.split('.');
   const integerPart = parts[0];
   const decimalPart = parts[1];
-  
+
   const formatted = formatNumber(Number(integerPart));
   return decimalPart !== undefined ? `${formatted}.${decimalPart}` : formatted;
 }
@@ -93,7 +93,7 @@ export function formatCurrencyKorean(num: number): string {
   // 만 단위 처리 (억 단위 제외)
   const manRemainder = rounded % 100000000;
   const man = Math.floor(manRemainder / 10000);
-  
+
   if (man > 0) {
     parts.push(`${man}만`);
   }
@@ -101,14 +101,14 @@ export function formatCurrencyKorean(num: number): string {
   // 천 단위 처리 (만 단위 제외)
   const cheonRemainder = rounded % 10000;
   const cheon = Math.floor(cheonRemainder / 1000);
-  
+
   if (cheon > 0) {
     parts.push(`${cheon}천`);
   }
 
   // 원 단위 처리 (천 단위 제외)
   const won = rounded % 1000;
-  
+
   if (won > 0) {
     parts.push(`${won}`);
   }
