@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency } from '@src/shared/utils/number';
+import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const LoanRepaymentCalculator = () => {
@@ -56,11 +56,11 @@ export const LoanRepaymentCalculator = () => {
               대출금액 (원)
             </label>
             <input
-              type="number"
-              value={loanAmount}
-              onChange={(e) => setLoanAmount(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(loanAmount)}
+              onChange={(e) => setLoanAmount(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="100000000"
+              placeholder="100,000,000"
             />
           </div>
           <div>
@@ -68,10 +68,9 @@ export const LoanRepaymentCalculator = () => {
               금리 (%)
             </label>
             <input
-              type="number"
-              step="0.1"
-              value={interestRate}
-              onChange={(e) => setInterestRate(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(interestRate)}
+              onChange={(e) => setInterestRate(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="4.0"
             />
@@ -81,9 +80,9 @@ export const LoanRepaymentCalculator = () => {
               대출기간 (개월)
             </label>
             <input
-              type="number"
-              value={loanPeriod}
-              onChange={(e) => setLoanPeriod(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(loanPeriod)}
+              onChange={(e) => setLoanPeriod(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="240"
             />

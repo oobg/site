@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency, formatPercent } from '@src/shared/utils/number';
+import { formatCurrency, formatPercent, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const MonthlyRentConversionCalculator = () => {
@@ -37,11 +37,11 @@ export const MonthlyRentConversionCalculator = () => {
               월세 (원)
             </label>
             <input
-              type="number"
-              value={monthlyRent}
-              onChange={(e) => setMonthlyRent(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(monthlyRent)}
+              onChange={(e) => setMonthlyRent(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="1000000"
+              placeholder="1,000,000"
             />
           </div>
           <div>
@@ -49,11 +49,11 @@ export const MonthlyRentConversionCalculator = () => {
               보증금 (원)
             </label>
             <input
-              type="number"
-              value={deposit}
-              onChange={(e) => setDeposit(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(deposit)}
+              onChange={(e) => setDeposit(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="10000000"
+              placeholder="10,000,000"
             />
           </div>
           <div>
@@ -61,11 +61,11 @@ export const MonthlyRentConversionCalculator = () => {
               전세금 (원)
             </label>
             <input
-              type="number"
-              value={jeonseAmount}
-              onChange={(e) => setJeonseAmount(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(jeonseAmount)}
+              onChange={(e) => setJeonseAmount(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="300000000"
+              placeholder="300,000,000"
             />
           </div>
         </div>

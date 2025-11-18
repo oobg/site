@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency } from '@src/shared/utils/number';
+import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const PensionCalculator = () => {
@@ -48,9 +48,9 @@ export const PensionCalculator = () => {
               현재 나이
             </label>
             <input
-              type="number"
-              value={currentAge}
-              onChange={(e) => setCurrentAge(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(currentAge)}
+              onChange={(e) => setCurrentAge(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="30"
             />
@@ -60,9 +60,9 @@ export const PensionCalculator = () => {
               은퇴 나이
             </label>
             <input
-              type="number"
-              value={retirementAge}
-              onChange={(e) => setRetirementAge(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(retirementAge)}
+              onChange={(e) => setRetirementAge(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="65"
             />
@@ -72,9 +72,9 @@ export const PensionCalculator = () => {
               기대수명
             </label>
             <input
-              type="number"
-              value={lifeExpectancy}
-              onChange={(e) => setLifeExpectancy(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(lifeExpectancy)}
+              onChange={(e) => setLifeExpectancy(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="85"
             />
@@ -84,11 +84,11 @@ export const PensionCalculator = () => {
               목표 월 연금액 (원)
             </label>
             <input
-              type="number"
-              value={targetPension}
-              onChange={(e) => setTargetPension(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(targetPension)}
+              onChange={(e) => setTargetPension(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="3000000"
+              placeholder="3,000,000"
             />
           </div>
           <div>
@@ -96,10 +96,9 @@ export const PensionCalculator = () => {
               예상 수익률 (%)
             </label>
             <input
-              type="number"
-              step="0.1"
-              value={expectedReturn}
-              onChange={(e) => setExpectedReturn(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(expectedReturn)}
+              onChange={(e) => setExpectedReturn(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="5.0"
             />

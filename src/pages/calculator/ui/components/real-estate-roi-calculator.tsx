@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency, formatPercent } from '@src/shared/utils/number';
+import { formatCurrency, formatPercent, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const RealEstateRoiCalculator = () => {
@@ -37,11 +37,11 @@ export const RealEstateRoiCalculator = () => {
               매입가 (원)
             </label>
             <input
-              type="number"
-              value={purchasePrice}
-              onChange={(e) => setPurchasePrice(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(purchasePrice)}
+              onChange={(e) => setPurchasePrice(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="500000000"
+              placeholder="500,000,000"
             />
           </div>
           <div>
@@ -49,11 +49,11 @@ export const RealEstateRoiCalculator = () => {
               매도가 (원)
             </label>
             <input
-              type="number"
-              value={salePrice}
-              onChange={(e) => setSalePrice(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(salePrice)}
+              onChange={(e) => setSalePrice(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="600000000"
+              placeholder="600,000,000"
             />
           </div>
           <div>
@@ -61,9 +61,9 @@ export const RealEstateRoiCalculator = () => {
               보유기간 (개월)
             </label>
             <input
-              type="number"
-              value={holdingPeriod}
-              onChange={(e) => setHoldingPeriod(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(holdingPeriod)}
+              onChange={(e) => setHoldingPeriod(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="60"
             />
@@ -73,11 +73,11 @@ export const RealEstateRoiCalculator = () => {
               추가 비용 (원) - 취득세, 중개수수료 등
             </label>
             <input
-              type="number"
-              value={additionalCosts}
-              onChange={(e) => setAdditionalCosts(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(additionalCosts)}
+              onChange={(e) => setAdditionalCosts(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="10000000"
+              placeholder="10,000,000"
             />
           </div>
         </div>

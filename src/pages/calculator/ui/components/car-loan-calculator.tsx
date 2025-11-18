@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency } from '@src/shared/utils/number';
+import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const CarLoanCalculator = () => {
@@ -42,11 +42,11 @@ export const CarLoanCalculator = () => {
             </label>
             <input
               id="car-price"
-              type="number"
-              value={carPrice}
-              onChange={(e) => setCarPrice(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(carPrice)}
+              onChange={(e) => setCarPrice(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="30000000"
+              placeholder="30,000,000"
             />
           </div>
           <div>
@@ -55,11 +55,11 @@ export const CarLoanCalculator = () => {
             </label>
             <input
               id="down-payment"
-              type="number"
-              value={downPayment}
-              onChange={(e) => setDownPayment(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(downPayment)}
+              onChange={(e) => setDownPayment(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="5000000"
+              placeholder="5,000,000"
             />
           </div>
           <div>
@@ -68,10 +68,9 @@ export const CarLoanCalculator = () => {
             </label>
             <input
               id="interest-rate"
-              type="number"
-              step="0.1"
-              value={interestRate}
-              onChange={(e) => setInterestRate(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(interestRate)}
+              onChange={(e) => setInterestRate(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="3.5"
             />
@@ -82,9 +81,9 @@ export const CarLoanCalculator = () => {
             </label>
             <input
               id="loan-period"
-              type="number"
-              value={loanPeriod}
-              onChange={(e) => setLoanPeriod(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(loanPeriod)}
+              onChange={(e) => setLoanPeriod(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="36"
             />

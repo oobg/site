@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency } from '@src/shared/utils/number';
+import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const InflationCalculator = () => {
@@ -41,11 +41,11 @@ export const InflationCalculator = () => {
               현재가치 (원)
             </label>
             <input
-              type="number"
-              value={currentValue}
-              onChange={(e) => setCurrentValue(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(currentValue)}
+              onChange={(e) => setCurrentValue(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="1000000"
+              placeholder="1,000,000"
             />
           </div>
           <div>
@@ -53,10 +53,9 @@ export const InflationCalculator = () => {
               인플레이션율 (%)
             </label>
             <input
-              type="number"
-              step="0.1"
-              value={inflationRate}
-              onChange={(e) => setInflationRate(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(inflationRate)}
+              onChange={(e) => setInflationRate(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="2.5"
             />
@@ -66,9 +65,9 @@ export const InflationCalculator = () => {
               기간 (년)
             </label>
             <input
-              type="number"
-              value={period}
-              onChange={(e) => setPeriod(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(period)}
+              onChange={(e) => setPeriod(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="10"
             />

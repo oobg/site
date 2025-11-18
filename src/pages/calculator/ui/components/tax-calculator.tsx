@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency } from '@src/shared/utils/number';
+import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const TaxCalculator = () => {
@@ -69,11 +69,11 @@ export const TaxCalculator = () => {
               연소득 (원)
             </label>
             <input
-              type="number"
-              value={income}
-              onChange={(e) => setIncome(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(income)}
+              onChange={(e) => setIncome(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="50000000"
+              placeholder="50,000,000"
             />
           </div>
           <div>
@@ -81,11 +81,11 @@ export const TaxCalculator = () => {
               공제액 (원)
             </label>
             <input
-              type="number"
-              value={deduction}
-              onChange={(e) => setDeduction(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(deduction)}
+              onChange={(e) => setDeduction(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="15000000"
+              placeholder="15,000,000"
             />
           </div>
         </div>

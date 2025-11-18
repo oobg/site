@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency } from '@src/shared/utils/number';
+import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const IrpCalculator = () => {
@@ -44,11 +44,11 @@ export const IrpCalculator = () => {
               월 납입액 (원)
             </label>
             <input
-              type="number"
-              value={monthlyPayment}
-              onChange={(e) => setMonthlyPayment(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(monthlyPayment)}
+              onChange={(e) => setMonthlyPayment(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="200000"
+              placeholder="200,000"
             />
           </div>
           <div>
@@ -56,9 +56,9 @@ export const IrpCalculator = () => {
               가입기간 (개월)
             </label>
             <input
-              type="number"
-              value={period}
-              onChange={(e) => setPeriod(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(period)}
+              onChange={(e) => setPeriod(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="240"
             />
@@ -68,10 +68,9 @@ export const IrpCalculator = () => {
               예상 수익률 (%)
             </label>
             <input
-              type="number"
-              step="0.1"
-              value={expectedReturn}
-              onChange={(e) => setExpectedReturn(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(expectedReturn)}
+              onChange={(e) => setExpectedReturn(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="5.0"
             />

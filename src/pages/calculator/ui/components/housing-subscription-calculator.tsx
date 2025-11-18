@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency } from '@src/shared/utils/number';
+import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const HousingSubscriptionCalculator = () => {
@@ -43,11 +43,11 @@ export const HousingSubscriptionCalculator = () => {
               월 납입액 (원)
             </label>
             <input
-              type="number"
-              value={monthlyPayment}
-              onChange={(e) => setMonthlyPayment(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(monthlyPayment)}
+              onChange={(e) => setMonthlyPayment(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="100000"
+              placeholder="100,000"
             />
           </div>
           <div>
@@ -55,9 +55,9 @@ export const HousingSubscriptionCalculator = () => {
               가입기간 (개월)
             </label>
             <input
-              type="number"
-              value={period}
-              onChange={(e) => setPeriod(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(period)}
+              onChange={(e) => setPeriod(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="60"
             />
@@ -67,10 +67,9 @@ export const HousingSubscriptionCalculator = () => {
               기본금리 (%)
             </label>
             <input
-              type="number"
-              step="0.1"
-              value={interestRate}
-              onChange={(e) => setInterestRate(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(interestRate)}
+              onChange={(e) => setInterestRate(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="3.5"
             />
@@ -80,10 +79,9 @@ export const HousingSubscriptionCalculator = () => {
               우대금리 (%)
             </label>
             <input
-              type="number"
-              step="0.1"
-              value={preferentialRate}
-              onChange={(e) => setPreferentialRate(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(preferentialRate)}
+              onChange={(e) => setPreferentialRate(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="1.0"
             />

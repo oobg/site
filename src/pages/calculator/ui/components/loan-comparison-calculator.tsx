@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control, react/no-array-index-key */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
-import { formatCurrency } from '@src/shared/utils/number';
+import { formatCurrency, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 interface LoanProduct {
@@ -108,9 +108,9 @@ export const LoanComparisonCalculator = () => {
                     대출금액 (원)
                   </label>
                   <input
-                    type="number"
-                    value={product.loanAmount}
-                    onChange={(e) => updateProduct(index, 'loanAmount', Number(e.target.value))}
+                    type="text"
+                    value={formatNumberInput(product.loanAmount)}
+                    onChange={(e) => updateProduct(index, 'loanAmount', parseNumberInput(e.target.value))}
                     className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
@@ -119,10 +119,9 @@ export const LoanComparisonCalculator = () => {
                     금리 (%)
                   </label>
                   <input
-                    type="number"
-                    step="0.1"
-                    value={product.interestRate}
-                    onChange={(e) => updateProduct(index, 'interestRate', Number(e.target.value))}
+                    type="text"
+                    value={formatNumberInput(product.interestRate)}
+                    onChange={(e) => updateProduct(index, 'interestRate', parseNumberInput(e.target.value))}
                     className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>
@@ -131,9 +130,9 @@ export const LoanComparisonCalculator = () => {
                     기간 (개월)
                   </label>
                   <input
-                    type="number"
-                    value={product.period}
-                    onChange={(e) => updateProduct(index, 'period', Number(e.target.value))}
+                    type="text"
+                    value={formatNumberInput(product.period)}
+                    onChange={(e) => updateProduct(index, 'period', parseNumberInput(e.target.value))}
                     className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
                 </div>

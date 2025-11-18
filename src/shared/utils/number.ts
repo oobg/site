@@ -45,3 +45,31 @@ export function formatSimpleCurrency(num: number): string {
 
   return parts.join(' ') || '0원';
 }
+
+/**
+ * 입력 필드용: 숫자를 천 단위 콤마가 포함된 문자열로 변환
+ * 소수점이 있는 경우 소수점도 유지
+ */
+export function formatNumberInput(num: number): string {
+  if (num === null || num === undefined || Number.isNaN(num)) return '';
+  const numStr = String(num);
+  
+  // 소수점 처리
+  const parts = numStr.split('.');
+  const integerPart = parts[0];
+  const decimalPart = parts[1];
+  
+  const formatted = formatNumber(Number(integerPart));
+  return decimalPart !== undefined ? `${formatted}.${decimalPart}` : formatted;
+}
+
+/**
+ * 입력 필드용: 콤마가 포함된 문자열을 숫자로 변환
+ */
+export function parseNumberInput(value: string): number {
+  if (value === '' || value === null || value === undefined) return 0;
+  const cleaned = value.replace(/,/g, '').trim();
+  if (cleaned === '' || cleaned === '-') return 0;
+  const parsed = parseFloat(cleaned);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}

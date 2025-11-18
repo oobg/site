@@ -1,6 +1,7 @@
 /* eslint-disable jsx-a11y/label-has-associated-control */
 import { useState, useMemo } from 'react';
 import { Card } from '@src/shared/ui/card';
+import { formatNumber, formatNumberInput, parseNumberInput } from '@src/shared/utils/number';
 import { Disclaimer } from './disclaimer';
 
 export const HousingSubscriptionScoreCalculator = () => {
@@ -54,9 +55,9 @@ export const HousingSubscriptionScoreCalculator = () => {
               가입기간 (개월)
             </label>
             <input
-              type="number"
-              value={membershipPeriod}
-              onChange={(e) => setMembershipPeriod(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(membershipPeriod)}
+              onChange={(e) => setMembershipPeriod(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="60"
             />
@@ -66,11 +67,11 @@ export const HousingSubscriptionScoreCalculator = () => {
               총 납입액 (원)
             </label>
             <input
-              type="number"
-              value={totalPayment}
-              onChange={(e) => setTotalPayment(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(totalPayment)}
+              onChange={(e) => setTotalPayment(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="6000000"
+              placeholder="6,000,000"
             />
           </div>
           <div>
@@ -78,9 +79,9 @@ export const HousingSubscriptionScoreCalculator = () => {
               무주택기간 (개월)
             </label>
             <input
-              type="number"
-              value={homelessPeriod}
-              onChange={(e) => setHomelessPeriod(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(homelessPeriod)}
+              onChange={(e) => setHomelessPeriod(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="120"
             />
@@ -90,12 +91,11 @@ export const HousingSubscriptionScoreCalculator = () => {
               가입자 수
             </label>
             <input
-              type="number"
-              value={numberOfMembers}
-              onChange={(e) => setNumberOfMembers(Number(e.target.value))}
+              type="text"
+              value={formatNumberInput(numberOfMembers)}
+              onChange={(e) => setNumberOfMembers(parseNumberInput(e.target.value))}
               className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
               placeholder="1"
-              min="1"
             />
           </div>
         </div>
@@ -108,19 +108,19 @@ export const HousingSubscriptionScoreCalculator = () => {
             <div className="flex justify-between">
               <span className="text-gray-300">가입기간 점수</span>
               <span className="text-xl font-bold text-primary-300">
-                {result.membershipScore.toFixed(1)}점
+                {formatNumber(Number(result.membershipScore.toFixed(1)))}점
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-300">납입액 점수</span>
               <span className="text-xl font-bold text-primary-300">
-                {result.paymentScore.toFixed(1)}점
+                {formatNumber(Number(result.paymentScore.toFixed(1)))}점
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-300">무주택기간 점수</span>
               <span className="text-xl font-bold text-primary-300">
-                {result.homelessScore.toFixed(1)}점
+                {formatNumber(Number(result.homelessScore.toFixed(1)))}점
               </span>
             </div>
             {result.memberBonus > 0 && (
@@ -135,7 +135,7 @@ export const HousingSubscriptionScoreCalculator = () => {
               <div className="flex justify-between">
                 <span className="text-gray-300">총 점수</span>
                 <span className="text-2xl font-bold text-primary-300">
-                  {result.totalScore.toFixed(1)}점
+                  {formatNumber(Number(result.totalScore.toFixed(1)))}점
                 </span>
               </div>
               <div className="mt-2 flex justify-between">
