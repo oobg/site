@@ -312,70 +312,53 @@ export const JsonGeneratorPage = () => {
         <p className="text-lg text-gray-400">타입과 옵션을 설정하여 랜덤 JSON 데이터를 생성하세요</p>
       </div>
 
-      <Card className="mb-6">
-        <div className="mb-6 flex items-center justify-between">
-          <h3 className="text-xl font-semibold">생성 옵션</h3>
-          <Button variant="outline" size="sm" onClick={addOption}>
-            옵션 추가
-          </Button>
-        </div>
-        <div className="space-y-6">
-          <div>
-            <label className="mb-2 block text-sm font-medium text-gray-300">
-              최대 데이터 수 (생성할 데이터 개수)
-            </label>
-            <input
-              type="number"
-              min="1"
-              max="100"
-              value={maxCount}
-              onChange={(e) => setMaxCount(Number(e.target.value))}
-              className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-              placeholder="1"
-            />
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <Card className="lg:mb-0">
+          <div className="mb-6 flex items-center justify-between">
+            <h3 className="text-xl font-semibold">생성 옵션</h3>
+            <Button variant="outline" size="sm" onClick={addOption}>
+              옵션 추가
+            </Button>
           </div>
+          <div className="space-y-6">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-300">
+                최대 데이터 수 (생성할 데이터 개수)
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={maxCount}
+                onChange={(e) => setMaxCount(Number(e.target.value))}
+                className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                placeholder="1"
+              />
+            </div>
 
-          {options.map((option, index) => (
-            <div key={option.id} className="rounded-lg border border-gray-700/50 bg-gray-800/30 p-4">
-              <div className="mb-4 flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-300">옵션 {index + 1}</span>
-                {options.length > 1 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => removeOption(option.id)}
-                    className="text-red-400 hover:text-red-300 hover:border-red-400"
-                  >
-                    삭제
-                  </Button>
-                )}
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-300">
-                    데이터 타입
-                  </label>
-                  <select
-                    value={option.type}
-                    onChange={(e) => updateOption(option.id, 'type', e.target.value)}
-                    className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                  >
-                    <option value="string">String</option>
-                    <option value="number">Number</option>
-                    <option value="boolean">Boolean</option>
-                    <option value="array">Array</option>
-                    <option value="object">Object</option>
-                  </select>
+            {options.map((option, index) => (
+              <div key={option.id} className="rounded-lg border border-gray-700/50 bg-gray-800/30 p-4">
+                <div className="mb-4 flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-300">옵션 {index + 1}</span>
+                  {options.length > 1 && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => removeOption(option.id)}
+                      className="text-red-400 hover:text-red-300 hover:border-red-400"
+                    >
+                      삭제
+                    </Button>
+                  )}
                 </div>
-
-                {option.type === 'object' && (
+                <div className="space-y-4">
                   <div>
                     <label className="mb-2 block text-sm font-medium text-gray-300">
-                      객체 내부 값 타입
+                      데이터 타입
                     </label>
                     <select
-                      value={option.objectValueType || 'string'}
-                      onChange={(e) => updateOption(option.id, 'objectValueType', e.target.value)}
+                      value={option.type}
+                      onChange={(e) => updateOption(option.id, 'type', e.target.value)}
                       className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
                     >
                       <option value="string">String</option>
@@ -385,112 +368,131 @@ export const JsonGeneratorPage = () => {
                       <option value="object">Object</option>
                     </select>
                   </div>
-                )}
 
-                {option.type === 'array' && (
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-300">
-                      배열 내부 요소 타입
-                    </label>
-                    <select
-                      value={option.arrayItemType || 'string'}
-                      onChange={(e) => updateOption(option.id, 'arrayItemType', e.target.value)}
-                      className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    >
-                      <option value="string">String</option>
-                      <option value="number">Number</option>
-                      <option value="boolean">Boolean</option>
-                      <option value="array">Array</option>
-                      <option value="object">Object</option>
-                    </select>
-                  </div>
-                )}
-
-                {option.type === 'number' && (
-                  <>
+                  {option.type === 'object' && (
                     <div>
                       <label className="mb-2 block text-sm font-medium text-gray-300">
-                        숫자 부호 선택
+                        객체 내부 값 타입
                       </label>
-                      <div className="flex gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={option.numberPositive !== false}
-                            onChange={(e) => updateOption(option.id, 'numberPositive', e.target.checked)}
-                            className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-primary-600 focus:ring-primary-500"
-                          />
-                          <span className="text-sm text-gray-300">양수</span>
+                      <select
+                        value={option.objectValueType || 'string'}
+                        onChange={(e) => updateOption(option.id, 'objectValueType', e.target.value)}
+                        className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      >
+                        <option value="string">String</option>
+                        <option value="number">Number</option>
+                        <option value="boolean">Boolean</option>
+                        <option value="array">Array</option>
+                        <option value="object">Object</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {option.type === 'array' && (
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-300">
+                        배열 내부 요소 타입
+                      </label>
+                      <select
+                        value={option.arrayItemType || 'string'}
+                        onChange={(e) => updateOption(option.id, 'arrayItemType', e.target.value)}
+                        className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      >
+                        <option value="string">String</option>
+                        <option value="number">Number</option>
+                        <option value="boolean">Boolean</option>
+                        <option value="array">Array</option>
+                        <option value="object">Object</option>
+                      </select>
+                    </div>
+                  )}
+
+                  {option.type === 'number' && (
+                    <>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-gray-300">
+                          숫자 부호 선택
                         </label>
+                        <div className="flex gap-4">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={option.numberPositive !== false}
+                              onChange={(e) => updateOption(option.id, 'numberPositive', e.target.checked)}
+                              className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-primary-600 focus:ring-primary-500"
+                            />
+                            <span className="text-sm text-gray-300">양수</span>
+                          </label>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={option.numberNegative !== false}
+                              onChange={(e) => updateOption(option.id, 'numberNegative', e.target.checked)}
+                              className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-primary-600 focus:ring-primary-500"
+                            />
+                            <span className="text-sm text-gray-300">음수</span>
+                          </label>
+                        </div>
+                      </div>
+                      <div>
                         <label className="flex items-center gap-2 cursor-pointer">
                           <input
                             type="checkbox"
-                            checked={option.numberNegative !== false}
-                            onChange={(e) => updateOption(option.id, 'numberNegative', e.target.checked)}
+                            checked={option.numberDecimal === true}
+                            onChange={(e) => updateOption(option.id, 'numberDecimal', e.target.checked)}
                             className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-primary-600 focus:ring-primary-500"
                           />
-                          <span className="text-sm text-gray-300">음수</span>
+                          <span className="text-sm font-medium text-gray-300">소수점 포함</span>
                         </label>
                       </div>
-                    </div>
-                    <div>
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={option.numberDecimal === true}
-                          onChange={(e) => updateOption(option.id, 'numberDecimal', e.target.checked)}
-                          className="h-4 w-4 rounded border-gray-600 bg-gray-800 text-primary-600 focus:ring-primary-500"
-                        />
-                        <span className="text-sm font-medium text-gray-300">소수점 포함</span>
-                      </label>
-                    </div>
-                  </>
-                )}
+                    </>
+                  )}
 
-                {option.type !== 'boolean' && (
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-gray-300">
-                      {option.type === 'string' && '최대 길이 (문자열의 최대 길이)'}
-                      {option.type === 'number' && '최대 길이 (숫자의 최대 자릿수)'}
-                      {(option.type === 'array' || option.type === 'object') && '최대 길이 (배열/객체의 최대 요소 수)'}
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="100"
-                      value={option.maxLength}
-                      onChange={(e) => updateOption(option.id, 'maxLength', Number(e.target.value))}
-                      className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                      placeholder="5"
-                    />
-                  </div>
-                )}
+                  {option.type !== 'boolean' && (
+                    <div>
+                      <label className="mb-2 block text-sm font-medium text-gray-300">
+                        {option.type === 'string' && '최대 길이 (문자열의 최대 길이)'}
+                        {option.type === 'number' && '최대 길이 (숫자의 최대 자릿수)'}
+                        {(option.type === 'array' || option.type === 'object') && '최대 길이 (배열/객체의 최대 요소 수)'}
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={option.maxLength}
+                        onChange={(e) => updateOption(option.id, 'maxLength', Number(e.target.value))}
+                        className="w-full rounded-lg bg-gray-800/50 px-4 py-2 text-white placeholder-gray-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                        placeholder="5"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            <Button onClick={handleGenerate} className="w-full">
+              JSON 생성
+            </Button>
+          </div>
+        </Card>
+
+        {generatedJson && (
+          <Card className="bg-gradient-to-br from-primary-600/20 to-primary-700/20 lg:sticky lg:top-6 lg:self-start">
+            <div className="mb-4 flex items-center justify-between">
+              <h3 className="text-lg font-semibold">생성된 JSON</h3>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={handleCopy}>
+                  복사
+                </Button>
+                <Button variant="outline" size="sm" onClick={handleDownload}>
+                  다운로드
+                </Button>
               </div>
             </div>
-          ))}
-
-          <Button onClick={handleGenerate} className="w-full">
-            JSON 생성
-          </Button>
-        </div>
-      </Card>
-
-      {generatedJson && (
-        <Card className="bg-gradient-to-br from-primary-600/20 to-primary-700/20">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-lg font-semibold">생성된 JSON</h3>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={handleCopy}>
-                복사
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleDownload}>
-                다운로드
-              </Button>
-            </div>
-          </div>
-          <CodeBlock code={generatedJson} language="json" />
-        </Card>
-      )}
+            <CodeBlock code={generatedJson} language="json" />
+          </Card>
+        )}
+      </div>
     </Container>
   );
 };
