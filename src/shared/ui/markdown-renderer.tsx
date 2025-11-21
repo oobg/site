@@ -5,6 +5,9 @@ import { CodeBlock } from './code-block';
 import { LinkIcon } from '@src/shared/ui/icons';
 import { createSlug, scrollToElement } from '@src/shared/utils';
 import { getHeaderOffset } from '@src/shared/utils/scroll';
+import type { Plugin } from 'unified';
+import { visit } from 'unist-util-visit';
+import type { Text, Emphasis } from 'mdast';
 
 // 플러그인들
 import remarkGfm from 'remark-gfm';
@@ -130,6 +133,73 @@ const createHeadingComponent = (
   return HeadingComponent;
 };
 
+// _text_ 형식을 italic으로 변환하는 커스텀 remark 플러그인
+const remarkUnderscoreItalic: Plugin = () => {
+  return (tree) => {
+    visit(tree, 'text', (node: Text, index: number | undefined, parent: any) => {
+      if (!parent || index === undefined || typeof node.value !== 'string') {
+        return;
+      }
+
+      // _text_ 패턴을 찾아서 italic 노드로 변환
+      // 단, 코드 블록이나 인라인 코드 안에 있는 것은 제외
+      const isInCode = parent.type === 'code' || parent.type === 'inlineCode';
+      if (isInCode) {
+        return;
+      }
+
+      // _text_ 패턴 매칭: 언더스코어로 둘러싸인 텍스트
+      // 중간에 언더스코어가 없고, 최소 1글자 이상이어야 함
+      const pattern = /_([^_\n]+?)_/g;
+      const matches: Array<{ start: number; end: number; text: string }> = [];
+      let match;
+
+      while ((match = pattern.exec(node.value)) !== null) {
+        matches.push({
+          start: match.index,
+          end: match.index + match[0].length,
+          text: match[1],
+        });
+      }
+
+      // 매칭된 패턴이 있으면 노드를 분할하여 italic 노드로 변환
+      if (matches.length > 0 && Array.isArray(parent.children)) {
+        const newChildren: Array<Text | Emphasis> = [];
+        let lastIndex = 0;
+
+        matches.forEach(({ start, end, text }) => {
+          // 매칭 전의 텍스트 추가
+          if (start > lastIndex) {
+            const beforeText = node.value.slice(lastIndex, start);
+            if (beforeText) {
+              newChildren.push({ type: 'text', value: beforeText });
+            }
+          }
+
+          // italic 노드 추가
+          newChildren.push({
+            type: 'emphasis',
+            children: [{ type: 'text', value: text }],
+          });
+
+          lastIndex = end;
+        });
+
+        // 마지막 매칭 이후의 텍스트 추가
+        if (lastIndex < node.value.length) {
+          const afterText = node.value.slice(lastIndex);
+          if (afterText) {
+            newChildren.push({ type: 'text', value: afterText });
+          }
+        }
+
+        // 부모의 children 배열에서 현재 노드를 새 노드들로 교체
+        parent.children.splice(index, 1, ...newChildren);
+      }
+    });
+  };
+};
+
 export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
   const components: Components = {
     code({ className, children, ...props }: CodeProps) {
@@ -207,7 +277,7 @@ export const MarkdownRenderer = ({ content }: MarkdownRendererProps) => {
   return (
     <div className="markdown-content">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkToc]}
+        remarkPlugins={[remarkUnderscoreItalic, remarkGfm, remarkToc]}
         rehypePlugins={[rehypeRaw, rehypeHighlight, rehypeSlug, rehypeAutolinkHeadings]}
         components={components}
       >
