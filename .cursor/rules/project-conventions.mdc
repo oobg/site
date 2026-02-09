@@ -1,0 +1,93 @@
+---
+description: Raven 프로젝트 루트 규칙 — 스택, 구조, UI, MVP. 작업 전 필독.
+alwaysApply: true
+---
+
+이 프로젝트에서는 작업 전 반드시 루트의 커서룰을 읽고, 거기 명시된 스택/구조/규칙을 절대적으로 따른다. 규칙과 충돌하는 제안은 하지 말고, 필요한 경우에만 규칙 파일을 업데이트하도록 제안해라.
+
+---
+
+You are setting up and designing a personal frontend portfolio project.
+
+Before doing anything, you MUST read and strictly follow all rules defined in this file (`.cursor/rules/project-conventions.mdc`). Do not propose or implement anything that conflicts with those rules. If something is unclear, ask before proceeding.
+
+---
+
+## 프로젝트 개요
+
+- **프로젝트명**: raven
+- **목적**: 개인 포트폴리오, 채용용, 사이드 프로젝트 쇼케이스
+- **주요 페이지**: Home, About, Projects, Blog, Contact
+- **브라우저**: 최신 Chrome
+
+## 기술 스택 (고정)
+
+- React 19.2
+- Vite (최신)
+- TypeScript (최신)
+- 패키지 매니저: pnpm
+- Node 24.11
+- UI: shadcn/ui (style: **new-york**)
+- 스타일: Tailwind (최신)
+- 라우팅: React Router v6 **Data Router** 사용
+- 상태관리: Zustand
+- 데이터: MSW로 임시 구성 가능, 이후 백엔드 API 적용. **MSW 활성화 조건** (이 조건을 만족할 때만 사용): `import.meta.env.DEV && import.meta.env.VITE_MSW === "true"`
+- 폼: react-hook-form
+- 아이콘: lucide-react
+- 애니메이션: framer-motion
+
+## 아키텍처
+
+- 폴더 구조: **FSD-lite**
+- 경로 별칭: **@/**
+- assets: **public**
+- 환경변수: **VITE_** 접두사
+
+## 코드 품질
+
+- TypeScript: **strict true**
+- ESLint: **flat config**
+- Prettier: 사용
+- import 정렬: eslint-plugin-import + simple-import-sort
+- 커밋: **Conventional Commits**
+
+## UI 규칙
+
+- shadcn style: **new-york**
+- **다크모드 필수**: 다크 기본 + 라이트 지원. 테마 관련 제안 시 이 규칙 우선.
+- 배경: neutral / zinc
+- 텍스트: neutral-foreground
+- 포인트: violet (저채도만, 악센트용)
+- 애니메이션: Framer Motion으로만, 목적 있는 경우만
+- radius: **0.75**
+- typography: **프리텐다드**
+- 반응형: Tailwind 기본 브레이크포인트
+
+## 디자인 방향 (Toss-style 철학, 시각적 모방 금지)
+
+- 텍스트 우선, 섹션 간 세로 여백 충분, 계층: section title → description → primary action
+- Calm, minimal, 신뢰감. 그라데이션/글래스모피즘/강한 그림자 금지. 한 섹션당 CTA 하나.
+- Motion: 목적 있는 경우만. entrance: opacity 0→1, y 8→0. 0.25–0.35s, ease-out. bounce/loop/장난스러운 이징 금지.
+- 정보 목적 없는 장식·카드 과다·여러 악센트 색 지양. 가독성·일관성 우선. 포트폴리오용, 마케팅 랜딩 아님.
+
+## 배포 / SEO
+
+- 배포: 개인 홈서버 (Git Action), 도메인 **raven.kr**
+- SEO: Helmet + sitemap/robots 생성
+- **Analytics: none** (초기 고정). 추후 도입 시 별도 규칙 파일(예: analytics.mdc)로 분리.
+
+## MVP Constraints
+
+MVP 단계에서 다음을 하지 않는다. 필요 시 **MVP 범위 초과**를 명시적으로 제안한다.
+
+- No authentication
+- No CMS or external content source
+- No analytics integration
+- No server-side rendering
+- No complex animation beyond the defined motion rules (Framer Motion, purpose-driven only)
+
+## 최소 인터랙션 3종 (MVP 체감용)
+
+1. **Route Transition Indicator (필수)**: 라우트 전환 시 상단 progress bar 또는 subtle fade. React Router + Framer Motion 범위 내.
+2. **Projects → Detail or External Link (택1)**: 상세 페이지 없어도 됨. 클릭 시 상세 페이지 또는 외부 링크 중 최소 하나 반드시 동작.
+3. **Contact 성공 상태 (필수)**: 메일/링크 클릭 시 복사 완료 토스트, 또는 외부 이동 시 명확한 피드백.
