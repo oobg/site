@@ -201,7 +201,7 @@ export function AboutPage() {
                   </span>
                 </div>
                 {item.description ? (
-                  <p className="max-w-xl text-sm text-muted-foreground leading-relaxed">
+                  <p className="w-full text-sm text-muted-foreground leading-relaxed">
                     {item.description}
                   </p>
                 ) : null}
