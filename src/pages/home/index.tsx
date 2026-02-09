@@ -231,7 +231,12 @@ export function HomePage() {
               transition={{ duration: 0.28, ease: 'easeOut', delay: 0.24 }}
               className="mt-10 flex flex-col items-center gap-6 md:mt-12"
             >
-              <Button asChild size="lg">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-2 border-primary/40 bg-muted/30 text-foreground transition-colors hover:border-primary hover:bg-muted/50 hover:text-foreground"
+              >
                 <Link to={ROUTES.ABOUT}>{welcomeSections.intro.cta}</Link>
               </Button>
               <div className="flex flex-wrap justify-center gap-2">
