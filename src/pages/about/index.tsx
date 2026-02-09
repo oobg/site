@@ -1,19 +1,27 @@
 import { motion } from 'framer-motion'
+import { ExternalLink, Mail, Phone } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
 import { Link } from 'react-router-dom'
 
-import { ROUTES, projectDetailPath } from '@/shared/config/routes'
+import { useThemeStore } from '@/features/theme/theme-store'
+import { projectDetailPath, ROUTES } from '@/shared/config/routes'
 import {
+  aboutExtraParagraphs,
   avatarImageDark,
   avatarImageLight,
+  certifications,
+  contacts,
+  education,
+  externalActivities,
+  introSections,
   introText,
+  profileName,
   skills,
   workHistory,
 } from '@/shared/content/profile'
 import { projects } from '@/shared/content/projects'
-import { useThemeStore } from '@/features/theme/theme-store'
-import { Button } from '@/shared/ui/button'
 import { cn } from '@/shared/lib/utils'
+import { Button } from '@/shared/ui/button'
 
 const featuredProject = projects[0]
 
@@ -28,6 +36,11 @@ const linkClass = cn(
   'hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded'
 )
 
+const externalLinkClass = cn(
+  'inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors',
+  'hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded'
+)
+
 export function AboutPage() {
   const effectiveTheme = useThemeStore((s) => s.effectiveTheme)
   const avatarSrc =
@@ -36,8 +49,11 @@ export function AboutPage() {
   return (
     <>
       <Helmet>
-        <title>About · raven</title>
-        <meta name="description" content="소개, 스킬, 경력, 대표 프로젝트." />
+        <title>About · {profileName}</title>
+        <meta
+          name="description"
+          content={`${profileName} 소개, 스킬, 경력, 학력, 연락처.`}
+        />
       </Helmet>
       <div className="container mx-auto max-w-4xl px-4 py-16 md:py-24">
         <motion.section
@@ -48,7 +64,7 @@ export function AboutPage() {
             About
           </h1>
           <p className="max-w-xl text-muted-foreground leading-relaxed">
-            포트폴리오 소개 및 경력·스킬 요약입니다.
+            {profileName} 소개 및 경력·스킬 요약입니다.
           </p>
         </motion.section>
 
@@ -65,17 +81,27 @@ export function AboutPage() {
             <div className="shrink-0 overflow-hidden rounded-[var(--radius)] border border-border bg-muted/30">
               <img
                 src={avatarSrc}
-                alt="프로필 사진"
+                alt={`${profileName} 프로필 사진`}
                 width={160}
                 height={160}
                 className="size-36 object-cover sm:size-40"
                 fetchPriority="high"
               />
             </div>
-            <div className="min-w-0 flex-1 space-y-2">
+            <div className="min-w-0 flex-1 space-y-4">
               <p className="text-muted-foreground leading-relaxed">
                 {introText}
               </p>
+              {introSections.map((section, i) => (
+                <div key={i} className="space-y-1">
+                  <h3 className="text-sm font-medium text-foreground">
+                    {section.title}
+                  </h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {section.body}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </motion.section>
@@ -83,6 +109,54 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.03 }}
+          className="border-t border-border pt-16 md:pt-20"
+          aria-labelledby="contacts-heading"
+        >
+          <h2
+            id="contacts-heading"
+            className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground"
+          >
+            Contacts
+          </h2>
+          <ul
+            className="flex flex-wrap gap-x-6 gap-y-3 text-sm"
+            aria-label="연락처"
+          >
+            <li>
+              <a
+                href={`tel:${contacts.tel.replace(/\s/g, '')}`}
+                className={externalLinkClass}
+              >
+                <Phone className="size-3.5 shrink-0" aria-hidden />
+                {contacts.tel}
+              </a>
+            </li>
+            <li>
+              <a
+                href={`mailto:${contacts.email}`}
+                className={externalLinkClass}
+              >
+                <Mail className="size-3.5 shrink-0" aria-hidden />
+                {contacts.email}
+              </a>
+            </li>
+            <li>
+              <a
+                href={contacts.github}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={externalLinkClass}
+              >
+                Github
+                <ExternalLink className="size-3.5 shrink-0" aria-hidden />
+              </a>
+            </li>
+          </ul>
+        </motion.section>
+
+        <motion.section
+          {...motionEnter}
+          transition={{ ...motionEnter.transition, delay: 0.04 }}
           className="border-t border-border pt-16 md:pt-20"
           aria-labelledby="skills-heading"
         >
@@ -113,7 +187,7 @@ export function AboutPage() {
             id="work-heading"
             className="mb-6 text-xs font-medium uppercase tracking-wider text-muted-foreground"
           >
-            회사 이력
+            경력 사항
           </h2>
           <ul className="space-y-8" aria-label="경력">
             {workHistory.map((item, i) => (
@@ -123,10 +197,9 @@ export function AboutPage() {
                     {item.company}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {item.period}
+                    {item.role} · {item.period}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground">{item.role}</p>
                 {item.description ? (
                   <p className="max-w-xl text-sm text-muted-foreground leading-relaxed">
                     {item.description}
@@ -137,10 +210,108 @@ export function AboutPage() {
           </ul>
         </motion.section>
 
-        {featuredProject && (
+        <motion.section
+          {...motionEnter}
+          transition={{ ...motionEnter.transition, delay: 0.055 }}
+          className="border-t border-border pt-16 md:pt-20"
+          aria-labelledby="external-heading"
+        >
+          <h2
+            id="external-heading"
+            className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground"
+          >
+            대외 활동
+          </h2>
+          <ul className="space-y-2" aria-label="대외 활동">
+            {externalActivities.map((item, i) => (
+              <li key={i} className="flex flex-wrap items-baseline gap-x-2">
+                <span className="text-foreground">{item.name}</span>
+                <span className="text-sm text-muted-foreground">
+                  {item.period}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </motion.section>
+
+        <motion.section
+          {...motionEnter}
+          transition={{ ...motionEnter.transition, delay: 0.06 }}
+          className="border-t border-border pt-16 md:pt-20"
+          aria-labelledby="education-heading"
+        >
+          <h2
+            id="education-heading"
+            className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground"
+          >
+            학력
+          </h2>
+          <ul className="space-y-3" aria-label="학력">
+            {education.map((item, i) => (
+              <li key={i} className="space-y-0.5">
+                <span className="font-medium text-foreground">
+                  {item.school}
+                </span>
+                <p className="text-sm text-muted-foreground">
+                  {item.description} · {item.period}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </motion.section>
+
+        <motion.section
+          {...motionEnter}
+          transition={{ ...motionEnter.transition, delay: 0.065 }}
+          className="border-t border-border pt-16 md:pt-20"
+          aria-labelledby="certs-heading"
+        >
+          <h2
+            id="certs-heading"
+            className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground"
+          >
+            자격증
+          </h2>
+          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm" aria-label="자격증">
+            {certifications.map((item, i) => (
+              <li key={i}>
+                <span className="text-foreground">{item.name}</span>
+                <span className="text-muted-foreground"> ({item.date})</span>
+              </li>
+            ))}
+          </ul>
+        </motion.section>
+
+        {aboutExtraParagraphs.length > 0 && (
           <motion.section
             {...motionEnter}
             transition={{ ...motionEnter.transition, delay: 0.07 }}
+            className="border-t border-border pt-16 md:pt-20"
+            aria-labelledby="extra-heading"
+          >
+            <h2
+              id="extra-heading"
+              className="mb-4 text-xs font-medium uppercase tracking-wider text-muted-foreground"
+            >
+              그 외
+            </h2>
+            <div className="space-y-3">
+              {aboutExtraParagraphs.map((p, i) => (
+                <p
+                  key={i}
+                  className="max-w-xl text-sm text-muted-foreground leading-relaxed"
+                >
+                  {p}
+                </p>
+              ))}
+            </div>
+          </motion.section>
+        )}
+
+        {featuredProject && (
+          <motion.section
+            {...motionEnter}
+            transition={{ ...motionEnter.transition, delay: 0.08 }}
             className="border-t border-border pt-16 md:pt-20"
             aria-labelledby="featured-heading"
           >
