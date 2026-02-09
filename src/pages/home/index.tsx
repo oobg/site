@@ -91,8 +91,8 @@ function TypingCodeBlock({ lines }: { lines: string[] }) {
       <div className="border-b border-border bg-[#1e1e1e] px-3 py-2 text-xs text-[#858585]">
         index.ts
       </div>
-      <div className="bg-[#1e1e1e] p-4">
-        <pre className="m-0 whitespace-pre-wrap break-all font-normal">
+      <div className="min-h-[7.5rem] bg-[#1e1e1e] p-4">
+        <pre className="m-0 min-h-[6rem] whitespace-pre-wrap break-all font-normal leading-relaxed">
           {tokens.map((t, idx) => {
             if (t.end <= charIndex) {
               return (
@@ -264,36 +264,9 @@ export function HomePage() {
           <TypingCodeBlock lines={welcomeCodeLines} />
         </motion.section>
 
-        <motion.div
-          {...motionEnter}
-          transition={{ ...motionEnter.transition, delay: 0.06 }}
-          className="mb-12 flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground"
-        >
-          <Link
-            to={ROUTES.ABOUT}
-            className="rounded px-2 py-1 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            About
-          </Link>
-          <span className="text-border">·</span>
-          <Link
-            to={ROUTES.PROJECTS_LIST}
-            className="rounded px-2 py-1 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Projects
-          </Link>
-          <span className="text-border">·</span>
-          <Link
-            to={ROUTES.CONTACT}
-            className="rounded px-2 py-1 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            Contact
-          </Link>
-        </motion.div>
-
         <motion.section
           {...motionEnter}
-          transition={{ ...motionEnter.transition, delay: 0.08 }}
+          transition={{ ...motionEnter.transition, delay: 0.06 }}
           className="border-t border-border pt-14 md:pt-16"
           aria-labelledby="welcome-cards-heading"
         >
