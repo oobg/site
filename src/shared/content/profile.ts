@@ -14,7 +14,10 @@ export const welcomeDescription =
 /** 홈 타이핑 코드 블록에 표시할 줄 (한 번만 재생) */
 export const welcomeCodeLines = [
   'const role = "Frontend Engineer"',
-  '// React · TypeScript · Vue',
+  'const years = 4',
+  '// React · TypeScript · Vue · Canvas',
+  'const focus = "UX & Performance"',
+  '',
   'export default raven',
 ]
 
