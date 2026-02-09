@@ -8,6 +8,13 @@ export const welcomeTitle = 'raven'
 export const welcomeDescription =
   '개인 포트폴리오에 오신 것을 환영합니다.'
 
+/** 홈 타이핑 코드 블록에 표시할 줄 (한 번만 재생) */
+export const welcomeCodeLines = [
+  'const role = "Frontend Engineer"',
+  '// React · TypeScript · Vite',
+  'export default raven',
+]
+
 /** 홈 웰컴 페이지 하단 섹션 (label = 작은 제목, description = 본문, cta = 버튼/링크 문구) */
 export const welcomeSections = {
   intro: {

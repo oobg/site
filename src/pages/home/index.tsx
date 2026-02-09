@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { ChevronRight, FolderGit2, Mail, User } from 'lucide-react'
 import { Helmet } from 'react-helmet-async'
@@ -7,12 +8,119 @@ import { ROUTES } from '@/shared/config/routes'
 import {
   heroRoleLabel,
   skills,
+  welcomeCodeLines,
   welcomeDescription,
   welcomeSections,
   welcomeTitle,
 } from '@/shared/content/profile'
 import { Button } from '@/shared/ui/button'
 import { cn } from '@/shared/lib/utils'
+
+const TYPING_INTERVAL_MS = 48
+
+type TokenType = 'keyword' | 'string' | 'comment' | 'identifier' | 'plain'
+
+interface Token {
+  type: TokenType
+  start: number
+  end: number
+}
+
+function tokenizeCode(text: string): Token[] {
+  const tokens: Token[] = []
+  const keywords = new Set(['const', 'export', 'default'])
+  let i = 0
+  while (i < text.length) {
+    const rest = text.slice(i)
+    const keyword = rest.match(/^\b(const|export|default)\b/)
+    const string = rest.match(/^"(?:[^"\\]|\\.)*"/)
+    const comment = rest.match(/^\/\/[^\n]*/)
+    const identifier = rest.match(/^[a-zA-Z_][a-zA-Z0-9_]*/)
+    if (keyword) {
+      tokens.push({ type: 'keyword', start: i, end: i + keyword[0].length })
+      i += keyword[0].length
+    } else if (string) {
+      tokens.push({ type: 'string', start: i, end: i + string[0].length })
+      i += string[0].length
+    } else if (comment) {
+      tokens.push({ type: 'comment', start: i, end: i + comment[0].length })
+      i += comment[0].length
+    } else if (identifier && !keywords.has(identifier[0])) {
+      tokens.push({ type: 'identifier', start: i, end: i + identifier[0].length })
+      i += identifier[0].length
+    } else {
+      tokens.push({ type: 'plain', start: i, end: i + 1 })
+      i += 1
+    }
+  }
+  return tokens
+}
+
+const VSCODE_CLASS: Record<TokenType, string> = {
+  keyword: 'text-[#569cd6]',
+  string: 'text-[#ce9178]',
+  comment: 'text-[#6a9955]',
+  identifier: 'text-[#9cdcfe]',
+  plain: 'text-[#d4d4d4]',
+}
+
+function TypingCodeBlock({ lines }: { lines: string[] }) {
+  const fullText = lines.join('\n')
+  const [charIndex, setCharIndex] = useState(0)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setCharIndex((prev) => {
+        const next = prev + 1
+        if (next >= fullText.length) clearInterval(id)
+        return Math.min(next, fullText.length)
+      })
+    }, TYPING_INTERVAL_MS)
+    return () => clearInterval(id)
+  }, [fullText])
+
+  const isComplete = charIndex >= fullText.length
+  const tokens = tokenizeCode(fullText)
+
+  return (
+    <div
+      className="overflow-hidden rounded-[var(--radius)] border border-border font-mono text-sm"
+      aria-live="polite"
+      aria-atomic="false"
+    >
+      <div className="border-b border-border bg-[#1e1e1e] px-3 py-2 text-xs text-[#858585]">
+        index.ts
+      </div>
+      <div className="bg-[#1e1e1e] p-4">
+        <pre className="m-0 whitespace-pre-wrap break-all font-normal">
+          {tokens.map((t, idx) => {
+            if (t.end <= charIndex) {
+              return (
+                <span key={idx} className={VSCODE_CLASS[t.type]}>
+                  {fullText.slice(t.start, t.end)}
+                </span>
+              )
+            }
+            if (t.start < charIndex) {
+              return (
+                <span key={idx} className={VSCODE_CLASS[t.type]}>
+                  {fullText.slice(t.start, charIndex)}
+                </span>
+              )
+            }
+            return null
+          })}
+          <span
+            className={isComplete ? 'animate-pulse text-primary' : 'text-primary'}
+            aria-hidden
+          >
+            |
+          </span>
+        </pre>
+      </div>
+    </div>
+  )
+}
 
 const motionEnter = {
   initial: { opacity: 0, y: 8 },
@@ -147,9 +255,18 @@ export function HomePage() {
           </div>
         </motion.section>
 
+        <motion.section
+          {...motionEnter}
+          transition={{ ...motionEnter.transition, delay: 0.05 }}
+          className="mb-12"
+          aria-label="코드 미리보기"
+        >
+          <TypingCodeBlock lines={welcomeCodeLines} />
+        </motion.section>
+
         <motion.div
           {...motionEnter}
-          transition={{ ...motionEnter.transition, delay: 0.04 }}
+          transition={{ ...motionEnter.transition, delay: 0.06 }}
           className="mb-12 flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground"
         >
           <Link
@@ -176,7 +293,7 @@ export function HomePage() {
 
         <motion.section
           {...motionEnter}
-          transition={{ ...motionEnter.transition, delay: 0.06 }}
+          transition={{ ...motionEnter.transition, delay: 0.08 }}
           className="border-t border-border pt-14 md:pt-16"
           aria-labelledby="welcome-cards-heading"
         >
