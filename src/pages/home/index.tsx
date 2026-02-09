@@ -281,11 +281,11 @@ export function HomePage() {
           >
             둘러보기
           </h2>
-          <ul className="grid gap-4 sm:gap-5 md:grid-cols-3">
+          <ul className="grid gap-4 sm:gap-5 md:grid-cols-3 md:items-stretch">
             {cardLinks.map((item, i) => {
               const Icon = item.icon
               return (
-                <li key={item.to}>
+                <li key={item.to} className="flex">
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -294,28 +294,29 @@ export function HomePage() {
                       ease: 'easeOut',
                       delay: 0.08 + i * 0.04,
                     }}
+                    className="flex h-full min-w-0 flex-1 flex-col"
                   >
                     <Link
                       to={item.to}
                       className={cn(
-                        'group flex h-full flex-col rounded-[var(--radius)] border border-border bg-card p-6 text-left transition-colors',
+                        'group flex h-full min-h-0 flex-col rounded-[var(--radius)] border border-border bg-card p-6 text-left transition-colors',
                         'hover:border-primary/30 hover:bg-muted/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                        'border-t-2 border-t-transparent hover:border-t-primary/40'
+                        'border-t-2 border-t-border hover:border-t-primary/40'
                       )}
                     >
                       <span
-                        className="inline-flex size-9 items-center justify-center rounded-md border border-border bg-muted/30 text-muted-foreground transition-colors group-hover:border-primary/30 group-hover:text-primary"
+                        className="inline-flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-muted/30 text-muted-foreground transition-colors group-hover:border-primary/30 group-hover:text-primary"
                         aria-hidden
                       >
                         <Icon className="size-4" />
                       </span>
-                      <span className="mt-4 block text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      <span className="mt-4 block shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         {item.label}
                       </span>
-                      <p className="mt-2 flex-1 text-sm text-muted-foreground leading-relaxed">
+                      <p className="mt-2 min-h-0 flex-1 text-sm text-muted-foreground leading-relaxed">
                         {item.description}
                       </p>
-                      <span className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-foreground group-hover:text-primary">
+                      <span className="mt-4 inline-flex shrink-0 items-center gap-1 text-sm font-medium text-foreground group-hover:text-primary">
                         {item.cta}
                         <ChevronRight className="size-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
                       </span>
