@@ -8,7 +8,7 @@ export const profileName = "배윤석";
 
 /** 홈 웰컴 페이지 문구 */
 export const welcomeTitle = "raven";
-export const welcomeDescription = "개인 포트폴리오에 오신 것을 환영합니다.";
+export const welcomeDescription = "사용자 경험을 고민하는 프론트엔드 개발자입니다.";
 
 /** 홈 타이핑 코드 블록에 표시할 줄 (한 번만 재생) */
 export const welcomeCodeLines = [
@@ -41,7 +41,7 @@ export const welcomeSections = {
 } as const;
 
 export const heroGreeting = "안녕하세요.";
-export const heroRoleLabel = "Frontend Engineer · 4년 차";
+export const heroRoleLabel = "Frontend Engineer";
 export const heroDescription =
   "사용자 편의성과 제품의 안정성을 최우선으로, 더 나은 경험을 제공하는 개발자입니다.";
 
