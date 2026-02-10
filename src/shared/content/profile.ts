@@ -14,7 +14,7 @@ export const welcomeDescription = "사용자 경험을 고민하는 프론트엔
 export const welcomeCodeLines = [
   'const role = "Frontend Engineer";',
   "const years = 4;",
-  "// React · TypeScript · Vue · Canvas",
+  "const skills = [\"React\", \"TypeScript\", \"Vue\", \"Canvas\"];",
   'const focus = "UX & Performance";',
   "",
   "export default raven;",

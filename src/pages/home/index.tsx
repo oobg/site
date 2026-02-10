@@ -60,12 +60,18 @@ function tokenizeCode(text: string): Token[] {
   return tokens;
 }
 
+/** 라이트: VS Code Light+ 스타일, 다크: VS Code Dark+ 스타일 */
 const VSCODE_CLASS: Record<TokenType, string> = {
-  keyword: "text-[#569cd6]",
-  string: "text-[#ce9178]",
-  comment: "text-[#6a9955]",
-  identifier: "text-[#9cdcfe]",
-  plain: "text-[#d4d4d4]",
+  keyword:
+    "text-blue-600 dark:text-[#569cd6]",
+  string:
+    "text-[#a31515] dark:text-[#ce9178]",
+  comment:
+    "text-green-700 dark:text-[#6a9955]",
+  identifier:
+    "text-[#001080] dark:text-[#9cdcfe]",
+  plain:
+    "text-zinc-800 dark:text-[#d4d4d4]",
 };
 
 function TypingCodeBlock({ lines }: { lines: string[] }) {
@@ -92,10 +98,10 @@ function TypingCodeBlock({ lines }: { lines: string[] }) {
       aria-live="polite"
       aria-atomic="false"
     >
-      <div className="border-b border-border bg-[#1e1e1e] px-3 py-2 text-xs text-[#858585]">
+      <div className="border-b border-border bg-zinc-200/80 px-3 py-2 text-xs text-zinc-500 dark:bg-[#252526] dark:text-[#858585]">
         index.ts
       </div>
-      <div className="min-h-[7.5rem] bg-[#1e1e1e] p-4">
+      <div className="min-h-[7.5rem] bg-zinc-100 p-4 dark:bg-[#1e1e1e]">
         <pre className="m-0 min-h-[6rem] whitespace-pre-wrap break-all font-normal leading-relaxed">
           {tokens.map((t, idx) => {
             if (t.end <= charIndex) {
