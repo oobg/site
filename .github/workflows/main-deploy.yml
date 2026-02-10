@@ -64,6 +64,17 @@ jobs:
           username: ${{ secrets.SSH_USER_NAME }}
           script: |
             mkdir -p ${{ env.DEPLOY_DIR }}
+            mkdir -p ${{ env.NGINX_CONFIG_DIR }}
+
+      - name: Copy nginx SPA config to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER_NAME }}
+          source: "deploy/spa.conf"
+          target: "${{ env.NGINX_CONFIG_DIR }}/"
 
       - name: Copy dist to server
         uses: appleboy/scp-action@v0.1.7
