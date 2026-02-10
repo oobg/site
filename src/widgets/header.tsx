@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { ThemeToggle } from "@/features/theme";
@@ -60,6 +60,36 @@ function HamburgerIcon({ open }: { open: boolean }) {
 export function Header() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const savedScrollY = useRef(0);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      savedScrollY.current = window.scrollY;
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${savedScrollY.current}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      window.scrollTo(0, savedScrollY.current);
+    }
+    return () => {
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      document.body.style.overflow = "";
+      window.scrollTo(0, savedScrollY.current);
+    };
+  }, [mobileOpen]);
 
   const closeMobile = () => setMobileOpen(false);
 
