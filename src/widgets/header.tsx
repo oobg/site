@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 import { ThemeToggle } from "@/features/theme";
@@ -60,17 +60,6 @@ function HamburgerIcon({ open }: { open: boolean }) {
 export function Header() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-
-  useEffect(() => {
-    if (mobileOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [mobileOpen]);
 
   const closeMobile = () => setMobileOpen(false);
 
