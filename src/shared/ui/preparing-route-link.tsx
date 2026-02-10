@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react";
+import type { ButtonHTMLAttributes, ComponentProps } from "react";
 import { Link } from "react-router-dom";
 
 import {
@@ -15,16 +15,17 @@ export function PreparingRouteLink({
   onClick,
   ...rest
 }: PreparingRouteLinkProps) {
-  if (PREPARING_ROUTES.includes(to)) {
-    // replace, state는 Link 전용이라 button에 넘기지 않음
+  const toStr = typeof to === "string" ? to : to?.pathname ?? "";
+  if (PREPARING_ROUTES.includes(toStr)) {
+    // replace, state, type, ref는 Link/anchor 전용이라 button에 넘기지 않음
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- 구조 분해로 제외만 함
-    const { replace: _r, state: _s, ...buttonRest } = rest;
+    const { replace: _r, state: _s, type: _t, ref: _ref, ...buttonRest } = rest;
     return (
       <button
+        {...(buttonRest as ButtonHTMLAttributes<HTMLButtonElement>)}
         type="button"
-        {...buttonRest}
         onClick={e => {
-          const label = PREPARING_ROUTE_LABELS[to] ?? "이 페이지";
+          const label = PREPARING_ROUTE_LABELS[toStr] ?? "이 페이지";
           toast(`${label}는 준비 중입니다.`);
           onClick?.(e as unknown as React.MouseEvent<HTMLAnchorElement>);
         }}
