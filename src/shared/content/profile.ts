@@ -12,18 +12,18 @@ export const welcomeDescription = "개인 포트폴리오에 오신 것을 환�
 
 /** 홈 타이핑 코드 블록에 표시할 줄 (한 번만 재생) */
 export const welcomeCodeLines = [
-  'const role = "Frontend Engineer"',
-  "const years = 4",
+  'const role = "Frontend Engineer";',
+  "const years = 4;",
   "// React · TypeScript · Vue · Canvas",
-  'const focus = "UX & Performance"',
+  'const focus = "UX & Performance";',
   "",
-  "export default raven",
+  "export default raven;",
 ];
 
 /** 홈 웰컴 페이지 하단 섹션 (label = 작은 제목, description = 본문, cta = 버튼/링크 문구) */
 export const welcomeSections = {
   intro: {
-    label: "이곳은",
+    label: "프로필",
     description:
       "소개, 경력, 스킬, 프로젝트를 담은 개인 포트폴리오입니다. 자세한 내용은 About에서 확인할 수 있습니다.",
     cta: "About 보기",
