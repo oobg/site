@@ -80,9 +80,8 @@ export const contacts = {
  * 프로필 사진 URL. 다크/라이트 모드별로 교체 가능.
  * 실제 사진 사용 시 public 폴더에 넣고 경로 지정 (예: /avatar.png).
  */
-export const avatarImageDark = "https://picsum.photos/seed/raven-dark/400/400";
-export const avatarImageLight =
-  "https://picsum.photos/seed/raven-light/400/400";
+export const avatarImageDark = "/assets/profile/dark.png";
+export const avatarImageLight = "/assets/profile/light.png";
 
 /** 스킬 태그 (이력서 기준) */
 export const skills: string[] = [
