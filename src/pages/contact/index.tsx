@@ -1,32 +1,32 @@
-import { motion } from 'framer-motion'
-import { useCallback } from 'react'
-import { Helmet } from 'react-helmet-async'
+import { motion } from "framer-motion";
+import { useCallback } from "react";
+import { Helmet } from "react-helmet-async";
 
-import { useContactFeedback } from '@/features/contact-feedback/use-contact-feedback'
-import { toast } from '@/shared/lib/toast'
+import { useContactFeedback } from "@/features/contact-feedback/use-contact-feedback";
+import { toast } from "@/shared/lib/toast";
 
-const EMAIL = 'hello@raven.kr'
-const GITHUB_URL = 'https://github.com'
-const LINKEDIN_URL = 'https://linkedin.com'
+const EMAIL = "hello@raven.kr";
+const GITHUB_URL = "https://github.com";
+const LINKEDIN_URL = "https://linkedin.com";
 
 export function ContactPage() {
-  const { copyToClipboard } = useContactFeedback()
+  const { copyToClipboard } = useContactFeedback();
 
   const handleEmailClick = useCallback(async () => {
-    const ok = await copyToClipboard(EMAIL)
+    const ok = await copyToClipboard(EMAIL);
     if (ok) {
-      toast.success('이메일 주소가 복사되었습니다.')
+      toast.success("이메일 주소가 복사되었습니다.");
     } else {
-      toast.info('선택하여 복사하거나, 메일 앱으로 보내주세요.', {
+      toast.info("선택하여 복사하거나, 메일 앱으로 보내주세요.", {
         description: EMAIL,
-      })
+      });
     }
-  }, [copyToClipboard])
+  }, [copyToClipboard]);
 
   const handleExternalClick = useCallback((url: string, label: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer')
-    toast.success(`${label}(으)로 이동했습니다.`)
-  }, [])
+    window.open(url, "_blank", "noopener,noreferrer");
+    toast.success(`${label}(으)로 이동했습니다.`);
+  }, []);
 
   return (
     <>
@@ -38,7 +38,7 @@ export function ContactPage() {
         <motion.section
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
           className="space-y-8"
         >
           <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
@@ -52,7 +52,7 @@ export function ContactPage() {
               <button
                 type="button"
                 onClick={handleEmailClick}
-                className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {EMAIL}
               </button>
@@ -62,8 +62,8 @@ export function ContactPage() {
                 href={GITHUB_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => handleExternalClick(GITHUB_URL, 'GitHub')}
-                className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                onClick={() => handleExternalClick(GITHUB_URL, "GitHub")}
+                className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 GitHub
               </a>
@@ -73,8 +73,8 @@ export function ContactPage() {
                 href={LINKEDIN_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => handleExternalClick(LINKEDIN_URL, 'LinkedIn')}
-                className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                onClick={() => handleExternalClick(LINKEDIN_URL, "LinkedIn")}
+                className="rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 LinkedIn
               </a>
@@ -83,5 +83,5 @@ export function ContactPage() {
         </motion.section>
       </div>
     </>
-  )
+  );
 }

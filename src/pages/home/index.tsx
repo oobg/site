@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { ChevronRight, FolderGit2, Mail, User } from 'lucide-react'
-import { Helmet } from 'react-helmet-async'
-import { Link } from 'react-router-dom'
+import { motion } from "framer-motion";
+import { ChevronRight, FolderGit2, Mail, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 
-import { ROUTES } from '@/shared/config/routes'
+import { ROUTES } from "@/shared/config/routes";
 import {
   heroRoleLabel,
   skills,
@@ -12,75 +12,79 @@ import {
   welcomeDescription,
   welcomeSections,
   welcomeTitle,
-} from '@/shared/content/profile'
-import { Button } from '@/shared/ui/button'
-import { cn } from '@/shared/lib/utils'
+} from "@/shared/content/profile";
+import { cn } from "@/shared/lib/utils";
+import { Button } from "@/shared/ui/button";
 
-const TYPING_INTERVAL_MS = 48
+const TYPING_INTERVAL_MS = 48;
 
-type TokenType = 'keyword' | 'string' | 'comment' | 'identifier' | 'plain'
+type TokenType = "keyword" | "string" | "comment" | "identifier" | "plain";
 
 interface Token {
-  type: TokenType
-  start: number
-  end: number
+  type: TokenType;
+  start: number;
+  end: number;
 }
 
 function tokenizeCode(text: string): Token[] {
-  const tokens: Token[] = []
-  const keywords = new Set(['const', 'export', 'default'])
-  let i = 0
+  const tokens: Token[] = [];
+  const keywords = new Set(["const", "export", "default"]);
+  let i = 0;
   while (i < text.length) {
-    const rest = text.slice(i)
-    const keyword = rest.match(/^\b(const|export|default)\b/)
-    const string = rest.match(/^"(?:[^"\\]|\\.)*"/)
-    const comment = rest.match(/^\/\/[^\n]*/)
-    const identifier = rest.match(/^[a-zA-Z_][a-zA-Z0-9_]*/)
+    const rest = text.slice(i);
+    const keyword = rest.match(/^\b(const|export|default)\b/);
+    const string = rest.match(/^"(?:[^"\\]|\\.)*"/);
+    const comment = rest.match(/^\/\/[^\n]*/);
+    const identifier = rest.match(/^[a-zA-Z_][a-zA-Z0-9_]*/);
     if (keyword) {
-      tokens.push({ type: 'keyword', start: i, end: i + keyword[0].length })
-      i += keyword[0].length
+      tokens.push({ type: "keyword", start: i, end: i + keyword[0].length });
+      i += keyword[0].length;
     } else if (string) {
-      tokens.push({ type: 'string', start: i, end: i + string[0].length })
-      i += string[0].length
+      tokens.push({ type: "string", start: i, end: i + string[0].length });
+      i += string[0].length;
     } else if (comment) {
-      tokens.push({ type: 'comment', start: i, end: i + comment[0].length })
-      i += comment[0].length
+      tokens.push({ type: "comment", start: i, end: i + comment[0].length });
+      i += comment[0].length;
     } else if (identifier && !keywords.has(identifier[0])) {
-      tokens.push({ type: 'identifier', start: i, end: i + identifier[0].length })
-      i += identifier[0].length
+      tokens.push({
+        type: "identifier",
+        start: i,
+        end: i + identifier[0].length,
+      });
+      i += identifier[0].length;
     } else {
-      tokens.push({ type: 'plain', start: i, end: i + 1 })
-      i += 1
+      tokens.push({ type: "plain", start: i, end: i + 1 });
+      i += 1;
     }
   }
-  return tokens
+  return tokens;
 }
 
 const VSCODE_CLASS: Record<TokenType, string> = {
-  keyword: 'text-[#569cd6]',
-  string: 'text-[#ce9178]',
-  comment: 'text-[#6a9955]',
-  identifier: 'text-[#9cdcfe]',
-  plain: 'text-[#d4d4d4]',
-}
+  keyword: "text-[#569cd6]",
+  string: "text-[#ce9178]",
+  comment: "text-[#6a9955]",
+  identifier: "text-[#9cdcfe]",
+  plain: "text-[#d4d4d4]",
+};
 
 function TypingCodeBlock({ lines }: { lines: string[] }) {
-  const fullText = lines.join('\n')
-  const [charIndex, setCharIndex] = useState(0)
+  const fullText = lines.join("\n");
+  const [charIndex, setCharIndex] = useState(0);
 
   useEffect(() => {
     const id = setInterval(() => {
-      setCharIndex((prev) => {
-        const next = prev + 1
-        if (next >= fullText.length) clearInterval(id)
-        return Math.min(next, fullText.length)
-      })
-    }, TYPING_INTERVAL_MS)
-    return () => clearInterval(id)
-  }, [fullText])
+      setCharIndex(prev => {
+        const next = prev + 1;
+        if (next >= fullText.length) clearInterval(id);
+        return Math.min(next, fullText.length);
+      });
+    }, TYPING_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [fullText]);
 
-  const isComplete = charIndex >= fullText.length
-  const tokens = tokenizeCode(fullText)
+  const isComplete = charIndex >= fullText.length;
+  const tokens = tokenizeCode(fullText);
 
   return (
     <div
@@ -99,19 +103,21 @@ function TypingCodeBlock({ lines }: { lines: string[] }) {
                 <span key={idx} className={VSCODE_CLASS[t.type]}>
                   {fullText.slice(t.start, t.end)}
                 </span>
-              )
+              );
             }
             if (t.start < charIndex) {
               return (
                 <span key={idx} className={VSCODE_CLASS[t.type]}>
                   {fullText.slice(t.start, charIndex)}
                 </span>
-              )
+              );
             }
-            return null
+            return null;
           })}
           <span
-            className={isComplete ? 'animate-pulse text-primary' : 'text-primary'}
+            className={
+              isComplete ? "animate-pulse text-primary" : "text-primary"
+            }
             aria-hidden
           >
             |
@@ -119,20 +125,20 @@ function TypingCodeBlock({ lines }: { lines: string[] }) {
         </pre>
       </div>
     </div>
-  )
+  );
 }
 
 const motionEnter = {
   initial: { opacity: 0, y: 8 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.3, ease: 'easeOut' as const },
-}
+  transition: { duration: 0.3, ease: "easeOut" as const },
+};
 
 const cardLinks = [
   { to: ROUTES.ABOUT, icon: User, ...welcomeSections.intro },
   { to: ROUTES.PROJECTS_LIST, icon: FolderGit2, ...welcomeSections.projects },
   { to: ROUTES.CONTACT, icon: Mail, ...welcomeSections.contact },
-] as const
+] as const;
 
 export function HomePage() {
   return (
@@ -168,7 +174,7 @@ export function HomePage() {
             <motion.p
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.28, ease: 'easeOut' }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
               className="text-[11px] font-medium uppercase tracking-[0.2em] text-muted-foreground"
             >
               Portfolio
@@ -177,7 +183,7 @@ export function HomePage() {
               id="hero-title"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.32, ease: 'easeOut', delay: 0.04 }}
+              transition={{ duration: 0.32, ease: "easeOut", delay: 0.04 }}
               className="mt-4 text-6xl font-semibold tracking-tight md:text-7xl"
             >
               {welcomeTitle}
@@ -185,7 +191,7 @@ export function HomePage() {
             <motion.div
               initial={{ opacity: 0, scaleX: 0.6 }}
               animate={{ opacity: 1, scaleX: 1 }}
-              transition={{ duration: 0.28, ease: 'easeOut', delay: 0.1 }}
+              transition={{ duration: 0.28, ease: "easeOut", delay: 0.1 }}
               className="mx-auto mt-6 flex items-center justify-center gap-2"
               aria-hidden
             >
@@ -200,7 +206,7 @@ export function HomePage() {
               className="mx-auto mt-3 flex gap-1.5"
               aria-hidden
             >
-              {[1, 2, 3].map((i) => (
+              {[1, 2, 3].map(i => (
                 <span
                   key={i}
                   className="size-1 rounded-full bg-muted-foreground/30"
@@ -211,7 +217,7 @@ export function HomePage() {
               <motion.p
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.28, ease: 'easeOut', delay: 0.16 }}
+                transition={{ duration: 0.28, ease: "easeOut", delay: 0.16 }}
                 className="mt-5 text-base tracking-wide text-muted-foreground md:text-lg"
               >
                 {heroRoleLabel}
@@ -220,7 +226,7 @@ export function HomePage() {
             <motion.p
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.28, ease: 'easeOut', delay: 0.2 }}
+              transition={{ duration: 0.28, ease: "easeOut", delay: 0.2 }}
               className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground md:mt-8 md:text-xl"
             >
               {welcomeDescription}
@@ -228,7 +234,7 @@ export function HomePage() {
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.28, ease: 'easeOut', delay: 0.24 }}
+              transition={{ duration: 0.28, ease: "easeOut", delay: 0.24 }}
               className="mt-10 flex flex-col items-center gap-6 md:mt-12"
             >
               <Button
@@ -247,7 +253,7 @@ export function HomePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
                       duration: 0.22,
-                      ease: 'easeOut',
+                      ease: "easeOut",
                       delay: 0.28 + i * 0.03,
                     }}
                     className="rounded-[var(--radius)] border border-border bg-background/80 px-3 py-1.5 text-xs text-muted-foreground"
@@ -283,7 +289,7 @@ export function HomePage() {
           </h2>
           <ul className="grid gap-4 sm:gap-5 md:grid-cols-3 md:items-stretch">
             {cardLinks.map((item, i) => {
-              const Icon = item.icon
+              const Icon = item.icon;
               return (
                 <li key={item.to} className="flex">
                   <motion.div
@@ -291,7 +297,7 @@ export function HomePage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
                       duration: 0.3,
-                      ease: 'easeOut',
+                      ease: "easeOut",
                       delay: 0.08 + i * 0.04,
                     }}
                     className="flex h-full min-w-0 flex-1 flex-col"
@@ -299,9 +305,9 @@ export function HomePage() {
                     <Link
                       to={item.to}
                       className={cn(
-                        'group flex h-full min-h-0 flex-col rounded-[var(--radius)] border border-border bg-card p-6 text-left transition-colors',
-                        'hover:border-primary/30 hover:bg-muted/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                        'border-t-2 border-t-border hover:border-t-primary/40'
+                        "group flex h-full min-h-0 flex-col rounded-[var(--radius)] border border-border bg-card p-6 text-left transition-colors",
+                        "hover:border-primary/30 hover:bg-muted/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        "border-t-2 border-t-border hover:border-t-primary/40"
                       )}
                     >
                       <span
@@ -313,7 +319,7 @@ export function HomePage() {
                       <span className="mt-4 block shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground">
                         {item.label}
                       </span>
-                      <p className="mt-2 min-h-0 flex-1 text-sm text-muted-foreground leading-relaxed">
+                      <p className="mt-2 min-h-0 flex-1 text-sm leading-relaxed text-muted-foreground">
                         {item.description}
                       </p>
                       <span className="mt-4 inline-flex shrink-0 items-center gap-1 text-sm font-medium text-foreground group-hover:text-primary">
@@ -323,11 +329,11 @@ export function HomePage() {
                     </Link>
                   </motion.div>
                 </li>
-              )
+              );
             })}
           </ul>
         </motion.section>
       </div>
     </>
-  )
+  );
 }

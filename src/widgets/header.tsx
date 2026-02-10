@@ -1,20 +1,20 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "react-router-dom";
 
-import { ThemeToggle } from '@/features/theme/theme-toggle'
-import { ROUTES } from '@/shared/config/routes'
-import { cn } from '@/shared/lib/utils'
+import { ThemeToggle } from "@/features/theme/theme-toggle";
+import { ROUTES } from "@/shared/config/routes";
+import { cn } from "@/shared/lib/utils";
 
 const navItems = [
-  { to: ROUTES.HOME, label: 'Home' },
-  { to: ROUTES.ABOUT, label: 'About' },
-  { to: ROUTES.PROJECTS_LIST, label: 'Projects' },
-  { to: ROUTES.BLOG, label: 'Blog' },
-  { to: ROUTES.CONTACT, label: 'Contact' },
-] as const
+  { to: ROUTES.HOME, label: "Home" },
+  { to: ROUTES.ABOUT, label: "About" },
+  { to: ROUTES.PROJECTS_LIST, label: "Projects" },
+  { to: ROUTES.BLOG, label: "Blog" },
+  { to: ROUTES.CONTACT, label: "Contact" },
+] as const;
 
-const iconTransition = { duration: 0.25, ease: 'easeOut' as const }
+const iconTransition = { duration: 0.25, ease: "easeOut" as const };
 
 function HamburgerIcon({ open }: { open: boolean }) {
   return (
@@ -53,25 +53,25 @@ function HamburgerIcon({ open }: { open: boolean }) {
         transition={iconTransition}
       />
     </span>
-  )
+  );
 }
 
 export function Header() {
-  const location = useLocation()
-  const [mobileOpen, setMobileOpen] = useState(false)
+  const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     if (mobileOpen) {
-      document.body.style.overflow = 'hidden'
+      document.body.style.overflow = "hidden";
     } else {
-      document.body.style.overflow = ''
+      document.body.style.overflow = "";
     }
     return () => {
-      document.body.style.overflow = ''
-    }
-  }, [mobileOpen])
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
 
-  const closeMobile = () => setMobileOpen(false)
+  const closeMobile = () => setMobileOpen(false);
 
   return (
     <>
@@ -93,10 +93,10 @@ export function Header() {
                 key={to}
                 to={to}
                 className={cn(
-                  'rounded text-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                  "rounded text-sm font-medium transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                   location.pathname === to
-                    ? 'text-foreground'
-                    : 'text-muted-foreground'
+                    ? "text-foreground"
+                    : "text-muted-foreground"
                 )}
               >
                 {label}
@@ -108,12 +108,12 @@ export function Header() {
           <div className="flex items-center gap-2 md:hidden">
             <button
               type="button"
-              onClick={() => setMobileOpen((o) => !o)}
+              onClick={() => setMobileOpen(o => !o)}
               className="flex size-10 items-center justify-center rounded-md text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-expanded={mobileOpen}
               aria-controls="mobile-nav"
-              aria-label={mobileOpen ? '메뉴 닫기' : '메뉴 열기'}
-              title={mobileOpen ? '닫기' : '메뉴'}
+              aria-label={mobileOpen ? "메뉴 닫기" : "메뉴 열기"}
+              title={mobileOpen ? "닫기" : "메뉴"}
             >
               <HamburgerIcon open={mobileOpen} />
             </button>
@@ -138,17 +138,17 @@ export function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
+              transition={{ duration: 0.25, ease: "easeOut" }}
             />
             <motion.div
               id="mobile-nav"
               className="absolute inset-x-0 top-0 overflow-hidden border-b border-border bg-background"
               initial={{ height: 0 }}
-              animate={{ height: '100%' }}
+              animate={{ height: "100%" }}
               exit={{ height: 0 }}
-              transition={{ duration: 0.35, ease: 'easeOut' }}
+              transition={{ duration: 0.35, ease: "easeOut" }}
             >
-              <div className="flex min-h-full flex-col pt-6 pb-8">
+              <div className="flex min-h-full flex-col pb-8 pt-6">
                 <div className="container mx-auto flex flex-1 flex-col gap-2 px-4">
                   {navItems.map(({ to, label }) => (
                     <Link
@@ -156,10 +156,10 @@ export function Header() {
                       to={to}
                       onClick={closeMobile}
                       className={cn(
-                        'rounded-lg px-4 py-3 text-base font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                        "rounded-lg px-4 py-3 text-base font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                         location.pathname === to
-                          ? 'bg-muted/50 text-foreground'
-                          : 'text-muted-foreground'
+                          ? "bg-muted/50 text-foreground"
+                          : "text-muted-foreground"
                       )}
                     >
                       {label}
@@ -175,5 +175,5 @@ export function Header() {
         )}
       </AnimatePresence>
     </>
-  )
+  );
 }

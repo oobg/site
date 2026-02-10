@@ -1,6 +1,6 @@
-import { Link } from 'react-router-dom'
+import { Link } from "react-router-dom";
 
-import { ROUTES } from '@/shared/config/routes'
+import { ROUTES } from "@/shared/config/routes";
 
 export function Footer() {
   return (
@@ -8,13 +8,13 @@ export function Footer() {
       <div className="container mx-auto max-w-4xl px-4 text-center text-sm text-muted-foreground">
         <Link
           to={ROUTES.HOME}
-          className="hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+          className="rounded hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           raven
         </Link>
-        {' · '}
+        {" · "}
         <span>raven.kr</span>
       </div>
     </footer>
-  )
+  );
 }

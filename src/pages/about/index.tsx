@@ -1,10 +1,10 @@
-import { motion } from 'framer-motion'
-import { ExternalLink, Mail, Phone } from 'lucide-react'
-import { Helmet } from 'react-helmet-async'
-import { Link } from 'react-router-dom'
+import { motion } from "framer-motion";
+import { ExternalLink, Mail, Phone } from "lucide-react";
+import { Helmet } from "react-helmet-async";
+import { Link } from "react-router-dom";
 
-import { useThemeStore } from '@/features/theme/theme-store'
-import { projectDetailPath, ROUTES } from '@/shared/config/routes'
+import { useThemeStore } from "@/features/theme/theme-store";
+import { projectDetailPath, ROUTES } from "@/shared/config/routes";
 import {
   aboutExtraParagraphs,
   avatarImageDark,
@@ -18,33 +18,33 @@ import {
   profileName,
   skills,
   workHistory,
-} from '@/shared/content/profile'
-import { projects } from '@/shared/content/projects'
-import { cn } from '@/shared/lib/utils'
-import { Button } from '@/shared/ui/button'
+} from "@/shared/content/profile";
+import { projects } from "@/shared/content/projects";
+import { cn } from "@/shared/lib/utils";
+import { Button } from "@/shared/ui/button";
 
-const featuredProject = projects[0]
+const featuredProject = projects[0];
 
 const motionEnter = {
   initial: { opacity: 0, y: 8 },
   animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.3, ease: 'easeOut' as const },
-}
+  transition: { duration: 0.3, ease: "easeOut" as const },
+};
 
 const linkClass = cn(
-  'text-sm text-muted-foreground transition-colors',
-  'hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded'
-)
+  "text-sm text-muted-foreground transition-colors",
+  "hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+);
 
 const externalLinkClass = cn(
-  'inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors',
-  'hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded'
-)
+  "inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors",
+  "hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+);
 
 export function AboutPage() {
-  const effectiveTheme = useThemeStore((s) => s.effectiveTheme)
+  const effectiveTheme = useThemeStore(s => s.effectiveTheme);
   const avatarSrc =
-    effectiveTheme === 'dark' ? avatarImageDark : avatarImageLight
+    effectiveTheme === "dark" ? avatarImageDark : avatarImageLight;
 
   return (
     <>
@@ -56,14 +56,11 @@ export function AboutPage() {
         />
       </Helmet>
       <div className="container mx-auto max-w-4xl px-4 py-16 md:py-24">
-        <motion.section
-          {...motionEnter}
-          className="mb-20 space-y-6 md:mb-24"
-        >
+        <motion.section {...motionEnter} className="mb-20 space-y-6 md:mb-24">
           <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
             About
           </h1>
-          <p className="max-w-xl text-muted-foreground leading-relaxed">
+          <p className="max-w-xl leading-relaxed text-muted-foreground">
             {profileName} 소개 및 경력·스킬 요약입니다.
           </p>
         </motion.section>
@@ -89,7 +86,7 @@ export function AboutPage() {
               />
             </div>
             <div className="min-w-0 flex-1 space-y-4">
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="leading-relaxed text-muted-foreground">
                 {introText}
               </p>
               {introSections.map((section, i) => (
@@ -97,7 +94,7 @@ export function AboutPage() {
                   <h3 className="text-sm font-medium text-foreground">
                     {section.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <p className="text-sm leading-relaxed text-muted-foreground">
                     {section.body}
                   </p>
                 </div>
@@ -124,7 +121,7 @@ export function AboutPage() {
           >
             <li>
               <a
-                href={`tel:${contacts.tel.replace(/\s/g, '')}`}
+                href={`tel:${contacts.tel.replace(/\s/g, "")}`}
                 className={externalLinkClass}
               >
                 <Phone className="size-3.5 shrink-0" aria-hidden />
@@ -167,7 +164,7 @@ export function AboutPage() {
             Skills
           </h2>
           <ul className="flex flex-wrap gap-2" aria-label="기술 스킬">
-            {skills.map((name) => (
+            {skills.map(name => (
               <li key={name}>
                 <span className="rounded-[var(--radius)] border border-border bg-muted/50 px-3 py-1.5 text-sm text-foreground">
                   {name}
@@ -197,14 +194,14 @@ export function AboutPage() {
                     {item.company}
                   </span>
                   <span className="flex flex-wrap items-baseline gap-x-2 text-sm text-muted-foreground">
-                    <code className="rounded-s-sm rounded-e-sm border border-violet-500/40 bg-violet-500/25 px-1.5 py-0.5 font-mono text-xs font-medium text-foreground">
+                    <code className="rounded-e-sm rounded-s-sm border border-violet-500/40 bg-violet-500/25 px-1.5 py-0.5 font-mono text-xs font-medium text-foreground">
                       {item.role}
                     </code>
                     <span>{item.period}</span>
                   </span>
                 </div>
                 {item.description ? (
-                  <p className="w-full text-sm text-muted-foreground leading-relaxed">
+                  <p className="w-full text-sm leading-relaxed text-muted-foreground">
                     {item.description}
                   </p>
                 ) : null}
@@ -275,7 +272,10 @@ export function AboutPage() {
           >
             자격증
           </h2>
-          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm" aria-label="자격증">
+          <ul
+            className="flex flex-wrap gap-x-4 gap-y-1 text-sm"
+            aria-label="자격증"
+          >
             {certifications.map((item, i) => (
               <li key={i}>
                 <span className="text-foreground">{item.name}</span>
@@ -302,7 +302,7 @@ export function AboutPage() {
               {aboutExtraParagraphs.map((p, i) => (
                 <p
                   key={i}
-                  className="max-w-xl text-sm text-muted-foreground leading-relaxed"
+                  className="max-w-xl text-sm leading-relaxed text-muted-foreground"
                 >
                   {p}
                 </p>
@@ -328,7 +328,7 @@ export function AboutPage() {
               <h3 className="text-xl font-semibold tracking-tight md:text-2xl">
                 {featuredProject.title}
               </h3>
-              <p className="max-w-xl text-muted-foreground leading-relaxed">
+              <p className="max-w-xl leading-relaxed text-muted-foreground">
                 {featuredProject.summary}
               </p>
               <div>
@@ -354,7 +354,7 @@ export function AboutPage() {
           >
             Explore
           </h2>
-          <p className="mb-6 max-w-xl text-muted-foreground leading-relaxed">
+          <p className="mb-6 max-w-xl leading-relaxed text-muted-foreground">
             프로젝트, 블로그, 연락처를 둘러볼 수 있습니다.
           </p>
           <div className="flex flex-col items-start gap-3">
@@ -384,5 +384,5 @@ export function AboutPage() {
         </motion.section>
       </div>
     </>
-  )
+  );
 }
