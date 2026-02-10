@@ -97,14 +97,16 @@ jobs:
               nginx:alpine
 
       - name: GitHub Summary
+        shell: bash
         run: |
           echo "## Deployed commits" >> $GITHUB_STEP_SUMMARY
           TOTAL=$(jq '.commits | length // 0' $GITHUB_EVENT_PATH 2>/dev/null || echo "0")
           if [ "$TOTAL" = "0" ] || [ -z "$TOTAL" ]; then
             echo "- \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           else
-            jq -r '.commits[:10][] | "- " + ((.message | split("\n")[0] // "") | gsub("`"; "'")) + " (`" + (.id | .[0:7]) + "`)"' $GITHUB_EVENT_PATH >> $GITHUB_STEP_SUMMARY
+            jq -r '.commits[:10][] | "- " + ((.message | split("\n")[0] // "") | gsub("`"; "'\''")) + " (`" + (.id | .[0:7]) + "`)"' $GITHUB_EVENT_PATH >> $GITHUB_STEP_SUMMARY
             if [ "$TOTAL" -gt 10 ] 2>/dev/null; then
-              echo "- ... (외 $((TOTAL - 10))개)" >> $GITHUB_STEP_SUMMARY
+              EXTRA=$((TOTAL - 10))
+              echo "- ... (외 ${EXTRA}개)" >> $GITHUB_STEP_SUMMARY
             fi
           fi
