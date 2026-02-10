@@ -5,6 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 import { ThemeToggle } from "@/features/theme";
 import { ROUTES } from "@/shared/config/routes";
 import { cn } from "@/shared/lib/utils";
+import { PreparingRouteLink } from "@/shared/ui/preparing-route-link";
 
 const navItems = [
   { to: ROUTES.HOME, label: "Home" },
@@ -89,7 +90,7 @@ export function Header() {
             aria-label="메인 네비게이션"
           >
             {navItems.map(({ to, label }) => (
-              <Link
+              <PreparingRouteLink
                 key={to}
                 to={to}
                 className={cn(
@@ -100,7 +101,7 @@ export function Header() {
                 )}
               >
                 {label}
-              </Link>
+              </PreparingRouteLink>
             ))}
             <ThemeToggle />
           </nav>
@@ -151,19 +152,19 @@ export function Header() {
               <div className="flex min-h-full flex-col pb-8 pt-6">
                 <div className="container mx-auto flex flex-1 flex-col gap-2 px-4">
                   {navItems.map(({ to, label }) => (
-                    <Link
+                    <PreparingRouteLink
                       key={to}
                       to={to}
                       onClick={closeMobile}
                       className={cn(
-                        "rounded-lg px-4 py-3 text-base font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        "w-full rounded-lg px-4 py-3 text-left text-base font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                         location.pathname === to
                           ? "bg-muted/50 text-foreground"
                           : "text-muted-foreground"
                       )}
                     >
                       {label}
-                    </Link>
+                    </PreparingRouteLink>
                   ))}
                   <div className="mt-4 border-t border-border pt-4">
                     <ThemeToggle />

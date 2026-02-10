@@ -7,6 +7,20 @@ export const ROUTES = {
   CONTACT: "/contact",
 } as const;
 
+/** 이동 시 토스트만 띄우고 네비게이션하지 않는 경로 */
+export const PREPARING_ROUTES: string[] = [
+  ROUTES.PROJECTS_LIST,
+  ROUTES.BLOG,
+  ROUTES.CONTACT,
+];
+
+/** 준비 중 페이지 경로 → 토스트에 쓸 이름 */
+export const PREPARING_ROUTE_LABELS: Record<string, string> = {
+  [ROUTES.PROJECTS_LIST]: "Projects",
+  [ROUTES.BLOG]: "Blog",
+  [ROUTES.CONTACT]: "Contact",
+};
+
 export function projectDetailPath(id: string): string {
   return `/projects/${id}`;
 }

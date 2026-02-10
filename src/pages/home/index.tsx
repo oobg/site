@@ -15,6 +15,7 @@ import {
 } from "@/shared/content/profile";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
+import { PreparingRouteLink } from "@/shared/ui/preparing-route-link";
 
 const TYPING_INTERVAL_MS = 48;
 
@@ -308,7 +309,7 @@ export function HomePage() {
                     }}
                     className="flex h-full min-w-0 flex-1 flex-col"
                   >
-                    <Link
+                    <PreparingRouteLink
                       to={item.to}
                       className={cn(
                         "group flex h-full min-h-0 flex-col rounded-[var(--radius)] border border-border bg-card p-6 text-left transition-colors",
@@ -332,7 +333,7 @@ export function HomePage() {
                         {item.cta}
                         <ChevronRight className="size-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
                       </span>
-                    </Link>
+                    </PreparingRouteLink>
                   </motion.div>
                 </li>
               );

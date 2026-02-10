@@ -22,6 +22,7 @@ import {
 import { projects } from "@/shared/content/projects";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
+import { PreparingRouteLink } from "@/shared/ui/preparing-route-link";
 
 const featuredProject = projects[0];
 
@@ -56,19 +57,16 @@ export function AboutPage() {
         />
       </Helmet>
       <div className="container mx-auto max-w-4xl px-4 py-16 md:py-24">
-        <motion.section {...motionEnter} className="mb-20 space-y-6 md:mb-24">
+        <motion.section {...motionEnter} className="mb-2 space-y-6">
           <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
             About
           </h1>
-          <p className="max-w-xl leading-relaxed text-muted-foreground">
-            {profileName} 소개 및 경력·스킬 요약입니다.
-          </p>
         </motion.section>
 
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.02 }}
-          className="border-t border-border pt-16 md:pt-20"
+          className="border-t border-border pt-16 md:pt-20 mb-2"
           aria-labelledby="intro-heading"
         >
           <h2 id="intro-heading" className="sr-only">
@@ -106,7 +104,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.03 }}
-          className="border-t border-border pt-16 md:pt-20"
+          className="border-t border-border pt-16 md:pt-20 mb-2"
           aria-labelledby="contacts-heading"
         >
           <h2
@@ -154,7 +152,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.04 }}
-          className="border-t border-border pt-16 md:pt-20"
+          className="border-t border-border pt-16 md:pt-20 mb-4"
           aria-labelledby="skills-heading"
         >
           <h2
@@ -177,7 +175,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.05 }}
-          className="border-t border-border pt-16 md:pt-20"
+          className="border-t border-border pt-16 md:pt-20 mb-2"
           aria-labelledby="work-heading"
         >
           <h2
@@ -213,7 +211,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.055 }}
-          className="border-t border-border pt-16 md:pt-20"
+          className="border-t border-border pt-16 md:pt-20 mb-2"
           aria-labelledby="external-heading"
         >
           <h2
@@ -237,7 +235,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.06 }}
-          className="border-t border-border pt-16 md:pt-20"
+          className="border-t border-border pt-16 md:pt-20 mb-2"
           aria-labelledby="education-heading"
         >
           <h2
@@ -263,7 +261,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.065 }}
-          className="border-t border-border pt-16 md:pt-20"
+          className="border-t border-border pt-16 md:pt-20 mb-2"
           aria-labelledby="certs-heading"
         >
           <h2
@@ -289,7 +287,7 @@ export function AboutPage() {
           <motion.section
             {...motionEnter}
             transition={{ ...motionEnter.transition, delay: 0.07 }}
-            className="border-t border-border pt-16 md:pt-20"
+            className="border-t border-border pt-16 md:pt-20 mb-2"
             aria-labelledby="extra-heading"
           >
             <h2
@@ -315,7 +313,7 @@ export function AboutPage() {
           <motion.section
             {...motionEnter}
             transition={{ ...motionEnter.transition, delay: 0.08 }}
-            className="border-t border-border pt-16 md:pt-20"
+            className="border-t border-border pt-16 md:pt-20 mb-2"
             aria-labelledby="featured-heading"
           >
             <h2
@@ -342,7 +340,7 @@ export function AboutPage() {
           </motion.section>
         )}
 
-        <motion.section
+        {/* <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.1 }}
           className="border-t border-border pt-16 md:pt-20"
@@ -363,25 +361,25 @@ export function AboutPage() {
               variant="link"
               className="h-auto p-0 text-foreground underline-offset-4 hover:underline"
             >
-              <Link to={ROUTES.CONTACT}>Contact</Link>
+              <PreparingRouteLink to={ROUTES.CONTACT}>Contact</PreparingRouteLink>
             </Button>
             <ul
               className="flex flex-wrap gap-x-4 gap-y-1 text-sm"
               aria-label="사이트 내 페이지"
             >
               <li>
-                <Link to={ROUTES.PROJECTS_LIST} className={linkClass}>
+                <PreparingRouteLink to={ROUTES.PROJECTS_LIST} className={linkClass}>
                   Projects
-                </Link>
+                </PreparingRouteLink>
               </li>
               <li>
-                <Link to={ROUTES.BLOG} className={linkClass}>
+                <PreparingRouteLink to={ROUTES.BLOG} className={linkClass}>
                   Blog
-                </Link>
+                </PreparingRouteLink>
               </li>
             </ul>
           </div>
-        </motion.section>
+        </motion.section> */}
       </div>
     </>
   );

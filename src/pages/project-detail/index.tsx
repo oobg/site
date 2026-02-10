@@ -5,6 +5,7 @@ import { Link, useParams } from "react-router-dom";
 import { ROUTES } from "@/shared/config/routes";
 import { getProjectById } from "@/shared/content/projects";
 import { Button } from "@/shared/ui/button";
+import { PreparingRouteLink } from "@/shared/ui/preparing-route-link";
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -15,7 +16,7 @@ export function ProjectDetailPage() {
       <div className="container mx-auto max-w-4xl px-4 py-16">
         <p className="text-muted-foreground">프로젝트를 찾을 수 없습니다.</p>
         <Button asChild className="mt-4">
-          <Link to={ROUTES.PROJECTS_LIST}>목록으로</Link>
+          <PreparingRouteLink to={ROUTES.PROJECTS_LIST}>목록으로</PreparingRouteLink>
         </Button>
       </div>
     );
@@ -76,7 +77,7 @@ export function ProjectDetailPage() {
           )}
           <div className="pt-4">
             <Button asChild variant="outline">
-              <Link to={ROUTES.PROJECTS_LIST}>목록으로</Link>
+              <PreparingRouteLink to={ROUTES.PROJECTS_LIST}>목록으로</PreparingRouteLink>
             </Button>
           </div>
         </motion.article>
