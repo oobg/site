@@ -1,5 +1,5 @@
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import { Outlet } from "react-router-dom";
+import { Outlet, ScrollRestoration } from "react-router-dom";
 
 import {
   RouteTransitionFade,
@@ -24,6 +24,7 @@ export function RootLayout() {
       <ThemeProvider>
         <BodyOverlayScrollbars />
         <RouteTransitionIndicator />
+        <ScrollRestoration />
         <div className="flex min-h-screen flex-col">
           <Header />
           <main className="flex-1">
