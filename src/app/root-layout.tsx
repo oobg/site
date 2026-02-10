@@ -5,10 +5,7 @@ import {
   RouteTransitionFade,
   RouteTransitionIndicator,
 } from "@/features/route-transition";
-import {
-  BodyOverlayScrollbars,
-  ThemeProvider,
-} from "@/features/theme";
+import { BodyOverlayScrollbars, ThemeProvider } from "@/features/theme";
 import { Toaster } from "@/shared/ui/sonner";
 import { Footer } from "@/widgets/footer";
 import { Header } from "@/widgets/header";

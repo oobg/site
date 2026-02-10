@@ -8,13 +8,14 @@ export const profileName = "배윤석";
 
 /** 홈 웰컴 페이지 문구 */
 export const welcomeTitle = "raven";
-export const welcomeDescription = "사용자 경험을 고민하는 프론트엔드 개발자입니다.";
+export const welcomeDescription =
+  "사용자 경험을 고민하는 프론트엔드 개발자입니다.";
 
 /** 홈 타이핑 코드 블록에 표시할 줄 (한 번만 재생) */
 export const welcomeCodeLines = [
   'const role = "Frontend Engineer";',
   "const years = 4;",
-  "const skills = [\"React\", \"TypeScript\", \"Vue\", \"Canvas\"];",
+  'const skills = ["React", "TypeScript", "Vue", "Canvas"];',
   'const focus = "UX & Performance";',
   "",
   "export default raven;",

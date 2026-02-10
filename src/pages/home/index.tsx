@@ -63,16 +63,11 @@ function tokenizeCode(text: string): Token[] {
 
 /** 라이트: VS Code Light+ 스타일, 다크: VS Code Dark+ 스타일 */
 const VSCODE_CLASS: Record<TokenType, string> = {
-  keyword:
-    "text-blue-600 dark:text-[#569cd6]",
-  string:
-    "text-[#a31515] dark:text-[#ce9178]",
-  comment:
-    "text-green-700 dark:text-[#6a9955]",
-  identifier:
-    "text-[#001080] dark:text-[#9cdcfe]",
-  plain:
-    "text-zinc-800 dark:text-[#d4d4d4]",
+  keyword: "text-blue-600 dark:text-[#569cd6]",
+  string: "text-[#a31515] dark:text-[#ce9178]",
+  comment: "text-green-700 dark:text-[#6a9955]",
+  identifier: "text-[#001080] dark:text-[#9cdcfe]",
+  plain: "text-zinc-800 dark:text-[#d4d4d4]",
 };
 
 function TypingCodeBlock({ lines }: { lines: string[] }) {

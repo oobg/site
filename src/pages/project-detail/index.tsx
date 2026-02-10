@@ -16,7 +16,9 @@ export function ProjectDetailPage() {
       <div className="container mx-auto max-w-4xl px-4 py-16">
         <p className="text-muted-foreground">프로젝트를 찾을 수 없습니다.</p>
         <Button asChild className="mt-4">
-          <PreparingRouteLink to={ROUTES.PROJECTS_LIST}>목록으로</PreparingRouteLink>
+          <PreparingRouteLink to={ROUTES.PROJECTS_LIST}>
+            목록으로
+          </PreparingRouteLink>
         </Button>
       </div>
     );
@@ -77,7 +79,9 @@ export function ProjectDetailPage() {
           )}
           <div className="pt-4">
             <Button asChild variant="outline">
-              <PreparingRouteLink to={ROUTES.PROJECTS_LIST}>목록으로</PreparingRouteLink>
+              <PreparingRouteLink to={ROUTES.PROJECTS_LIST}>
+                목록으로
+              </PreparingRouteLink>
             </Button>
           </div>
         </motion.article>

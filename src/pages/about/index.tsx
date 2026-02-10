@@ -69,7 +69,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.02 }}
-          className="border-t border-border pt-16 md:pt-20 mb-2"
+          className="mb-2 border-t border-border pt-16 md:pt-20"
           aria-labelledby="intro-heading"
         >
           <h2 id="intro-heading" className="sr-only">
@@ -107,7 +107,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.03 }}
-          className="border-t border-border pt-16 md:pt-20 mb-2"
+          className="mb-2 border-t border-border pt-16 md:pt-20"
           aria-labelledby="contacts-heading"
         >
           <h2
@@ -155,7 +155,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.04 }}
-          className="border-t border-border pt-16 md:pt-20 mb-4"
+          className="mb-4 border-t border-border pt-16 md:pt-20"
           aria-labelledby="skills-heading"
         >
           <h2
@@ -178,7 +178,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.05 }}
-          className="border-t border-border pt-16 md:pt-20 mb-2"
+          className="mb-2 border-t border-border pt-16 md:pt-20"
           aria-labelledby="work-heading"
         >
           <h2
@@ -214,7 +214,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.055 }}
-          className="border-t border-border pt-16 md:pt-20 mb-2"
+          className="mb-2 border-t border-border pt-16 md:pt-20"
           aria-labelledby="external-heading"
         >
           <h2
@@ -238,7 +238,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.06 }}
-          className="border-t border-border pt-16 md:pt-20 mb-2"
+          className="mb-2 border-t border-border pt-16 md:pt-20"
           aria-labelledby="education-heading"
         >
           <h2
@@ -264,7 +264,7 @@ export function AboutPage() {
         <motion.section
           {...motionEnter}
           transition={{ ...motionEnter.transition, delay: 0.065 }}
-          className="border-t border-border pt-16 md:pt-20 mb-2"
+          className="mb-2 border-t border-border pt-16 md:pt-20"
           aria-labelledby="certs-heading"
         >
           <h2
@@ -290,7 +290,7 @@ export function AboutPage() {
           <motion.section
             {...motionEnter}
             transition={{ ...motionEnter.transition, delay: 0.07 }}
-            className="border-t border-border pt-16 md:pt-20 mb-2"
+            className="mb-2 border-t border-border pt-16 md:pt-20"
             aria-labelledby="extra-heading"
           >
             <h2
@@ -316,7 +316,7 @@ export function AboutPage() {
           <motion.section
             {...motionEnter}
             transition={{ ...motionEnter.transition, delay: 0.08 }}
-            className="border-t border-border pt-16 md:pt-20 mb-2"
+            className="mb-2 border-t border-border pt-16 md:pt-20"
             aria-labelledby="featured-heading"
           >
             <h2
