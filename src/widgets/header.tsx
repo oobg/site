@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import { ThemeToggle } from "@/features/theme/theme-toggle";
+import { ThemeToggle } from "@/features/theme";
 import { ROUTES } from "@/shared/config/routes";
 import { cn } from "@/shared/lib/utils";
 

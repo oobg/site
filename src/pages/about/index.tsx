@@ -3,7 +3,7 @@ import { ExternalLink, Mail, Phone } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
-import { useThemeStore } from "@/features/theme/theme-store";
+import { useThemeStore } from "@/features/theme";
 import { projectDetailPath, ROUTES } from "@/shared/config/routes";
 import {
   aboutExtraParagraphs,

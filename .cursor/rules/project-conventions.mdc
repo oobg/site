@@ -40,6 +40,7 @@ Before doing anything, you MUST read and strictly follow all rules defined in th
 
 - 폴더 구조: **FSD-lite**
 - 경로 별칭: **@/**
+- **임포트 경로 (features 등 도메인/슬라이스)**: @/ 기준 3단계까지. 예: `@/features/theme` (O), `@/features/theme/theme-toggle` (X). 슬라이스 폴더에서 barrel(`index.ts`)로 공개하고 그 barrel만 임포트. **shared는 예외**: `@/shared/lib/utils`, `@/shared/ui/button`처럼 파일 단위 임포트 허용.
 - assets: **public**
 - 환경변수: **VITE_** 접두사
 
