@@ -4,7 +4,10 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
 import { useThemeStore } from "@/features/theme";
-import { projectDetailPath, ROUTES } from "@/shared/config/routes";
+import {
+  projectDetailPath,
+  // ROUTES
+} from "@/shared/config/routes";
 import {
   aboutExtraParagraphs,
   avatarImageDark,
@@ -22,7 +25,7 @@ import {
 import { projects } from "@/shared/content/projects";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
-import { PreparingRouteLink } from "@/shared/ui/preparing-route-link";
+// import { PreparingRouteLink } from "@/shared/ui/preparing-route-link";
 
 const featuredProject = projects[0];
 
@@ -32,10 +35,10 @@ const motionEnter = {
   transition: { duration: 0.3, ease: "easeOut" as const },
 };
 
-const linkClass = cn(
-  "text-sm text-muted-foreground transition-colors",
-  "hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-);
+// const linkClass = cn(
+//   "text-sm text-muted-foreground transition-colors",
+//   "hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+// );
 
 const externalLinkClass = cn(
   "inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors",
