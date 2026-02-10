@@ -5,6 +5,7 @@ import {
   RouteTransitionFade,
   RouteTransitionIndicator,
 } from '@/features/route-transition/route-transition-indicator'
+import { BodyOverlayScrollbars } from '@/features/theme/body-overlay-scrollbars'
 import { ThemeProvider } from '@/features/theme/theme-provider'
 import { Toaster } from '@/shared/ui/sonner'
 import { Footer } from '@/widgets/footer'
@@ -22,6 +23,7 @@ export function RootLayout() {
         <meta name="description" content={defaultMeta.description} />
       </Helmet>
       <ThemeProvider>
+        <BodyOverlayScrollbars />
         <RouteTransitionIndicator />
         <div className="min-h-screen flex flex-col">
           <Header />

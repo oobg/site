@@ -1,3 +1,4 @@
+import 'overlayscrollbars/styles/overlayscrollbars.css'
 import './index.css'
 
 import { StrictMode } from 'react'
