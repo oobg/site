@@ -1,6 +1,7 @@
 import { OverlayScrollbars } from "overlayscrollbars";
-import { useEffect, useRef } from "react";
+import { useContext, useEffect, useRef } from "react";
 
+import { BodyScrollRefContext } from "./body-scroll-ref-context";
 import { useThemeStore } from "./theme-store";
 
 function getScrollbarTheme(effectiveTheme: "dark" | "light") {
@@ -10,16 +11,19 @@ function getScrollbarTheme(effectiveTheme: "dark" | "light") {
 export function BodyOverlayScrollbars() {
   const effectiveTheme = useThemeStore(s => s.effectiveTheme);
   const osRef = useRef<ReturnType<typeof OverlayScrollbars> | null>(null);
+  const bodyScrollRef = useContext(BodyScrollRefContext);
 
   useEffect(() => {
     const theme = getScrollbarTheme(effectiveTheme);
     const os = OverlayScrollbars(document.body, { scrollbars: { theme } });
     osRef.current = os;
+    bodyScrollRef.current = os;
     return () => {
       os.destroy();
       osRef.current = null;
+      bodyScrollRef.current = null;
     };
-  }, [effectiveTheme]);
+  }, [effectiveTheme, bodyScrollRef]);
 
   return null;
 }

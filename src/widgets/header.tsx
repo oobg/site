@@ -1,8 +1,8 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-import { ThemeToggle } from "@/features/theme";
+import { BodyScrollRefContext, ThemeToggle } from "@/features/theme";
 import { ROUTES } from "@/shared/config/routes";
 import { cn } from "@/shared/lib/utils";
 import { PreparingRouteLink } from "@/shared/ui/preparing-route-link";
@@ -60,36 +60,37 @@ function HamburgerIcon({ open }: { open: boolean }) {
 export function Header() {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const savedScrollY = useRef(0);
+  const bodyScrollRef = useContext(BodyScrollRefContext);
+  const previousOverflowRef = useRef<string | null>(null);
 
   useEffect(() => {
+    const os = bodyScrollRef?.current;
+    const viewport = os?.elements().viewport;
+
     if (mobileOpen) {
-      savedScrollY.current = window.scrollY;
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${savedScrollY.current}px`;
-      document.body.style.left = "0";
-      document.body.style.right = "0";
-      document.body.style.width = "100%";
-      document.body.style.overflow = "hidden";
+      if (viewport) {
+        previousOverflowRef.current = viewport.style.overflow ?? "";
+        viewport.style.overflow = "hidden";
+      } else {
+        previousOverflowRef.current = document.body.style.overflow ?? "";
+        document.body.style.overflow = "hidden";
+      }
     } else {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
-      document.body.style.overflow = "";
-      window.scrollTo(0, savedScrollY.current);
+      if (viewport && previousOverflowRef.current !== null) {
+        viewport.style.overflow = previousOverflowRef.current;
+      } else if (previousOverflowRef.current !== null) {
+        document.body.style.overflow = previousOverflowRef.current;
+      }
     }
+
     return () => {
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.left = "";
-      document.body.style.right = "";
-      document.body.style.width = "";
-      document.body.style.overflow = "";
-      window.scrollTo(0, savedScrollY.current);
+      if (viewport && previousOverflowRef.current !== null) {
+        viewport.style.overflow = previousOverflowRef.current;
+      } else if (previousOverflowRef.current !== null) {
+        document.body.style.overflow = previousOverflowRef.current;
+      }
     };
-  }, [mobileOpen]);
+  }, [mobileOpen, bodyScrollRef]);
 
   const closeMobile = () => setMobileOpen(false);
 

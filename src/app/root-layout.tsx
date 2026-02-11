@@ -5,7 +5,11 @@ import {
   RouteTransitionFade,
   RouteTransitionIndicator,
 } from "@/features/route-transition";
-import { BodyOverlayScrollbars, ThemeProvider } from "@/features/theme";
+import {
+  BodyOverlayScrollbars,
+  BodyScrollRefProvider,
+  ThemeProvider,
+} from "@/features/theme";
 import { Toaster } from "@/shared/ui/sonner";
 import { Footer } from "@/widgets/footer";
 import { Header } from "@/widgets/header";
@@ -22,19 +26,21 @@ export function RootLayout() {
         <meta name="description" content={defaultMeta.description} />
       </Helmet>
       <ThemeProvider>
-        <BodyOverlayScrollbars />
-        <RouteTransitionIndicator />
-        <ScrollRestoration />
-        <div className="flex min-h-screen flex-col">
-          <Header />
-          <main className="flex-1">
-            <RouteTransitionFade>
-              <Outlet />
-            </RouteTransitionFade>
-          </main>
-          <Footer />
-        </div>
-        <Toaster />
+        <BodyScrollRefProvider>
+          <BodyOverlayScrollbars />
+          <RouteTransitionIndicator />
+          <ScrollRestoration />
+          <div className="flex min-h-screen flex-col">
+            <Header />
+            <main className="flex-1">
+              <RouteTransitionFade>
+                <Outlet />
+              </RouteTransitionFade>
+            </main>
+            <Footer />
+          </div>
+          <Toaster />
+        </BodyScrollRefProvider>
       </ThemeProvider>
     </HelmetProvider>
   );
