@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
 import { ChevronRight, FolderGit2, Mail, User } from "lucide-react";
-import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
+import { TypingCodeBlock } from "@/features/home";
 import { ROUTES } from "@/shared/config/routes";
 import {
   heroRoleLabel,
@@ -13,128 +13,10 @@ import {
   welcomeSections,
   welcomeTitle,
 } from "@/shared/content/profile";
+import { motionEnter } from "@/shared/lib/motion";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/Button";
 import { PreparingRouteLink } from "@/shared/ui/PreparingRouteLink";
-
-const TYPING_INTERVAL_MS = 48;
-
-type TokenType = "keyword" | "string" | "comment" | "identifier" | "plain";
-
-interface Token {
-  type: TokenType;
-  start: number;
-  end: number;
-}
-
-function tokenizeCode(text: string): Token[] {
-  const tokens: Token[] = [];
-  const keywords = new Set(["const", "export", "default"]);
-  let i = 0;
-  while (i < text.length) {
-    const rest = text.slice(i);
-    const keyword = rest.match(/^\b(const|export|default)\b/);
-    const string = rest.match(/^"(?:[^"\\]|\\.)*"/);
-    const comment = rest.match(/^\/\/[^\n]*/);
-    const identifier = rest.match(/^[a-zA-Z_][a-zA-Z0-9_]*/);
-    if (keyword) {
-      tokens.push({ type: "keyword", start: i, end: i + keyword[0].length });
-      i += keyword[0].length;
-    } else if (string) {
-      tokens.push({ type: "string", start: i, end: i + string[0].length });
-      i += string[0].length;
-    } else if (comment) {
-      tokens.push({ type: "comment", start: i, end: i + comment[0].length });
-      i += comment[0].length;
-    } else if (identifier && !keywords.has(identifier[0])) {
-      tokens.push({
-        type: "identifier",
-        start: i,
-        end: i + identifier[0].length,
-      });
-      i += identifier[0].length;
-    } else {
-      tokens.push({ type: "plain", start: i, end: i + 1 });
-      i += 1;
-    }
-  }
-  return tokens;
-}
-
-/** 라이트: VS Code Light+ 스타일, 다크: VS Code Dark+ 스타일 */
-const VSCODE_CLASS: Record<TokenType, string> = {
-  keyword: "text-blue-600 dark:text-[#569cd6]",
-  string: "text-[#a31515] dark:text-[#ce9178]",
-  comment: "text-green-700 dark:text-[#6a9955]",
-  identifier: "text-[#001080] dark:text-[#9cdcfe]",
-  plain: "text-zinc-800 dark:text-[#d4d4d4]",
-};
-
-function TypingCodeBlock({ lines }: { lines: string[] }) {
-  const fullText = lines.join("\n");
-  const [charIndex, setCharIndex] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setCharIndex(prev => {
-        const next = prev + 1;
-        if (next >= fullText.length) clearInterval(id);
-        return Math.min(next, fullText.length);
-      });
-    }, TYPING_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [fullText]);
-
-  const isComplete = charIndex >= fullText.length;
-  const tokens = tokenizeCode(fullText);
-
-  return (
-    <div
-      className="overflow-hidden rounded-[var(--radius)] border border-border font-mono text-sm"
-      aria-live="polite"
-      aria-atomic="false"
-    >
-      <div className="border-b border-border bg-zinc-200/80 px-3 py-2 text-xs text-zinc-500 dark:bg-[#252526] dark:text-[#858585]">
-        index.ts
-      </div>
-      <div className="min-h-[7.5rem] bg-zinc-100 p-4 dark:bg-[#1e1e1e]">
-        <pre className="m-0 min-h-[6rem] whitespace-pre-wrap break-all font-normal leading-relaxed">
-          {tokens.map((t, idx) => {
-            if (t.end <= charIndex) {
-              return (
-                <span key={idx} className={VSCODE_CLASS[t.type]}>
-                  {fullText.slice(t.start, t.end)}
-                </span>
-              );
-            }
-            if (t.start < charIndex) {
-              return (
-                <span key={idx} className={VSCODE_CLASS[t.type]}>
-                  {fullText.slice(t.start, charIndex)}
-                </span>
-              );
-            }
-            return null;
-          })}
-          <span
-            className={
-              isComplete ? "animate-pulse text-primary" : "text-primary"
-            }
-            aria-hidden
-          >
-            |
-          </span>
-        </pre>
-      </div>
-    </div>
-  );
-}
-
-const motionEnter = {
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.3, ease: "easeOut" as const },
-};
 
 const cardLinks = [
   { to: ROUTES.ABOUT, icon: User, ...welcomeSections.intro },

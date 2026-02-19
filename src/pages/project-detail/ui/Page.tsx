@@ -1,16 +1,12 @@
 import { motion } from "framer-motion";
-import { Code2, ExternalLink, FileText, Play } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { Link, useParams } from "react-router-dom";
 
-import { getProjectById } from "@/features/projects";
+import { getProjectById, ProjectLinks } from "@/features/projects";
 import { ROUTES } from "@/shared/config/routes";
+import { motionEnter } from "@/shared/lib/motion";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/Button";
-
-function isInternal(href: string): boolean {
-  return href.startsWith("/");
-}
 
 export function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -27,14 +23,6 @@ export function ProjectDetailPage() {
     );
   }
 
-  const { links } = project;
-  const linkEntries = [
-    links.detail && ["Detail", links.detail, FileText],
-    links.demo && ["Demo", links.demo, Play],
-    links.repo && ["Repo", links.repo, Code2],
-    links.run && ["Run", links.run, ExternalLink],
-  ].filter(Boolean) as [string, string, typeof FileText][];
-
   return (
     <>
       <Helmet>
@@ -43,9 +31,7 @@ export function ProjectDetailPage() {
       </Helmet>
       <div className="container mx-auto max-w-4xl px-4 py-16 md:py-24">
         <motion.article
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
+          {...motionEnter}
           className="space-y-6"
         >
           <div className="flex flex-wrap items-center gap-2">
@@ -69,12 +55,15 @@ export function ProjectDetailPage() {
               <span className="font-medium">Status:</span> {project.status}
             </p>
           )}
-          {project.period && (project.period.from || project.period.to) && (
-            <p className="text-sm">
-              <span className="font-medium">기간:</span>{" "}
-              {[project.period.from, project.period.to].filter(Boolean).join(" ~ ")}
-            </p>
-          )}
+          {project.period &&
+            (project.period.from || project.period.to) && (
+              <p className="text-sm">
+                <span className="font-medium">기간:</span>{" "}
+                {[project.period.from, project.period.to]
+                  .filter(Boolean)
+                  .join(" ~ ")}
+              </p>
+            )}
           {project.tags.length > 0 && (
             <p className="text-sm">
               <span className="font-medium">태그:</span>{" "}
@@ -90,36 +79,7 @@ export function ProjectDetailPage() {
               />
             </div>
           )}
-          {linkEntries.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {linkEntries.map(([label, href, Icon]) => {
-                const internal = isInternal(href);
-                const className =
-                  "inline-flex items-center gap-1.5 rounded text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
-                return internal ? (
-                  <Link
-                    key={href}
-                    to={href}
-                    className={className}
-                  >
-                    <Icon className="size-3.5" aria-hidden />
-                    {label}
-                  </Link>
-                ) : (
-                  <a
-                    key={href}
-                    href={href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={className}
-                  >
-                    <Icon className="size-3.5" aria-hidden />
-                    {label}
-                  </a>
-                );
-              })}
-            </div>
-          )}
+          <ProjectLinks project={project} />
           <div className="pt-4">
             <Button asChild variant="outline">
               <Link to={ROUTES.PROJECTS_LIST}>목록으로</Link>

@@ -4,13 +4,8 @@ import { Link } from "react-router-dom";
 
 import { FormatterView } from "@/features/code-formatter";
 import { ROUTES } from "@/shared/config/routes";
+import { motionEnter } from "@/shared/lib/motion";
 import { Button } from "@/shared/ui/Button";
-
-const motionEnter = {
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.3, ease: "easeOut" as const },
-};
 
 export function CodeFormatterPage() {
   return (
