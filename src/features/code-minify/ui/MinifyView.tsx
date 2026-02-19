@@ -6,7 +6,6 @@ import { Button } from "@/shared/ui/Button";
 import { Select } from "@/shared/ui/Select";
 
 import type { OutputFormat } from "../lib/transform";
-import { transformJs } from "../lib/transform";
 
 const OUTPUT_FORMAT_OPTIONS: { value: OutputFormat; label: string }[] = [
   { value: "formatted", label: "포매팅" },
@@ -30,6 +29,7 @@ export function MinifyView() {
     if (!source.trim()) return;
     setIsTransforming(true);
     try {
+      const { transformJs } = await import("../lib/transform");
       const output = await transformJs(source, { outputFormat, uglify });
       setResult(output);
     } catch (err) {

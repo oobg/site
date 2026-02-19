@@ -1,5 +1,5 @@
 import { Copy } from "lucide-react";
-import { useCallback, useState } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
 
 import { toast } from "@/shared/lib/toast";
 import { Button } from "@/shared/ui/Button";
@@ -7,8 +7,10 @@ import { Select } from "@/shared/ui/Select";
 
 import { type Lang, LANG_OPTIONS, type ResolvedLang } from "../lib/constants";
 import { detectLang } from "../lib/detectLang";
-import { formatCode } from "../lib/format";
-import { CodeBlock } from "./CodeBlock";
+
+const CodeBlockLazy = lazy(() =>
+  import("./CodeBlock").then((m) => ({ default: m.CodeBlock }))
+);
 
 const RESOLVED_LANG_LABELS: Record<ResolvedLang, string> = {
   html: "HTML",
@@ -38,6 +40,7 @@ export function FormatterView() {
     setResolvedLang(effectiveLang);
     setIsFormatting(true);
     try {
+      const { formatCode } = await import("../lib/format");
       const formatted = await formatCode(effectiveLang, input);
       setResult(formatted);
     } catch (err) {
@@ -154,7 +157,15 @@ export function FormatterView() {
             aria-labelledby="formatter-output-label"
             className="overflow-hidden rounded-md border border-input"
           >
-            <CodeBlock code={result} lang={displayLang} />
+            <Suspense
+              fallback={
+                <pre className="min-h-[12rem] w-full overflow-auto rounded-md border-0 bg-background p-3 text-sm font-mono text-muted-foreground">
+                  로딩 중…
+                </pre>
+              }
+            >
+              <CodeBlockLazy code={result} lang={displayLang} />
+            </Suspense>
           </div>
         </div>
       )}

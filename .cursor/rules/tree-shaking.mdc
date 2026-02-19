@@ -49,7 +49,17 @@ description: 트리쉐이킹 및 번들 최적화 전략. 라우트 스플리팅
   `prismjs/components/prism-css`, `prism-javascript` 등은 정적 상단 import 대신, 해당 언어가 필요할 때 `import("prismjs/components/prism-sql")` 등으로 한 번만 로드한다.  
   code-formatter 청크의 초기 파싱 비용을 줄인다.
 
-## 5. MSW 동적 로드
+## 5. code-formatter·code-minify 무거운 의존성
+
+- **code-formatter**  
+  - `formatCode`(Prettier standalone, sql-formatter)는 **동적 import**: "정렬" 버튼 클릭 시 `import("../lib/format")`로 한 번만 로드한다.  
+  - `CodeBlock`(prism-react-renderer, prismjs)은 **lazy 컴포넌트**로 첫 사용 시 로드: `React.lazy(() => import("./CodeBlock"))`, 결과 영역은 `Suspense`로 감싼다.
+
+- **code-minify**  
+  - `transformJs`(sucrase, terser)는 **첫 변환 시 동적 import**: "변환" 버튼 클릭 시 `import("../lib/transform")`로 로드한다.  
+  - 타입(`OutputFormat`, `TransformOptions`)만 필요하면 `import type`으로 가져와 런타임 번들에 포함되지 않게 한다.
+
+## 6. MSW 동적 로드
 
 - MSW는 **프로덕션 번들에 포함되지 않도록** 사용한다.  
   활성화 조건: `import.meta.env.DEV && import.meta.env.VITE_MSW === "true"`.  

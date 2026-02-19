@@ -1,6 +1,7 @@
 import path from 'node:path'
 
 import react from '@vitejs/plugin-react'
+import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vite'
 
 export default defineConfig({
@@ -9,6 +10,11 @@ export default defineConfig({
       babel: {
         plugins: ['babel-plugin-react-compiler'],
       },
+    }),
+    visualizer({
+      filename: 'stats.html',
+      gzipSize: true,
+      open: false,
     }),
   ],
   resolve: {
