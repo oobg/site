@@ -1,5 +1,6 @@
 export { BodyOverlayScrollbars } from "./body-overlay-scrollbars";
-export { BodyScrollRefContext, BodyScrollRefProvider } from "./body-scroll-ref-context";
+export { BodyScrollRefContext } from "./body-scroll-ref-context";
+export { BodyScrollRefProvider } from "./body-scroll-ref-provider";
 export { ThemeProvider } from "./theme-provider";
 export {
   syncThemeFromStorage,
