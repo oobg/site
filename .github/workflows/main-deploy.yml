@@ -66,6 +66,17 @@ jobs:
             mkdir -p ${{ env.DEPLOY_DIR }}
             mkdir -p ${{ env.NGINX_CONFIG_DIR }}
 
+      - name: Debug DNS/Network
+        shell: bash
+        run: |
+          echo "SSH_HOST(raw)='${{ secrets.SSH_HOST }}'"
+          echo "resolv.conf:"
+          cat /etc/resolv.conf || true
+          echo "getent:"
+          getent hosts "${{ secrets.SSH_HOST }}" || true
+          echo "nslookup:"
+          nslookup "${{ secrets.SSH_HOST }}" || true
+
       - name: Copy nginx SPA config to server
         uses: appleboy/scp-action@v0.1.7
         with:
