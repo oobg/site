@@ -1,6 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
 
-import { RootLayout } from "@/app/root-layout";
 import {
   AboutPageLazy,
   BlogPageLazy,
@@ -15,6 +14,8 @@ import {
   ProjectsPageLazy,
 } from "@/pages";
 import { ROUTES } from "@/shared/config/routes";
+
+import { RootLayout } from "./root-layout";
 
 export const router = createBrowserRouter([
   {

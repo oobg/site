@@ -42,6 +42,7 @@ Before doing anything, you MUST read and strictly follow all rules defined in th
 - 폴더 구조: **FSD-lite**
 - 경로 별칭: **@/**
 - **임포트 경로 (features 등 도메인/슬라이스)**: @/ 기준 3단계까지. 예: `@/features/theme` (O), `@/features/theme/ThemeToggle` (X). 슬라이스 폴더에서 barrel(`index.ts`)로 공개하고 그 barrel만 임포트.
+- **app 세그먼트**: 동일하게 barrel만 사용. 진입점(main 등)에서는 `@/app`만 임포트하고, `@/app/router` 등 deep import 금지. app 내부 파일 간 참조는 상대 경로 사용.
 - **shared 임포트 경로 예외**: shared는 파일 단위 임포트를 허용하되, `@/shared/**` 경로는 **최대 4세그먼트**까지만 허용한다.
   - 허용 예: `@/shared/ui/Button`, `@/shared/lib/utils`
   - 금지 예: `@/shared/ui/Button/styles`, `@/shared/ui/Button/hooks/useX`
