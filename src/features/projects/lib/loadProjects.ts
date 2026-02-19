@@ -1,4 +1,4 @@
-import projectsJson from "./data/projects.json";
+import projectsJson from "../data/projects.json";
 import { projectsArraySchema } from "./schema";
 
 const projects = projectsArraySchema.parse(projectsJson);

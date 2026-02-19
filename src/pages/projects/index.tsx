@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import type { ProjectItem } from "@/features/projects";
 import { getProjects } from "@/features/projects";
 import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/shared/ui/Button";
 import {
   Card,
   CardContent,
@@ -15,9 +15,9 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/shared/ui/card";
-import { Input } from "@/shared/ui/input";
-import { Select } from "@/shared/ui/select";
+} from "@/shared/ui/Card";
+import { Input } from "@/shared/ui/Input";
+import { Select } from "@/shared/ui/Select";
 
 const motionEnter = {
   initial: { opacity: 0, y: 8 },

@@ -1,2 +1,2 @@
-export { getProjectById, getProjects } from "./load-projects";
-export type { ProjectItem } from "./schema";
+export { getProjectById, getProjects } from "./lib/loadProjects";
+export type { ProjectItem } from "./lib/schema";

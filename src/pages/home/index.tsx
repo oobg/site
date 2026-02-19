@@ -14,8 +14,8 @@ import {
   welcomeTitle,
 } from "@/shared/content/profile";
 import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
-import { PreparingRouteLink } from "@/shared/ui/preparing-route-link";
+import { Button } from "@/shared/ui/Button";
+import { PreparingRouteLink } from "@/shared/ui/PreparingRouteLink";
 
 const TYPING_INTERVAL_MS = 48;
 

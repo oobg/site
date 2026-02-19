@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
 import { ROUTES } from "@/shared/config/routes";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/shared/ui/Button";
 
 export function NotFoundPage() {
   return (

@@ -6,7 +6,7 @@ import { Link, useParams } from "react-router-dom";
 import { getProjectById } from "@/features/projects";
 import { ROUTES } from "@/shared/config/routes";
 import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/button";
+import { Button } from "@/shared/ui/Button";
 
 function isInternal(href: string): boolean {
   return href.startsWith("/");

@@ -5,7 +5,7 @@ import { Link, useLocation } from "react-router-dom";
 import { BodyScrollRefContext, ThemeToggle } from "@/features/theme";
 import { ROUTES } from "@/shared/config/routes";
 import { cn } from "@/shared/lib/utils";
-import { PreparingRouteLink } from "@/shared/ui/preparing-route-link";
+import { PreparingRouteLink } from "@/shared/ui/PreparingRouteLink";
 
 const navItems = [
   { to: ROUTES.HOME, label: "Home" },

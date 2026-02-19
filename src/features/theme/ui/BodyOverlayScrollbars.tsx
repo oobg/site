@@ -1,8 +1,8 @@
 import { OverlayScrollbars } from "overlayscrollbars";
 import { useContext, useEffect, useRef } from "react";
 
-import { BodyScrollRefContext } from "./body-scroll-ref-context";
-import { useThemeStore } from "./theme-store";
+import { BodyScrollRefContext } from "../lib/bodyScrollRefContext";
+import { useThemeStore } from "../lib/themeStore";
 
 function getScrollbarTheme(effectiveTheme: "dark" | "light") {
   return effectiveTheme === "dark" ? "os-theme-light" : "os-theme-dark";

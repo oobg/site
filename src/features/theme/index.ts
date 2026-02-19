@@ -1,11 +1,11 @@
-export { BodyOverlayScrollbars } from "./body-overlay-scrollbars";
-export { BodyScrollRefContext } from "./body-scroll-ref-context";
-export { BodyScrollRefProvider } from "./body-scroll-ref-provider";
-export { ThemeProvider } from "./theme-provider";
+export { BodyOverlayScrollbars } from "./ui/BodyOverlayScrollbars";
+export { BodyScrollRefContext } from "./lib/bodyScrollRefContext";
+export { BodyScrollRefProvider } from "./ui/BodyScrollRefProvider";
+export { ThemeProvider } from "./ui/ThemeProvider";
 export {
   syncThemeFromStorage,
   type ThemeStore,
   type ThemeValue,
   useThemeStore,
-} from "./theme-store";
-export { ThemeToggle } from "./theme-toggle";
+} from "./lib/themeStore";
+export { ThemeToggle } from "./ui/ThemeToggle";

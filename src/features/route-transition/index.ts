@@ -1,4 +1,4 @@
 export {
   RouteTransitionFade,
   RouteTransitionIndicator,
-} from "./route-transition-indicator";
+} from "./ui/RouteTransitionIndicator";

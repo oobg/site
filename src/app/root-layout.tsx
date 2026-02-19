@@ -10,7 +10,7 @@ import {
   BodyScrollRefProvider,
   ThemeProvider,
 } from "@/features/theme";
-import { Toaster } from "@/shared/ui/sonner";
+import { Toaster } from "@/shared/ui/Sonner";
 import { Footer } from "@/widgets/footer";
 import { Header } from "@/widgets/header";
 

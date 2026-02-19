@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { useCallback } from "react";
 import { Helmet } from "react-helmet-async";
 
-import { useContactFeedback } from "@/features/contact-feedback";
+import { useContactFeedback } from "@/shared/lib/useContactFeedback";
 import { toast } from "@/shared/lib/toast";
 
 const EMAIL = "hello@raven.kr";

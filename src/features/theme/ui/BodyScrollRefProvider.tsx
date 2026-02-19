@@ -4,7 +4,7 @@ import { useRef } from "react";
 import {
   type BodyScrollInstance,
   BodyScrollRefContext,
-} from "./body-scroll-ref-context";
+} from "../lib/bodyScrollRefContext";
 
 export function BodyScrollRefProvider({ children }: { children: ReactNode }) {
   const ref = useRef<BodyScrollInstance | null>(null);
