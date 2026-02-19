@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { Code2, ExternalLink, FileText, Play } from "lucide-react";
-import { useMemo, useState } from "react";
+import { type ChangeEvent, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
@@ -227,7 +227,8 @@ export function ProjectsPage() {
               type="search"
               placeholder="제목, 요약, 태그 검색…"
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setSearch(e.target.value)}
               className="max-w-xs"
               aria-label="검색"
             />
@@ -238,7 +239,8 @@ export function ProjectsPage() {
               <Select
                 id="filter-type"
                 value={typeFilter}
-                onChange={e => setTypeFilter(e.target.value)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                setTypeFilter(e.target.value)}
                 className="w-auto min-w-[7rem]"
               >
                 <option value="all">전체</option>
@@ -253,7 +255,8 @@ export function ProjectsPage() {
                   <Select
                     id="filter-tag"
                     value={tagFilter}
-                    onChange={e => setTagFilter(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                    setTagFilter(e.target.value)}
                     className="w-auto min-w-[7rem]"
                   >
                     <option value="all">전체</option>
@@ -273,7 +276,8 @@ export function ProjectsPage() {
                   <Select
                     id="filter-status"
                     value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                    setStatusFilter(e.target.value)}
                     className="w-auto min-w-[7rem]"
                   >
                     <option value="all">전체</option>
@@ -291,7 +295,8 @@ export function ProjectsPage() {
               <Select
                 id="sort"
                 value={sortBy}
-                onChange={e => setSortBy(e.target.value as SortOption)}
+                onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+                setSortBy(e.target.value as SortOption)}
                 className="w-auto min-w-[7rem]"
               >
                 <option value="latest">최신</option>

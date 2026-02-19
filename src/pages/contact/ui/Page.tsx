@@ -2,8 +2,8 @@ import { motion } from "framer-motion";
 import { useCallback } from "react";
 import { Helmet } from "react-helmet-async";
 
-import { useContactFeedback } from "@/shared/lib/useContactFeedback";
 import { toast } from "@/shared/lib/toast";
+import { useContactFeedback } from "@/shared/lib/useContactFeedback";
 
 const EMAIL = "hello@raven.kr";
 const GITHUB_URL = "https://github.com";

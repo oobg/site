@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 
 import { cn } from "@/shared/lib/utils";
 
-import { loadPrismLanguage } from "../lib/loadPrismLanguage";
 import { codeFormatterTheme } from "../lib/codeFormatterTheme";
 import type { ResolvedLang } from "../lib/constants";
+import { loadPrismLanguage } from "../lib/loadPrismLanguage";
 
 const LANG_TO_PRISM: Record<ResolvedLang, string> = {
   html: "markup",
@@ -26,19 +26,19 @@ type CodeBlockProps = {
 
 export function CodeBlock({ code, lang, className }: CodeBlockProps) {
   const prismLang = LANG_TO_PRISM[lang];
-  const [ready, setReady] = useState(false);
+  const [loadedForLang, setLoadedForLang] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    setReady(false);
     loadPrismLanguage(prismLang).then(() => {
-      if (!cancelled) setReady(true);
+      if (!cancelled) setLoadedForLang(prismLang);
     });
     return () => {
       cancelled = true;
     };
   }, [prismLang]);
 
+  const ready = loadedForLang === prismLang;
   if (!ready) {
     return (
       <pre

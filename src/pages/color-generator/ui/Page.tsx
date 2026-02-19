@@ -1,9 +1,17 @@
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
-import { useMemo, useState } from "react";
+import { type ChangeEvent, useMemo, useState } from "react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
+import {
+  motionEnter,
+  ScaleCopyButtons,
+  ScaleRow,
+  type SeedMode,
+  type SeedTone,
+  toPickerHex,
+} from "@/features/color-generator";
 import { useThemeStore } from "@/features/theme";
 import { ROUTES } from "@/shared/config/routes";
 import {
@@ -15,15 +23,6 @@ import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import { Select } from "@/shared/ui/Select";
-
-import {
-  motionEnter,
-  ScaleCopyButtons,
-  ScaleRow,
-  type SeedMode,
-  type SeedTone,
-  toPickerHex,
-} from "@/features/color-generator";
 
 export function ColorGeneratorPage() {
   const effectiveTheme = useThemeStore((s) => s.effectiveTheme);
@@ -140,7 +139,7 @@ export function ColorGeneratorPage() {
                   <Select
                     id="seed-tone"
                     value={seedTone}
-                    onChange={(e) =>
+                    onChange={(e: ChangeEvent<HTMLSelectElement>) =>
                       setSeedTone(e.target.value as SeedTone)
                     }
                     className="w-auto min-w-[10rem]"
@@ -192,7 +191,8 @@ export function ColorGeneratorPage() {
                       id="seed-color-picker"
                       type="color"
                       value={toPickerHex(hexInput)}
-                      onChange={(e) => setHexInput(e.target.value)}
+                      onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                        setHexInput(e.target.value)}
                       className="h-10 w-14 cursor-pointer rounded border border-input bg-transparent p-0"
                       aria-describedby="picker-hint"
                     />
@@ -216,7 +216,8 @@ export function ColorGeneratorPage() {
                     type="text"
                     placeholder="#7c3aed 또는 비워두기"
                     value={hexInput}
-                    onChange={(e) => setHexInput(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setHexInput(e.target.value)}
                     className="max-w-xs font-mono"
                     aria-describedby="hex-hint"
                   />

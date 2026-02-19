@@ -1,5 +1,5 @@
 import { Copy } from "lucide-react";
-import { useCallback, useState } from "react";
+import { type ChangeEvent, useCallback, useState } from "react";
 
 import { toast } from "@/shared/lib/toast";
 import { Button } from "@/shared/ui/Button";
@@ -77,7 +77,8 @@ export function MinifyView() {
           <Select
             id="minify-format"
             value={outputFormat}
-            onChange={(e) => setOutputFormat(e.target.value as OutputFormat)}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+              setOutputFormat(e.target.value as OutputFormat)}
             className="w-auto min-w-[8rem]"
             aria-label="포매팅 또는 한줄 선택"
           >

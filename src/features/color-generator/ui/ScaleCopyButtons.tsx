@@ -1,8 +1,8 @@
 import { Copy } from "lucide-react";
 import { useCallback } from "react";
 
-import { generateTriadicPalette } from "@/shared/lib/triadicColorGenerator";
 import { toast } from "@/shared/lib/toast";
+import { generateTriadicPalette } from "@/shared/lib/triadicColorGenerator";
 import { Button } from "@/shared/ui/Button";
 
 import { scaleToCssVars } from "../lib/utils";

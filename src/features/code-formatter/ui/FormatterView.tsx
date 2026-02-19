@@ -1,5 +1,11 @@
 import { Copy } from "lucide-react";
-import { lazy, Suspense, useCallback, useState } from "react";
+import {
+  type ChangeEvent,
+  lazy,
+  Suspense,
+  useCallback,
+  useState,
+} from "react";
 
 import { toast } from "@/shared/lib/toast";
 import { Button } from "@/shared/ui/Button";
@@ -72,7 +78,8 @@ export function FormatterView() {
           <Select
             id="formatter-lang"
             value={lang}
-            onChange={(e) => setLang(e.target.value as Lang)}
+            onChange={(e: ChangeEvent<HTMLSelectElement>) =>
+              setLang(e.target.value as Lang)}
             className="w-auto min-w-[8rem]"
             aria-label="포맷할 코드 언어 선택"
           >
