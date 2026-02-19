@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig } from 'vite'
 
+const withAnalyzer = process.env.ANALYZE === '1' || process.env.ANALYZE === 'true'
+
 export default defineConfig({
   plugins: [
     react({
@@ -11,11 +13,15 @@ export default defineConfig({
         plugins: ['babel-plugin-react-compiler'],
       },
     }),
-    visualizer({
-      filename: 'stats.html',
-      gzipSize: true,
-      open: false,
-    }),
+    ...(withAnalyzer
+      ? [
+          visualizer({
+            filename: 'stats.html',
+            gzipSize: true,
+            open: false,
+          }),
+        ]
+      : []),
   ],
   resolve: {
     alias: {
