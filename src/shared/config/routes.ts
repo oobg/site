@@ -6,6 +6,7 @@ export const ROUTES = {
   COLOR_GENERATOR: "/project/color/generator",
   CODE_DIFF: "/projects/code/diff",
   CODE_FORMATTER: "/projects/code/formatter",
+  CODE_MINIFY: "/projects/code/minify",
   BLOG: "/blog",
   CONTACT: "/contact",
 } as const;

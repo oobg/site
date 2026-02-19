@@ -6,6 +6,7 @@ export { AboutPageLazy } from "./about";
 export { BlogPageLazy } from "./blog";
 export { CodeDiffPageLazy } from "./code-diff";
 export { CodeFormatterPageLazy } from "./code-formatter";
+export { CodeMinifyPageLazy } from "./code-minify";
 export { ColorGeneratorPageLazy } from "./color-generator";
 export { ContactPageLazy } from "./contact";
 export { HomePageLazy } from "./home";
