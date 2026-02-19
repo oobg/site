@@ -15,7 +15,7 @@ export function PreparingRouteLink({
   onClick,
   ...rest
 }: PreparingRouteLinkProps) {
-  const toStr = typeof to === "string" ? to : to?.pathname ?? "";
+  const toStr = typeof to === "string" ? to : (to?.pathname ?? "");
   if (PREPARING_ROUTES.includes(toStr)) {
     // replace, state, type, ref는 Link/anchor 전용이라 button에 넘기지 않음
     // eslint-disable-next-line @typescript-eslint/no-unused-vars -- 구조 분해로 제외만 함
