@@ -11,5 +11,17 @@
       "detail": "https://raven.kr"
     },
     "featured": true
+  },
+  {
+    "id": "color-generator",
+    "type": "tool",
+    "title": "컬러 스케일 생성기",
+    "summary": "OKLCH Triadic(±120°) Hue 회전으로 primary/secondary/tertiary 3색과 100~900 스케일 생성. Chroma 감쇠, Lightness 클램핑, WCAG 대비, 다크모드 L 재매핑.",
+    "tags": ["OKLCH", "Color", "Tool"],
+    "status": "active",
+    "links": {
+      "run": "/project/color/generator"
+    },
+    "featured": false
   }
 ]
