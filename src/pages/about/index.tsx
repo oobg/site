@@ -3,6 +3,7 @@ import { ExternalLink, Mail, Phone } from "lucide-react";
 import { Helmet } from "react-helmet-async";
 import { Link } from "react-router-dom";
 
+import { getProjects } from "@/features/projects";
 import { useThemeStore } from "@/features/theme";
 import {
   projectDetailPath,
@@ -22,12 +23,13 @@ import {
   skills,
   workHistory,
 } from "@/shared/content/profile";
-import { projects } from "@/shared/content/projects";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 // import { PreparingRouteLink } from "@/shared/ui/preparing-route-link";
 
-const featuredProject = projects[0];
+const projectsList = getProjects();
+const featuredProject =
+  projectsList.find(p => p.featured) ?? projectsList[0];
 
 const motionEnter = {
   initial: { opacity: 0, y: 8 },

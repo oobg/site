@@ -1,0 +1,15 @@
+[
+  {
+    "id": "raven",
+    "type": "project",
+    "title": "raven",
+    "summary": "개인 포트폴리오 사이트. FSD-lite, React 19, Vite.",
+    "tags": ["React", "TypeScript", "Vite", "Tailwind"],
+    "status": "active",
+    "links": {
+      "repo": "https://github.com/oobg/site",
+      "detail": "https://raven.kr"
+    },
+    "featured": true
+  }
+]
