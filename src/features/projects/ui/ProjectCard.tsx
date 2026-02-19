@@ -1,8 +1,6 @@
 import { Code2, ExternalLink, FileText, Play } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { isInternalDetail } from "../lib/sortProjects";
-import type { ProjectItem } from "../lib/schema";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/Button";
 import {
@@ -13,6 +11,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/Card";
+
+import type { ProjectItem } from "../lib/schema";
+import { isInternalDetail } from "../lib/sortProjects";
 
 export function ProjectCard({ item }: { item: ProjectItem }) {
   const detailPath = isInternalDetail(item) ? item.links.detail ?? null : null;

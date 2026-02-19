@@ -1,11 +1,12 @@
 import { ArrowRightLeft } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { cn } from "@/shared/lib/utils";
+import { Button } from "@/shared/ui/Button";
+
 import { computeLineDiff } from "../lib/diff";
 import { DiffView } from "./DiffView";
 import { OriginalModifiedInputs } from "./OriginalModifiedInputs";
-import { cn } from "@/shared/lib/utils";
-import { Button } from "@/shared/ui/Button";
 
 export type OutputViewMode = "unified" | "side-by-side";
 

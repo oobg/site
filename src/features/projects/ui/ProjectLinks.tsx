@@ -1,8 +1,8 @@
 import { Code2, ExternalLink, FileText, Play } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { isInternal } from "../lib/sortProjects";
 import type { ProjectItem } from "../lib/schema";
+import { isInternal } from "../lib/sortProjects";
 
 const LINK_ENTRIES: Array<{
   key: keyof ProjectItem["links"];

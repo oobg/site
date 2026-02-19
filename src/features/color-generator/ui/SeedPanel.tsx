@@ -1,13 +1,14 @@
 import { Sparkles } from "lucide-react";
 import { type ChangeEvent } from "react";
 
-import type { SeedMode, SeedTone } from "../lib/constants";
-import { toPickerHex } from "../lib/utils";
 import { getRandomSeedHex } from "@/shared/lib/triadicColorGenerator";
 import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/Button";
 import { Input } from "@/shared/ui/Input";
 import { Select } from "@/shared/ui/Select";
+
+import type { SeedMode, SeedTone } from "../lib/constants";
+import { toPickerHex } from "../lib/utils";
 
 type SeedPanelProps = {
   hexInput: string;

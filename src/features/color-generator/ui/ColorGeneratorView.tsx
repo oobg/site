@@ -1,15 +1,16 @@
 import { useMemo, useState } from "react";
 
-import type { SeedMode, SeedTone } from "../lib/constants";
-import { ScaleCopyButtons } from "./ScaleCopyButtons";
-import { ScaleRow } from "./ScaleRow";
-import { MainPalettePreview } from "./MainPalettePreview";
-import { SeedPanel } from "./SeedPanel";
 import { useThemeStore } from "@/features/theme";
 import {
   generateTriadicPalette,
   type TriadicPalette,
 } from "@/shared/lib/triadicColorGenerator";
+
+import type { SeedMode, SeedTone } from "../lib/constants";
+import { MainPalettePreview } from "./MainPalettePreview";
+import { ScaleCopyButtons } from "./ScaleCopyButtons";
+import { ScaleRow } from "./ScaleRow";
+import { SeedPanel } from "./SeedPanel";
 
 export function ColorGeneratorView() {
   const effectiveTheme = useThemeStore(s => s.effectiveTheme);

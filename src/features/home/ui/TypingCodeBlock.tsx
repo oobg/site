@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 import {
-  TYPING_INTERVAL_MS,
   tokenizeCode,
+  TYPING_INTERVAL_MS,
   VSCODE_TOKEN_CLASS,
 } from "../lib/tokenizeCode";
 
