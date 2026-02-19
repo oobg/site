@@ -36,5 +36,18 @@
     },
     "featured": false,
     "section": "code"
+  },
+  {
+    "id": "code-formatter",
+    "type": "tool",
+    "title": "코드 정렬",
+    "summary": "HTML, CSS, JS, JSX, SQL 코드를 선택한 언어에 맞게 포맷합니다.",
+    "tags": ["Formatter", "Tool", "Code"],
+    "status": "active",
+    "links": {
+      "run": "/projects/code/formatter"
+    },
+    "featured": false,
+    "section": "code"
   }
 ]

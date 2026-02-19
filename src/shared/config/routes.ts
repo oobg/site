@@ -5,6 +5,7 @@ export const ROUTES = {
   PROJECT_DETAIL: "/projects/:id",
   COLOR_GENERATOR: "/project/color/generator",
   CODE_DIFF: "/projects/code/diff",
+  CODE_FORMATTER: "/projects/code/formatter",
   BLOG: "/blog",
   CONTACT: "/contact",
 } as const;

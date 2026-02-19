@@ -6,7 +6,15 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const distDir = path.join(__dirname, '..', 'dist')
 const baseUrl = process.env.VITE_SITE_URL || ''
 
-const staticPaths = ['', '/about', '/projects', '/blog', '/contact']
+const staticPaths = [
+  '',
+  '/about',
+  '/projects',
+  '/blog',
+  '/contact',
+  '/projects/code/diff',
+  '/projects/code/formatter',
+]
 
 if (!fs.existsSync(distDir)) {
   console.warn('dist not found, skipping SEO files')

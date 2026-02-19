@@ -4,6 +4,7 @@ import { RootLayout } from "@/app/root-layout";
 import { AboutPage } from "@/pages/about";
 import { BlogPage } from "@/pages/blog";
 import { CodeDiffPage } from "@/pages/code-diff";
+import { CodeFormatterPage } from "@/pages/code-formatter";
 import { ColorGeneratorPage } from "@/pages/color-generator";
 import { ContactPage } from "@/pages/contact";
 import { HomePage } from "@/pages/home";
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
       { path: "projects/:id", element: <ProjectDetailPage /> },
       { path: "project/color/generator", element: <ColorGeneratorPage /> },
       { path: "projects/code/diff", element: <CodeDiffPage /> },
+      { path: "projects/code/formatter", element: <CodeFormatterPage /> },
       { path: "blog", element: <BlogPage /> },
       { path: "contact", element: <ContactPage /> },
       { path: "*", element: <NotFoundPage /> },

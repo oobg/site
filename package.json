@@ -19,12 +19,15 @@
     "framer-motion": "^12.15.0",
     "lucide-react": "^0.511.0",
     "overlayscrollbars": "^2.14.0",
+    "prism-react-renderer": "^2.4.1",
+    "prismjs": "^1.30.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-helmet-async": "^2.0.5",
     "react-hook-form": "^7.57.0",
     "react-router-dom": "^7.6.1",
     "sonner": "^1.7.1",
+    "sql-formatter": "^15.7.2",
     "tailwind-merge": "^3.3.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.5"
@@ -32,6 +35,7 @@
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.1",
+    "@types/prismjs": "^1.26.6",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
