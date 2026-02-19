@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { Outlet, ScrollRestoration } from "react-router-dom";
 
@@ -34,7 +35,9 @@ export function RootLayout() {
             <Header />
             <main className="flex-1">
               <RouteTransitionFade>
-                <Outlet />
+                <Suspense fallback={null}>
+                  <Outlet />
+                </Suspense>
               </RouteTransitionFade>
             </main>
             <Footer />

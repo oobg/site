@@ -1,16 +1,18 @@
 import { createBrowserRouter } from "react-router-dom";
 
 import { RootLayout } from "@/app/root-layout";
-import { AboutPage } from "@/pages/about";
-import { BlogPage } from "@/pages/blog";
-import { CodeDiffPage } from "@/pages/code-diff";
-import { CodeFormatterPage } from "@/pages/code-formatter";
-import { ColorGeneratorPage } from "@/pages/color-generator";
-import { ContactPage } from "@/pages/contact";
-import { HomePage } from "@/pages/home";
-import { NotFoundPage } from "@/pages/not-found";
-import { ProjectDetailPage } from "@/pages/project-detail";
-import { ProjectsPage } from "@/pages/projects";
+import {
+  AboutPageLazy,
+  BlogPageLazy,
+  CodeDiffPageLazy,
+  CodeFormatterPageLazy,
+  ColorGeneratorPageLazy,
+  ContactPageLazy,
+  HomePageLazy,
+  NotFoundPageLazy,
+  ProjectDetailPageLazy,
+  ProjectsPageLazy,
+} from "@/pages";
 import { ROUTES } from "@/shared/config/routes";
 
 export const router = createBrowserRouter([
@@ -18,16 +20,16 @@ export const router = createBrowserRouter([
     path: ROUTES.HOME,
     element: <RootLayout />,
     children: [
-      { index: true, element: <HomePage /> },
-      { path: "about", element: <AboutPage /> },
-      { path: "projects", element: <ProjectsPage /> },
-      { path: "projects/:id", element: <ProjectDetailPage /> },
-      { path: "project/color/generator", element: <ColorGeneratorPage /> },
-      { path: "projects/code/diff", element: <CodeDiffPage /> },
-      { path: "projects/code/formatter", element: <CodeFormatterPage /> },
-      { path: "blog", element: <BlogPage /> },
-      { path: "contact", element: <ContactPage /> },
-      { path: "*", element: <NotFoundPage /> },
+      { index: true, element: <HomePageLazy /> },
+      { path: "about", element: <AboutPageLazy /> },
+      { path: "projects", element: <ProjectsPageLazy /> },
+      { path: "projects/:id", element: <ProjectDetailPageLazy /> },
+      { path: "project/color/generator", element: <ColorGeneratorPageLazy /> },
+      { path: "projects/code/diff", element: <CodeDiffPageLazy /> },
+      { path: "projects/code/formatter", element: <CodeFormatterPageLazy /> },
+      { path: "blog", element: <BlogPageLazy /> },
+      { path: "contact", element: <ContactPageLazy /> },
+      { path: "*", element: <NotFoundPageLazy /> },
     ],
   },
 ]);

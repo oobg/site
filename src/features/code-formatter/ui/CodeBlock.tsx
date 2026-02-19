@@ -1,15 +1,12 @@
 import "../lib/prism-setup";
-import "prismjs/components/prism-css";
-import "prismjs/components/prism-javascript";
-import "prismjs/components/prism-jsx";
-import "prismjs/components/prism-markup";
-import "prismjs/components/prism-sql";
 
 import { Highlight } from "prism-react-renderer";
 import Prism from "prismjs";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/shared/lib/utils";
 
+import { loadPrismLanguage } from "../lib/loadPrismLanguage";
 import { codeFormatterTheme } from "../lib/codeFormatterTheme";
 import type { ResolvedLang } from "../lib/constants";
 
@@ -29,6 +26,32 @@ type CodeBlockProps = {
 
 export function CodeBlock({ code, lang, className }: CodeBlockProps) {
   const prismLang = LANG_TO_PRISM[lang];
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setReady(false);
+    loadPrismLanguage(prismLang).then(() => {
+      if (!cancelled) setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [prismLang]);
+
+  if (!ready) {
+    return (
+      <pre
+        className={cn(
+          "min-h-[12rem] w-full overflow-auto rounded-md border border-input bg-background p-3 text-sm font-mono",
+          className
+        )}
+        data-language={prismLang}
+      >
+        <code className="block">{code}</code>
+      </pre>
+    );
+  }
 
   return (
     <Highlight theme={codeFormatterTheme} code={code} language={prismLang} prism={Prism}>
