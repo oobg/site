@@ -23,5 +23,18 @@
       "run": "/project/color/generator"
     },
     "featured": false
+  },
+  {
+    "id": "code-diff",
+    "type": "tool",
+    "title": "코드 비교",
+    "summary": "원본과 수정본 텍스트를 입력해 라인 단위 diff를 계산. 한 페이지(unified) 또는 두 페이지(side-by-side)로 결과를 볼 수 있습니다.",
+    "tags": ["Diff", "Tool", "Code"],
+    "status": "active",
+    "links": {
+      "run": "/projects/code/diff"
+    },
+    "featured": false,
+    "section": "code"
   }
 ]

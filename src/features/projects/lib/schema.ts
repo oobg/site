@@ -32,6 +32,8 @@ export const projectItemSchema = z.object({
   period: periodSchema.optional(),
   thumbnail: z.string().optional(),
   featured: z.boolean().optional(),
+  /** "code"면 /projects 페이지의 Code 섹션에만 노출(메인 그리드 제외). */
+  section: z.enum(["code"]).optional(),
 });
 
 export const projectsArraySchema = z.array(projectItemSchema);

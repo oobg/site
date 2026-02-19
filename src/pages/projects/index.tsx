@@ -169,6 +169,8 @@ function ProjectCard({ item }: { item: ProjectItem }) {
 
 export function ProjectsPage() {
   const all = useMemo(() => getProjects(), []);
+  const mainList = useMemo(() => all.filter(p => p.section !== "code"), [all]);
+  const codeSectionItems = useMemo(() => all.filter(p => p.section === "code"), [all]);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
   const [tagFilter, setTagFilter] = useState<string>("all");
@@ -176,17 +178,17 @@ export function ProjectsPage() {
   const [sortBy, setSortBy] = useState<SortOption>("latest");
 
   const allTags = useMemo(
-    () => Array.from(new Set(all.flatMap(p => p.tags))).sort(),
-    [all]
+    () => Array.from(new Set(mainList.flatMap(p => p.tags))).sort(),
+    [mainList]
   );
   const allStatuses = useMemo(
-    () => Array.from(new Set(all.map(p => p.status).filter(Boolean))) as string[],
-    [all]
+    () => Array.from(new Set(mainList.map(p => p.status).filter(Boolean))) as string[],
+    [mainList]
   );
 
   const filteredAndSorted = useMemo(() => {
     const q = search.trim().toLowerCase();
-    const list = all.filter(p => {
+    const list = mainList.filter(p => {
       if (typeFilter !== "all" && p.type !== typeFilter) return false;
       if (tagFilter !== "all" && !p.tags.includes(tagFilter)) return false;
       if (
@@ -203,7 +205,7 @@ export function ProjectsPage() {
       return true;
     });
     return sortProjects(list, sortBy);
-  }, [all, search, typeFilter, tagFilter, statusFilter, sortBy]);
+  }, [mainList, search, typeFilter, tagFilter, statusFilter, sortBy]);
 
   return (
     <>
@@ -309,6 +311,21 @@ export function ProjectsPage() {
                 </li>
               ))}
             </ul>
+          )}
+
+          {codeSectionItems.length > 0 && (
+            <section className="border-t border-border pt-8" aria-labelledby="code-section-title">
+              <h2 id="code-section-title" className="text-xl font-semibold tracking-tight mb-4">
+                Code
+              </h2>
+              <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {codeSectionItems.map(p => (
+                  <li key={p.id}>
+                    <ProjectCard item={p} />
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
         </motion.section>
       </div>
