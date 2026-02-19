@@ -58,7 +58,7 @@ export function MinifyView() {
         <textarea
           id="minify-source"
           value={source}
-          onChange={(e) => setSource(e.target.value)}
+          onChange={e => setSource(e.target.value)}
           className={textareaClass}
           placeholder="JavaScript 코드를 입력하세요"
           spellCheck={false}
@@ -78,11 +78,12 @@ export function MinifyView() {
             id="minify-format"
             value={outputFormat}
             onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-              setOutputFormat(e.target.value as OutputFormat)}
+              setOutputFormat(e.target.value as OutputFormat)
+            }
             className="w-auto min-w-[8rem]"
             aria-label="포매팅 또는 한줄 선택"
           >
-            {OUTPUT_FORMAT_OPTIONS.map((opt) => (
+            {OUTPUT_FORMAT_OPTIONS.map(opt => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -94,13 +95,13 @@ export function MinifyView() {
             id="minify-uglify"
             type="checkbox"
             checked={uglify}
-            onChange={(e) => setUglify(e.target.checked)}
+            onChange={e => setUglify(e.target.checked)}
             className="size-4 rounded border border-input"
             aria-describedby="minify-uglify-desc"
           />
           <label
             htmlFor="minify-uglify"
-            className="text-sm font-medium cursor-pointer"
+            className="cursor-pointer text-sm font-medium"
           >
             Uglify (변수명 짧게, 불필요 제거)
           </label>
@@ -122,7 +123,7 @@ export function MinifyView() {
       {error && (
         <p
           role="alert"
-          className="text-sm text-destructive whitespace-pre-line"
+          className="whitespace-pre-line text-sm text-destructive"
           id="minify-error"
         >
           {error}

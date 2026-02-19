@@ -22,7 +22,7 @@ function overrideStyle(
 
 export const codeFormatterTheme: PrismTheme = {
   ...base,
-  styles: base.styles.map((entry) => {
+  styles: base.styles.map(entry => {
     const types = entry.types ?? [];
     if (types.includes("class-name")) {
       return overrideStyle(entry, CLASS_NAME_COLOR);

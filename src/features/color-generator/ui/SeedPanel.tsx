@@ -121,10 +121,7 @@ export function SeedPanel({
           className="flex flex-wrap items-end gap-4"
         >
           <div className="space-y-2">
-            <label
-              htmlFor="seed-color-picker"
-              className="text-sm font-medium"
-            >
+            <label htmlFor="seed-color-picker" className="text-sm font-medium">
               시드 색 (컬러 피커)
             </label>
             <div className="flex items-center gap-2">

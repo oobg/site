@@ -10,12 +10,12 @@ const linkClass = cn(
 
 export function AboutContacts() {
   return (
-    <ul
-      className="flex flex-wrap gap-x-6 gap-y-3 text-sm"
-      aria-label="연락처"
-    >
+    <ul className="flex flex-wrap gap-x-6 gap-y-3 text-sm" aria-label="연락처">
       <li>
-        <a href={`tel:${contacts.tel.replace(/\s/g, "")}`} className={linkClass}>
+        <a
+          href={`tel:${contacts.tel.replace(/\s/g, "")}`}
+          className={linkClass}
+        >
           <Phone className="size-3.5 shrink-0" aria-hidden />
           {contacts.tel}
         </a>

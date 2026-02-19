@@ -32,7 +32,7 @@ function stripTypeScript(code: string): string {
  */
 export async function transformJs(
   source: string,
-  options: TransformOptions,
+  options: TransformOptions
 ): Promise<string> {
   const trimmed = source.trim();
   if (!trimmed) return "";

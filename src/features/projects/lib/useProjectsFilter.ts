@@ -5,10 +5,7 @@ import type { SortOption } from "./sortProjects";
 import { sortProjects } from "./sortProjects";
 
 export function useProjectsFilter(all: ProjectItem[]) {
-  const mainList = useMemo(
-    () => all.filter(p => p.section !== "code"),
-    [all]
-  );
+  const mainList = useMemo(() => all.filter(p => p.section !== "code"), [all]);
   const codeSectionItems = useMemo(
     () => all.filter(p => p.section === "code"),
     [all]
@@ -26,7 +23,9 @@ export function useProjectsFilter(all: ProjectItem[]) {
   );
   const allStatuses = useMemo(
     () =>
-      Array.from(new Set(mainList.map(p => p.status).filter(Boolean))) as string[],
+      Array.from(
+        new Set(mainList.map(p => p.status).filter(Boolean))
+      ) as string[],
     [mainList]
   );
 

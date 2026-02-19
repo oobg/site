@@ -7,7 +7,13 @@ export function toPickerHex(hex: string): string {
   const s = hex.trim().replace(/^#/, "");
   if (/^[0-9a-fA-F]{6}$/.test(s)) return "#" + s.toLowerCase();
   if (/^[0-9a-fA-F]{3}$/.test(s))
-    return "#" + [...s].map((c) => c + c).join("").toLowerCase();
+    return (
+      "#" +
+      [...s]
+        .map(c => c + c)
+        .join("")
+        .toLowerCase()
+    );
   return DEFAULT_SEED_HEX;
 }
 

@@ -19,37 +19,68 @@ const lineRowClass = "min-h-[1.7rem] items-center";
 /** 두 페이지 전용: 행 높이 고정(양쪽 컬럼 정렬 맞춤) */
 const sideBySideRowClass = "h-[1.7rem] items-center";
 
-function UnifiedDiff({ changes, className }: { changes: LineChange[]; className?: string }) {
+function UnifiedDiff({
+  changes,
+  className,
+}: {
+  changes: LineChange[];
+  className?: string;
+}) {
   let lNum = 0;
   let rNum = 0;
-  const rows: { line: string; prefix: string; isAdded: boolean; isRemoved: boolean; lineNo: number | null }[] = [];
+  const rows: {
+    line: string;
+    prefix: string;
+    isAdded: boolean;
+    isRemoved: boolean;
+    lineNo: number | null;
+  }[] = [];
   for (const c of changes) {
     const lines = splitLines(c.value);
     const isAdded = !!c.added;
     const isRemoved = !!c.removed;
     const prefix = isAdded ? "+ " : isRemoved ? "- " : "  ";
     for (const line of lines) {
-      const lastDisplayNo = rows.length > 0 ? rows[rows.length - 1].lineNo : null;
+      const lastDisplayNo =
+        rows.length > 0 ? rows[rows.length - 1].lineNo : null;
       if (isAdded) {
         rNum += 1;
         const hide = lastDisplayNo === rNum;
-        rows.push({ line, prefix, isAdded, isRemoved, lineNo: hide ? null : rNum });
+        rows.push({
+          line,
+          prefix,
+          isAdded,
+          isRemoved,
+          lineNo: hide ? null : rNum,
+        });
       } else if (isRemoved) {
         lNum += 1;
         const hide = lastDisplayNo === lNum;
-        rows.push({ line, prefix, isAdded, isRemoved, lineNo: hide ? null : lNum });
+        rows.push({
+          line,
+          prefix,
+          isAdded,
+          isRemoved,
+          lineNo: hide ? null : lNum,
+        });
       } else {
         lNum += 1;
         rNum += 1;
         const hide = lastDisplayNo === lNum;
-        rows.push({ line, prefix, isAdded, isRemoved, lineNo: hide ? null : lNum });
+        rows.push({
+          line,
+          prefix,
+          isAdded,
+          isRemoved,
+          lineNo: hide ? null : lNum,
+        });
       }
     }
   }
   return (
     <pre
       className={cn(
-        "overflow-auto rounded-md border border-border bg-muted/20 p-3 text-sm font-mono leading-relaxed",
+        "overflow-auto rounded-md border border-border bg-muted/20 p-3 font-mono text-sm leading-relaxed",
         className
       )}
     >
@@ -64,7 +95,7 @@ function UnifiedDiff({ changes, className }: { changes: LineChange[]; className?
               row.isRemoved && removedBg
             )}
           >
-            <span className="w-8 shrink-0 text-right text-muted-foreground text-xs tabular-nums">
+            <span className="w-8 shrink-0 text-right text-xs tabular-nums text-muted-foreground">
               {row.lineNo ?? ""}
             </span>
             <span
@@ -91,17 +122,29 @@ function splitLines(value: string): string[] {
   return lines;
 }
 
-type SideLine = { text: string; kind: "same" | "removed" | "added"; lineNo?: number };
+type SideLine = {
+  text: string;
+  kind: "same" | "removed" | "added";
+  lineNo?: number;
+};
 
 /** 한 행: 왼쪽(원본)/오른쪽(수정본) 내용. null이면 해당 쪽만 있는 행(추가 또는 삭제). */
-type RawRow = { left: string | null; right: string | null; leftNo?: number; rightNo?: number };
+type RawRow = {
+  left: string | null;
+  right: string | null;
+  leftNo?: number;
+  rightNo?: number;
+};
 
 /**
  * 1) changes를 순서대로 풀어서 RawRow[] 생성 (왼쪽/오른쪽 줄 번호 부여).
  * 2) 연속된 "왼쪽만 / 오른쪽만" 행들을 짝지어 (removed, added) 한 행으로 병합.
  *    → 같은 텍스트가 여러 줄이어도, 청크 순서와 무관하게 원본 줄 번호가 맞게 됨.
  */
-function buildSideBySideRows(changes: LineChange[]): { left: SideLine[]; right: SideLine[] } {
+function buildSideBySideRows(changes: LineChange[]): {
+  left: SideLine[];
+  right: SideLine[];
+} {
   const rawRows: RawRow[] = [];
   let lNum = 0;
   let rNum = 0;
@@ -113,7 +156,12 @@ function buildSideBySideRows(changes: LineChange[]): { left: SideLine[]; right: 
       } else if (c.removed) {
         rawRows.push({ left: line, right: null, leftNo: ++lNum });
       } else {
-        rawRows.push({ left: line, right: line, leftNo: ++lNum, rightNo: ++rNum });
+        rawRows.push({
+          left: line,
+          right: line,
+          leftNo: ++lNum,
+          rightNo: ++rNum,
+        });
       }
     }
   }
@@ -157,13 +205,19 @@ function buildSideBySideRows(changes: LineChange[]): { left: SideLine[]; right: 
   return { left, right };
 }
 
-function SideBySideDiff({ changes, className }: { changes: LineChange[]; className?: string }) {
+function SideBySideDiff({
+  changes,
+  className,
+}: {
+  changes: LineChange[];
+  className?: string;
+}) {
   const { left, right } = buildSideBySideRows(changes);
   return (
     <div
       className={cn(
-        "grid min-h-[8rem] overflow-auto rounded-md border border-border bg-muted/20 text-sm font-mono leading-relaxed",
-        "grid-cols-2 auto-rows-[1.7rem]",
+        "grid min-h-[8rem] overflow-auto rounded-md border border-border bg-muted/20 font-mono text-sm leading-relaxed",
+        "auto-rows-[1.7rem] grid-cols-2",
         className
       )}
     >
@@ -174,17 +228,17 @@ function SideBySideDiff({ changes, className }: { changes: LineChange[]; classNa
           <Fragment key={i}>
             <div
               className={cn(
-                "flex border-r border-border overflow-hidden",
+                "flex overflow-hidden border-r border-border",
                 rowBorderClass,
                 sideBySideRowClass,
                 item.kind === "removed" && removedBg,
                 item.kind === "removed" && "text-red-700 dark:text-red-400"
               )}
             >
-              <span className="shrink-0 w-8 pr-2 text-right text-muted-foreground text-xs">
+              <span className="w-8 shrink-0 pr-2 text-right text-xs text-muted-foreground">
                 {item.lineNo ?? ""}
               </span>
-              <code className="min-w-0 flex-1 overflow-x-auto pl-2 whitespace-nowrap">
+              <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap pl-2">
                 {item.text || " "}
               </code>
             </div>
@@ -194,17 +248,18 @@ function SideBySideDiff({ changes, className }: { changes: LineChange[]; classNa
                 rowBorderClass,
                 sideBySideRowClass,
                 right[i].kind === "added" && addedBg,
-                right[i].kind === "added" && "text-green-700 dark:text-green-400"
+                right[i].kind === "added" &&
+                  "text-green-700 dark:text-green-400"
               )}
             >
-            <span className="shrink-0 w-8 pr-2 text-right text-muted-foreground text-xs">
-              {right[i].lineNo ?? ""}
-            </span>
-            <code className="min-w-0 flex-1 overflow-x-auto pl-2 whitespace-nowrap">
-              {right[i].text || " "}
-            </code>
-          </div>
-        </Fragment>
+              <span className="w-8 shrink-0 pr-2 text-right text-xs text-muted-foreground">
+                {right[i].lineNo ?? ""}
+              </span>
+              <code className="min-w-0 flex-1 overflow-x-auto whitespace-nowrap pl-2">
+                {right[i].text || " "}
+              </code>
+            </div>
+          </Fragment>
         );
       })}
     </div>

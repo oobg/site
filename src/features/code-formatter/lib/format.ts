@@ -8,12 +8,7 @@ import { format as formatSql } from "sql-formatter";
 import type { Lang } from "./constants";
 
 /** estree must be first so JS/JSX (and embedded script in HTML) format correctly. */
-const PRETTIER_PLUGINS = [
-  pluginEstree,
-  parserHtml,
-  parserBabel,
-  parserPostcss,
-];
+const PRETTIER_PLUGINS = [pluginEstree, parserHtml, parserBabel, parserPostcss];
 
 const isParseError = (msg: string) =>
   /Unexpected token|SyntaxError|Expected |Invalid/i.test(msg);

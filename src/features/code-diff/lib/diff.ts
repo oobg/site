@@ -9,9 +9,12 @@ export type LineChange = {
 /**
  * 라인 단위 diff. unified 뷰와 side-by-side 뷰 모두에서 사용.
  */
-export function computeLineDiff(original: string, modified: string): LineChange[] {
+export function computeLineDiff(
+  original: string,
+  modified: string
+): LineChange[] {
   const changes = diffLines(original, modified);
-  return changes.map((c) => ({
+  return changes.map(c => ({
     value: c.value,
     ...(c.added && { added: true }),
     ...(c.removed && { removed: true }),

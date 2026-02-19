@@ -8,6 +8,5 @@ export type BodyScrollInstance = Exclude<
 
 const defaultRef = { current: null as BodyScrollInstance | null };
 
-export const BodyScrollRefContext = createContext<
-  React.MutableRefObject<BodyScrollInstance | null>
->(defaultRef);
+export const BodyScrollRefContext =
+  createContext<React.MutableRefObject<BodyScrollInstance | null>>(defaultRef);

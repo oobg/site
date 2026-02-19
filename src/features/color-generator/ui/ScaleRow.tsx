@@ -13,7 +13,7 @@ export function ScaleRow({
     <div className="space-y-2">
       <p className="text-sm font-medium text-muted-foreground">{label}</p>
       <div className="flex flex-wrap gap-1">
-        {SCALE_KEYS.map((key) => (
+        {SCALE_KEYS.map(key => (
           <div
             key={key}
             className="flex flex-col items-center gap-0.5"
@@ -28,7 +28,7 @@ export function ScaleRow({
         ))}
       </div>
       <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
-        {SCALE_KEYS.map((key) => (
+        {SCALE_KEYS.map(key => (
           <code key={key} className="rounded bg-muted px-1 py-0.5">
             {scale[key]}
           </code>

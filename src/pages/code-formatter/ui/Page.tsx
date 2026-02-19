@@ -28,7 +28,7 @@ export function CodeFormatterPage() {
             </Button>
           </div>
 
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="leading-relaxed text-muted-foreground">
             HTML, CSS, JavaScript, JSX, SQL 중 언어를 선택하고 코드를 입력한 뒤
             정렬 버튼을 누르면 포맷된 결과를 볼 수 있습니다. 결과는 복사할 수
             있습니다.

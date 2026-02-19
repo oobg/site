@@ -27,7 +27,7 @@ export function OriginalModifiedInputs({
         <textarea
           id="diff-original"
           value={original}
-          onChange={(e) => onOriginalChange(e.target.value)}
+          onChange={e => onOriginalChange(e.target.value)}
           className={textareaClass}
           placeholder="원본 텍스트를 입력하세요"
           spellCheck={false}
@@ -40,7 +40,7 @@ export function OriginalModifiedInputs({
         <textarea
           id="diff-modified"
           value={modified}
-          onChange={(e) => onModifiedChange(e.target.value)}
+          onChange={e => onModifiedChange(e.target.value)}
           className={textareaClass}
           placeholder="수정된 텍스트를 입력하세요"
           spellCheck={false}

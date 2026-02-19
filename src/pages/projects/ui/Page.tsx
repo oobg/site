@@ -141,7 +141,9 @@ export function ProjectsPage() {
           </div>
 
           {filteredAndSorted.length === 0 ? (
-            <p className="text-muted-foreground">조건에 맞는 항목이 없습니다.</p>
+            <p className="text-muted-foreground">
+              조건에 맞는 항목이 없습니다.
+            </p>
           ) : (
             <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {filteredAndSorted.map(p => (

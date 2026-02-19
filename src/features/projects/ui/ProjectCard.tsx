@@ -16,18 +16,16 @@ import type { ProjectItem } from "../lib/schema";
 import { isInternalDetail } from "../lib/sortProjects";
 
 export function ProjectCard({ item }: { item: ProjectItem }) {
-  const detailPath = isInternalDetail(item) ? item.links.detail ?? null : null;
+  const detailPath = isInternalDetail(item)
+    ? (item.links.detail ?? null)
+    : null;
   const { links } = item;
 
   return (
     <Card className="flex h-full flex-col overflow-hidden">
       {item.thumbnail && (
         <div className="aspect-video w-full overflow-hidden border-b border-border bg-muted/30">
-          <img
-            src={item.thumbnail}
-            alt=""
-            className="size-full object-cover"
-          />
+          <img src={item.thumbnail} alt="" className="size-full object-cover" />
         </div>
       )}
       <CardHeader className="pb-2">
@@ -36,7 +34,7 @@ export function ProjectCard({ item }: { item: ProjectItem }) {
             {detailPath ? (
               <Link
                 to={detailPath}
-                className="hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                className="rounded hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 {item.title}
               </Link>
@@ -55,7 +53,9 @@ export function ProjectCard({ item }: { item: ProjectItem }) {
             {item.type}
           </span>
         </div>
-        <CardDescription className="line-clamp-2">{item.summary}</CardDescription>
+        <CardDescription className="line-clamp-2">
+          {item.summary}
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pt-0">
         {item.tags.length > 0 && (

@@ -30,10 +30,7 @@ export function ProjectDetailPage() {
         <meta name="description" content={project.summary} />
       </Helmet>
       <div className="container mx-auto max-w-4xl px-4 py-16 md:py-24">
-        <motion.article
-          {...motionEnter}
-          className="space-y-6"
-        >
+        <motion.article {...motionEnter} className="space-y-6">
           <div className="flex flex-wrap items-center gap-2">
             <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">
               {project.title}
@@ -55,15 +52,14 @@ export function ProjectDetailPage() {
               <span className="font-medium">Status:</span> {project.status}
             </p>
           )}
-          {project.period &&
-            (project.period.from || project.period.to) && (
-              <p className="text-sm">
-                <span className="font-medium">기간:</span>{" "}
-                {[project.period.from, project.period.to]
-                  .filter(Boolean)
-                  .join(" ~ ")}
-              </p>
-            )}
+          {project.period && (project.period.from || project.period.to) && (
+            <p className="text-sm">
+              <span className="font-medium">기간:</span>{" "}
+              {[project.period.from, project.period.to]
+                .filter(Boolean)
+                .join(" ~ ")}
+            </p>
+          )}
           {project.tags.length > 0 && (
             <p className="text-sm">
               <span className="font-medium">태그:</span>{" "}

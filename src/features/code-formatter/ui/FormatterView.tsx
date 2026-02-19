@@ -1,11 +1,5 @@
 import { Copy } from "lucide-react";
-import {
-  type ChangeEvent,
-  lazy,
-  Suspense,
-  useCallback,
-  useState,
-} from "react";
+import { type ChangeEvent, lazy, Suspense, useCallback, useState } from "react";
 
 import { toast } from "@/shared/lib/toast";
 import { Button } from "@/shared/ui/Button";
@@ -15,7 +9,7 @@ import { type Lang, LANG_OPTIONS, type ResolvedLang } from "../lib/constants";
 import { detectLang } from "../lib/detectLang";
 
 const CodeBlockLazy = lazy(() =>
-  import("./CodeBlock").then((m) => ({ default: m.CodeBlock }))
+  import("./CodeBlock").then(m => ({ default: m.CodeBlock }))
 );
 
 const RESOLVED_LANG_LABELS: Record<ResolvedLang, string> = {
@@ -79,11 +73,12 @@ export function FormatterView() {
             id="formatter-lang"
             value={lang}
             onChange={(e: ChangeEvent<HTMLSelectElement>) =>
-              setLang(e.target.value as Lang)}
+              setLang(e.target.value as Lang)
+            }
             className="w-auto min-w-[8rem]"
             aria-label="포맷할 코드 언어 선택"
           >
-            {LANG_OPTIONS.map((opt) => (
+            {LANG_OPTIONS.map(opt => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -99,7 +94,7 @@ export function FormatterView() {
         <textarea
           id="formatter-input"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={e => setInput(e.target.value)}
           className={textareaClass}
           placeholder="포맷할 코드를 입력하세요"
           spellCheck={false}
@@ -122,7 +117,7 @@ export function FormatterView() {
       {error && (
         <p
           role="alert"
-          className="text-sm text-destructive whitespace-pre-line"
+          className="whitespace-pre-line text-sm text-destructive"
           id="formatter-error"
         >
           {error}
@@ -166,7 +161,7 @@ export function FormatterView() {
           >
             <Suspense
               fallback={
-                <pre className="min-h-[12rem] w-full overflow-auto rounded-md border-0 bg-background p-3 text-sm font-mono text-muted-foreground">
+                <pre className="min-h-[12rem] w-full overflow-auto rounded-md border-0 bg-background p-3 font-mono text-sm text-muted-foreground">
                   로딩 중…
                 </pre>
               }

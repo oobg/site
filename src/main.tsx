@@ -8,7 +8,7 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "@/app";
 
 if (import.meta.env.DEV && import.meta.env.VITE_MSW === "true") {
-  import("@/msw").then((m) => m.start());
+  import("@/msw").then(m => m.start());
 }
 
 createRoot(document.getElementById("root")!).render(

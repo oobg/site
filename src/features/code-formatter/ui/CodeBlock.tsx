@@ -43,7 +43,7 @@ export function CodeBlock({ code, lang, className }: CodeBlockProps) {
     return (
       <pre
         className={cn(
-          "min-h-[12rem] w-full overflow-auto rounded-md border border-input bg-background p-3 text-sm font-mono",
+          "min-h-[12rem] w-full overflow-auto rounded-md border border-input bg-background p-3 font-mono text-sm",
           className
         )}
         data-language={prismLang}
@@ -54,11 +54,22 @@ export function CodeBlock({ code, lang, className }: CodeBlockProps) {
   }
 
   return (
-    <Highlight theme={codeFormatterTheme} code={code} language={prismLang} prism={Prism}>
-      {({ className: innerClassName, style, tokens, getLineProps, getTokenProps }) => (
+    <Highlight
+      theme={codeFormatterTheme}
+      code={code}
+      language={prismLang}
+      prism={Prism}
+    >
+      {({
+        className: innerClassName,
+        style,
+        tokens,
+        getLineProps,
+        getTokenProps,
+      }) => (
         <pre
           className={cn(
-            "min-h-[12rem] w-full overflow-auto rounded-md border border-input bg-background p-3 text-sm font-mono",
+            "min-h-[12rem] w-full overflow-auto rounded-md border border-input bg-background p-3 font-mono text-sm",
             className
           )}
           style={style}

@@ -22,8 +22,7 @@ import { AboutSkills } from "./AboutSkills";
 import { AboutWork } from "./AboutWork";
 
 const projectsList = getProjects();
-const featuredProject =
-  projectsList.find(p => p.featured) ?? projectsList[0];
+const featuredProject = projectsList.find(p => p.featured) ?? projectsList[0];
 
 export function AboutPage() {
   const effectiveTheme = useThemeStore(s => s.effectiveTheme);

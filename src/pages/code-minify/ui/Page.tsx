@@ -28,7 +28,7 @@ export function CodeMinifyPage() {
             </Button>
           </div>
 
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="leading-relaxed text-muted-foreground">
             원본 JavaScript를 입력한 뒤 출력 형식(포매팅/한줄)과 uglify 여부를
             선택하고 변환하면 결과를 볼 수 있습니다. 결과는 복사할 수 있습니다.
           </p>

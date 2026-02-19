@@ -7,6 +7,8 @@ export function getProjects(): typeof projects {
   return projects;
 }
 
-export function getProjectById(id: string): (typeof projects)[number] | undefined {
+export function getProjectById(
+  id: string
+): (typeof projects)[number] | undefined {
   return projects.find(p => p.id === id);
 }
