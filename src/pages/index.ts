@@ -4,6 +4,7 @@
  */
 export { AboutPageLazy } from "./about";
 export { BlogPageLazy } from "./blog";
+export { BlogPostPageLazy } from "./blog-post";
 export { CodeDiffPageLazy } from "./code-diff";
 export { CodeFormatterPageLazy } from "./code-formatter";
 export { CodeMinifyPageLazy } from "./code-minify";

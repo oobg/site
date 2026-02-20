@@ -26,6 +26,7 @@
     "react-dom": "^19.2.0",
     "react-helmet-async": "^2.0.5",
     "react-hook-form": "^7.57.0",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.6.1",
     "sonner": "^1.7.1",
     "sql-formatter": "^15.7.2",

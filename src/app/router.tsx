@@ -1,8 +1,10 @@
 import { createBrowserRouter } from "react-router-dom";
 
+import { blogPostLoader } from "@/features/blog";
 import {
   AboutPageLazy,
   BlogPageLazy,
+  BlogPostPageLazy,
   CodeDiffPageLazy,
   CodeFormatterPageLazy,
   CodeMinifyPageLazy,
@@ -31,6 +33,11 @@ export const router = createBrowserRouter([
       { path: "projects/code/formatter", element: <CodeFormatterPageLazy /> },
       { path: "projects/code/minify", element: <CodeMinifyPageLazy /> },
       { path: "blog", element: <BlogPageLazy /> },
+      {
+        path: "blog/:encodedTitle",
+        element: <BlogPostPageLazy />,
+        loader: blogPostLoader,
+      },
       { path: "contact", element: <ContactPageLazy /> },
       { path: "*", element: <NotFoundPageLazy /> },
     ],
