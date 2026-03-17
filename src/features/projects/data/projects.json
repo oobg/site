@@ -25,6 +25,17 @@
     "featured": false
   },
   {
+    "id": "solarteq",
+    "type": "project",
+    "title": "Solarteq",
+    "summary": "솔라테크 홈페이지 바이브 코딩.",
+    "tags": ["Landing", "Solarteq", "React"],
+    "status": "active",
+    "links": {
+      "run": "https://solarteq.raven.kr"
+    }
+  },
+  {
     "id": "code-diff",
     "type": "tool",
     "title": "코드 비교",
