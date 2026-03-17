@@ -16,7 +16,12 @@ export function AboutWork() {
           </div>
           {item.description ? (
             <p className="w-full text-sm leading-relaxed text-muted-foreground">
-              {item.description}
+              {item.description.split("\n").map((line, index, arr) => (
+                <span key={index}>
+                  {line}
+                  {index < arr.length - 1 ? <br /> : null}
+                </span>
+              ))}
             </p>
           ) : null}
         </li>
