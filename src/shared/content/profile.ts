@@ -173,8 +173,9 @@ export interface CertificationItem {
 
 /** 자격증 */
 export const certifications: CertificationItem[] = [
+  { name: "자동화설비 기능사", date: "2016.07" },
   { name: "전기 기능사", date: "2015.12" },
-  { name: "정보처리 기능사", date: "2015.06" },
+  { name: "프로그래밍 기능사", date: "2015.06" },
 ];
 
 export interface ExternalActivityItem {
