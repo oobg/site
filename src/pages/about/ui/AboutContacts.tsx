@@ -37,6 +37,17 @@ export function AboutContacts() {
           <ExternalLink className="size-3.5 shrink-0" aria-hidden />
         </a>
       </li>
+      <li>
+        <a
+          href={contacts.notion}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={linkClass}
+        >
+          Notion
+          <ExternalLink className="size-3.5 shrink-0" aria-hidden />
+        </a>
+      </li>
     </ul>
   );
 }

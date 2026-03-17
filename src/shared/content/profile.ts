@@ -75,6 +75,7 @@ export const contacts = {
   email: "yoonseok.bae98@gmail.com",
   blog: "https://blog.osb.im/",
   github: "https://github.com/oobg",
+  notion: "https://oobg.notion.site/",
 } as const;
 
 /**
