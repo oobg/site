@@ -20,9 +20,12 @@ export function SiteIntro() {
   // 오버레이는 항상 SSR HTML에 렌더되어야 함(플래시 방지). 표시 여부는 CSS(html[data-intro])가 결정하고,
   // 실제 언마운트는 안무 완료 후(아래 async 콜백)에만 일어난다. 효과 내 동기 setState는 없다.
   const [removed, setRemoved] = useState(false);
+  // 재생 여부는 마운트 시점에 확정한다(useState 초기값 스냅샷). finish()가 context의 playing을
+  // false로 바꿔도 이 값은 불변이므로 타임라인 effect가 재실행/취소되지 않는다(핸드오프 후 언마운트 보장).
+  const [shouldPlay] = useState(playing);
 
   useEffect(() => {
-    if (!playing) return;
+    if (!shouldPlay) return;
     let cancelled = false;
     (async () => {
       try {
@@ -50,7 +53,7 @@ export function SiteIntro() {
     return () => {
       cancelled = true;
     };
-  }, [playing, animate, finish, scope]);
+  }, [shouldPlay, animate, finish, scope]);
 
   if (removed) return null;
 
