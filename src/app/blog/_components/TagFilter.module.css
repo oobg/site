@@ -1,0 +1,13 @@
+.filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-bottom: var(--space-7);
+  font-size: var(--fs-15);
+}
+.chip {
+  color: var(--color-text-secondary);
+}
+.active {
+  color: var(--color-accent);
+}

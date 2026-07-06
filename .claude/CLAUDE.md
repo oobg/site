@@ -11,7 +11,7 @@
 
 ## 계약·설계
 
-- [API 계약(참조 사본)](../docs/api-contract/content-v1.md) — 원본은 api repo
+- [API 계약(참조 사본)](../docs/api-contract/content-v2.md) — 원본은 api repo
 - [기반 설계 spec](../docs/superpowers/specs/2026-07-06-personal-site-foundation-design.md)
 
 ## 규칙 요약

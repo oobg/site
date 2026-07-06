@@ -1,0 +1,12 @@
+.header {
+  padding-top: var(--space-9);
+  margin-bottom: var(--space-7);
+}
+.title {
+  font-size: var(--fs-40);
+  line-height: var(--lh-tight);
+}
+.empty {
+  color: var(--color-text-muted);
+  padding-block: var(--space-8);
+}

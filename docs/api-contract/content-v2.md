@@ -1,10 +1,15 @@
-> 원본 SSOT: api repo의 docs/api-contract/content-v1.md. 이 파일은 참조 사본이다.
+> 원본 SSOT: api repo의 docs/api-contract/content-v2.md. 이 파일은 참조 사본이다.
 
-# 콘텐츠 API 계약 v1 (SSOT)
+# 콘텐츠 API 계약 v2 (SSOT)
 
 > 프론트(Next.js SSG+ISR)와 백엔드가 공유하는 단일 진실 원천.
 > 상태: **합의됨, 미구현**. 이 문서가 스키마의 기준이고, 구현·프론트 타입은 여기에 맞춘다.
-> 변경은 이 파일을 고치고 버전(v1→v2)을 올린다.
+> 변경은 파일명 버전을 올려(content-vN.md) 재협의한다.
+
+## 변경 이력
+
+- **v2 (2026-07-06)**: slug 규칙을 유니코드(한글) 허용으로 변경. 한글 제목 그대로 URL. NFC 정규화 필수 조건 추가.
+- **v1 (2026-07-06)**: 최초 합의. ascii-only slug.
 
 ## 원칙
 
@@ -33,7 +38,10 @@
 | `limit`  | int 1~100 | `20`            |                                                                  |
 | `sort`   | string    | `-published_at` | `-` 접두는 내림차순. 허용: `published_at`, `updated_at`, `title` |
 
-- slug 규칙: `^[a-z0-9]+(-[a-z0-9]+)*$` (기존 `normalizeSlug()` 재사용, 한글→ascii 폴백).
+- slug 규칙 (v2, 유니코드 허용): `^[가-힣a-z0-9]+(?:-[가-힣a-z0-9]+)*$`
+  - 정규화: 소문자화 → 공백을 `-`로 → 한글(완성형 `가-힣`)·영소문자·숫자·`-`만 유지, 그 외 문장부호 제거 → 연속 `-` 축약 → 앞뒤 `-` trim.
+  - **NFC 정규화 필수**: 출처가 Obsidian 파일명이라 macOS는 한글을 NFD(자모 분해)로 저장 → `가-힣` 범위에 안 걸림. slug·본문 모두 `.normalize('NFC')`를 **먼저** 태운다. 기존 `normalizeSlug()`를 이 규칙으로 확장 구현.
+  - 프론트는 slug을 불투명 유니코드 문자열로 취급(라우팅 영향 없음). URL에선 percent-encoding됨.
 - 없는 slug → 404 `{error:{code:"not_found"}}`.
 
 ## 스키마

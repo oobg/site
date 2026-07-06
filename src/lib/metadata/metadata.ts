@@ -19,10 +19,12 @@ export function buildMetadata(input: {
   description?: string;
   path?: string;
 }): Metadata {
+  const baseOg = baseMetadata.openGraph as Record<string, unknown>;
   return {
     title: input.title,
     description: input.description,
     openGraph: {
+      ...baseOg,
       title: input.title,
       description: input.description,
       url: input.path,

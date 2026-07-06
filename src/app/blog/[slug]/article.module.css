@@ -1,0 +1,17 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, var(--w-reading)) 1fr;
+  gap: var(--space-8);
+  align-items: start;
+}
+.aside {
+  padding-top: var(--space-9);
+}
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+  .aside {
+    display: none;
+  }
+}

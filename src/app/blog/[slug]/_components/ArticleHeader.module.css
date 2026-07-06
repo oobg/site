@@ -1,0 +1,17 @@
+.header {
+  padding-top: var(--space-9);
+  margin-bottom: var(--space-8);
+}
+.title {
+  font-size: var(--fs-56);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.02em;
+}
+.meta {
+  margin-top: var(--space-4);
+  display: flex;
+  gap: var(--space-3);
+  font-size: var(--fs-13);
+  color: var(--color-text-muted);
+  font-family: var(--font-mono), monospace;
+}
