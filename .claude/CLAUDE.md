@@ -1,17 +1,20 @@
 # CLAUDE
 
-> 기반(foundation) 구축 진행 중. 컨벤션 SSOT(`docs/references/`)와 완전한 인덱스는
-> Task 9에서 작성됩니다. 그 전까지 이 파일은 최소 상태로 둡니다.
+프로젝트 컨벤션의 **진실 원천은 `docs/references/`** 입니다. 이 파일은 링크 인덱스입니다.
 
-## 이 프로젝트 핵심 규칙 (요약)
+## 컨벤션 (SSOT: docs/references/)
 
-- 개인 사이트 프론트엔드. 스택: Next.js(App Router) · React 19 + React Compiler · TypeScript · pnpm.
-- 디자인: **PPOS 커스텀 토큰 + CSS Modules**. **Tailwind·Astryx 사용 안 함.** raw hex/px 금지 — CSS 변수 토큰만.
-- 데이터: **RSC-first** 서버 fetch. 콘텐츠는 `api.raven.kr`(계약: `docs/api-contract/content-v1.md`).
-- 아키텍처: `app → features → components → 하위 공용`. no-barrel, path alias, `import type`, 역방향 import 금지.
-- 애니메이션은 `motion`(`motion/react`). 토스트는 `@lib/toast`만(sonner 직접 import 금지).
-- 커밋: Conventional Commits(자연어 한국어).
+- [아키텍처](../docs/references/architecture.md) — 레이어·import·페이지 패턴·ROUTES
+- [상태 모델](../docs/references/state-model.md) — 4종 상태·폼·Toast·안티패턴
+- [디자인 언어](../docs/references/design-language.md) — PPOS 토큰·모션·색
+- [콘텐츠 API](../docs/references/content-api.md) — 소비 규칙
 
-## 참고 문서
-- 설계 spec: `docs/superpowers/specs/2026-07-06-personal-site-foundation-design.md`
-- 구현 계획: `docs/superpowers/plans/2026-07-06-personal-site-foundation.md`
+## 계약·설계
+
+- [API 계약(참조 사본)](../docs/api-contract/content-v1.md) — 원본은 api repo
+- [기반 설계 spec](../docs/superpowers/specs/2026-07-06-personal-site-foundation-design.md)
+
+## 규칙 요약
+
+- pnpm · no-barrel · path alias · RSC-first · CSS 토큰만(Tailwind 금지) · sonner는 @lib/toast만
+- 커밋: Conventional Commits(자연어 한국어)
