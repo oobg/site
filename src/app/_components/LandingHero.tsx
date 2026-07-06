@@ -1,14 +1,16 @@
 'use client';
 
 import { motion } from 'motion/react';
+import { useIntro } from '@components/intro/IntroProvider';
 import styles from './LandingHero.module.css';
 
 export function LandingHero() {
+  const { revealed } = useIntro();
   return (
     <motion.section
       className={styles.hero}
       initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
+      animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
       transition={{ duration: 0.2 }}
     >
       <h1 className={styles.headline}>Ideas deserve good interfaces.</h1>

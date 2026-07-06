@@ -1,0 +1,56 @@
+/* src/components/intro/SiteIntro.module.css */
+
+/* 기본은 숨김 — no-JS(속성 미설정) 시 콘텐츠를 가리지 않는다. */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--color-canvas);
+}
+
+/* 최초 진입(pending)에서만 오버레이가 화면을 덮는다. */
+:global(html[data-intro='pending']) .overlay {
+  display: block;
+}
+
+/* 모션 축소 선호 시엔 pending이어도 오버레이를 띄우지 않는다. */
+@media (prefers-reduced-motion: reduce) {
+  :global(html[data-intro='pending']) .overlay {
+    display: none;
+  }
+}
+
+/* 워드마크를 화면 정중앙에 배치 */
+.stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+/* 가운데 큰 워드마크. FLIP 축소·이동을 위해 origin은 top-left. */
+.wordmark {
+  position: relative;
+  display: inline-block;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-40);
+  line-height: 1;
+  white-space: nowrap;
+  transform-origin: top left;
+  will-change: transform;
+}
+
+/* 채워지기 전 '빈' 글자 — 옅은 톤 */
+.base {
+  color: var(--color-text-muted);
+}
+
+/* 잉크 채움 — base 위에 정확히 겹쳐 놓고 clip-path로 좌→우 노출(Motion loading-fill-text 방식) */
+.fill {
+  position: absolute;
+  inset: 0;
+  color: var(--color-text);
+  clip-path: inset(0% 100% 0% 0%);
+  will-change: clip-path;
+}
