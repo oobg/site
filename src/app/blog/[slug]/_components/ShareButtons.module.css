@@ -25,3 +25,15 @@
 .btn:active {
   transform: translateY(1px);
 }
+
+/* 모바일: 우측 하단 플로팅. 터치 타겟을 키우고 그림자로 띄운다. */
+@media (max-width: 900px) {
+  .share {
+    flex-direction: column;
+  }
+  .btn {
+    width: 48px;
+    height: 48px;
+    box-shadow: var(--shadow-float);
+  }
+}

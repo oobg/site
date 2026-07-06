@@ -75,23 +75,20 @@
   .aside {
     position: static;
   }
-  /* 모바일에서는 글 정보·관련 글을 감추고 하단 고정 공유 바만 남긴다. */
+  /* 모바일에서는 글 정보·관련 글을 감추고 공유 버튼만 우측 하단에 플로팅한다. */
   .block:not(.shareBlock) {
     display: none;
   }
   .shareBlock {
     position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    left: auto;
+    right: var(--space-5);
+    bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
     z-index: 50;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: var(--space-3) var(--space-4);
-    padding-bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
-    border-top: 1px solid var(--color-border);
-    background: var(--color-surface);
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
   }
   .shareBlock .blockTitle {
     display: none;
