@@ -12,7 +12,8 @@
 
 ### 확정된 상위 결정
 
-- **스택**: Next.js (App Router), TypeScript, 패키지 매니저 npm.
+- **스택**: Next.js (App Router), TypeScript, 패키지 매니저 **pnpm**(corepack 활성).
+  기존 `package-lock.json`은 제거하고 `pnpm-lock.yaml`로 전환한다.
 - **컴포넌트 뼈대**: Base UI(`@base-ui-components/react`) — 헤드리스/접근성 프리미티브.
   부분 애니메이션은 framer-motion. 모든 UI 요소는 `components/`(또는 feature `components/`)에
   **primitive로 만들어 호출**한다.
@@ -27,7 +28,7 @@
 
 ## 2. 완료 기준 (Definition of Done)
 
-- `npm run dev`로 뜨고, PPOS 토큰·폰트·레이아웃이 적용된 **대표 페이지 `/`(랜딩 Hero)**가 렌더된다.
+- `pnpm dev`로 뜨고, PPOS 토큰·폰트·레이아웃이 적용된 **대표 페이지 `/`(랜딩 Hero)**가 렌더된다.
 - 레이어 스캐폴드·path alias·ROUTES 헬퍼·상태 라이브러리 프로바이더가 배선돼 있다.
 - `content-v1.md` 계약에 맞는 **타입·데이터 계층**이 있고, 백엔드 콘텐츠 API가 아직 없으므로
   **mock 픽스처**로 동작하다가 env 토글(`CONTENT_SOURCE=api`)로 실 API에 붙는다.
@@ -333,7 +334,7 @@ PPOS 랜딩 원칙(큰 타이포, 거의 없는 UI, 최소 시각 노이즈)의 
 
 - `next.config.ts`: `output: 'standalone'`, `images.remotePatterns`에 `raw.githubusercontent.com`
   (+ 추후 미러 도메인 자리).
-- `Dockerfile`: standalone 실행 스켈레톤(빌드/실행은 배포 마일스톤).
+- `Dockerfile`: standalone 실행 스켈레톤(corepack 통한 pnpm 사용, 빌드/실행은 배포 마일스톤).
 - 실제 Cloudflare Tunnel 연결·도메인·env 주입은 범위 밖.
 
 ## 13. 정리 작업 (Astryx 제거)
