@@ -8,7 +8,7 @@ import styles from './SiteIntro.module.css';
 const START_DELAY_MS = 350; // 빈 글자를 잠깐 보여준 뒤 채우기 시작
 const FILL_MS = 850; // 글자 내부가 좌→우로 차오르는 시간
 const SETTLE_MS = 400; // 다 찬 뒤 이동 전 정지(숨)
-const MOVE_MS = 450; // 좌상단 헤더 워드마크로 축소·이동
+const MOVE_MS = 700; // 좌상단 헤더 워드마크로 축소·이동(천천히)
 const FADE_MS = 280; // 오버레이 페이드아웃(핸드오프)
 // 이동·페이드용 부드러운 ease-out(급가속·bounce 없음).
 const EASE = [0.22, 0.61, 0.36, 1] as const;
