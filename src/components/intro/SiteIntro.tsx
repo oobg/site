@@ -25,20 +25,27 @@ export function SiteIntro() {
     if (!playing) return;
     let cancelled = false;
     (async () => {
-      await Promise.all([
-        animate('[data-intro-hairline]', { scaleX: 1 }, { duration: DRAW_MS / 1000, ease: EASE }),
-        animate(
-          '[data-intro-wordmark]',
-          { opacity: 1, letterSpacing: '0em' },
-          { duration: DRAW_MS / 1000, ease: EASE },
-        ),
-      ]);
-      if (cancelled) return;
-      await wait(SETTLE_MS);
-      if (cancelled) return;
-      finish();
-      await animate(scope.current, { opacity: 0 }, { duration: FADE_MS / 1000, ease: EASE });
-      if (!cancelled) setRemoved(true);
+      try {
+        await Promise.all([
+          animate('[data-intro-hairline]', { scaleX: 1 }, { duration: DRAW_MS / 1000, ease: EASE }),
+          animate(
+            '[data-intro-wordmark]',
+            { opacity: 1, letterSpacing: '0em' },
+            { duration: DRAW_MS / 1000, ease: EASE },
+          ),
+        ]);
+        if (cancelled) return;
+        await wait(SETTLE_MS);
+        if (cancelled) return;
+        finish();
+        await animate(scope.current, { opacity: 0 }, { duration: FADE_MS / 1000, ease: EASE });
+        if (!cancelled) setRemoved(true);
+      } catch {
+        if (!cancelled) {
+          finish();
+          setRemoved(true);
+        }
+      }
     })();
     return () => {
       cancelled = true;
@@ -55,8 +62,8 @@ export function SiteIntro() {
             raven.kr
           </span>
         </div>
-        <div className={styles.hairline} data-intro-hairline />
       </div>
+      <div className={styles.hairline} data-intro-hairline />
     </div>
   );
 }

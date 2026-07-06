@@ -10,7 +10,7 @@ export const metadata = baseMetadata;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="ko" className={`${sans.variable} ${mono.variable}`}>
+    <html lang="ko" suppressHydrationWarning className={`${sans.variable} ${mono.variable}`}>
       <body>
         {/* 페인트 전 동기 실행: 최초 진입이면 html[data-intro]=pending, 아니면 shown.
             pending이면 즉시 기록해 새로고침 반복 재생을 막는다(세션당 1회). */}
