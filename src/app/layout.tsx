@@ -1,9 +1,9 @@
 import './globals.css';
-import type { Metadata } from 'next';
 import { sans, mono } from '@styles/fonts';
 import { AppProviders } from '@components/providers/AppProviders';
+import { baseMetadata } from '@lib/metadata/metadata';
 
-export const metadata: Metadata = { title: 'raven.kr' };
+export const metadata = baseMetadata;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
