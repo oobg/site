@@ -38,6 +38,9 @@ jobs:
             > docker/.env
       - name: 빌드 · 기동 · 헬스체크 (실패 시 롤백)
         run: |
+          # api·site 러너가 별도 프로세스라 동시 배포를 flock으로 직렬화(경로는 api와 동일해야 서로 대기)
+          exec 200>/tmp/raven-deploy.lock
+          flock -w 600 200
           set -euo pipefail
           docker network inspect nginx-proxy-manager_default >/dev/null 2>&1 || docker network create nginx-proxy-manager_default
           PREV_CID=$(docker compose -p "$APP_NAME" -f docker/compose.prod.yml ps -q web 2>/dev/null || echo "")
