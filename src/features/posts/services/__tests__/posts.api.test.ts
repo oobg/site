@@ -12,7 +12,24 @@ describe('posts.api', () => {
     const { getPosts } = await import('@features/posts/services/posts.api');
     const posts = await getPosts();
     expect(posts).toHaveLength(2);
-    expect(posts[0].slug).toBe('가벼운-헥사고날로-nestjs-나누기');
+    // 기본 정렬은 -published_at(최신순) → rsc-우선-데이터-패칭(2026-07-03)이 첫 번째
+    expect(posts[0].slug).toBe('rsc-우선-데이터-패칭');
+  });
+
+  it("mock: getPosts({ sort: '-published_at' })는 최신순으로 반환한다", async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'mock');
+    const { getPosts } = await import('@features/posts/services/posts.api');
+    const posts = await getPosts({ sort: '-published_at' });
+    // rsc-우선-데이터-패칭 (2026-07-03) before 가벼운-헥사고날로-nestjs-나누기 (2026-06-24)
+    expect(posts[0].slug).toBe('rsc-우선-데이터-패칭');
+    expect(posts[1].slug).toBe('가벼운-헥사고날로-nestjs-나누기');
+  });
+
+  it('mock: getPosts() 기본값은 최신순이다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'mock');
+    const { getPosts } = await import('@features/posts/services/posts.api');
+    const posts = await getPosts();
+    expect(posts[0].slug).toBe('rsc-우선-데이터-패칭');
   });
 
   it('api 소스에서 envelope의 data를 언랩한다', async () => {
