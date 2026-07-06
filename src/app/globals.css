@@ -25,3 +25,44 @@ kbd {
 a:hover {
   color: var(--color-accent-hover);
 }
+
+/* ─── 페이지 트랜지션 (clip-wipe) ────────────────────────────────
+   래핑은 layout.tsx의 <ViewTransition name="page">(본문 <main>만).
+   forward(push) 내비게이션에만 좌→우 wipe가 걸린다 — React ViewTransition은
+   popstate(뒤로가기)를 트리거하지 않으므로 뒤로가기는 즉시 전환된다.
+   의사요소는 문서 레벨이라 CSS Modules로 스코프할 수 없어 전역에 둔다. */
+
+/* 본문 밖(헤더·푸터·배경)은 라우트 간 동일한 chrome이므로 root 기본 페이드를 끈다.
+   본문(page)만 wipe하도록 남긴다. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* 이전 본문은 정지한 채 새 본문이 그 위를 덮는다(기본 fade-out 제거). */
+::view-transition-old(page) {
+  animation: none;
+}
+
+/* 새 본문: clip-path로 좌→우 드러남. 도입부 잉크 채움과 동일 어휘. */
+::view-transition-new(page) {
+  animation: vt-wipe var(--vt-dur) var(--vt-ease);
+}
+
+@keyframes vt-wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(page),
+  ::view-transition-old(page),
+  ::view-transition-new(page) {
+    animation: none !important;
+  }
+}

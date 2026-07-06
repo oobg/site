@@ -1,4 +1,5 @@
 import './globals.css';
+import { ViewTransition } from 'react';
 import Script from 'next/script';
 import { sans, mono } from '@styles/fonts';
 import { AppProviders } from '@components/providers/AppProviders';
@@ -22,7 +23,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </Script>
         <AppProviders>
           <SiteHeader />
-          <main className={styles.main}>{children}</main>
+          {/* clip-wipe 페이지 트랜지션: 본문만 전환(헤더·푸터는 지속 chrome).
+              래핑은 여기서, 실제 wipe는 globals.css의 ::view-transition-*(page) 규칙이 그린다. */}
+          <ViewTransition name="page">
+            <main className={styles.main}>{children}</main>
+          </ViewTransition>
           <SiteFooter />
         </AppProviders>
       </body>

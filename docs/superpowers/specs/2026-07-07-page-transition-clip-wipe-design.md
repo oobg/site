@@ -1,8 +1,15 @@
 # 페이지 트랜지션(Clip-wipe) 설계
 
 - 작성일: 2026-07-07
-- 상태: 설계 확정(구현 세부 일부는 플랜 단계에서 검증)
+- 상태: 구현 완료
 - 관련: 도입부 `SiteIntro`(잉크 채움 → 헤더 축소), 디자인 언어 `docs/references/design-language.md` §모션
+
+## 0. 구현 결과 요약 (2026-07-07)
+
+- 메커니즘: React `<ViewTransition name="page">`(layout.tsx의 `<main>` 래핑) + `experimental.viewTransition`(next.config) + CSS clip-wipe.
+- **방향 결정 변경**: 최초 설계는 "앞/뒤 방향 반전"이었으나, 실제 검증 결과 **React ViewTransition은 push 내비게이션에서만 트리거되고 popstate(뒤로가기)에서는 트리거되지 않음**을 확인. 뒤로가기 전환을 first-party 방식으로 구현할 수 없어, **forward(좌→우) wipe만 적용하고 뒤로가기는 즉시 전환**하기로 사용자와 확정.
+- 그 결과 방향 감지 provider(`ViewTransitions.tsx`)는 불필요해져 제거. §3.2·§4.1은 이력으로만 남긴다.
+- 검증: `startViewTransition` 발동 및 `vt-wipe`가 `::view-transition-new(page)`에 실제 적용됨을 브라우저 `getAnimations()`로 확인.
 
 ## 1. 목적
 
