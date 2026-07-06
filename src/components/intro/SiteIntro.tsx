@@ -5,12 +5,15 @@ import { useAnimate } from 'motion/react';
 import { useIntro } from './IntroProvider';
 import styles from './SiteIntro.module.css';
 
+const START_DELAY_MS = 350; // 빈 글자를 잠깐 보여준 뒤 채우기 시작
 const FILL_MS = 850; // 글자 내부가 좌→우로 차오르는 시간
-const SETTLE_MS = 120; // 다 찬 뒤 잠깐의 숨
+const SETTLE_MS = 400; // 다 찬 뒤 이동 전 정지(숨)
 const MOVE_MS = 450; // 좌상단 헤더 워드마크로 축소·이동
 const FADE_MS = 280; // 오버레이 페이드아웃(핸드오프)
-// 기존 PPOS ease 톤과 결이 맞는 부드러운 커브(급가속·bounce 없음).
+// 이동·페이드용 부드러운 ease-out(급가속·bounce 없음).
 const EASE = [0.22, 0.61, 0.36, 1] as const;
+// 채움용 ease-in-out — 시작이 완만해 "생기자마자 절반" 없이 고르게 차오른다.
+const FILL_EASE = [0.65, 0, 0.35, 1] as const;
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -29,25 +32,31 @@ export function SiteIntro() {
     let cancelled = false;
     (async () => {
       try {
+        // 0) 빈 글자를 잠깐 보여준 뒤 시작(초기 스타트 딜레이).
+        await wait(START_DELAY_MS);
+        if (cancelled) return;
+
         // 1) 글자 내부가 좌→우로 채워짐(Motion loading-fill-text 방식).
         await animate(
           '[data-intro-fill]',
           { clipPath: ['inset(0% 100% 0% 0%)', 'inset(0% 0% 0% 0%)'] },
-          { duration: FILL_MS / 1000, ease: EASE },
+          { duration: FILL_MS / 1000, ease: FILL_EASE },
         );
         if (cancelled) return;
         await wait(SETTLE_MS);
         if (cancelled) return;
 
-        // 2) 실제 헤더 워드마크 위치로 축소·이동(FLIP). transform-origin은 top-left.
+        // 2) 실제 헤더 워드마크 위치·크기로 축소·이동(FLIP). transform-origin은 top-left.
+        //    같은 mono 텍스트라 scale은 '너비 비율'로 잡아야 글자 크기가 정확히 맞고,
+        //    line-height 차이로 박스 높이가 다르므로 세로는 '박스 중심'을 맞춘다.
         const wrap = scope.current?.querySelector('[data-intro-wordmark]') as HTMLElement | null;
         const target = document.querySelector<HTMLElement>('[data-site-wordmark]');
         if (wrap && target) {
           const from = wrap.getBoundingClientRect();
           const to = target.getBoundingClientRect();
-          const scale = to.height / from.height;
+          const scale = to.width / from.width;
           const tx = to.left - from.left;
-          const ty = to.top - from.top;
+          const ty = to.top + to.height / 2 - (from.top + (from.height * scale) / 2);
           await animate(
             wrap,
             { transform: `translate(${tx}px, ${ty}px) scale(${scale})` },
