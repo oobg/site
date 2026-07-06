@@ -1,0 +1,61 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    env:
+      APP_NAME: ${{ github.ref_name }}-${{ secrets.PROJECT_NAME }}
+      PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
+      IMAGE_TAG: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.12.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: 게이트
+        run: pnpm typecheck && pnpm lint && pnpm test
+      - name: .env 생성
+        env:
+          REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+        run: |
+          umask 177
+          mkdir -p docker
+          printf '%s\n' \
+            'NODE_ENV=production' \
+            'CONTENT_API_BASE=https://api.raven.kr' \
+            'CONTENT_SOURCE=mock' \
+            "REVALIDATE_SECRET=${REVALIDATE_SECRET}" \
+            > docker/.env
+      - name: 빌드 · 기동 · 헬스체크 (실패 시 롤백)
+        run: |
+          set -euo pipefail
+          docker network inspect nginx-proxy-manager_default >/dev/null 2>&1 || docker network create nginx-proxy-manager_default
+          PREV_CID=$(docker compose -p "$APP_NAME" -f docker/compose.prod.yml ps -q web 2>/dev/null || echo "")
+          PREV_IMAGE=$([ -n "$PREV_CID" ] && docker inspect --format '{{.Image}}' "$PREV_CID" || echo "")
+          docker compose -p "$APP_NAME" -f docker/compose.prod.yml up -d --build
+          ok=""
+          for i in $(seq 1 15); do
+            cid=$(docker compose -p "$APP_NAME" -f docker/compose.prod.yml ps -q web)
+            if [ -n "$cid" ] && docker exec "$cid" wget -qO- http://127.0.0.1:3000/health | grep -q '"status":"ready"'; then ok=1; break; fi
+            sleep 3
+          done
+          if [ -z "$ok" ]; then
+            docker compose -p "$APP_NAME" -f docker/compose.prod.yml logs --tail=200 web || true
+            if [ -n "$PREV_IMAGE" ]; then
+              docker tag "$PREV_IMAGE" "$PROJECT_NAME:rollback"
+              IMAGE_TAG=rollback docker compose -p "$APP_NAME" -f docker/compose.prod.yml up -d
+            else
+              docker compose -p "$APP_NAME" -f docker/compose.prod.yml down
+            fi
+            exit 1
+          fi
