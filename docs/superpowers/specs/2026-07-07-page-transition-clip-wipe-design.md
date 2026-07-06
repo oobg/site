@@ -10,6 +10,7 @@
 - **방향 결정 변경**: 최초 설계는 "앞/뒤 방향 반전"이었으나, 실제 검증 결과 **React ViewTransition은 push 내비게이션에서만 트리거되고 popstate(뒤로가기)에서는 트리거되지 않음**을 확인. 뒤로가기 전환을 first-party 방식으로 구현할 수 없어, **forward(좌→우) wipe만 적용하고 뒤로가기는 즉시 전환**하기로 사용자와 확정.
 - 그 결과 방향 감지 provider(`ViewTransitions.tsx`)는 불필요해져 제거. §3.2·§4.1은 이력으로만 남긴다.
 - 검증: `startViewTransition` 발동 및 `vt-wipe`가 `::view-transition-new(page)`에 실제 적용됨을 브라우저 `getAnimations()`로 확인.
+- **후속 수정(loading.tsx 제거)**: async 서버 컴포넌트 페이지가 내비게이션 중 suspend하면 `src/app/loading.tsx`("불러오는 중…")가 새 페이지로 렌더돼 ViewTransition에 캡처됐다. 그 결과 wipe가 로딩 텍스트를 드러내고, 비어 있는 로딩 페이지 아래로 이전 페이지가 비쳐 잔상이 생겼다. 전역 `loading.tsx`를 제거해 내비게이션이 데이터 준비까지 이전 페이지를 유지하다가 실제 콘텐츠로 wipe하도록 했다(wipe 자체가 로딩 어포던스). 개별 페이지에서 로딩 피드백이 필요하면 본문 내부에 스코프된 `<Suspense>`를 추가한다.
 
 ## 1. 목적
 
