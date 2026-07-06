@@ -16,8 +16,9 @@
 
 ### 확정된 상위 결정
 
-- **스택**: Next.js (App Router), TypeScript, 패키지 매니저 **pnpm**(corepack).
-  기존 `package-lock.json`은 제거하고 `pnpm-lock.yaml`로 전환.
+- **스택**: Next.js (App Router), React 19 + **React Compiler**, TypeScript, 패키지 매니저
+  **pnpm**(corepack). 기존 `package-lock.json`은 제거하고 `pnpm-lock.yaml`로 전환.
+  React Compiler 활성(`reactCompiler: true`) — 수동 메모이제이션 지양.
 - **컴포넌트 뼈대**: Base UI(`@base-ui-components/react`) — 헤드리스/접근성 프리미티브.
   부분 애니메이션은 **`motion`**(motion.dev, 구 framer-motion. import: `motion/react`).
   모든 UI 요소는 primitive로 만들어 호출.
