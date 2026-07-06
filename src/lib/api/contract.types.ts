@@ -17,7 +17,7 @@ export interface ApiErrorBody {
 export interface ContentListItem {
   slug: string;
   title: string;
-  summary: string;
+  summary: string | null;
   tags: string[];
   published_at: string;
   updated_at: string;

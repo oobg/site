@@ -42,9 +42,6 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^21.2.0
         version: 21.2.0
-      '@eslint/eslintrc':
-        specifier: ^3.3.5
-        version: 3.3.5
       '@testing-library/dom':
         specifier: ^10.4.1
         version: 10.4.1

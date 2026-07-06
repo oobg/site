@@ -25,6 +25,7 @@ export default defineConfig({
       '@stores': r('./src/stores'),
       '@styles': r('./src/styles'),
       '@types': r('./src/types'),
+      '@utils': r('./src/utils'),
     },
   },
 });

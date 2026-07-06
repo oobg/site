@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const revalidateTag = vi.fn();
-vi.mock('next/cache', () => ({ revalidateTag: (t: string) => revalidateTag(t) }));
+vi.mock('next/cache', () => ({ revalidateTag: (...args: unknown[]) => revalidateTag(...args) }));
 vi.mock('@configs/env', () => ({ env: { REVALIDATE_SECRET: 'test-secret' } }));
 
 function post(headers: Record<string, string>, body: unknown) {
@@ -32,7 +32,17 @@ describe('POST /api/revalidate', () => {
       ),
     );
     expect(res.status).toBe(200);
-    expect(revalidateTag).toHaveBeenCalledWith('post:hexagonal-nestjs');
-    expect(revalidateTag).toHaveBeenCalledWith('posts');
+    expect(revalidateTag).toHaveBeenCalledWith('post:hexagonal-nestjs', {});
+    expect(revalidateTag).toHaveBeenCalledWith('posts', {});
+  });
+
+  it('changed가 빈 배열이면 posts·projects 태그를 전체 무효화한다', async () => {
+    const { POST } = await import('@/app/api/revalidate/route');
+    const res = await POST(post({ 'x-revalidate-secret': 'test-secret' }, { changed: [] }));
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { revalidated: boolean; count: number };
+    expect(body).toEqual({ revalidated: true, count: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith('posts', {});
+    expect(revalidateTag).toHaveBeenCalledWith('projects', {});
   });
 });
