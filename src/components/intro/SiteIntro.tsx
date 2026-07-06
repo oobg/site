@@ -17,8 +17,9 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export function SiteIntro() {
   const { playing, finish } = useIntro();
   const [scope, animate] = useAnimate();
-  // 초기값: playing이 false면 처음부터 제거된 상태로 시작 — 효과 내 동기 setState 없이 처리.
-  const [removed, setRemoved] = useState(() => !playing);
+  // 오버레이는 항상 SSR HTML에 렌더되어야 함(플래시 방지). 표시 여부는 CSS(html[data-intro])가 결정하고,
+  // 실제 언마운트는 안무 완료 후(아래 async 콜백)에만 일어난다. 효과 내 동기 setState는 없다.
+  const [removed, setRemoved] = useState(false);
 
   useEffect(() => {
     if (!playing) return;
