@@ -1,33 +1,17 @@
 # CLAUDE
 
-Project-specific guidance for AI coding agents.
+> 기반(foundation) 구축 진행 중. 컨벤션 SSOT(`docs/references/`)와 완전한 인덱스는
+> Task 9에서 작성됩니다. 그 전까지 이 파일은 최소 상태로 둡니다.
 
-<!-- ASTRYX:START -->
-Astryx v0.1.3 · 149 components
-CLI: run every command as `npx astryx <cmd>` (shown below as `astryx ...`).
+## 이 프로젝트 핵심 규칙 (요약)
 
-SETUP (once, in your app entry e.g. main.tsx) — without these, components render unstyled:
-  import "@astryxdesign/core/reset.css";
-  import "@astryxdesign/core/astryx.css";
+- 개인 사이트 프론트엔드. 스택: Next.js(App Router) · React 19 + React Compiler · TypeScript · pnpm.
+- 디자인: **PPOS 커스텀 토큰 + CSS Modules**. **Tailwind·Astryx 사용 안 함.** raw hex/px 금지 — CSS 변수 토큰만.
+- 데이터: **RSC-first** 서버 fetch. 콘텐츠는 `api.raven.kr`(계약: `docs/api-contract/content-v1.md`).
+- 아키텍처: `app → features → components → 하위 공용`. no-barrel, path alias, `import type`, 역방향 import 금지.
+- 애니메이션은 `motion`(`motion/react`). 토스트는 `@lib/toast`만(sonner 직접 import 금지).
+- 커밋: Conventional Commits(자연어 한국어).
 
-WORKFLOW — discover, don't guess. Before writing UI:
-1. `astryx build "<idea>"` — START HERE: returns a kit (closest [page] + [block]s + [component]s). No args = full playbook.
-2. `astryx template <name> [--skeleton]` — scaffold the [page]/[block]s it named, or study their layout. Templates are reference code.
-3. `astryx component <Name>` — props + examples for every component you use.
-
-RULES:
-- No <div> — components do all layout/spacing. Full page → AppShell; sidebar nav → SideNav.
-- Frame first: pick the shell (AppShell / Layout+LayoutPanel) and budget regions in px BEFORE writing content (`astryx docs layout`).
-- Dense data = rows (Table, List/Item) edge-to-edge — never Card-wrapped list items. Card = dashboard widgets, galleries, settings groups only.
-- Status → StatusDot/Token; Badge only for counts and enumerated states, never decoration.
-- Custom styling: component props first; else style/className with tokens — var(--color-*|--spacing-*|--radius-*). No raw hex/px. (No StyleX/Tailwind compiler here — don't use xstyle/utility classes.)
-- Tokens for every value (`astryx docs tokens`). Brand/accent via `astryx theme` — never override --color-* in :root.
-
-MORE CLI:
-  search "<query>"   find any component / hook / doc / template / block
-  component --list   149 components by category
-  template --list    page + block recipes
-  docs <topic>       color, elevation, icons, illustrations, layout, migration, motion, principles, shape, spacing, styling, theme, tokens, typography
-  swizzle <Name>     eject component source for deep customization
-  upgrade --apply    run after any @astryxdesign/core bump
-<!-- ASTRYX:END -->
+## 참고 문서
+- 설계 spec: `docs/superpowers/specs/2026-07-06-personal-site-foundation-design.md`
+- 구현 계획: `docs/superpowers/plans/2026-07-06-personal-site-foundation.md`
