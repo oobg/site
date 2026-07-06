@@ -50,6 +50,7 @@
 ```
 
 gap·outer·section-gap은 spacing scale로 표현 (예: outer=`--space-8`~, section=`--space-10`).
+`--outer`는 모바일(≤900px)에서 `--space-5`로 축소(좌우 여백 절감).
 
 ## 레이아웃 토큰
 

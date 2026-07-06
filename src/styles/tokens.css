@@ -48,6 +48,13 @@
   --dur: 200ms;
 }
 
+@media (max-width: 900px) {
+  :root {
+    /* 모바일에서는 좌우 여백을 좁혀 콘텐츠 폭을 확보한다. */
+    --outer: var(--space-5);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :root {
     --dur: 0ms;
