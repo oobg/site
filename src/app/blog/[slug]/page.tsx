@@ -5,7 +5,7 @@ import { renderMarkdown } from '@lib/markdown/render';
 import { buildMetadata } from '@lib/metadata/metadata';
 import { ROUTES } from '@constants/routes';
 import { ArticleHeader } from '@/app/blog/[slug]/_components/ArticleHeader';
-import { ArticleBody } from '@/app/blog/[slug]/_components/ArticleBody';
+import { ArticleBody } from '@components/content/ArticleBody';
 import { TableOfContents } from '@/app/blog/[slug]/_components/TableOfContents';
 import { PostNav } from '@/app/blog/[slug]/_components/PostNav';
 import styles from './article.module.css';
