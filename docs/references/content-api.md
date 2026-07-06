@@ -2,7 +2,7 @@
 
 > SSOT. 이 파일만 고친다. `.claude/CLAUDE.md`는 링크 인덱스일 뿐이다.
 > 설계 원본: `docs/superpowers/specs/2026-07-06-personal-site-foundation-design.md` §8.
-> API 계약 SSOT: [`docs/api-contract/content-v1.md`](../api-contract/content-v1.md) (원본은 api repo).
+> API 계약 SSOT: [`docs/api-contract/content-v2.md`](../api-contract/content-v2.md) (원본은 api repo).
 
 ## server-read-first
 
@@ -51,7 +51,9 @@ X-Revalidate-Secret: <REVALIDATE_SECRET>
 
 ## 공통 계약 타입 (`lib/api/contract.types.ts`)
 
-`content-v1.md` 스키마를 TypeScript로 미러링. 직접 수정 금지 — 계약 변경 시 `content-v1.md` 먼저 수정 후 여기 반영.
+`content-v2.md` 스키마를 TypeScript로 미러링. 직접 수정 금지 — 계약 변경 시 `content-v2.md` 먼저 수정 후 여기 반영.
+
+> **slug 규칙**: 유니코드(한글) slug 허용 + NFC 정규화 필수. 상세는 `content-v2.md` 참조.
 
 ```ts
 Envelope<T>; // { data: T; meta: { requestId, serverTime, pagination? } }
