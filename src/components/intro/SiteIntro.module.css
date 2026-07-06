@@ -46,10 +46,11 @@
   color: var(--color-text-muted);
 }
 
-/* 잉크 채움 — base 위에 정확히 겹쳐 놓고 clip-path로 아래→위 노출 */
+/* 잉크 채움 — base 위에 정확히 겹쳐 놓고 clip-path로 좌→우 노출(Motion loading-fill-text 방식) */
 .fill {
   position: absolute;
   inset: 0;
   color: var(--color-text);
-  clip-path: inset(100% 0% 0% 0%);
+  clip-path: inset(0% 100% 0% 0%);
+  will-change: clip-path;
 }

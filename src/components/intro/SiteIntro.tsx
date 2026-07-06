@@ -5,7 +5,7 @@ import { useAnimate } from 'motion/react';
 import { useIntro } from './IntroProvider';
 import styles from './SiteIntro.module.css';
 
-const FILL_MS = 850; // 글자 내부가 아래→위로 차오르는 시간
+const FILL_MS = 850; // 글자 내부가 좌→우로 차오르는 시간
 const SETTLE_MS = 120; // 다 찬 뒤 잠깐의 숨
 const MOVE_MS = 450; // 좌상단 헤더 워드마크로 축소·이동
 const FADE_MS = 280; // 오버레이 페이드아웃(핸드오프)
@@ -29,10 +29,10 @@ export function SiteIntro() {
     let cancelled = false;
     (async () => {
       try {
-        // 1) 글자 내부가 아래→위로 채워짐(잉크 게이지).
+        // 1) 글자 내부가 좌→우로 채워짐(Motion loading-fill-text 방식).
         await animate(
           '[data-intro-fill]',
-          { clipPath: ['inset(100% 0% 0% 0%)', 'inset(0% 0% 0% 0%)'] },
+          { clipPath: ['inset(0% 100% 0% 0%)', 'inset(0% 0% 0% 0%)'] },
           { duration: FILL_MS / 1000, ease: EASE },
         );
         if (cancelled) return;
