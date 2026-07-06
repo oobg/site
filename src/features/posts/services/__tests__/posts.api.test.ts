@@ -11,8 +11,8 @@ describe('posts.api', () => {
     vi.stubEnv('CONTENT_SOURCE', 'mock');
     const { getPosts } = await import('@features/posts/services/posts.api');
     const posts = await getPosts();
-    expect(posts).toHaveLength(1);
-    expect(posts[0].slug).toBe('hexagonal-nestjs');
+    expect(posts).toHaveLength(2);
+    expect(posts[0].slug).toBe('가벼운-헥사고날로-nestjs-나누기');
   });
 
   it('api 소스에서 envelope의 data를 언랩한다', async () => {
