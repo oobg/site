@@ -23,7 +23,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = await getPost(slug.normalize('NFC'));
+  const key = decodeURIComponent(slug).normalize('NFC');
+  const post = await getPost(key);
   return buildMetadata({
     title: post.title,
     description: post.summary ?? undefined,
@@ -33,7 +34,7 @@ export async function generateMetadata({
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const key = slug.normalize('NFC');
+  const key = decodeURIComponent(slug).normalize('NFC');
   const post = await getPost(key);
   const { html, toc } = await renderMarkdown(post.body_markdown);
 
