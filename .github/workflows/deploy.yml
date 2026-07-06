@@ -51,7 +51,8 @@ jobs:
           PREV_IMAGE=$([ -n "$PREV_CID" ] && docker inspect --format '{{.Image}}' "$PREV_CID" || echo "")
           docker compose -p "$APP_NAME" -f docker/compose.prod.yml up -d --build
           ok=""
-          for i in $(seq 1 15); do
+          # 홈서버 러너는 빌드 직후 CPU가 달궈져 standalone 콜드 스타트가 ~50s까지 걸릴 수 있음 → 창 넉넉히(≈120s)
+          for i in $(seq 1 40); do
             cid=$(docker compose -p "$APP_NAME" -f docker/compose.prod.yml ps -q web)
             if [ -n "$cid" ] && docker exec "$cid" wget -qO- http://127.0.0.1:3000/health | grep -q '"status":"ready"'; then ok=1; break; fi
             sleep 3
