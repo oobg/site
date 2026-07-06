@@ -37,6 +37,7 @@
 - **ESLint 아키텍처 규칙**(barrel 금지·상대경로 제한·레이어 역방향 금지·`_components` 데이터 로딩
   금지·`page.tsx` client 금지·sonner 직접 import 금지)이 강제되고 통과한다.
 - **Husky** pre-commit(lint-staged) + commit-msg(commitlint, Conventional Commits)가 동작한다.
+- `docs/references/*`(컨벤션 SSOT)가 작성되고, `.claude/CLAUDE.md`가 이를 가리키는 인덱스로 갱신된다.
 - `tsc --noEmit`, eslint, 최소 테스트(2종)가 통과한다.
 
 ## 3. 레이어 아키텍처
@@ -112,6 +113,8 @@ src/
     tokens.css              # 색·타이포·레이아웃·모션 토큰 (:root)
     reset.css               # 최소 reset
 docs/api-contract/content-v1.md   # api repo SSOT의 참조 사본
+docs/references/            # 컨벤션 진실 원천(SSOT): architecture/state-model/design-language/content-api
+.claude/CLAUDE.md           # docs/references/*를 가리키는 얇은 인덱스(규칙 본문 없음)
 eslint.config.mjs           # 아키텍처 규칙 강제
 .husky/pre-commit .husky/commit-msg
 commitlint.config.mjs
@@ -337,11 +340,35 @@ PPOS 랜딩 원칙(큰 타이포, 거의 없는 UI, 최소 시각 노이즈)의 
 - `Dockerfile`: standalone 실행 스켈레톤(corepack 통한 pnpm 사용, 빌드/실행은 배포 마일스톤).
 - 실제 Cloudflare Tunnel 연결·도메인·env 주입은 범위 밖.
 
-## 13. 정리 작업 (Astryx 제거)
+## 13. 정리 작업 & 문서화 구조
+
+### Astryx 제거
 
 - `@astryxdesign/core`, `@astryxdesign/theme-neutral`, `@astryxdesign/cli` 의존성 제거.
-- `.claude/CLAUDE.md`의 `<!-- ASTRYX:START -->…<!-- ASTRYX:END -->` 블록 제거,
-  PPOS/아키텍처 규칙 요약으로 대체.
+- `.claude/CLAUDE.md`의 `<!-- ASTRYX:START -->…<!-- ASTRYX:END -->` 블록 제거.
+
+### `docs/references/` = 컨벤션 진실 원천(SSOT)
+
+에이전트·기여자용 프로젝트 컨벤션의 **본문은 `docs/references/`에만 둔다.** 규칙이 바뀌면 이 디렉터리만
+고친다.
+
+```
+docs/references/
+  architecture.md      # 레이어·import(no-barrel)·alias·페이지 패턴(page/_container/_components)·ROUTES
+  state-model.md       # 4종 상태 모델(TanStack Query/Zustand/nuqs/RHF+zod)·폼·Toast·안티패턴
+  design-language.md   # PPOS 요약 + 디자인 토큰(색·타이포·레이아웃·모션) 매핑
+  content-api.md       # docs/api-contract/content-v1.md(계약 SSOT)로 링크 + 프론트 소비 규칙
+```
+
+### `.claude/CLAUDE.md` = 얇은 인덱스
+
+CLAUDE.md는 **규칙 본문을 담지 않고** `docs/references/*`(및 계약 사본·이 spec)를 **가리키는 링크 인덱스**만
+유지한다. "진실 원천은 `docs/references/`"임을 문서 상단에 명시. 규칙 drift 방지.
+
+### 타이밍
+
+이 인덱싱/문서화는 **이 마일스톤 구현이 완료된 뒤** 실제 코드 구조를 반영해 작성한다(끝 단계 태스크).
+설계 spec 자체(`docs/superpowers/specs/*`)와는 별개로, references는 "지금 코드가 지켜야 하는 규칙"의 SSOT다.
 
 ## 14. 테스트
 
