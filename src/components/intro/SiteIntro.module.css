@@ -1,0 +1,51 @@
+/* src/components/intro/SiteIntro.module.css */
+
+/* 기본은 숨김 — no-JS(속성 미설정) 시 콘텐츠를 가리지 않는다. */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--color-canvas);
+}
+
+/* 최초 진입(pending)에서만 오버레이가 화면을 덮는다. */
+:global(html[data-intro='pending']) .overlay {
+  display: block;
+}
+
+/* 모션 축소 선호 시엔 pending이어도 오버레이를 띄우지 않는다. */
+@media (prefers-reduced-motion: reduce) {
+  :global(html[data-intro='pending']) .overlay {
+    display: none;
+  }
+}
+
+.container {
+  max-width: var(--w-container);
+  margin-inline: auto;
+  padding-inline: var(--outer);
+}
+
+/* 실제 헤더(SiteHeader .nav)와 동일한 세로 리듬 */
+.masthead {
+  display: flex;
+  align-items: center;
+  padding-block: var(--space-5);
+}
+
+.wordmark {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-15);
+  color: var(--color-text);
+  /* 초기 프레임: 넓은 tracking + 낮은 대비 (motion이 여기서부터 애니메이트) */
+  letter-spacing: 0.08em;
+  opacity: 0.35;
+}
+
+.hairline {
+  height: 1px;
+  background: var(--color-border);
+  transform: scaleX(0);
+  transform-origin: left;
+}
