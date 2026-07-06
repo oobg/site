@@ -1,0 +1,16 @@
+.toc {
+  position: sticky;
+  top: var(--space-8);
+  font-size: var(--fs-13);
+  line-height: 1.9;
+}
+.item {
+  display: block;
+  color: var(--color-text-muted);
+}
+.depth3 {
+  padding-left: var(--space-3);
+}
+.active {
+  color: var(--color-accent);
+}
