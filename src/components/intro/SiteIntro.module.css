@@ -38,14 +38,17 @@
   font-family: var(--font-mono), monospace;
   font-size: var(--fs-15);
   color: var(--color-text);
-  /* 초기 프레임: 넓은 tracking + 낮은 대비 (motion이 여기서부터 애니메이트) */
+  /* 초기 프레임: 넓은 tracking + 읽히는 대비 (motion이 여기서부터 애니메이트).
+     오버레이가 핸드오프 때 페이드아웃되므로 도입부 대비는 헤더와 달라도 된다. */
   letter-spacing: 0.08em;
-  opacity: 0.35;
+  opacity: 0.55;
 }
 
 .hairline {
   height: 1px;
-  background: var(--color-border);
+  /* 도입부 동안엔 muted 톤으로 그려 선이 분명히 보이게 한다(캔버스 위 border 톤은 대비가
+     거의 없어 안 보임). 오버레이 페이드아웃으로 실제 헤더 보더에 자연스럽게 넘어간다. */
+  background: var(--color-text-muted);
   transform: scaleX(0);
   transform-origin: left;
 }
