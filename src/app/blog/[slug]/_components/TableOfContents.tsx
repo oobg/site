@@ -27,17 +27,21 @@ export function TableOfContents({ toc }: { toc: TocEntry[] }) {
 
   return (
     <nav className={styles.toc} aria-label="목차">
-      {toc.map((entry) => (
-        <a
-          key={entry.id}
-          href={`#${entry.id}`}
-          className={`${styles.item} ${entry.depth === 3 ? styles.depth3 : ''} ${
-            activeId === entry.id ? styles.active : ''
-          }`}
-        >
-          {entry.text}
-        </a>
-      ))}
+      <p className={styles.label}>목차</p>
+      <ul className={styles.list}>
+        {toc.map((entry) => (
+          <li key={entry.id}>
+            <a
+              href={`#${entry.id}`}
+              className={`${styles.item} ${entry.depth === 3 ? styles.depth3 : ''} ${
+                activeId === entry.id ? styles.active : ''
+              }`}
+            >
+              {entry.text}
+            </a>
+          </li>
+        ))}
+      </ul>
     </nav>
   );
 }

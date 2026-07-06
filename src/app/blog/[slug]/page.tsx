@@ -1,12 +1,14 @@
 import type { Metadata } from 'next';
-import { Container } from '@components/layout/Container';
 import { getPost, getPosts } from '@features/posts/services/posts.api';
+import { getRelatedPosts } from '@features/posts/utils/related';
 import { renderMarkdown } from '@lib/markdown/render';
+import { computeReadingTime } from '@lib/markdown/reading-time';
 import { buildMetadata } from '@lib/metadata/metadata';
 import { ROUTES } from '@constants/routes';
 import { ArticleHeader } from '@/app/blog/[slug]/_components/ArticleHeader';
 import { ArticleBody } from '@components/content/ArticleBody';
 import { TableOfContents } from '@/app/blog/[slug]/_components/TableOfContents';
+import { ArticleAside } from '@/app/blog/[slug]/_components/ArticleAside';
 import { PostNav } from '@/app/blog/[slug]/_components/PostNav';
 import styles from './article.module.css';
 
@@ -37,24 +39,29 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const key = decodeURIComponent(slug).normalize('NFC');
   const post = await getPost(key);
   const { html, toc } = await renderMarkdown(post.body_markdown);
+  const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);
 
   const all = await getPosts({ sort: '-published_at' });
   const index = all.findIndex((p) => p.slug === post.slug);
   const next = index > 0 ? all[index - 1] : null;
   const prev = index >= 0 && index < all.length - 1 ? all[index + 1] : null;
+  const related = getRelatedPosts(post, all, 3);
 
   return (
-    <Container>
+    <div className={styles.page}>
       <div className={styles.layout}>
-        <article>
-          <ArticleHeader post={post} />
+        <div className={styles.tocCol}>
+          <TableOfContents toc={toc} />
+        </div>
+        <article className={styles.main}>
+          <ArticleHeader post={post} readingMin={readingMin} />
           <ArticleBody html={html} />
           <PostNav prev={prev} next={next} />
         </article>
-        <aside className={styles.aside}>
-          <TableOfContents toc={toc} />
-        </aside>
+        <div className={styles.asideCol}>
+          <ArticleAside post={post} related={related} readingMin={readingMin} />
+        </div>
       </div>
-    </Container>
+    </div>
   );
 }

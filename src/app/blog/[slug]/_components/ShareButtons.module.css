@@ -1,0 +1,27 @@
+.share {
+  display: flex;
+  gap: var(--space-3);
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition:
+    color var(--dur),
+    border-color var(--dur),
+    transform var(--dur);
+}
+.btn:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+.btn:active {
+  transform: translateY(1px);
+}

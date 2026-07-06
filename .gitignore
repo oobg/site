@@ -148,3 +148,6 @@ vite.config.ts.timestamp-*
 
 # SDD scratch
 .superpowers/
+
+# gpt-image-gen 산출물(원본)
+generated-images/
