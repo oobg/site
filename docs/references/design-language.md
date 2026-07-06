@@ -56,12 +56,22 @@ gap·outer·section-gap은 spacing scale로 표현 (예: outer=`--space-8`~, sec
 
 | 토큰            | 값     |
 | --------------- | ------ |
-| `--w-container` | 1280px |
+| `--w-container` | 1400px |
 | `--w-content`   | 960px  |
-| `--w-reading`   | 720px  |
+| `--w-reading`   | 780px  |
 | `--w-hero`      | 640px  |
 | `--grid-cols`   | 12     |
 | `--radius`      | 16px   |
+
+- `Container`는 `--w-container` 폭을 쓴다(헤더·푸터·본문 정렬 일치).
+
+## Elevation
+
+- `--shadow-float`: 플로팅 요소(모바일 공유 버튼 등) 전용 그림자. 그 외 표면은 그림자 없이 border로 구분.
+
+## 텍스트 줄바꿈 (CJK)
+
+- 전역 `word-break: keep-all`(어절 단위) + `overflow-wrap: break-word`(긴 영문·URL 강제 개행).
 
 ## 모션 규칙
 

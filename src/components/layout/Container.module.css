@@ -1,6 +1,6 @@
 .container {
   width: 100%;
-  max-width: var(--w-content);
+  max-width: var(--w-container);
   margin-inline: auto;
   padding-inline: var(--outer);
 }

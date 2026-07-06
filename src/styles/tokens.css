@@ -35,14 +35,17 @@
   --space-10: 160px;
 
   /* layout */
-  --w-container: 1280px;
+  --w-container: 1400px;
   --w-content: 960px;
-  --w-reading: 720px;
+  --w-reading: 780px;
   --w-hero: 640px;
   --grid-cols: 12;
   --radius: 16px;
   --outer: var(--space-8);
   --section-gap: var(--space-10);
+
+  /* elevation */
+  --shadow-float: 0 6px 24px rgb(22 22 22 / 0.12);
 
   /* motion */
   --dur: 200ms;

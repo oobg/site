@@ -9,6 +9,13 @@ body {
   color: var(--color-text);
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: var(--font-body-size);
+  /* sticky footer: 콘텐츠가 짧아도 푸터를 뷰포트 하단에 고정 */
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  /* CJK 친화: 어절 단위 줄바꿈, 긴 영문·URL은 강제 개행 */
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 code,
 pre,

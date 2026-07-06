@@ -6,7 +6,7 @@
 }
 .layout {
   display: grid;
-  grid-template-columns: 200px minmax(0, var(--w-reading)) 260px;
+  grid-template-columns: 220px minmax(0, var(--w-reading)) 300px;
   gap: var(--space-7);
   justify-content: center;
   align-items: start;
@@ -21,7 +21,7 @@
 
 @media (max-width: 1180px) {
   .layout {
-    grid-template-columns: minmax(0, var(--w-reading)) 260px;
+    grid-template-columns: minmax(0, var(--w-reading)) 300px;
   }
   .tocCol {
     display: none;
