@@ -10,6 +10,9 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./vitest.setup.ts'],
+    // shiki(rehypeShiki) 첫 렌더가 하이라이터 엔진·테마를 콜드 로드 → 느린 CI 러너에서
+    // 기본 5s를 넘겨 렌더 테스트가 타임아웃. 콜드 로드에 충분한 여유 부여.
+    testTimeout: 20000,
   },
   resolve: {
     alias: {
