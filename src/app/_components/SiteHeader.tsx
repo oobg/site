@@ -8,7 +8,7 @@ export function SiteHeader() {
     <header className={styles.header}>
       <Container>
         <nav className={styles.nav}>
-          <Link href={ROUTES.HOME} className={styles.wordmark}>
+          <Link href={ROUTES.HOME} className={styles.wordmark} data-site-wordmark>
             raven.kr
           </Link>
           <div className={styles.links}>

@@ -21,34 +21,35 @@
   }
 }
 
-.container {
-  max-width: var(--w-content);
-  margin-inline: auto;
-  padding-inline: var(--outer);
-}
-
-/* 실제 헤더(SiteHeader .nav)와 동일한 세로 리듬 */
-.masthead {
+/* 워드마크를 화면 정중앙에 배치 */
+.stage {
   display: flex;
   align-items: center;
-  padding-block: var(--space-5);
+  justify-content: center;
+  height: 100%;
 }
 
+/* 가운데 큰 워드마크. FLIP 축소·이동을 위해 origin은 top-left. */
 .wordmark {
+  position: relative;
+  display: inline-block;
   font-family: var(--font-mono), monospace;
-  font-size: var(--fs-15);
-  color: var(--color-text);
-  /* 초기 프레임: 넓은 tracking + 읽히는 대비 (motion이 여기서부터 애니메이트).
-     오버레이가 핸드오프 때 페이드아웃되므로 도입부 대비는 헤더와 달라도 된다. */
-  letter-spacing: 0.08em;
-  opacity: 0.55;
+  font-size: var(--fs-40);
+  line-height: 1;
+  white-space: nowrap;
+  transform-origin: top left;
+  will-change: transform;
 }
 
-.hairline {
-  height: 1px;
-  /* 도입부 동안엔 muted 톤으로 그려 선이 분명히 보이게 한다(캔버스 위 border 톤은 대비가
-     거의 없어 안 보임). 오버레이 페이드아웃으로 실제 헤더 보더에 자연스럽게 넘어간다. */
-  background: var(--color-text-muted);
-  transform: scaleX(0);
-  transform-origin: left;
+/* 채워지기 전 '빈' 글자 — 옅은 톤 */
+.base {
+  color: var(--color-text-muted);
+}
+
+/* 잉크 채움 — base 위에 정확히 겹쳐 놓고 clip-path로 아래→위 노출 */
+.fill {
+  position: absolute;
+  inset: 0;
+  color: var(--color-text);
+  clip-path: inset(100% 0% 0% 0%);
 }
