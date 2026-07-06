@@ -70,7 +70,7 @@ corepack enable
 - [ ] **Step 3: 런타임·개발 의존성 설치**
 
 ```bash
-pnpm add next@^16 react@^19 react-dom@^19 @tanstack/react-query@^5 zod@^4 sonner@^2 @base-ui-components/react@^1.0.0-rc.0 motion@^12 server-only
+pnpm add next@^16 react@^19 react-dom@^19 @tanstack/react-query@^5 zod@^4 sonner@^2 @base-ui/react@^1.6.0 motion@^12 server-only
 pnpm add -D typescript@^5 @types/node@^22 @types/react@^19 @types/react-dom@^19 \
   eslint@^9 eslint-config-next@^16 @eslint/eslintrc babel-plugin-react-compiler@^1 \
   prettier husky lint-staged @commitlint/cli @commitlint/config-conventional \
