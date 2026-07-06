@@ -30,12 +30,14 @@
 기존 디렉터리에 `.git`·`.claude`·`docs`가 있으므로 create-next-app 대신 수동 스캐폴드한다.
 
 **Files:**
+
 - Delete: `package-lock.json`, `node_modules/`
 - Modify/Create: `package.json`
 - Create: `tsconfig.json`, `next.config.ts`, `next-env.d.ts`, `.npmrc`
 - Create: `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/globals.css`
 
 **Interfaces:**
+
 - Produces: `pnpm` 스크립트(`dev/build/start/lint/typecheck/test`), path alias 해석, 최소 렌더 페이지.
 
 - [ ] **Step 1: Astryx·npm 잔재 제거**
@@ -70,7 +72,7 @@ corepack enable
 - [ ] **Step 3: 런타임·개발 의존성 설치**
 
 ```bash
-pnpm add next@^16 react@^19 react-dom@^19 @tanstack/react-query@^5 zod@^4 sonner@^2 @base-ui-components/react@^1.0.0-rc.0 motion@^12 server-only
+pnpm add next@^16 react@^19 react-dom@^19 @tanstack/react-query@^5 zod@^4 sonner@^2 @base-ui/react@^1.6.0 motion@^12 server-only
 pnpm add -D typescript@^5 @types/node@^22 @types/react@^19 @types/react-dom@^19 \
   eslint@^9 eslint-config-next@^16 @eslint/eslintrc babel-plugin-react-compiler@^1 \
   prettier husky lint-staged @commitlint/cli @commitlint/config-conventional \
@@ -152,8 +154,14 @@ export default nextConfig;
 - [ ] **Step 8: 최소 `src/app/globals.css`**
 
 ```css
-:root { color-scheme: light; }
-html, body { margin: 0; padding: 0; }
+:root {
+  color-scheme: light;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
 ```
 
 - [ ] **Step 9: 최소 `src/app/layout.tsx`**
@@ -200,11 +208,13 @@ git commit -m "chore: pnpm+Next.js 16 스캐폴드 및 Astryx 제거"
 ### Task 2: ESLint(아키텍처 규칙) + Prettier + Husky + commitlint
 
 **Files:**
+
 - Create: `eslint.config.mjs`, `.prettierrc.json`, `commitlint.config.mjs`
 - Create: `.husky/pre-commit`, `.husky/commit-msg`
 - Modify: `package.json` (lint-staged 설정)
 
 **Interfaces:**
+
 - Produces: `pnpm lint`(아키텍처 규칙 강제), 커밋 훅(lint-staged + commitlint).
 
 - [ ] **Step 1: `eslint.config.mjs` 작성**
@@ -249,49 +259,81 @@ export default [
   {
     files: ['src/**/index.{ts,tsx}'],
     rules: {
-      'no-restricted-syntax': ['error', { selector: 'Program', message: 'index.ts barrel 파일 금지.' }],
+      'no-restricted-syntax': [
+        'error',
+        { selector: 'Program', message: 'index.ts barrel 파일 금지.' },
+      ],
     },
   },
   // components: features/app import 금지
   {
     files: ['src/components/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', {
-        paths: [noSonner],
-        patterns: [noParentRelative,
-          { group: ['@features/*', '@/features/*', '@app/*', '@/app/*'], message: '공용 컴포넌트는 app/feature를 import할 수 없습니다.' }],
-      }],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [noSonner],
+          patterns: [
+            noParentRelative,
+            {
+              group: ['@features/*', '@/features/*', '@app/*', '@/app/*'],
+              message: '공용 컴포넌트는 app/feature를 import할 수 없습니다.',
+            },
+          ],
+        },
+      ],
     },
   },
   // features: app import 금지
   {
     files: ['src/features/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', {
-        paths: [noSonner],
-        patterns: [noParentRelative,
-          { group: ['@app/*', '@/app/*'], message: 'feature는 app layer를 import할 수 없습니다.' }],
-      }],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [noSonner],
+          patterns: [
+            noParentRelative,
+            {
+              group: ['@app/*', '@/app/*'],
+              message: 'feature는 app layer를 import할 수 없습니다.',
+            },
+          ],
+        },
+      ],
     },
   },
   // _components: 데이터 로딩 금지 (권장, 정당한 예외는 eslint-disable 주석으로)
   {
     files: ['src/app/**/_components/**/*.{ts,tsx}'],
     rules: {
-      'no-restricted-imports': ['error', {
-        paths: [noSonner],
-        patterns: [noParentRelative,
-          { group: ['@features/*/services/*', '@services/*', '@stores/*'], message: '_components는 표시 전용입니다. 데이터·콜백은 상위에서 props로 받으세요.' }],
-      }],
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [noSonner],
+          patterns: [
+            noParentRelative,
+            {
+              group: ['@features/*/services/*', '@services/*', '@stores/*'],
+              message: '_components는 표시 전용입니다. 데이터·콜백은 상위에서 props로 받으세요.',
+            },
+          ],
+        },
+      ],
     },
   },
   // page.tsx는 Server Component 권장 (예외는 eslint-disable 주석으로)
   {
     files: ['src/app/**/page.tsx'],
     rules: {
-      'no-restricted-syntax': ['error',
+      'no-restricted-syntax': [
+        'error',
         noBarrel,
-        { selector: "ExpressionStatement > Literal[value='use client']", message: "page.tsx는 Server Component로 유지하세요. 클라이언트 로직은 _container로." }],
+        {
+          selector: "ExpressionStatement > Literal[value='use client']",
+          message: 'page.tsx는 Server Component로 유지하세요. 클라이언트 로직은 _container로.',
+        },
+      ],
     },
   },
 ];
@@ -371,10 +413,12 @@ Expected: commit-msg 훅이 Conventional Commits 형식을 통과시킴.
 TDD 태스크(6·7·8)에 앞서 테스트 러너를 세운다.
 
 **Files:**
+
 - Create: `vitest.config.ts`, `vitest.setup.ts`, `test/empty-module.ts`
 - Create: `src/lib/__tests__/sanity.test.ts`
 
 **Interfaces:**
+
 - Produces: `pnpm test` 러너, `server-only` alias 스텁(노드 환경에서 import 가능).
 
 - [ ] **Step 1: `test/empty-module.ts` 작성** (server-only 대체)
@@ -453,11 +497,13 @@ git commit -m "test: Vitest 설정 및 server-only 스텁 추가"
 ### Task 4: PPOS 디자인 토큰 + reset + 폰트
 
 **Files:**
+
 - Create: `src/styles/tokens.css`, `src/styles/reset.css`, `src/styles/fonts.ts`
 - Create: `src/styles/fonts/PretendardVariable.woff2`, `src/styles/fonts/IBMPlexMono-400.woff2`, `src/styles/fonts/IBMPlexMono-500.woff2`
 - Modify: `src/app/globals.css`, `src/app/layout.tsx`
 
 **Interfaces:**
+
 - Produces: CSS 변수 토큰(색/타이포/spacing/레이아웃/모션), `sans`/`mono` 폰트(`--font-sans`/`--font-mono`).
 
 - [ ] **Step 1: 폰트 파일 내려받기**
@@ -548,22 +594,61 @@ export const mono = localFont({
 }
 
 @media (prefers-reduced-motion: reduce) {
-  :root { --dur: 0ms; }
+  :root {
+    --dur: 0ms;
+  }
 }
 ```
 
 - [ ] **Step 4: `src/styles/reset.css` 작성**
 
 ```css
-*, *::before, *::after { box-sizing: border-box; }
-* { margin: 0; }
-html { -webkit-text-size-adjust: 100%; }
-body { line-height: var(--lh-body); -webkit-font-smoothing: antialiased; }
-img, picture, svg, video { display: block; max-width: 100%; }
-input, button, textarea, select { font: inherit; color: inherit; }
-p, h1, h2, h3, h4, h5, h6 { overflow-wrap: break-word; }
-a { color: inherit; text-decoration: none; }
-::selection { background: var(--color-accent); color: var(--color-surface); }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+* {
+  margin: 0;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+}
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+::selection {
+  background: var(--color-accent);
+  color: var(--color-surface);
+}
 ```
 
 - [ ] **Step 5: `src/app/globals.css` 교체**
@@ -572,15 +657,23 @@ a { color: inherit; text-decoration: none; }
 @import '../styles/reset.css';
 @import '../styles/tokens.css';
 
-html { color-scheme: light; }
+html {
+  color-scheme: light;
+}
 body {
   background: var(--color-canvas);
   color: var(--color-text);
   font-family: var(--font-sans), system-ui, sans-serif;
   font-size: var(--font-body-size);
 }
-code, pre, kbd { font-family: var(--font-mono), ui-monospace, monospace; }
-a:hover { color: var(--color-accent-hover); }
+code,
+pre,
+kbd {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+a:hover {
+  color: var(--color-accent-hover);
+}
 ```
 
 - [ ] **Step 6: `src/app/layout.tsx`에 폰트 변수 주입**
@@ -618,12 +711,14 @@ git commit -m "feat: PPOS 디자인 토큰·reset·로컬 폰트(next/font/local
 ### Task 5: env + QueryClient + AppProviders + Toast 래퍼
 
 **Files:**
+
 - Create: `src/configs/env.ts`, `src/configs/query-client.ts`
 - Create: `src/lib/toast.ts`
 - Create: `src/components/providers/AppProviders.tsx`
 - Modify: `src/app/layout.tsx`
 
 **Interfaces:**
+
 - Produces: `env`(검증된 런타임 설정), `makeQueryClient()`, `<AppProviders>`, `Toast.success/error`.
 
 - [ ] **Step 1: `src/configs/env.ts` 작성**
@@ -733,12 +828,14 @@ git commit -m "feat: env(zod)·QueryClient·AppProviders·Toast 래퍼 추가"
 ### Task 6: 계약 타입 + http 래퍼 + posts/projects 피처 (TDD)
 
 **Files:**
+
 - Create: `src/lib/api/contract.types.ts`, `src/lib/api/http.ts`
 - Create: `src/features/posts/types/posts.types.ts`, `src/features/posts/fixtures/posts.mock.ts`, `src/features/posts/services/posts.api.ts`, `src/features/posts/services/posts.query.ts`
 - Create: `src/features/projects/types/projects.types.ts`, `src/features/projects/fixtures/projects.mock.ts`, `src/features/projects/services/projects.api.ts`, `src/features/projects/services/projects.query.ts`
 - Test: `src/features/posts/services/__tests__/posts.api.test.ts`
 
 **Interfaces:**
+
 - Consumes: `env`(Task 5), alias 해석.
 - Produces:
   - `apiGet<T>(path, { tags?, revalidate?, searchParams? }): Promise<T>`
@@ -889,7 +986,18 @@ describe('posts.api', () => {
     const fetchMock = vi.fn().mockResolvedValue(
       new Response(
         JSON.stringify({
-          data: [{ slug: 's', title: 't', summary: '', tags: [], published_at: '', updated_at: '', cover_image_url: null, status: 'published' }],
+          data: [
+            {
+              slug: 's',
+              title: 't',
+              summary: '',
+              tags: [],
+              published_at: '',
+              updated_at: '',
+              cover_image_url: null,
+              status: 'published',
+            },
+          ],
           meta: { requestId: '1', serverTime: '', pagination: { total: 1, page: 1, limit: 20 } },
         }),
         { status: 200, headers: { 'content-type': 'application/json' } },
@@ -925,7 +1033,9 @@ import type { ListParams } from '@lib/api/contract.types';
 
 export async function getPosts(params: ListParams = {}): Promise<ContentListItem[]> {
   if (env.CONTENT_SOURCE === 'mock') {
-    const items = params.tag ? mockPostList.filter((p) => p.tags.includes(params.tag!)) : mockPostList;
+    const items = params.tag
+      ? mockPostList.filter((p) => p.tags.includes(params.tag!))
+      : mockPostList;
     return typeof params.limit === 'number' ? items.slice(0, params.limit) : items;
   }
   return apiGet<ContentListItem[]>('/content/posts', {
@@ -1033,7 +1143,9 @@ import { mockProjectDetails, mockProjectList } from '@features/projects/fixtures
 
 export async function getProjects(params: ListParams = {}): Promise<ContentListItem[]> {
   if (env.CONTENT_SOURCE === 'mock') {
-    const items = params.tag ? mockProjectList.filter((p) => p.tags.includes(params.tag!)) : mockProjectList;
+    const items = params.tag
+      ? mockProjectList.filter((p) => p.tags.includes(params.tag!))
+      : mockProjectList;
     return typeof params.limit === 'number' ? items.slice(0, params.limit) : items;
   }
   return apiGet<ContentListItem[]>('/content/projects', {
@@ -1090,11 +1202,13 @@ git commit -m "feat: 계약 타입·http 래퍼·posts/projects 데이터 계층
 ### Task 7: ROUTES + revalidate 라우트 (TDD) + metadata 헬퍼
 
 **Files:**
+
 - Create: `src/constants/routes.ts`, `src/lib/metadata/metadata.ts`
 - Create: `src/app/api/revalidate/route.ts`
 - Test: `src/app/api/revalidate/__tests__/route.test.ts`
 
 **Interfaces:**
+
 - Produces: `ROUTES`, `baseMetadata`, `buildMetadata(input)`, `POST(req)` 웹훅 핸들러.
 
 - [ ] **Step 1: `src/constants/routes.ts` 작성**
@@ -1126,7 +1240,11 @@ export const baseMetadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
-export function buildMetadata(input: { title?: string; description?: string; path?: string }): Metadata {
+export function buildMetadata(input: {
+  title?: string;
+  description?: string;
+  path?: string;
+}): Metadata {
   return {
     title: input.title,
     description: input.description,
@@ -1167,9 +1285,14 @@ describe('POST /api/revalidate', () => {
 
   it('변경 항목의 태그를 무효화한다', async () => {
     const { POST } = await import('@/app/api/revalidate/route');
-    const res = await POST(post({ 'x-revalidate-secret': 'test-secret' }, {
-      changed: [{ type: 'post', slug: 'hexagonal-nestjs' }],
-    }));
+    const res = await POST(
+      post(
+        { 'x-revalidate-secret': 'test-secret' },
+        {
+          changed: [{ type: 'post', slug: 'hexagonal-nestjs' }],
+        },
+      ),
+    );
     expect(res.status).toBe(200);
     expect(revalidateTag).toHaveBeenCalledWith('post:hexagonal-nestjs');
     expect(revalidateTag).toHaveBeenCalledWith('posts');
@@ -1251,6 +1374,7 @@ git commit -m "feat: ROUTES 헬퍼·revalidate 웹훅·metadata 기반 추가"
 ### Task 8: 프리미티브 + 랜딩 Hero + Error/로딩 페이지 (렌더 테스트)
 
 **Files:**
+
 - Create: `src/components/layout/Container.tsx`, `src/components/layout/Container.module.css`
 - Create: `src/components/ui/ArrowLink.tsx`, `src/components/ui/ArrowLink.module.css`
 - Create: `src/app/_components/LandingHero.tsx`, `LandingHero.module.css`, `LatestThinking.tsx`, `LatestThinking.module.css`, `SiteFooter.tsx`, `SiteFooter.module.css`
@@ -1259,6 +1383,7 @@ git commit -m "feat: ROUTES 헬퍼·revalidate 웹훅·metadata 기반 추가"
 - Test: `src/app/_components/__tests__/LatestThinking.test.tsx`
 
 **Interfaces:**
+
 - Consumes: `getPosts`(Task 6), `ArrowLink`, `Container`, `ROUTES`.
 - Produces: 랜딩 `/` (Hero + 최근 글 + 푸터), 에러/로딩 경계.
 
@@ -1445,9 +1570,7 @@ export function LandingHero() {
       transition={{ duration: 0.2 }}
     >
       <h1 className={styles.headline}>Ideas deserve good interfaces.</h1>
-      <p className={styles.sub}>
-        생각이 시스템이 되고, 시스템이 제품이 되는 과정을 기록합니다.
-      </p>
+      <p className={styles.sub}>생각이 시스템이 되고, 시스템이 제품이 되는 과정을 기록합니다.</p>
     </motion.section>
   );
 }
@@ -1589,12 +1712,14 @@ git commit -m "feat: 랜딩 Hero·프리미티브(Container/ArrowLink)·에러/�
 ### Task 9: 문서화(docs/references SSOT + CLAUDE.md 인덱스) + 배포 스켈레톤
 
 **Files:**
+
 - Create: `docs/api-contract/content-v1.md` (api repo SSOT 참조 사본)
 - Create: `docs/references/architecture.md`, `state-model.md`, `design-language.md`, `content-api.md`
 - Modify: `.claude/CLAUDE.md` (ASTRYX 블록 제거 → 인덱스)
 - Create: `Dockerfile`, `.dockerignore`, `.env.example`
 
 **Interfaces:**
+
 - Produces: 컨벤션 SSOT 문서, 얇은 CLAUDE.md 인덱스, standalone 실행 스켈레톤.
 
 - [ ] **Step 1: 계약 SSOT 참조 사본 복사**
@@ -1636,16 +1761,19 @@ Tailwind 미사용, motion 규칙)을 옮긴다. PPOS 헌장 요약 링크.
 프로젝트 컨벤션의 **진실 원천은 `docs/references/`** 입니다. 이 파일은 링크 인덱스입니다.
 
 ## 컨벤션 (SSOT: docs/references/)
+
 - [아키텍처](../docs/references/architecture.md) — 레이어·import·페이지 패턴·ROUTES
 - [상태 모델](../docs/references/state-model.md) — 4종 상태·폼·Toast·안티패턴
 - [디자인 언어](../docs/references/design-language.md) — PPOS 토큰·모션·색
 - [콘텐츠 API](../docs/references/content-api.md) — 소비 규칙
 
 ## 계약·설계
+
 - [API 계약(참조 사본)](../docs/api-contract/content-v1.md) — 원본은 api repo
 - [기반 설계 spec](../docs/superpowers/specs/2026-07-06-personal-site-foundation-design.md)
 
 ## 규칙 요약
+
 - pnpm · no-barrel · path alias · RSC-first · CSS 토큰만(Tailwind 금지) · sonner는 @lib/toast만
 - 커밋: Conventional Commits(자연어 한국어)
 ```

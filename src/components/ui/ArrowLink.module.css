@@ -1,0 +1,11 @@
+.link {
+  color: var(--color-accent);
+  font-size: var(--fs-15);
+  transition: color var(--dur) ease;
+}
+.link:hover {
+  color: var(--color-accent-hover);
+}
+.arrow {
+  margin-left: var(--space-1);
+}

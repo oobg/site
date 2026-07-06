@@ -1,26 +1,56 @@
 {
   "name": "site",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "prepare": "husky"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/oobg/site.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/oobg/site/issues"
-  },
-  "homepage": "https://github.com/oobg/site#readme",
   "dependencies": {
-    "@astryxdesign/cli": "^0.1.3",
-    "@astryxdesign/core": "^0.1.3",
-    "@astryxdesign/theme-neutral": "^0.1.3"
+    "@base-ui/react": "^1.6.0",
+    "@tanstack/react-query": "^5",
+    "motion": "^12",
+    "next": "^16",
+    "react": "^19",
+    "react-dom": "^19",
+    "server-only": "^0.0.1",
+    "sonner": "^2",
+    "zod": "^4"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,md,json}": [
+      "prettier --write"
+    ]
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.0",
+    "@commitlint/config-conventional": "^21.2.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.3",
+    "babel-plugin-react-compiler": "^1",
+    "eslint": "^9",
+    "eslint-config-next": "^16",
+    "husky": "^9.1.7",
+    "jsdom": "^29.1.1",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.9.4",
+    "typescript": "^5",
+    "vitest": "^4"
   }
 }

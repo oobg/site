@@ -1,0 +1,15 @@
+.hero {
+  padding-top: var(--space-10);
+}
+.headline {
+  font-size: var(--fs-56);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.02em;
+  max-width: var(--w-hero);
+}
+.sub {
+  margin-top: var(--space-5);
+  font-size: var(--fs-20);
+  color: var(--color-text-secondary);
+  max-width: var(--w-reading);
+}

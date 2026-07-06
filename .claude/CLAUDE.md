@@ -1,33 +1,20 @@
 # CLAUDE
 
-Project-specific guidance for AI coding agents.
+프로젝트 컨벤션의 **진실 원천은 `docs/references/`** 입니다. 이 파일은 링크 인덱스입니다.
 
-<!-- ASTRYX:START -->
-Astryx v0.1.3 · 149 components
-CLI: run every command as `npx astryx <cmd>` (shown below as `astryx ...`).
+## 컨벤션 (SSOT: docs/references/)
 
-SETUP (once, in your app entry e.g. main.tsx) — without these, components render unstyled:
-  import "@astryxdesign/core/reset.css";
-  import "@astryxdesign/core/astryx.css";
+- [아키텍처](../docs/references/architecture.md) — 레이어·import·페이지 패턴·ROUTES
+- [상태 모델](../docs/references/state-model.md) — 4종 상태·폼·Toast·안티패턴
+- [디자인 언어](../docs/references/design-language.md) — PPOS 토큰·모션·색
+- [콘텐츠 API](../docs/references/content-api.md) — 소비 규칙
 
-WORKFLOW — discover, don't guess. Before writing UI:
-1. `astryx build "<idea>"` — START HERE: returns a kit (closest [page] + [block]s + [component]s). No args = full playbook.
-2. `astryx template <name> [--skeleton]` — scaffold the [page]/[block]s it named, or study their layout. Templates are reference code.
-3. `astryx component <Name>` — props + examples for every component you use.
+## 계약·설계
 
-RULES:
-- No <div> — components do all layout/spacing. Full page → AppShell; sidebar nav → SideNav.
-- Frame first: pick the shell (AppShell / Layout+LayoutPanel) and budget regions in px BEFORE writing content (`astryx docs layout`).
-- Dense data = rows (Table, List/Item) edge-to-edge — never Card-wrapped list items. Card = dashboard widgets, galleries, settings groups only.
-- Status → StatusDot/Token; Badge only for counts and enumerated states, never decoration.
-- Custom styling: component props first; else style/className with tokens — var(--color-*|--spacing-*|--radius-*). No raw hex/px. (No StyleX/Tailwind compiler here — don't use xstyle/utility classes.)
-- Tokens for every value (`astryx docs tokens`). Brand/accent via `astryx theme` — never override --color-* in :root.
+- [API 계약(참조 사본)](../docs/api-contract/content-v1.md) — 원본은 api repo
+- [기반 설계 spec](../docs/superpowers/specs/2026-07-06-personal-site-foundation-design.md)
 
-MORE CLI:
-  search "<query>"   find any component / hook / doc / template / block
-  component --list   149 components by category
-  template --list    page + block recipes
-  docs <topic>       color, elevation, icons, illustrations, layout, migration, motion, principles, shape, spacing, styling, theme, tokens, typography
-  swizzle <Name>     eject component source for deep customization
-  upgrade --apply    run after any @astryxdesign/core bump
-<!-- ASTRYX:END -->
+## 규칙 요약
+
+- pnpm · no-barrel · path alias · RSC-first · CSS 토큰만(Tailwind 금지) · sonner는 @lib/toast만
+- 커밋: Conventional Commits(자연어 한국어)

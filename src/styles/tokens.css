@@ -1,0 +1,55 @@
+:root {
+  /* color */
+  --color-canvas: #f7f7f5;
+  --color-surface: #ffffff;
+  --color-text: #161616;
+  --color-text-secondary: #5f5f5f;
+  --color-text-muted: #909090;
+  --color-border: #ecebe8;
+  --color-accent: #1d4ed8;
+  --color-accent-hover: #1747c0;
+
+  /* typography */
+  --fs-72: 4.5rem;
+  --fs-56: 3.5rem;
+  --fs-40: 2.5rem;
+  --fs-28: 1.75rem;
+  --fs-20: 1.25rem;
+  --fs-18: 1.125rem;
+  --fs-15: 0.9375rem;
+  --fs-13: 0.8125rem;
+  --lh-tight: 1.1;
+  --lh-body: 1.7;
+  --font-body-size: var(--fs-18);
+
+  /* spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 160px;
+
+  /* layout */
+  --w-container: 1280px;
+  --w-content: 960px;
+  --w-reading: 720px;
+  --w-hero: 640px;
+  --grid-cols: 12;
+  --radius: 16px;
+  --outer: var(--space-8);
+  --section-gap: var(--space-10);
+
+  /* motion */
+  --dur: 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur: 0ms;
+  }
+}
