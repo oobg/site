@@ -1,7 +1,7 @@
 name: deploy
 
 run-name: >
-  ${{ github.event_name == 'workflow_dispatch' && '🛠️ raven-web 수동 배포' || '🌐 raven-web 자동 배포' }}
+  ${{ github.event_name == 'workflow_dispatch' && '🛠️ 수동 배포' || '🚀 자동 배포' }}
   #${{ github.run_number }} by @${{ github.actor }}
 
 on:
