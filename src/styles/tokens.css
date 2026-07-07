@@ -41,6 +41,7 @@
   --w-hero: 640px;
   --grid-cols: 12;
   --radius: 16px;
+  --radius-sm: 6px;
   --outer: var(--space-8);
   --section-gap: var(--space-10);
 
@@ -49,6 +50,8 @@
 
   /* motion */
   --dur: 200ms;
+  /* 스켈레톤 shimmer 스윕 주기(좌→우). */
+  --dur-skeleton: 1.4s;
 }
 
 @media (max-width: 900px) {

@@ -1,0 +1,14 @@
+.wrap {
+  max-width: var(--w-reading);
+  margin-inline: auto;
+  padding-inline: var(--outer);
+  padding-top: var(--space-9);
+}
+.meta {
+  margin-top: var(--space-4);
+}
+.body {
+  margin-top: var(--space-8);
+  display: grid;
+  gap: var(--space-4);
+}
