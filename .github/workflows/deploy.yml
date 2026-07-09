@@ -27,8 +27,10 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-      # cache: pnpm 미사용 — self-hosted 러너는 로컬 pnpm store가 영구 잔존하므로
-      # 원격 캐시 tar 업/다운로드(≈40~67s)가 순수 낭비였다. 로컬 store로 install은 여전히 빠름.
+          # setup-node@v5는 package-manager-cache가 기본 true라 packageManager(pnpm) 감지 시
+          # pnpm store(≈211MB)를 원격 캐시로 tar 업/다운로드한다. self-hosted 러너는 로컬
+          # store가 영구 잔존하므로 이 왕복(≈40s)이 순수 낭비 → 명시적으로 끈다.
+          package-manager-cache: false
       - run: pnpm install --frozen-lockfile
       - name: 게이트
         # typecheck·lint·test를 병렬 실행(멀티코어 활용). 각 로그는 접어서 출력하고
