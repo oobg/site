@@ -16,6 +16,9 @@ jobs:
       APP_NAME: ${{ github.ref_name }}-${{ secrets.PROJECT_NAME }}
       PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
       IMAGE_TAG: ${{ github.sha }}
+      # Dockerfile의 --mount=type=cache 재활용을 위해 BuildKit 강제(compose build 포함)
+      DOCKER_BUILDKIT: '1'
+      COMPOSE_DOCKER_CLI_BUILD: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

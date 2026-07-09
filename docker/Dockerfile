@@ -5,12 +5,16 @@ ENV HUSKY=0
 
 FROM base AS deps
 COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# pnpm store를 BuildKit 캐시 마운트에 두어 재빌드 시 재다운로드 회피(러너 로컬에 영구 잔존)
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
+    pnpm config set store-dir /pnpm/store && pnpm install --frozen-lockfile
 
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm build
+# .next/cache를 캐시 마운트로 재활용 → next build가 콜드가 아닌 증분으로 동작
+RUN --mount=type=cache,id=next-cache,target=/app/.next/cache \
+    pnpm build
 
 FROM base AS runner
 ENV NODE_ENV=production
