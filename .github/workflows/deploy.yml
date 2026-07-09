@@ -31,6 +31,9 @@ jobs:
           # pnpm store(≈211MB)를 원격 캐시로 tar 업/다운로드한다. self-hosted 러너는 로컬
           # store가 영구 잔존하므로 이 왕복(≈40s)이 순수 낭비 → 명시적으로 끈다.
           package-manager-cache: false
+      # store를 _work(잡마다 청소됨) 밖 홈 경로에 고정 → 런 간 영구 잔존.
+      # 원격 캐시 왕복 없이도 재설치가 store 재활용으로 빨라진다.
+      - run: pnpm config set store-dir "$HOME/.pnpm-store"
       - run: pnpm install --frozen-lockfile
       - name: 게이트
         # typecheck·lint·test를 병렬 실행(멀티코어 활용). 각 로그는 접어서 출력하고
