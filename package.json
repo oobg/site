@@ -42,6 +42,11 @@
       "prettier --write"
     ]
   },
+  "pnpm": {
+    "overrides": {
+      "postcss@<8.5.10": "^8.5.10"
+    }
+  },
   "devDependencies": {
     "@commitlint/cli": "^21.2.0",
     "@commitlint/config-conventional": "^21.2.0",
