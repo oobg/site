@@ -1,0 +1,28 @@
+name: _probe-node
+# 임시 진단용 — 러너 서비스가 setup-node 없이 보는 시스템 Node/corepack/pnpm 확인.
+# 확인 후 삭제한다.
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: self-hosted
+    steps:
+      - name: 시스템 런타임 진단 (bare, setup-node 미사용)
+        run: |
+          echo "== hostname =="; hostname
+          echo "== whoami =="; whoami
+          echo "== node =="
+          echo "which: $(command -v node || echo NONE)"
+          echo "ver:   $(node -v 2>/dev/null || echo NA)"
+          echo "== corepack =="
+          echo "which: $(command -v corepack || echo NONE)"
+          echo "ver:   $(corepack --version 2>/dev/null || echo NA)"
+          echo "== pnpm =="
+          echo "which: $(command -v pnpm || echo NONE)"
+          echo "ver:   $(pnpm -v 2>/dev/null || echo NA)"
+          echo "== 흔한 설치 위치 =="
+          for p in /usr/bin/node /usr/local/bin/node /opt/node/bin/node "$HOME/.nvm" "$HOME/.local/share/fnm" "$HOME/.pnpm-store"; do
+            [ -e "$p" ] && echo "EXISTS: $p ($( [ -x "$p" ] && "$p" -v 2>/dev/null))" || echo "absent: $p"
+          done
+          echo "== PATH =="; echo "$PATH"
