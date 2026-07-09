@@ -27,10 +27,26 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-          cache: pnpm
+      # cache: pnpm 미사용 — self-hosted 러너는 로컬 pnpm store가 영구 잔존하므로
+      # 원격 캐시 tar 업/다운로드(≈40~67s)가 순수 낭비였다. 로컬 store로 install은 여전히 빠름.
       - run: pnpm install --frozen-lockfile
       - name: 게이트
-        run: pnpm typecheck && pnpm lint && pnpm test
+        # typecheck·lint·test를 병렬 실행(멀티코어 활용). 각 로그는 접어서 출력하고
+        # 하나라도 실패하면 전체 실패시킨다.
+        run: |
+          set +e
+          log=$(mktemp -d)  # repo 밖에 로그를 둬 Docker 컨텍스트 오염 방지
+          pnpm typecheck > "$log/typecheck.log" 2>&1 & tc=$!
+          pnpm lint      > "$log/lint.log"      2>&1 & lt=$!
+          pnpm test      > "$log/test.log"      2>&1 & ts=$!
+          wait $tc; rc_tc=$?
+          wait $lt; rc_lt=$?
+          wait $ts; rc_ts=$?
+          dump() { echo "::group::$1 (exit $2)"; cat "$3"; echo "::endgroup::"; }
+          dump typecheck "$rc_tc" "$log/typecheck.log"
+          dump lint      "$rc_lt" "$log/lint.log"
+          dump test      "$rc_ts" "$log/test.log"
+          [ "$rc_tc" -eq 0 ] && [ "$rc_lt" -eq 0 ] && [ "$rc_ts" -eq 0 ]
       - name: .env 생성
         env:
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
