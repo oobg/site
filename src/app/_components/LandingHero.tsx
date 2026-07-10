@@ -2,6 +2,9 @@
 
 import { motion } from 'motion/react';
 import { useIntro } from '@components/intro/IntroProvider';
+import { ArrowLink } from '@components/ui/ArrowLink';
+import { ROUTES } from '@constants/routes';
+import { ProcessDiagram } from './ProcessDiagram';
 import styles from './LandingHero.module.css';
 
 export function LandingHero() {
@@ -13,8 +16,16 @@ export function LandingHero() {
       animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
       transition={{ duration: 0.2 }}
     >
-      <h1 className={styles.headline}>Ideas deserve good interfaces.</h1>
-      <p className={styles.sub}>생각이 시스템이 되고, 시스템이 제품이 되는 과정을 기록합니다.</p>
+      <div className={styles.content}>
+        <h1 className={styles.headline}>Ideas deserve good interfaces.</h1>
+        <p className={styles.sub}>생각이 시스템이 되고, 시스템이 제품이 되는 과정을 기록합니다.</p>
+        <div className={styles.cta}>
+          <ArrowLink href={ROUTES.BLOG.LIST}>Explore my thinking</ArrowLink>
+        </div>
+      </div>
+      <div className={styles.aside}>
+        <ProcessDiagram />
+      </div>
     </motion.section>
   );
 }

@@ -14,6 +14,7 @@ export function SiteHeader() {
           <div className={styles.links}>
             <Link href={ROUTES.BLOG.LIST}>글</Link>
             <Link href={ROUTES.PROJECTS.LIST}>프로젝트</Link>
+            <Link href={ROUTES.ABOUT}>About</Link>
           </div>
         </nav>
       </Container>

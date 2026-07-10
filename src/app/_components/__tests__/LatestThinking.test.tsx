@@ -25,4 +25,15 @@ describe('LatestThinking', () => {
     const { container } = render(<LatestThinking post={null} />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  it('cover_image_url이 없으면 이미지를 렌더하지 않는다', () => {
+    const { container } = render(<LatestThinking post={{ ...post, cover_image_url: null }} />);
+    expect(container.querySelector('img')).toBeNull();
+  });
+
+  it('cover_image_url이 있으면 해당 커버를 렌더한다', () => {
+    const withCover = { ...post, cover_image_url: 'https://cdn.raven.kr/a.png' };
+    const { container } = render(<LatestThinking post={withCover} />);
+    expect(container.querySelector('img')).toHaveAttribute('src', 'https://cdn.raven.kr/a.png');
+  });
 });

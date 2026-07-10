@@ -1,0 +1,47 @@
+.diagram {
+  position: relative;
+  display: grid;
+  gap: var(--space-8);
+  justify-items: start;
+}
+
+/* 도형 중심을 지나는 세로 연결선. 도형이 canvas 배경으로 선을 끊어 노드처럼 보인다. */
+.diagram::before {
+  content: '';
+  position: absolute;
+  top: var(--space-6);
+  bottom: var(--space-6);
+  left: calc(var(--space-8) / 2);
+  width: 1px;
+  background: var(--color-border);
+  z-index: 0;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+  z-index: 1;
+}
+
+.shape {
+  display: grid;
+  place-items: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  background: var(--color-canvas);
+}
+
+.label {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-13);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 900px) {
+  .diagram {
+    gap: var(--space-7);
+  }
+}

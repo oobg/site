@@ -1,0 +1,63 @@
+.section {
+  margin-top: var(--space-9);
+  padding-top: var(--space-9);
+  border-top: 1px solid var(--color-border);
+}
+
+.label {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-13);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-7);
+  margin-top: var(--space-7);
+  list-style: none;
+}
+
+/* 카드 대신 세로 hairline으로 3열을 구분한다(PPOS: 그림자 없이 border로 구분). */
+.item {
+  padding-left: var(--space-6);
+  border-left: 1px solid var(--color-border);
+}
+.item:first-child {
+  padding-left: 0;
+  border-left: none;
+}
+
+.title {
+  margin-top: var(--space-4);
+  font-size: var(--fs-20);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+}
+
+.body {
+  margin-top: var(--space-3);
+  font-size: var(--fs-15);
+  line-height: var(--lh-body);
+  color: var(--color-text-secondary);
+  max-width: 32ch;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+  .item {
+    padding-left: 0;
+    border-left: none;
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--color-border);
+  }
+  .item:first-child {
+    padding-top: 0;
+    border-top: none;
+  }
+}
