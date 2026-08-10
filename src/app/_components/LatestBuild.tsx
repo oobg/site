@@ -4,12 +4,13 @@ import { Eyebrow } from '@components/ui/Eyebrow';
 import { ROUTES } from '@constants/routes';
 import styles from './LatestBuild.module.css';
 
-/* LatestWork 2열 중 오른쪽 열. 섹션 껍데기는 부모가 갖는다. */
+/* 프로젝트는 글과 달리 편수가 적어 목록보다 한 건을 세우는 쪽이 맞다.
+   커버가 없으면 이미지 자리를 두지 않는다(가짜 플레이스홀더 금지). */
 export function LatestBuild({ project }: { project: ProjectListItem | null }) {
   if (!project) return null;
   const cover = project.cover_image_url;
   return (
-    <article className={styles.column}>
+    <section className={styles.section}>
       <Eyebrow>최근에 만든 것</Eyebrow>
       {cover ? (
         <img className={styles.image} src={cover} alt="" width={920} height={560} loading="lazy" />
@@ -26,6 +27,6 @@ export function LatestBuild({ project }: { project: ProjectListItem | null }) {
         </ul>
       ) : null}
       <ArrowLink href={ROUTES.PROJECTS.DETAIL(project.slug)}>View project</ArrowLink>
-    </article>
+    </section>
   );
 }

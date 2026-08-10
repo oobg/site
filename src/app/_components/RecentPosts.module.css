@@ -1,0 +1,60 @@
+.section {
+  padding-top: var(--section-pt);
+  padding-bottom: var(--section-pb);
+  border-top: 1px solid var(--color-border);
+}
+
+.list {
+  margin-top: var(--space-3);
+  padding: 0;
+  list-style: none;
+}
+
+/* 날짜 · 제목 · 태그가 한 행에 놓이는 조밀한 목록.
+   날짜를 앞에 고정하면 훑을 때 시간축이 먼저 읽힌다. */
+.item {
+  display: grid;
+  grid-template-columns: 6rem minmax(0, 1fr) auto;
+  gap: var(--space-4);
+  align-items: baseline;
+  padding-block: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.date {
+  font-family: var(--font-mono), var(--font-sans), monospace;
+  font-size: var(--fs-12);
+  color: var(--color-text-muted);
+}
+
+.title {
+  font-size: var(--fs-15);
+  line-height: var(--lh-title);
+  letter-spacing: var(--ls-body);
+  transition: color var(--dur) var(--ease);
+}
+.title:hover {
+  color: var(--color-accent);
+}
+
+.tags {
+  font-family: var(--font-mono), var(--font-sans), monospace;
+  font-size: var(--fs-12);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.more {
+  margin-top: var(--space-4);
+}
+
+@media (max-width: 900px) {
+  .item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+    padding-block: var(--space-3);
+  }
+  .tags {
+    white-space: normal;
+  }
+}
