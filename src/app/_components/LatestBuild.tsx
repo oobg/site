@@ -1,5 +1,6 @@
 import type { ProjectListItem } from '@features/projects/types/projects.types';
 import { ArrowLink } from '@components/ui/ArrowLink';
+import { Eyebrow } from '@components/ui/Eyebrow';
 import { ROUTES } from '@constants/routes';
 import styles from './LatestBuild.module.css';
 
@@ -9,7 +10,7 @@ export function LatestBuild({ project }: { project: ProjectListItem | null }) {
   return (
     <section className={cover ? styles.section : `${styles.section} ${styles.noMedia}`}>
       <div className={styles.text}>
-        <p className={styles.label}>Latest build</p>
+        <Eyebrow>Latest build</Eyebrow>
         <h2 className={styles.title}>{project.title}</h2>
         {project.summary ? <p className={styles.summary}>{project.summary}</p> : null}
         {project.tags.length > 0 ? (

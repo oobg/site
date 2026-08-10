@@ -1,3 +1,4 @@
+import { Eyebrow } from '@components/ui/Eyebrow';
 import { body, connect, experience, focus, lead, now, stack } from './profile';
 import styles from './AboutContent.module.css';
 
@@ -10,9 +11,7 @@ export function AboutContent() {
       <p className={styles.body}>{body}</p>
 
       <section className={styles.block} aria-labelledby="about-focus">
-        <p id="about-focus" className={styles.label}>
-          What I focus on
-        </p>
+        <Eyebrow id="about-focus">What I focus on</Eyebrow>
         <ul className={styles.focusList}>
           {focus.map((item) => (
             <li key={item.title} className={styles.focusItem}>
@@ -24,9 +23,7 @@ export function AboutContent() {
       </section>
 
       <section className={styles.block} aria-labelledby="about-experience">
-        <p id="about-experience" className={styles.label}>
-          Experience
-        </p>
+        <Eyebrow id="about-experience">Experience</Eyebrow>
         <ul className={styles.expList}>
           {experience.map((item) => (
             <li key={`${item.company}-${item.period}`} className={styles.expItem}>
@@ -46,16 +43,12 @@ export function AboutContent() {
       </section>
 
       <section className={styles.block} aria-labelledby="about-now">
-        <p id="about-now" className={styles.label}>
-          Now
-        </p>
+        <Eyebrow id="about-now">Now</Eyebrow>
         <p className={styles.body}>{now}</p>
       </section>
 
       <section className={styles.block} aria-labelledby="about-connect">
-        <p id="about-connect" className={styles.label}>
-          Connect
-        </p>
+        <Eyebrow id="about-connect">Connect</Eyebrow>
         <ul className={styles.connect}>
           {connect.map((item) => (
             <li key={item.label}>

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Post } from '@features/posts/types/posts.types';
+import { Eyebrow } from '@components/ui/Eyebrow';
 import { ROUTES } from '@constants/routes';
 import { SITE } from '@constants/site';
 import { formatDateKo } from '@utils/date';
@@ -13,7 +14,7 @@ export function ArticleHeader({ post, readingMin }: { post: Post; readingMin: nu
       <Link href={ROUTES.BLOG.LIST} className={styles.back}>
         ← 글 목록
       </Link>
-      {category ? <p className={styles.eyebrow}>{category}</p> : null}
+      {category ? <Eyebrow className={styles.eyebrow}>{category}</Eyebrow> : null}
       <h1 className={styles.title}>{post.title}</h1>
       {post.summary ? <p className={styles.summary}>{post.summary}</p> : null}
       <div className={styles.byline}>

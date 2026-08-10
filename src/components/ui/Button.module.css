@@ -1,0 +1,24 @@
+/* 이 사이트에서 링크는 액센트 텍스트로 두고, 상태를 바꾸는 동작만 테두리를 갖는다.
+   둘을 같은 모양으로 만들면 "누르면 무엇이 일어나는가"의 차이가 지워진다. */
+.button {
+  padding: var(--space-3) var(--space-5);
+  border: 1px solid var(--color-text);
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: var(--fs-15);
+  cursor: pointer;
+  transition:
+    background-color var(--dur) ease,
+    color var(--dur) ease;
+}
+
+.button:hover {
+  background: var(--color-text);
+  color: var(--color-canvas);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

@@ -4,7 +4,6 @@
 
 .title {
   font-size: var(--fs-56);
-  font-weight: 600;
   line-height: var(--lh-tight);
   letter-spacing: -0.02em;
 }
@@ -29,14 +28,6 @@
   border-top: 1px solid var(--color-border);
 }
 
-.label {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--fs-13);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-}
-
 .block .body {
   margin-top: var(--space-3);
 }
@@ -51,7 +42,6 @@
 }
 .focusTitle {
   font-size: var(--fs-20);
-  font-weight: 600;
   line-height: var(--lh-tight);
 }
 
@@ -71,7 +61,7 @@
 }
 .expCompany {
   font-size: var(--fs-18);
-  font-weight: 600;
+  font-weight: var(--fw-title);
 }
 .expRole {
   font-size: var(--fs-15);

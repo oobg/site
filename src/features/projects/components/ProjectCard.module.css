@@ -14,16 +14,11 @@
   transform: translateY(2px);
   border-color: var(--color-accent);
 }
-.cover,
-.coverPlaceholder {
+.cover {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   display: block;
-}
-.coverPlaceholder {
-  background: var(--color-canvas);
-  border-bottom: 1px solid var(--color-border);
 }
 .body {
   padding: var(--space-5);

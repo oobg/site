@@ -1,5 +1,6 @@
 import type { PostListItem } from '@features/posts/types/posts.types';
 import { ArrowLink } from '@components/ui/ArrowLink';
+import { Eyebrow } from '@components/ui/Eyebrow';
 import { ROUTES } from '@constants/routes';
 import { formatDateKo } from '@utils/date';
 import styles from './LatestThinking.module.css';
@@ -10,7 +11,7 @@ export function LatestThinking({ post }: { post: PostListItem | null }) {
   return (
     <section className={cover ? styles.section : `${styles.section} ${styles.noMedia}`}>
       <div className={styles.text}>
-        <p className={styles.label}>Latest thinking</p>
+        <Eyebrow>Latest thinking</Eyebrow>
         <h2 className={styles.title}>{post.title}</h2>
         {post.summary ? <p className={styles.summary}>{post.summary}</p> : null}
         <div className={styles.meta}>

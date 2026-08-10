@@ -9,7 +9,6 @@
 
 .headline {
   font-size: var(--fs-72);
-  font-weight: 600;
   line-height: var(--lh-tight);
   letter-spacing: -0.02em;
   max-width: 12ch;

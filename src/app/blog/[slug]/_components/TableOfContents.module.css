@@ -4,10 +4,6 @@
 }
 .label {
   margin-bottom: var(--space-4);
-  font-size: var(--fs-13);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
 }
 .list {
   list-style: none;
@@ -20,7 +16,7 @@
   display: block;
   padding-left: var(--space-4);
   font-size: var(--fs-13);
-  line-height: 1.5;
+  line-height: var(--lh-lead);
   color: var(--color-text-muted);
   transition: color var(--dur);
 }

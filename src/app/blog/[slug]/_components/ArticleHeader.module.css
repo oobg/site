@@ -14,10 +14,6 @@
 }
 .eyebrow {
   margin-bottom: var(--space-4);
-  font-size: var(--fs-13);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
 }
 .title {
   font-size: var(--fs-56);
@@ -28,7 +24,7 @@
   max-width: var(--w-reading);
   margin-top: var(--space-5);
   font-size: var(--fs-20);
-  line-height: 1.5;
+  line-height: var(--lh-lead);
   color: var(--color-text-secondary);
 }
 .byline {

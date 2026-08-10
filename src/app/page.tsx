@@ -12,15 +12,14 @@ export default async function HomePage() {
     getPosts({ limit: 1, sort: '-published_at' }),
     getProjects({ limit: 1, sort: '-published_at' }),
   ]);
+  // 레이아웃이 이미 <main>으로 감싸므로 여기서 또 두지 않는다(랜드마크 중복).
   return (
     <Container>
-      <main>
-        <LandingHero />
-        <LatestThinking post={latestPost ?? null} />
-        <LatestBuild project={latestProject ?? null} />
-        <Exploring />
-        <AboutTeaser />
-      </main>
+      <LandingHero />
+      <LatestThinking post={latestPost ?? null} />
+      <LatestBuild project={latestProject ?? null} />
+      <Exploring />
+      <AboutTeaser />
     </Container>
   );
 }

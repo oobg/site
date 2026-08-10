@@ -4,60 +4,57 @@
   border-top: 1px solid var(--color-border);
 }
 
-.label {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--fs-13);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-7);
+.list {
   margin-top: var(--space-7);
+  padding: 0;
   list-style: none;
 }
 
-/* 카드 대신 세로 hairline으로 3열을 구분한다(PPOS: 그림자 없이 border로 구분). */
+/* 번호 · 제목 · 설명이 한 행에 나란히 놓이는 전폭 목록.
+   행 사이 hairline이 구분을 맡으므로 카드도 그림자도 쓰지 않는다. */
 .item {
-  padding-left: var(--space-6);
-  border-left: 1px solid var(--color-border);
+  display: grid;
+  grid-template-columns: var(--space-7) minmax(0, 18rem) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: baseline;
+  padding-block: var(--space-6);
+  border-top: 1px solid var(--color-border);
 }
-.item:first-child {
-  padding-left: 0;
-  border-left: none;
+
+.index {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-13);
+  letter-spacing: var(--ls-eyebrow);
+  color: var(--color-text-muted);
 }
 
 .title {
   margin-top: var(--space-4);
   font-size: var(--fs-20);
-  font-weight: 600;
   line-height: var(--lh-tight);
 }
 
 .body {
-  margin-top: var(--space-3);
   font-size: var(--fs-15);
   line-height: var(--lh-body);
   color: var(--color-text-secondary);
+  margin-top: var(--space-3);
   max-width: 32ch;
 }
 
 @media (max-width: 900px) {
-  .grid {
-    grid-template-columns: 1fr;
-    gap: var(--space-6);
-  }
   .item {
-    padding-left: 0;
-    border-left: none;
-    padding-top: var(--space-6);
-    border-top: 1px solid var(--color-border);
+    grid-template-columns: var(--space-6) minmax(0, 1fr);
+    gap: var(--space-3) var(--space-4);
+    padding-block: var(--space-5);
   }
-  .item:first-child {
-    padding-top: 0;
-    border-top: none;
+  .index {
+    grid-row: 1;
+  }
+  .title {
+    grid-column: 2;
+  }
+  .body {
+    grid-column: 2;
   }
 }

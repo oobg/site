@@ -1,13 +1,21 @@
 :root {
-  /* color */
-  --color-canvas: #f7f7f5;
-  --color-surface: #ffffff;
-  --color-text: #161616;
-  --color-text-secondary: #5f5f5f;
-  --color-text-muted: #909090;
-  --color-border: #ecebe8;
-  --color-accent: #1d4ed8;
-  --color-accent-hover: #1747c0;
+  /* color
+     중성색 전부를 액센트와 같은 녹색 계열(hue 150~158)로 아주 옅게 물들였다.
+     이전에는 배경·보더만 웜(노란기), 글자는 완전 무채색, 액센트만 쿨이라
+     한 화면에 온도가 셋이었다. 지금은 하나다.
+     괄호 안은 캔버스 대비. 본문 크기 이하로 쓰이는 색은 전부 AA(4.5:1)를 넘긴다. */
+  --color-canvas: #f8faf9;
+  --color-surface: #fefefe;
+  --color-text: #131b18; /* 16.73:1 */
+  --color-text-secondary: #45544e; /* 7.61:1 — AAA */
+  --color-text-muted: #63746c; /* 4.72:1 — 이전 #909090은 2.98:1로 AA 미달이었다 */
+  --color-border: #e2e9e6; /* 1.18:1 — hairline은 낮아야 정상 */
+  /* 진입 인트로의 '채워지기 전' 글자용. 장식이라 AA 대상이 아니고, 오히려 옅어야
+     잉크가 차오르는 대비가 산다. 읽히는 글자에는 쓰지 않는다. */
+  --color-ink-ghost: #879b91; /* 2.81:1 */
+  /* 딥 그린. 웜이던 캔버스를 같은 계열로 끌어와 액센트가 겉돌지 않게 했다. */
+  --color-accent: #2c5545; /* 8.04:1 */
+  --color-accent-hover: #224437; /* 10.27:1 */
 
   /* typography */
   --fs-72: 4.5rem;
@@ -19,8 +27,14 @@
   --fs-15: 0.9375rem;
   --fs-13: 0.8125rem;
   --lh-tight: 1.1;
+  /* 리드 문단·촘촘한 목록용. 본문(1.7)은 너무 성기고 제목(1.1)은 너무 붙는 구간. */
+  --lh-lead: 1.5;
   --lh-body: 1.7;
   --font-body-size: var(--fs-18);
+  /* 제목 굵기는 한 곳에서 정한다. UA 기본 700으로 떨어지는 것을 막는다. */
+  --fw-title: 600;
+  /* 섹션 레이블(Eyebrow) 자간. mono 대문자는 이만큼 벌려야 읽힌다. */
+  --ls-eyebrow: 0.16em;
 
   /* spacing scale */
   --space-1: 4px;
@@ -36,17 +50,15 @@
 
   /* layout */
   --w-container: 1400px;
-  --w-content: 960px;
   --w-reading: 780px;
-  --w-hero: 640px;
-  --grid-cols: 12;
   --radius: 16px;
   --radius-sm: 6px;
   --outer: var(--space-8);
   --section-gap: var(--space-10);
 
   /* elevation */
-  --shadow-float: 0 6px 24px rgb(22 22 22 / 0.12);
+  /* 그림자도 무채색 검정이 아니라 --color-text와 같은 색을 쓴다. */
+  --shadow-float: 0 6px 24px rgb(19 27 24 / 0.12);
 
   /* motion */
   --dur: 200ms;

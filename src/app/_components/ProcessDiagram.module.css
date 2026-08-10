@@ -32,11 +32,13 @@
   background: var(--color-canvas);
 }
 
+/* 섹션 레이블(Eyebrow)이 아니라 다이어그램 노드의 이름이라 컴포넌트를 쓰지 않는다.
+   다만 자간은 같은 토큰을 참조해 두 표기가 따로 흘러가지 않게 묶어 둔다. */
 .label {
   font-family: var(--font-mono), monospace;
   font-size: var(--fs-13);
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: var(--ls-eyebrow);
   color: var(--color-text-muted);
 }
 

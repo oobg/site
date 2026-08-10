@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { TocEntry } from '@lib/markdown/toc.types';
+import { Eyebrow } from '@components/ui/Eyebrow';
 import styles from './TableOfContents.module.css';
 
 export function TableOfContents({ toc }: { toc: TocEntry[] }) {
@@ -27,7 +28,7 @@ export function TableOfContents({ toc }: { toc: TocEntry[] }) {
 
   return (
     <nav className={styles.toc} aria-label="목차">
-      <p className={styles.label}>목차</p>
+      <Eyebrow className={styles.label}>목차</Eyebrow>
       <ul className={styles.list}>
         {toc.map((entry) => (
           <li key={entry.id}>

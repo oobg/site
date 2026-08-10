@@ -1,0 +1,33 @@
+/* 404·에러가 사이트 밖으로 튀어나온 화면처럼 보이지 않게 하는 공통 골격.
+   본문 화면들과 같은 컨테이너·토큰 위에서 조판된다. */
+.screen {
+  max-width: var(--w-reading);
+  padding-block: var(--space-10) var(--space-9);
+}
+
+.title {
+  margin-top: var(--space-5);
+  font-size: var(--fs-56);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.02em;
+}
+
+.description {
+  margin-top: var(--space-5);
+  font-size: var(--fs-20);
+  line-height: var(--lh-lead);
+  color: var(--color-text-secondary);
+}
+
+.action {
+  margin-top: var(--space-7);
+}
+
+@media (max-width: 900px) {
+  .screen {
+    padding-block: var(--space-8) var(--space-8);
+  }
+  .title {
+    font-size: var(--fs-40);
+  }
+}

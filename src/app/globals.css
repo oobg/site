@@ -22,6 +22,21 @@ pre,
 kbd {
   font-family: var(--font-mono), ui-monospace, monospace;
 }
+/* 제목 굵기를 한 곳에서 정한다. 개별 모듈이 선언을 빠뜨려도 UA 기본 700으로 떨어지지 않는다. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: var(--fw-title);
+}
 a:hover {
   color: var(--color-accent-hover);
+}
+/* reset이 링크의 밑줄을 지우므로 키보드 포커스 표시를 직접 준다.
+   outline은 요소의 border-radius를 따라가므로 카드·칩에도 그대로 맞는다. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }

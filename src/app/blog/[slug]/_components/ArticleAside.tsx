@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { Post, PostListItem } from '@features/posts/types/posts.types';
+import { Eyebrow } from '@components/ui/Eyebrow';
 import { ROUTES } from '@constants/routes';
 import { formatDateKo } from '@utils/date';
 import { ShareButtons } from './ShareButtons';
@@ -20,7 +21,9 @@ export function ArticleAside({
   return (
     <aside className={styles.aside}>
       <section className={styles.block}>
-        <h2 className={styles.blockTitle}>글 정보</h2>
+        <Eyebrow as="h2" className={styles.blockTitle}>
+          글 정보
+        </Eyebrow>
         <dl className={styles.info}>
           <div className={styles.row}>
             <dt>발행</dt>
@@ -60,7 +63,9 @@ export function ArticleAside({
 
       {related.length > 0 ? (
         <section className={styles.block}>
-          <h2 className={styles.blockTitle}>관련 글</h2>
+          <Eyebrow as="h2" className={styles.blockTitle}>
+            관련 글
+          </Eyebrow>
           <ul className={styles.related}>
             {related.map((item) => (
               <li key={item.slug}>
@@ -78,7 +83,9 @@ export function ArticleAside({
       ) : null}
 
       <section className={`${styles.block} ${styles.shareBlock}`}>
-        <h2 className={styles.blockTitle}>공유</h2>
+        <Eyebrow as="h2" className={styles.blockTitle}>
+          공유
+        </Eyebrow>
         <ShareButtons title={post.title} />
       </section>
     </aside>
