@@ -10,7 +10,7 @@ export function Focus() {
       <Eyebrow>어떻게 일하나</Eyebrow>
       <ul className={styles.grid}>
         {focus.map((item) => (
-          <li key={item.title}>
+          <li key={item.title} className={styles.item}>
             <h3 className={styles.title}>{item.title}</h3>
             <p className={styles.body}>{item.body}</p>
           </li>

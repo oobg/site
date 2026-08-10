@@ -12,21 +12,30 @@ export function LatestBuild({ project }: { project: ProjectListItem | null }) {
   return (
     <section className={styles.section}>
       <Eyebrow>최근에 만든 것</Eyebrow>
-      {cover ? (
-        <img className={styles.image} src={cover} alt="" width={920} height={560} loading="lazy" />
-      ) : null}
-      <h2 className={styles.title}>{project.title}</h2>
-      {project.summary ? <p className={styles.summary}>{project.summary}</p> : null}
-      {project.tags.length > 0 ? (
-        <ul className={styles.tags}>
-          {project.tags.map((tag) => (
-            <li key={tag} className={styles.tag}>
-              {tag}
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      <ArrowLink href={ROUTES.PROJECTS.DETAIL(project.slug)}>View project</ArrowLink>
+      <div className={styles.card}>
+        {cover ? (
+          <img
+            className={styles.image}
+            src={cover}
+            alt=""
+            width={920}
+            height={560}
+            loading="lazy"
+          />
+        ) : null}
+        <h2 className={styles.title}>{project.title}</h2>
+        {project.summary ? <p className={styles.summary}>{project.summary}</p> : null}
+        {project.tags.length > 0 ? (
+          <ul className={styles.tags}>
+            {project.tags.map((tag) => (
+              <li key={tag} className={styles.tag}>
+                {tag}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <ArrowLink href={ROUTES.PROJECTS.DETAIL(project.slug)}>View project</ArrowLink>
+      </div>
     </section>
   );
 }

@@ -1,27 +1,35 @@
 .section {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
   padding-top: var(--section-pt);
   padding-bottom: var(--section-pb);
   border-top: 1px solid var(--color-border);
 }
 
-.section .image {
-  max-width: 42rem;
+/* 여기만 면을 준다. 목록 행은 캔버스에 직속이라 면을 쌓을 자리가 없고,
+   그 상태로는 hairline 말고 쓸 수단이 없어 화면이 평평해진다.
+   단건이라 셸이 반복되지 않으므로 카드로 세워 그 안에 계조를 만든다. */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: var(--space-3);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
 }
 
 .image {
   width: 100%;
+  max-width: 42rem;
   height: auto;
-  margin-top: var(--space-4);
+  margin-bottom: var(--space-4);
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
   object-fit: cover;
 }
 
 .title {
-  margin-top: var(--space-2);
   font-size: var(--fs-20);
   line-height: var(--lh-title);
   letter-spacing: var(--ls-title);

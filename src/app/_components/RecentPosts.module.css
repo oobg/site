@@ -17,8 +17,18 @@
   grid-template-columns: 6rem minmax(0, 1fr) auto;
   gap: var(--space-4);
   align-items: baseline;
-  padding-block: var(--space-3);
+  /* 좌우 패딩은 hover 면이 글자에 달라붙지 않게 한다.
+     같은 폭만큼 음수 마진으로 되돌려 글머리는 섹션 격자에 맞춘다. */
+  padding: var(--space-3) var(--space-3);
+  margin-inline: calc(var(--space-3) * -1);
   border-top: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  transition: background-color var(--dur) var(--ease);
+}
+
+/* hover는 배경, 정적 구분은 보더 — 상태마다 표현을 하나씩만 쓴다. */
+.item:hover {
+  background: var(--color-surface);
 }
 
 .date {
