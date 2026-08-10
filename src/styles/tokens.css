@@ -18,7 +18,10 @@
   --color-accent-hover: #224437; /* 10.27:1 */
 
   /* typography */
-  --fs-72: 4.5rem;
+  /* 디스플레이 조판용. 뷰포트를 따라 늘어나 화면 폭을 실제로 채운다.
+     고정 스케일(--fs-72)은 1400px 컨테이너에서 너무 작아 와이어프레임처럼 읽혔다. */
+  --fs-display: clamp(2.75rem, 8vw, 8rem);
+  --fs-display-sm: clamp(2rem, 5.5vw, 5rem);
   --fs-56: 3.5rem;
   --fs-40: 2.5rem;
   --fs-28: 1.75rem;

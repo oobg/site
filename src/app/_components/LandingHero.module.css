@@ -1,45 +1,55 @@
+/* 배경 블록을 두지 않는다. 잉크로 뒤집어 봤더니 캔버스 대비가 16.73:1이라
+   스크롤할 때 흑백이 슬램처럼 부딪혔다. 화려함은 조판에서 가져온다. */
 .hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
-  align-items: center;
-  gap: var(--space-8);
   padding-top: var(--space-9);
-  padding-bottom: var(--space-9);
+  padding-bottom: var(--space-8);
 }
 
+/* 화면 폭을 실제로 쓰는 디스플레이 조판. 고정 스케일로는 1400px 컨테이너에서
+   글자가 작아 보여 화면이 와이어프레임처럼 읽혔다. */
 .headline {
-  font-size: var(--fs-72);
-  line-height: var(--lh-tight);
-  letter-spacing: -0.02em;
-  max-width: 12ch;
+  font-size: var(--fs-display);
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+  max-width: 16ch;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-8);
+  margin-top: var(--space-7);
+}
+
+.lede {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-5);
 }
 
 .sub {
-  margin-top: var(--space-5);
   font-size: var(--fs-20);
   line-height: var(--lh-body);
   color: var(--color-text-secondary);
   max-width: 42ch;
 }
 
-.cta {
-  margin-top: var(--space-6);
-}
-
-.aside {
-  justify-self: end;
-}
-
 @media (max-width: 900px) {
   .hero {
-    grid-template-columns: 1fr;
-    gap: var(--space-8);
     padding-top: var(--space-8);
+    padding-bottom: var(--space-7);
   }
   .headline {
-    font-size: var(--fs-40);
+    max-width: none;
   }
-  .aside {
-    justify-self: start;
+  .row {
+    align-items: flex-start;
+    gap: var(--space-7);
+  }
+  .sub {
+    font-size: var(--fs-18);
   }
 }

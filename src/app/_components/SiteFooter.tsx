@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Container } from '@components/layout/Container';
 import { Eyebrow } from '@components/ui/Eyebrow';
 import { ROUTES } from '@constants/routes';
+import { name } from '@constants/profile';
 import styles from './SiteFooter.module.css';
 
 export function SiteFooter() {
@@ -13,7 +14,7 @@ export function SiteFooter() {
               워드마크를 크게 두는 건 진입 인트로가 이 글자를 헤더로 넘기는 안무와 짝을 맞추기 위함이다. */}
           <div>
             <p className={styles.wordmark}>raven.kr</p>
-            <p className={styles.tagline}>배윤석의 글과 프로젝트 기록.</p>
+            <p className={styles.tagline}>{name}의 글과 프로젝트 기록.</p>
           </div>
           <div className={styles.columns}>
             <nav className={styles.column} aria-label="사이트 내비게이션">

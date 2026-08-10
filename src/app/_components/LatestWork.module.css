@@ -1,0 +1,24 @@
+/* 바로 위가 잉크 히어로다. 배경이 바뀌는 것 자체가 구획이라
+   hairline을 또 그으면 경계가 두 번 표시된다. 아래 경계는 Exploring이 갖는다. */
+.section {
+  padding-top: var(--space-9);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-8);
+  align-items: start;
+}
+
+/* 한쪽만 있을 때 빈 열을 남기지 않는다. */
+.single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-7);
+  }
+}

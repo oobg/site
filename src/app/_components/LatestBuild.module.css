@@ -1,53 +1,40 @@
-.section {
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-8);
-  margin-top: var(--space-9);
-  padding-top: var(--space-9);
-  border-top: 1px solid var(--color-border);
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-/* 바로 앞 LatestThinking이 텍스트→이미지 순이라 여기서는 좌우를 뒤집는다.
-   DOM 순서는 텍스트가 먼저인 채로 두고 배치만 바꾼다(읽기 순서 보존). */
-.media {
-  grid-column: 1;
-  grid-row: 1;
-}
-.text {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-/* 커버가 없으면 미디어 열을 두지 않고 텍스트를 전폭으로 둔다(가짜 플레이스홀더 금지). */
-.noMedia {
-  grid-template-columns: 1fr;
-}
-.noMedia .text {
-  grid-column: 1;
+.image {
+  width: 100%;
+  height: auto;
+  margin-top: var(--space-5);
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  object-fit: cover;
 }
 
 .title {
-  font-size: var(--fs-40);
+  margin-top: var(--space-4);
+  font-size: var(--fs-28);
   line-height: var(--lh-tight);
   letter-spacing: -0.01em;
-  margin-top: var(--space-4);
 }
 
 .summary {
-  margin-top: var(--space-4);
-  font-size: var(--fs-18);
+  margin-top: var(--space-3);
+  font-size: var(--fs-15);
   line-height: var(--lh-body);
   color: var(--color-text-secondary);
-  max-width: 46ch;
+  max-width: 42ch;
 }
 
 .tags {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  margin-top: var(--space-5);
+  margin-top: var(--space-4);
   margin-bottom: var(--space-5);
+  padding: 0;
   list-style: none;
 }
 
@@ -55,36 +42,13 @@
   padding: var(--space-1) var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  font-family: var(--font-mono), monospace;
+  font-family: var(--font-mono), var(--font-sans), monospace;
   font-size: var(--fs-13);
   color: var(--color-text-secondary);
 }
 
-.image {
-  width: 100%;
-  height: auto;
-  border-radius: var(--radius);
-  border: 1px solid var(--color-border);
-  object-fit: cover;
-}
-
 @media (max-width: 900px) {
-  .section {
-    grid-template-columns: 1fr;
-    gap: var(--space-6);
-    padding-top: var(--space-8);
-  }
-  .media,
-  .text {
-    grid-column: 1;
-  }
-  .media {
-    grid-row: 1;
-  }
-  .text {
-    grid-row: 2;
-  }
   .title {
-    font-size: var(--fs-28);
+    font-size: var(--fs-20);
   }
 }

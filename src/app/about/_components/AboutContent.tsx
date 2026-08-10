@@ -1,5 +1,5 @@
 import { Eyebrow } from '@components/ui/Eyebrow';
-import { body, connect, experience, focus, lead, now, stack } from './profile';
+import { body, connect, experience, focus, lead, now, stack } from '@constants/profile';
 import styles from './AboutContent.module.css';
 
 export function AboutContent() {
