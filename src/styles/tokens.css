@@ -1,43 +1,62 @@
 :root {
-  /* color
-     중성색 전부를 액센트와 같은 녹색 계열(hue 150~158)로 아주 옅게 물들였다.
-     이전에는 배경·보더만 웜(노란기), 글자는 완전 무채색, 액센트만 쿨이라
-     한 화면에 온도가 셋이었다. 지금은 하나다.
-     괄호 안은 캔버스 대비. 본문 크기 이하로 쓰이는 색은 전부 AA(4.5:1)를 넘긴다. */
-  --color-canvas: #f8faf9;
-  --color-surface: #fefefe;
-  --color-text: #131b18; /* 16.73:1 */
-  --color-text-secondary: #45544e; /* 7.61:1 — AAA */
-  --color-text-muted: #63746c; /* 4.72:1 — 이전 #909090은 2.98:1로 AA 미달이었다 */
-  --color-border: #e2e9e6; /* 1.18:1 — hairline은 낮아야 정상 */
+  /* color — day0(@day0/ui) 팔레트를 옮겨 왔다.
+     원본의 감도 가이드: 톤다운 포인트 컬러, 배경:텍스트:포인트 = 6:3:1, 보더 1px·그림자 최소.
+     괄호 안은 캔버스 대비. 본문 크기 이하로 쓰이는 색은 전부 AA(4.5:1)를 넘긴다.
+
+     원본에서 한 단씩 내려 잡은 곳이 있다. day0의 grey-500(#87919e)을 흐린 글자에 쓰면
+     캔버스 대비 3.01:1로 AA에 못 미친다 — grey-500↔600 사이 어느 값도 통과하지 못해
+     muted를 grey-600으로, secondary를 grey-700으로 한 칸씩 내려 3단 위계를 지켰다.
+     같은 이유로 포인트는 --d0-blue(#3d7de5, 3.75:1)가 아니라 --d0-blue-dark를 쓴다. */
+  --color-canvas: #f7f8fa; /* d0 grey-50 */
+  --color-surface: #ffffff;
+  --color-text: #1a1f26; /* d0 grey-900 · 15.59:1 */
+  --color-text-secondary: #4c5460; /* d0 grey-700 · 7.20:1 */
+  --color-text-muted: #68707c; /* d0 grey-600 · 4.71:1 */
+  --color-border: #e2e5ea; /* d0 grey-200 · 1.19:1 — hairline은 낮아야 정상 */
   /* 진입 인트로의 '채워지기 전' 글자용. 장식이라 AA 대상이 아니고, 오히려 옅어야
      잉크가 차오르는 대비가 산다. 읽히는 글자에는 쓰지 않는다. */
-  --color-ink-ghost: #879b91; /* 2.81:1 */
-  /* 딥 그린. 웜이던 캔버스를 같은 계열로 끌어와 액센트가 겉돌지 않게 했다. */
-  --color-accent: #2c5545; /* 8.04:1 */
-  --color-accent-hover: #224437; /* 10.27:1 */
+  --color-ink-ghost: #a8b0bb; /* d0 grey-400 · 2.06:1 */
+  --color-accent: #2f66c4; /* d0 blue-dark · 5.18:1 */
+  --color-accent-hover: #26539f; /* 7.01:1 */
 
-  /* typography */
-  /* 디스플레이 조판용. 뷰포트를 따라 늘어나 화면 폭을 실제로 채운다.
-     고정 스케일(--fs-72)은 1400px 컨테이너에서 너무 작아 와이어프레임처럼 읽혔다. */
-  --fs-display: clamp(2.75rem, 8vw, 8rem);
-  --fs-display-sm: clamp(2rem, 5.5vw, 5rem);
+  /* typography
+     랜딩은 크게 키우는 대신 작고 촘촘하게 간다. 초대형 조판은 화면을 채우는 게 아니라
+     오히려 비웠다 — 같은 폭에 들어가는 정보가 줄기 때문이다.
+     아래 56/40/28은 읽기 화면(About·글 상세)이 계속 쓰므로 그대로 둔다. */
   --fs-56: 3.5rem;
   --fs-40: 2.5rem;
+  --fs-30: 1.875rem;
   --fs-28: 1.75rem;
   --fs-20: 1.25rem;
   --fs-18: 1.125rem;
+  --fs-16: 1rem;
   --fs-15: 0.9375rem;
+  --fs-14: 0.875rem;
   --fs-13: 0.8125rem;
+  --fs-12: 0.75rem;
+
+  /* 자간·행간. 한글은 자폭이 커서 음수 자간을 주지 않으면 제목이 성겨 보인다. */
+  --ls-display: -0.032em;
+  --ls-title: -0.028em;
+  --ls-body: -0.02em;
+  --lh-display: 1.15;
+  --lh-title: 1.22;
   --lh-tight: 1.1;
   /* 리드 문단·촘촘한 목록용. 본문(1.7)은 너무 성기고 제목(1.1)은 너무 붙는 구간. */
   --lh-lead: 1.5;
   --lh-body: 1.7;
+  /* 랜딩처럼 촘촘한 구간의 본문 행간. */
+  --lh-dense: 1.6;
+
   --font-body-size: var(--fs-18);
   /* 제목 굵기는 한 곳에서 정한다. UA 기본 700으로 떨어지는 것을 막는다. */
-  --fw-title: 600;
-  /* 섹션 레이블(Eyebrow) 자간. mono 대문자는 이만큼 벌려야 읽힌다. */
-  --ls-eyebrow: 0.16em;
+  --fw-title: 700;
+  /* 섹션 레이블(Eyebrow). 대문자 자간이 아니라 자연어 한글용의 좁은 자간이다. */
+  --ls-eyebrow: 0.01em;
+
+  /* 랜딩 섹션 리듬. 96px은 콘텐츠 밀도에 비해 과해 페이지가 끊겨 보였다. */
+  --section-pt: var(--space-6);
+  --section-pb: var(--space-5);
 
   /* spacing scale */
   --space-1: 4px;
@@ -54,17 +73,19 @@
   /* layout */
   --w-container: 1400px;
   --w-reading: 780px;
-  --radius: 16px;
-  --radius-sm: 6px;
+  /* day0의 절제된 라운딩. 카드 14 / 컨트롤 10 / 작은 요소 8. */
+  --radius: 14px;
+  --radius-control: 10px;
+  --radius-sm: 8px;
   --outer: var(--space-8);
   --section-gap: var(--space-10);
 
-  /* elevation */
-  /* 그림자도 무채색 검정이 아니라 --color-text와 같은 색을 쓴다. */
-  --shadow-float: 0 6px 24px rgb(19 27 24 / 0.12);
+  /* elevation — day0는 "보더 중심, 그림자는 흔적만". 색은 --color-text 계열을 쓴다. */
+  --shadow-float: 0 10px 28px rgb(26 31 38 / 0.1);
 
   /* motion */
-  --dur: 200ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur: 220ms;
   /* 스켈레톤 shimmer 스윕 주기(좌→우). */
   --dur-skeleton: 1.4s;
 }

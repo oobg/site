@@ -22,7 +22,8 @@ pre,
 kbd {
   font-family: var(--font-mono), ui-monospace, monospace;
 }
-/* 제목 굵기를 한 곳에서 정한다. 개별 모듈이 선언을 빠뜨려도 UA 기본 700으로 떨어지지 않는다. */
+/* 제목 굵기를 한 곳에서 정한다. 개별 모듈이 선언을 빠뜨려도 UA 기본값에 휘둘리지 않는다.
+   text-wrap: balance는 제목이 마지막 줄에 한 단어만 남기고 끊기는 것을 막는다. */
 h1,
 h2,
 h3,
@@ -30,6 +31,12 @@ h4,
 h5,
 h6 {
   font-weight: var(--fw-title);
+  text-wrap: balance;
+}
+/* 본문은 balance 대신 pretty — 줄 수를 맞추지 않고 고아 단어만 정리한다. */
+p,
+li {
+  text-wrap: pretty;
 }
 a:hover {
   color: var(--color-accent-hover);

@@ -4,6 +4,8 @@ import { getProjects } from '@features/projects/services/projects.api';
 import { LandingHero } from '@/app/_components/LandingHero';
 import { LatestWork } from '@/app/_components/LatestWork';
 import { Exploring } from '@/app/_components/Exploring';
+import { Now } from '@/app/_components/Now';
+import { Stack } from '@/app/_components/Stack';
 
 export default async function HomePage() {
   const [[latestPost], [latestProject]] = await Promise.all([
@@ -16,6 +18,8 @@ export default async function HomePage() {
       <LandingHero />
       <LatestWork post={latestPost ?? null} project={latestProject ?? null} />
       <Exploring />
+      <Now />
+      <Stack />
     </Container>
   );
 }

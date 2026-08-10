@@ -12,7 +12,7 @@ export function LatestThinking({ post }: { post: PostListItem | null }) {
   const cover = post.cover_image_url;
   return (
     <article className={styles.column}>
-      <Eyebrow>Latest thinking</Eyebrow>
+      <Eyebrow>최근에 쓴 글</Eyebrow>
       {cover ? (
         <img className={styles.image} src={cover} alt="" width={880} height={560} loading="lazy" />
       ) : null}

@@ -18,7 +18,7 @@
   font-size: var(--fs-13);
   line-height: var(--lh-lead);
   color: var(--color-text-muted);
-  transition: color var(--dur);
+  transition: color var(--dur) var(--ease);
 }
 .item:hover {
   color: var(--color-text);

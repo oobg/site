@@ -7,8 +7,8 @@
   background: var(--color-surface);
   color: inherit;
   transition:
-    transform var(--dur) ease,
-    border-color var(--dur) ease;
+    transform var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
 }
 .card:hover {
   transform: translateY(2px);

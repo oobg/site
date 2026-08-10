@@ -21,7 +21,7 @@ const ITEMS = [
 export function Exploring() {
   return (
     <section className={styles.section}>
-      <Eyebrow>What I&rsquo;m exploring</Eyebrow>
+      <Eyebrow>요즘 파고 있는 것</Eyebrow>
       <ol className={styles.list}>
         {ITEMS.map(({ title, body }, i) => (
           <li key={title} className={styles.item}>

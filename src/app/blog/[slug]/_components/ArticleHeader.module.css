@@ -7,7 +7,7 @@
   margin-bottom: var(--space-6);
   font-size: var(--fs-13);
   color: var(--color-text-secondary);
-  transition: color var(--dur);
+  transition: color var(--dur) var(--ease);
 }
 .back:hover {
   color: var(--color-accent);

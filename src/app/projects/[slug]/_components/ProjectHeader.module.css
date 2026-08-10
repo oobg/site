@@ -44,7 +44,7 @@
 }
 .links a {
   color: var(--color-accent);
-  transition: color var(--dur) ease;
+  transition: color var(--dur) var(--ease);
 }
 .links a:hover {
   color: var(--color-accent-hover);

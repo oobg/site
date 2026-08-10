@@ -18,13 +18,13 @@ export function SiteFooter() {
           </div>
           <div className={styles.columns}>
             <nav className={styles.column} aria-label="사이트 내비게이션">
-              <Eyebrow className={styles.colLabel}>Navigation</Eyebrow>
+              <Eyebrow className={styles.colLabel}>둘러보기</Eyebrow>
               <Link href={ROUTES.BLOG.LIST}>글</Link>
               <Link href={ROUTES.PROJECTS.LIST}>프로젝트</Link>
               <Link href={ROUTES.ABOUT}>About</Link>
             </nav>
             <div className={styles.column}>
-              <Eyebrow className={styles.colLabel}>Connect</Eyebrow>
+              <Eyebrow className={styles.colLabel}>연결</Eyebrow>
               <a href="https://github.com/oobg">GitHub</a>
               <a href="https://api.raven.kr">API</a>
             </div>

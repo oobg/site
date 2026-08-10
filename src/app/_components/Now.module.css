@@ -1,0 +1,16 @@
+.section {
+  padding-top: var(--section-pt);
+  padding-bottom: var(--section-pb);
+  border-top: 1px solid var(--color-border);
+}
+
+.body {
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-4);
+  font-size: var(--fs-15);
+  line-height: var(--lh-dense);
+  letter-spacing: var(--ls-body);
+  color: var(--color-text-secondary);
+  /* 한글은 자폭이 커서 36em이면 문장 중간에서 자주 끊긴다. */
+  max-width: 48em;
+}

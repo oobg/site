@@ -1,13 +1,13 @@
-/* 라틴 글자는 mono(IBM Plex Mono), 한글은 그 다음 순위인 sans(Pretendard)로 떨어진다.
-   폰트 폴백이 글리프 단위로 일어나므로 "Latest thinking"과 "목차"가 한 스펙을 공유해도
-   각자 제 서체로 조판된다. 서체를 화면마다 갈라 쓰던 원인이 이 폴백 한 줄이었다. */
+/* 섹션 레이블. 대문자 mono로 벌려 쓰던 것을 자연어 한글 기준으로 바꿨다.
+   영문 대문자 eyebrow는 한글 내비게이션과 레지스터가 갈리고, 무엇보다
+   uppercase가 한글에는 아무 효과가 없어 규칙이 반만 작동했다.
+
+   색은 muted가 아니라 secondary다 — 레이블이 본문보다 흐리면 위계가 뒤집힌다.
+   포인트 색은 쓰지 않는다. 섹션마다 액센트가 반복되면 강조가 강조를 잃는다. */
 .eyebrow {
-  font-family: var(--font-mono), var(--font-sans), system-ui, monospace;
-  font-size: var(--fs-13);
-  /* h2로 쓰일 때 전역 제목 굵기(600)를 상속받지 않도록 명시한다. */
-  font-weight: 400;
-  line-height: var(--lh-lead);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
+  font-size: var(--fs-12);
+  font-weight: 600;
+  line-height: var(--lh-dense);
   letter-spacing: var(--ls-eyebrow);
+  color: var(--color-text-secondary);
 }

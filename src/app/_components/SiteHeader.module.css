@@ -10,7 +10,7 @@
 .wordmark {
   font-family: var(--font-mono), monospace;
   font-size: var(--fs-15);
-  transition: color var(--dur) ease;
+  transition: color var(--dur) var(--ease);
 }
 .links {
   display: flex;
@@ -18,7 +18,7 @@
   font-size: var(--fs-15);
 }
 .links a {
-  transition: color var(--dur) ease;
+  transition: color var(--dur) var(--ease);
 }
 .wordmark:hover,
 .links a:hover {

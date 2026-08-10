@@ -10,7 +10,7 @@ export function LatestBuild({ project }: { project: ProjectListItem | null }) {
   const cover = project.cover_image_url;
   return (
     <article className={styles.column}>
-      <Eyebrow>Latest build</Eyebrow>
+      <Eyebrow>최근에 만든 것</Eyebrow>
       {cover ? (
         <img className={styles.image} src={cover} alt="" width={920} height={560} loading="lazy" />
       ) : null}

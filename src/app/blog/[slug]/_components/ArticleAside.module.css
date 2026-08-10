@@ -56,7 +56,7 @@
   font-size: var(--fs-15);
   line-height: var(--lh-lead);
   color: var(--color-text);
-  transition: color var(--dur);
+  transition: color var(--dur) var(--ease);
 }
 .relatedItem:hover .relatedTitle {
   color: var(--color-accent);

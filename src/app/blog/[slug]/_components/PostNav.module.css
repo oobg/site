@@ -13,7 +13,7 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-text-secondary);
-  transition: color var(--dur);
+  transition: color var(--dur) var(--ease);
 }
 .index:hover {
   color: var(--color-accent);

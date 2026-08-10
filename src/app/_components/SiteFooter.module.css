@@ -1,6 +1,6 @@
 .footer {
-  margin-top: var(--space-9);
-  padding-top: var(--space-8);
+  margin-top: var(--space-7);
+  padding-top: var(--space-6);
   padding-bottom: var(--space-7);
   border-top: 1px solid var(--color-border);
 }
@@ -15,7 +15,7 @@
 /* 히어로 헤드라인과 짝을 이루는 디스플레이 조판. 페이지를 워드마크로 닫는다. */
 .wordmark {
   font-family: var(--font-mono), monospace;
-  font-size: var(--fs-display-sm);
+  font-size: var(--fs-30);
   line-height: var(--lh-tight);
   letter-spacing: -0.04em;
 }
@@ -40,7 +40,7 @@
 
 .column a {
   color: var(--color-text-secondary);
-  transition: color var(--dur) ease;
+  transition: color var(--dur) var(--ease);
 }
 .column a:hover {
   color: var(--color-accent);
