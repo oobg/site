@@ -22,6 +22,10 @@
   padding: var(--space-3) var(--space-2) var(--space-3) var(--space-5);
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
+  /* padding 전환은 레이아웃을 부르므로 원칙적으로는 피할 것이다. 여기서만 남기는
+     이유는 대안이 더 나쁘기 때문이다 — scaleY로 높이를 줄이면 알약의 둥근 테두리와
+     그 안의 글자가 함께 눌린다. 대상이 자식 둘뿐인 합성 레이어라 비용이 작고,
+     시간은 --dur-slow(240ms)로 규칙 안에 둔다. */
   transition:
     padding var(--dur-slow) var(--ease),
     background var(--dur) linear,
@@ -79,17 +83,22 @@
   opacity: 1;
 }
 
+/* 축소는 font-size가 아니라 scale로 한다. font-size를 애니메이트하면 매 프레임
+   텍스트를 다시 조판하고 서브픽셀 단계마다 글자가 떤다. scale은 합성만으로 끝나고,
+   레이아웃 박스가 그대로라 옆의 링크 묶음도 밀리지 않는다.
+   16px → 15px에 해당하는 배율이 0.9375다. */
 .wordmark {
   font-size: var(--fs-16);
   font-weight: 600;
   letter-spacing: var(--ls-body);
   white-space: nowrap;
+  transform-origin: left center;
   transition:
-    font-size var(--dur-slow) var(--ease),
+    transform var(--dur-slow) var(--ease),
     color var(--dur) var(--ease);
 }
 .header[data-stuck] .wordmark {
-  font-size: var(--fs-15);
+  transform: scale(0.9375);
 }
 
 .links {
