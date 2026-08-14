@@ -1,0 +1,89 @@
+/* modern-normalize가 하지 않는 것만 둔다.
+   normalize는 box-sizing, body margin, 폼 요소 폰트 상속, 표·인용 정규화를 처리한다.
+   여기 있는 것들은 전부 normalize의 범위 밖이다. */
+
+/* normalize는 body의 margin만 지운다. 제목·문단의 여백은 각 모듈이 정한다. */
+* {
+  margin: 0;
+}
+
+/* list-style만 지우고 padding을 두면 UA 기본 좌측 패딩 40px이 그대로 남는다.
+   실제로 이 사이트의 리스트 6곳이 그 상태였다. 전역에서 죽이고 본문 마크다운의
+   불릿은 ArticleBody가 되살린다 — 반대로 하면 목록·칩·내비게이션마다 초기화를
+   반복하게 된다. */
+ul,
+ol {
+  padding: 0;
+  list-style: none;
+}
+
+/* inline 기본값이 남기는 디센더 공백을 없앤다. */
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+body {
+  min-height: 100dvh;
+  /* 콘텐츠가 짧아도 푸터를 뷰포트 하단에 붙인다. */
+  display: flex;
+  flex-direction: column;
+  background: var(--color-canvas);
+  color: var(--color-text);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-size: var(--font-body-size);
+  line-height: var(--lh-body);
+  /* CJK 친화: 어절 단위로 끊고 긴 영문·URL만 강제 개행. */
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  -webkit-font-smoothing: antialiased;
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+/* 제목 굵기를 한 곳에서 정한다. 개별 모듈이 선언을 빠뜨려도 UA 기본값에 휘둘리지 않는다.
+   balance는 제목이 마지막 줄에 한 단어만 남기고 끊기는 것을 막는다. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: var(--fw-title);
+  text-wrap: balance;
+  overflow-wrap: break-word;
+}
+
+/* 본문은 balance 대신 pretty — 줄 수를 맞추지 않고 고아 단어만 정리한다. */
+p,
+li {
+  text-wrap: pretty;
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+}
+
+::selection {
+  background: var(--color-accent);
+  color: var(--color-surface);
+}
+
+/* 링크의 밑줄을 지웠으므로 키보드 포커스 표시를 직접 준다.
+   outline은 요소의 border-radius를 따라가므로 카드·알약에도 그대로 맞는다. */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}

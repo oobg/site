@@ -1,13 +1,2 @@
-/* 섹션 레이블. 대문자 mono로 벌려 쓰던 것을 자연어 한글 기준으로 바꿨다.
-   영문 대문자 eyebrow는 한글 내비게이션과 레지스터가 갈리고, 무엇보다
-   uppercase가 한글에는 아무 효과가 없어 규칙이 반만 작동했다.
-
-   색은 muted가 아니라 secondary다 — 레이블이 본문보다 흐리면 위계가 뒤집힌다.
-   포인트 색은 쓰지 않는다. 섹션마다 액센트가 반복되면 강조가 강조를 잃는다. */
-.eyebrow {
-  font-size: var(--fs-12);
-  font-weight: 600;
-  line-height: var(--lh-dense);
-  letter-spacing: var(--ls-eyebrow);
-  color: var(--color-text-secondary);
-}
+/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
+   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */

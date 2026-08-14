@@ -1,11 +1,2 @@
-.link {
-  color: var(--color-accent);
-  font-size: var(--fs-15);
-  transition: color var(--dur) var(--ease);
-}
-.link:hover {
-  color: var(--color-accent-hover);
-}
-.arrow {
-  margin-left: var(--space-1);
-}
+/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
+   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */

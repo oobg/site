@@ -1,24 +1,2 @@
-/* 이 사이트에서 링크는 액센트 텍스트로 두고, 상태를 바꾸는 동작만 테두리를 갖는다.
-   둘을 같은 모양으로 만들면 "누르면 무엇이 일어나는가"의 차이가 지워진다. */
-.button {
-  padding: var(--space-3) var(--space-5);
-  border: 1px solid var(--color-text);
-  border-radius: var(--radius-control);
-  background: none;
-  font-size: var(--fs-15);
-  cursor: pointer;
-  transition:
-    background-color var(--dur) var(--ease),
-    color var(--dur) var(--ease);
-}
-
-.button:hover {
-  background: var(--color-text);
-  color: var(--color-canvas);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .button {
-    transition: none;
-  }
-}
+/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
+   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
