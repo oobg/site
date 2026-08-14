@@ -1,2 +1,15 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+/* 읽기 화면. 본문 폭이 주인공이고 나머지는 그 폭에 맞춘다.
+   3열을 쓰던 구조를 버렸다 — 컨테이너가 1080px이라 3열로 나누면 읽기 열이
+   600px대로 눌리고, 그건 읽기 화면이 가장 먼저 지켜야 할 값이다. */
+.page {
+  position: relative;
+  padding-block: var(--space-8) var(--space-9);
+}
+
+/* 목차 기둥의 기준면이다. */
+.main {
+  position: relative;
+  width: 100%;
+  max-width: var(--w-reading);
+  margin-inline: auto;
+}

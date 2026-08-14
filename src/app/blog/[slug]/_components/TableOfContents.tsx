@@ -27,22 +27,26 @@ export function TableOfContents({ toc }: { toc: TocEntry[] }) {
   if (toc.length === 0) return null;
 
   return (
+    /* 바깥은 본문 높이만큼의 빈 기둥이고, 안쪽이 sticky로 따라온다.
+       viewport에 fixed로 붙이면 본문이 끝난 뒤에도 목차가 남는다. */
     <nav className={styles.toc} aria-label="목차">
-      <Eyebrow className={styles.label}>목차</Eyebrow>
-      <ul className={styles.list}>
-        {toc.map((entry) => (
-          <li key={entry.id}>
-            <a
-              href={`#${entry.id}`}
-              className={`${styles.item} ${entry.depth === 3 ? styles.depth3 : ''} ${
-                activeId === entry.id ? styles.active : ''
-              }`}
-            >
-              {entry.text}
-            </a>
-          </li>
-        ))}
-      </ul>
+      <div className={styles.inner}>
+        <Eyebrow className={styles.label}>목차</Eyebrow>
+        <ul className={styles.list}>
+          {toc.map((entry) => (
+            <li key={entry.id}>
+              <a
+                href={`#${entry.id}`}
+                className={`${styles.item} ${entry.depth === 3 ? styles.depth3 : ''} ${
+                  activeId === entry.id ? styles.active : ''
+                }`}
+              >
+                {entry.text}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </nav>
   );
 }

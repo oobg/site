@@ -1,2 +1,72 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+/* 본문을 다 읽은 뒤 다음 글로 넘어가는 경계라 위를 크게 끊는다. */
+.nav {
+  width: 100%;
+  max-width: var(--w-reading);
+  margin-inline: auto;
+  margin-top: var(--section-gap);
+}
+
+.top {
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.index {
+  font-size: var(--fs-14);
+  color: var(--color-text-muted);
+  transition: color var(--dur) linear;
+}
+
+.index:hover {
+  color: var(--color-accent);
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+}
+
+@media (max-width: 640px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 카드라 부르지만 면은 없다. 방향이 다른 두 링크를 좌우로 세우는 것이 전부다. */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: var(--space-8);
+}
+
+.next {
+  text-align: right;
+  align-items: flex-end;
+}
+
+.label {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  transition: color var(--dur) linear;
+}
+
+.cardTitle {
+  font-size: var(--fs-16);
+  letter-spacing: var(--ls-body);
+  line-height: var(--lh-lead);
+  color: var(--color-text-secondary);
+  transition: color var(--dur) linear;
+}
+
+.card:hover .label {
+  color: var(--color-accent);
+}
+
+.card:hover .cardTitle {
+  color: var(--color-text);
+}

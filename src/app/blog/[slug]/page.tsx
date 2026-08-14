@@ -48,20 +48,19 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const related = getRelatedPosts(post, all, 3);
 
   return (
+    // 읽기 화면은 본문 폭을 온전히 쓴다. 목차는 흐름에서 빼 컨테이너 밖 여백에 띄우고,
+    // 사이드바에 있던 태그·공유·관련 글은 본문 끝으로 내렸다 — 읽는 중에 옆에서 부를
+    // 이유가 없고, 다 읽은 뒤가 그것들이 필요한 순간이다.
     <div className={styles.page}>
-      <div className={styles.layout}>
-        <div className={styles.tocCol}>
-          <TableOfContents toc={toc} />
-        </div>
-        <article className={styles.main}>
-          <ArticleHeader post={post} readingMin={readingMin} />
-          <ArticleBody html={html} />
-          <PostNav prev={prev} next={next} />
-        </article>
-        <div className={styles.asideCol}>
-          <ArticleAside post={post} related={related} readingMin={readingMin} />
-        </div>
-      </div>
+      <article className={styles.main}>
+        {/* 목차는 <article> 안에 둔다. 바깥 기둥의 높이가 본문에 묶여야 본문이 끝날 때
+            목차도 함께 멈춘다 — 페이지 전체에 걸면 사이드·내비 구간까지 따라온다. */}
+        <TableOfContents toc={toc} />
+        <ArticleHeader post={post} readingMin={readingMin} />
+        <ArticleBody html={html} />
+      </article>
+      <ArticleAside post={post} related={related} readingMin={readingMin} />
+      <PostNav prev={prev} next={next} />
     </div>
   );
 }

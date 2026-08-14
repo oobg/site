@@ -1,2 +1,43 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+/* 본문을 다 읽은 뒤의 경계라 크게 끊는다. 항목이 하나뿐일 수 있어
+   격자가 아니라 양끝 정렬로 둔다 — 빈 칸이 생기지 않는다. */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-top: var(--section-gap);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-border);
+  font-size: var(--fs-16);
+  letter-spacing: var(--ls-body);
+}
+
+.nav a {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  transition: color var(--dur) linear;
+}
+
+.nav a:hover {
+  color: var(--color-text);
+}
+
+.next {
+  text-align: right;
+  align-items: flex-end;
+  margin-left: auto;
+}
+
+.label {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+  transition: color var(--dur) linear;
+}
+
+.nav a:hover .label {
+  color: var(--color-accent);
+}

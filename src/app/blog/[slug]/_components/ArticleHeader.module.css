@@ -1,2 +1,89 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+.header {
+  width: 100%;
+  max-width: var(--w-reading);
+  margin-inline: auto;
+  padding-bottom: var(--space-7);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.back {
+  display: inline-block;
+  margin-bottom: var(--space-6);
+  font-size: var(--fs-14);
+  color: var(--color-text-muted);
+  transition: color var(--dur) linear;
+}
+
+.back:hover {
+  color: var(--color-accent);
+}
+
+.eyebrow {
+  margin-bottom: var(--space-3);
+}
+
+.title {
+  font-size: clamp(2rem, 4.4vw, 2.5rem);
+  line-height: var(--lh-title);
+  letter-spacing: -0.036em;
+}
+
+.summary {
+  margin-top: var(--space-4);
+  font-size: var(--fs-18);
+  line-height: var(--lh-body);
+  color: var(--color-text-secondary);
+}
+
+.byline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-size: var(--fs-13);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bylineText {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-size: var(--fs-14);
+}
+
+.author {
+  color: var(--color-text);
+}
+
+.bylineMeta {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-13);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.cover {
+  width: 100%;
+  margin-top: var(--space-7);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+}
