@@ -8,20 +8,54 @@ import styles from './TableOfContents.module.css';
 export function TableOfContents({ toc }: { toc: TocEntry[] }) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
+  /**
+   * 지금 읽고 있는 제목을 위치로 직접 고른다.
+   *
+   * 전에는 IntersectionObserver로 상단 30% 밴드를 관찰했는데, 밴드를 건너뛰는
+   * 이동에서는 교차 상태가 false에서 false로 갈 뿐이라 콜백이 아예 오지 않았다.
+   * 목차 링크로 점프하거나 트랙패드로 크게 튕기면 표시가 죽는다. 관찰한 것 중
+   * 첫 번째를 쓰던 것도 문제였다 — entries 순서는 문서 순서가 아니라서 제목 둘이
+   * 동시에 걸리면 아래 것이 잡힐 수 있다.
+   *
+   * 기준선보다 위에 있는 제목 중 마지막 것이 지금 읽는 제목이다. 어디로 뛰든
+   * 그 순간의 위치만 보면 답이 나온다.
+   */
   useEffect(() => {
     if (toc.length === 0) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const visible = entries.filter((e) => e.isIntersecting);
-        if (visible.length > 0) setActiveId(visible[0].target.id);
-      },
-      { rootMargin: '0px 0px -70% 0px' },
-    );
-    for (const entry of toc) {
-      const el = document.getElementById(entry.id);
-      if (el) observer.observe(el);
-    }
-    return () => observer.disconnect();
+    const headings = toc
+      .map((entry) => document.getElementById(entry.id))
+      .filter((el): el is HTMLElement => el !== null);
+    if (headings.length === 0) return;
+
+    let raf = 0;
+    const compute = () => {
+      raf = 0;
+      const line = window.innerHeight * 0.3;
+      /* 첫 제목에 아직 닿지 않았으면 아무것도 표시하지 않는다 —
+         리드 문단을 읽는 중에 목차가 켜져 있으면 위치를 잘못 알린다. */
+      if (headings[0].getBoundingClientRect().top > line) {
+        setActiveId(null);
+        return;
+      }
+      let current = headings[0].id;
+      for (const el of headings) {
+        if (el.getBoundingClientRect().top > line) break;
+        current = el.id;
+      }
+      setActiveId(current);
+    };
+    const schedule = () => {
+      if (!raf) raf = requestAnimationFrame(compute);
+    };
+
+    schedule();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    return () => {
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+      cancelAnimationFrame(raf);
+    };
   }, [toc]);
 
   if (toc.length === 0) return null;
