@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { useIntro } from '@components/intro/IntroProvider';
 import { RavenMark } from '@components/brand/RavenMark';
@@ -11,8 +12,44 @@ import styles from './LandingHero.module.css';
    전에는 큰 글자가 추상적이고 작은 글자가 실제 내용을 말해 위계가 뒤집혀 있었다. */
 export function LandingHero() {
   const { revealed } = useIntro();
+  const heroRef = useRef<HTMLElement>(null);
+
+  /* 잔광은 마크의 광원이 배경으로 새어 나온 것이라 같은 포인터를 따라야 한다.
+     마크만 따라가고 잔광이 멈춰 있으면 광원이 둘로 갈라져 보인다. */
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+    if (!window.matchMedia('(pointer: fine)').matches) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    let raf = 0;
+    const onMove = (event: PointerEvent) => {
+      if (event.pointerType !== 'mouse' || raf) return;
+      const { clientX, clientY } = event;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const rect = hero.getBoundingClientRect();
+        hero.style.setProperty(
+          '--bloom-x',
+          `${(((clientX - rect.left) / rect.width) * 100).toFixed(1)}%`,
+        );
+        hero.style.setProperty(
+          '--bloom-y',
+          `${(((clientY - rect.top) / rect.height) * 100).toFixed(1)}%`,
+        );
+      });
+    };
+
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
   return (
     <motion.section
+      ref={heroRef}
       className={styles.hero}
       initial={{ opacity: 0, y: 12 }}
       animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}

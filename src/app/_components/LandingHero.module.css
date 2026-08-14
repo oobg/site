@@ -29,14 +29,24 @@
   inset: -24% 0 -40%;
   z-index: 0;
   pointer-events: none;
+  /* 초점은 포인터를 따라간다(--bloom-x/y). 기본값은 마크가 있는 쪽이라
+     포인터가 없는 기기에서도 구도가 성립한다. */
   background: radial-gradient(
-    24rem 30rem at 58% 38%,
+    24rem 30rem at var(--bloom-x, 58%) var(--bloom-y, 38%),
     rgb(var(--color-accent-rgb) / 0.17) 0%,
     rgb(var(--color-accent-deep-rgb) / 0.09) 40%,
     transparent 72%
   );
-  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
-  mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
+  /* 세로만 지우면 초점이 좌우 끝으로 갔을 때 빛이 90도로 잘린다.
+     가로 마스크를 겹쳐 어디로 움직이든 가장자리에서 꺼지게 한다. */
+  -webkit-mask-image:
+    linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%),
+    linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%),
+    linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
+  mask-composite: intersect;
 }
 
 .copy {
