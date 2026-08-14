@@ -1,3 +1,8 @@
+/* 프로젝트 상세도 읽기 화면이다. 글과 같은 폭·같은 본문 조판을 쓴다 —
+   화면 종류가 다르다고 읽는 규칙까지 달라지면 그게 곧 시스템 단절이다. */
 .article {
+  width: 100%;
   max-width: var(--w-reading);
+  margin-inline: auto;
+  padding-block: var(--space-8) var(--space-9);
 }

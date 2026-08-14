@@ -1,5 +1,5 @@
 import { Eyebrow } from '@components/ui/Eyebrow';
-import { body, connect, experience, focus, lead, now, stack } from '@constants/profile';
+import { body, connect, experience, exploring, focus, lead, now, stack } from '@constants/profile';
 import styles from './AboutContent.module.css';
 
 export function AboutContent() {
@@ -22,6 +22,17 @@ export function AboutContent() {
         </ul>
       </section>
 
+      <section className={styles.block} aria-labelledby="about-exploring">
+        <Eyebrow id="about-exploring">요즘 파고 있는 것</Eyebrow>
+        <ul className={styles.exploreList}>
+          {exploring.map((item) => (
+            <li key={item.title} className={styles.exploreItem}>
+              <h2 className={styles.focusTitle}>{item.title}</h2>
+              <p className={styles.body}>{item.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
       <section className={styles.block} aria-labelledby="about-experience">
         <Eyebrow id="about-experience">Experience</Eyebrow>
         <ul className={styles.expList}>

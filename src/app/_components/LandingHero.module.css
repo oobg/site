@@ -1,54 +1,117 @@
 .hero {
-  display: flex;
-  flex-direction: column;
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.82fr);
+  align-items: center;
   gap: var(--space-7);
-  /* 아래 여백을 위보다 크게 — 헤더에 붙여 시작하고 다음 섹션과는 벌린다. */
-  padding: var(--space-5) 0 var(--space-8);
+  min-height: 78vh;
+  padding-block: var(--space-8) var(--space-9);
+}
+
+@media (max-width: 820px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+    min-height: 0;
+    padding-block: var(--space-6) var(--space-8);
+  }
+}
+
+/* 마크의 글로우가 배경으로 새어 나온 것이라 히어로에 묶어 둔다. 페이지 전역에
+   깔면 콘텐츠 구간까지 따라와 근거 없는 얼룩이 된다. 경계에서 잘라내지 않고
+   마스크로 서서히 지운다 — 90도로 끊기면 빛이 아니라 오려낸 조각으로 보인다.
+
+   가로로는 히어로 폭을 넘지 않는다. 넘기면 실제로 가로 스크롤이 생기고, 그건
+   전역 overflow로 덮을 문제가 아니다. 대신 초점을 안쪽으로 당기고 반경을 줄여
+   좌우 가장자리에서 이미 투명해지게 잡았다 — 잘라내는 게 아니라 닿기 전에 꺼진다. */
+.bloom {
+  position: absolute;
+  inset: -24% 0 -40%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    24rem 30rem at 58% 38%,
+    rgb(var(--color-accent-rgb) / 0.17) 0%,
+    rgb(var(--color-accent-deep-rgb) / 0.09) 40%,
+    transparent 72%
+  );
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
 }
 
 .copy {
-  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+  letter-spacing: 0.14em;
+  color: var(--color-text-muted);
+}
+
+.eyebrow i {
+  width: 18px;
+  height: 1px;
+  background: var(--color-border-strong);
 }
 
 .title {
-  font-size: var(--fs-30);
-  line-height: var(--lh-display);
-  letter-spacing: var(--ls-display);
-  /* 11em은 한글·영문 섞인 제목이 2~3줄로 떨어지는 지점이다. */
-  max-width: 11em;
+  margin-top: var(--space-5);
+  font-size: clamp(2.5rem, 6.2vw, 4.75rem);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
 }
 
-/* 헌장이 accent를 interaction 전용으로 묶고 있었으나, 제목의 한 구절을 집는
-   용도는 예외로 열었다. 색을 새로 늘리는 게 아니라 있는 색의 쓰임을 넓힌 것이다.
-   섹션 레이블에는 쓰지 않는다 — 반복되면 강조가 강조를 잃는다. */
-.em {
-  color: var(--color-accent);
+/* 강조는 색이 아니라 광원이 지나간 자국이다. 마크와 같은 그라디언트를 쓴다. */
+.title em {
+  font-style: normal;
+  background: linear-gradient(
+    96deg,
+    var(--color-accent) 0%,
+    var(--lamp-1) 52%,
+    var(--color-accent-deep) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .subtitle {
-  margin-top: var(--space-4);
-  font-size: var(--fs-15);
-  line-height: var(--lh-dense);
-  letter-spacing: var(--ls-body);
-  color: var(--color-text-secondary);
-  max-width: 32em;
-}
-
-.cta {
+  max-width: 34ch;
   margin-top: var(--space-5);
+  font-size: var(--fs-16);
+  line-height: var(--lh-dense);
+  color: var(--color-text-secondary);
 }
 
-@media (min-width: 901px) {
-  .hero {
-    flex-direction: row;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: var(--space-8);
-  }
-  .title {
-    font-size: var(--fs-40);
-  }
-  .visual {
-    flex: none;
-  }
+.enter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-15);
+  transition:
+    border-color var(--dur) linear,
+    background var(--dur) linear;
+}
+
+.enter span {
+  transition: transform var(--dur) var(--ease);
+}
+
+.enter:hover {
+  border-color: var(--color-accent);
+  background: rgb(var(--color-accent-rgb) / 0.09);
+}
+
+.enter:hover span {
+  transform: translateX(var(--space-1));
 }

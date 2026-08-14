@@ -1,50 +1,59 @@
+/* 프로젝트는 목록에서 동급 여럿이 나란히 서므로 여기서는 면을 준다.
+   랜딩의 단건이 면을 안 쓰는 것과 반대인데, 카드는 '동급 묶음'일 때만 맞는 도구다. */
 .card {
   display: flex;
   flex-direction: column;
+  height: 100%;
+  overflow: hidden;
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  overflow: hidden;
   background: var(--color-surface);
-  color: inherit;
-  transition:
-    transform var(--dur) var(--ease),
-    border-color var(--dur) var(--ease);
+  transition: border-color var(--dur) linear;
 }
+
 .card:hover {
-  transform: translateY(2px);
-  border-color: var(--color-accent);
+  border-color: var(--color-border-strong);
 }
+
 .cover {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  display: block;
+  border-bottom: 1px solid var(--color-border);
 }
+
 .body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--space-2);
   padding: var(--space-5);
 }
+
 .title {
-  font-size: var(--fs-20);
-  line-height: var(--lh-tight);
+  font-size: var(--fs-18);
+  letter-spacing: var(--ls-body);
+  transition: color var(--dur) linear;
 }
+
+.card:hover .title {
+  color: var(--color-accent);
+}
+
 .summary {
-  margin-top: var(--space-2);
+  font-size: var(--fs-14);
+  line-height: var(--lh-lead);
   color: var(--color-text-secondary);
-  font-size: var(--fs-15);
 }
+
 .tags {
-  margin-top: var(--space-4);
   display: flex;
-  gap: var(--space-3);
-  font-size: var(--fs-13);
-  color: var(--color-text-muted);
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-3);
   font-family: var(--font-mono), monospace;
-}
-@media (prefers-reduced-motion: reduce) {
-  .card {
-    transition: none;
-  }
-  .card:hover {
-    transform: none;
-  }
+  font-size: var(--fs-12);
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
 }

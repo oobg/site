@@ -1,51 +1,69 @@
 .header {
-  padding-top: var(--space-9);
+  padding-bottom: var(--space-7);
   margin-bottom: var(--space-7);
-  max-width: var(--w-reading);
+  border-bottom: 1px solid var(--color-border);
 }
+
 .title {
-  font-size: var(--fs-40);
-  line-height: var(--lh-tight);
+  font-size: clamp(2rem, 4.4vw, 2.5rem);
+  line-height: var(--lh-title);
+  letter-spacing: -0.036em;
 }
+
+/* 메타는 표가 아니라 가로로 흐르는 항목들이다. 항목 수가 글마다 달라
+   격자로 세우면 빈 칸이 생긴다. */
 .meta {
-  margin-top: var(--space-5);
   display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  border-top: 1px solid var(--color-border);
-  padding-top: var(--space-5);
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-7);
+  margin-top: var(--space-6);
+  font-size: var(--fs-14);
 }
+
 .row {
-  display: grid;
-  grid-template-columns: 96px 1fr;
-  gap: var(--space-4);
-  font-size: var(--fs-15);
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
 }
+
 .label {
-  color: var(--color-text-muted);
-  font-size: var(--fs-13);
   font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
 }
+
+.row dd {
+  color: var(--color-text-secondary);
+}
+
 .stack {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
 }
+
 .chip {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
   padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
   font-size: var(--fs-13);
-  font-family: var(--font-mono), monospace;
+  color: var(--color-text-secondary);
 }
+
 .links {
   display: flex;
-  gap: var(--space-4);
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin-top: var(--space-5);
+  font-size: var(--fs-14);
 }
+
 .links a {
   color: var(--color-accent);
-  transition: color var(--dur) var(--ease);
+  transition: color var(--dur) linear;
 }
+
 .links a:hover {
   color: var(--color-accent-hover);
 }

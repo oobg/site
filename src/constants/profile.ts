@@ -18,6 +18,23 @@ export const body =
   '사용자 편의성과 제품의 안정성을 최우선으로, 더 나은 경험을 제공하는 데 집중합니다. ' +
   '개발은 혼자가 아니라 함께 만들어가는 과정이라 믿고, 다양한 피드백을 수용하며 팀워크를 중요하게 생각합니다.';
 
+/** 요즘 파고 있는 주제. 경력(experience)이 지나온 것이라면 이쪽은 향하는 것이다.
+    랜딩에 두던 것을 About으로 모았다 — 자기소개는 About이 정본이다. */
+export const exploring: { title: string; body: string }[] = [
+  {
+    title: 'Better Interfaces',
+    body: '복잡함을 숨기지 않고 오히려 명료하게 드러내는 인터페이스.',
+  },
+  {
+    title: 'AI & Systems',
+    body: '생성 도구를 넘어 사고의 파트너로서의 AI.',
+  },
+  {
+    title: 'Knowledge Infrastructure',
+    body: '코드만이 아니라 사고를 확장하는 시스템 만들기.',
+  },
+];
+
 export const focus: { title: string; body: string }[] = [
   {
     title: '사용자의 편의성',

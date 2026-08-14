@@ -1,34 +1,33 @@
+/* 로딩 자리표시. 좌→우 shimmer 스윕이라 진행 방향이 읽는 방향과 같다.
+   span이므로 display를 직접 준다. width/height/radius는 인라인 스타일로 들어온다. */
 .skeleton {
+  position: relative;
   display: block;
-  width: 100%;
-  height: 1em;
+  overflow: hidden;
   border-radius: var(--radius-sm);
-  /* base(border) → highlight(surface) → base 로 좌→우 스윕 */
-  background-color: var(--color-border);
-  background-image: linear-gradient(
-    90deg,
-    var(--color-border) 0%,
-    var(--color-surface) 50%,
-    var(--color-border) 100%
-  );
-  background-size: 200% 100%;
-  background-repeat: no-repeat;
-  background-position: 200% 0;
-  animation: skeleton-shimmer var(--dur-skeleton) ease-in-out infinite;
+  background: var(--color-border);
 }
 
-@keyframes skeleton-shimmer {
-  from {
-    background-position: 200% 0;
-  }
+/* 스윕은 background-position이 아니라 transform으로 움직인다. background-position은
+   매 프레임 리페인트를 부르고, transform은 합성 단계에서 끝난다. */
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7), transparent);
+  transform: translateX(-100%);
+  animation: sweep var(--dur-skeleton) var(--ease) infinite;
+}
+
+@keyframes sweep {
   to {
-    background-position: -200% 0;
+    transform: translateX(100%);
   }
 }
 
+/* 정지시키되 자리표시라는 사실은 남긴다 — 스윕만 끄고 면은 그대로 둔다. */
 @media (prefers-reduced-motion: reduce) {
-  .skeleton {
-    background-image: none;
-    animation: none;
+  .skeleton::after {
+    display: none;
   }
 }

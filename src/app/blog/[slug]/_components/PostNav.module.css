@@ -1,72 +1,72 @@
+/* 본문을 다 읽은 뒤 다음 글로 넘어가는 경계라 위를 크게 끊는다. */
 .nav {
+  width: 100%;
+  max-width: var(--w-reading);
+  margin-inline: auto;
   margin-top: var(--section-gap);
-  padding-top: var(--space-6);
-  border-top: 1px solid var(--color-border);
 }
+
 .top {
-  display: flex;
-  justify-content: center;
-  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
 }
+
 .index {
-  font-size: var(--fs-13);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-secondary);
-  transition: color var(--dur) var(--ease);
+  font-size: var(--fs-14);
+  color: var(--color-text-muted);
+  transition: color var(--dur) linear;
 }
+
 .index:hover {
   color: var(--color-accent);
 }
+
 .cards {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-4);
+  gap: var(--space-5);
+  margin-top: var(--space-5);
 }
+
+@media (max-width: 640px) {
+  .cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 카드라 부르지만 면은 없다. 방향이 다른 두 링크를 좌우로 세우는 것이 전부다. */
 .card {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  padding: var(--space-5);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  transition:
-    border-color var(--dur),
-    transform var(--dur);
+  min-height: var(--space-8);
 }
-.card:empty {
-  border-color: transparent;
-  background: transparent;
-}
-a.card:hover {
-  border-color: var(--color-accent);
-}
-a.card:active {
-  transform: translateY(1px);
-}
+
 .next {
-  align-items: flex-end;
   text-align: right;
+  align-items: flex-end;
 }
+
 .label {
-  font-size: var(--fs-13);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+  letter-spacing: 0.08em;
   color: var(--color-text-muted);
+  transition: color var(--dur) linear;
 }
+
 .cardTitle {
-  font-size: var(--fs-15);
-  line-height: 1.4;
-  color: var(--color-text);
+  font-size: var(--fs-16);
+  letter-spacing: var(--ls-body);
+  line-height: var(--lh-lead);
+  color: var(--color-text-secondary);
+  transition: color var(--dur) linear;
 }
-@media (max-width: 900px) {
-  .cards {
-    grid-template-columns: 1fr;
-  }
-  .card:empty {
-    display: none;
-  }
-  .next {
-    align-items: flex-start;
-    text-align: left;
-  }
+
+.card:hover .label {
+  color: var(--color-accent);
+}
+
+.card:hover .cardTitle {
+  color: var(--color-text);
 }

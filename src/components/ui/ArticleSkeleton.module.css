@@ -1,14 +1,19 @@
+/* 실제 본문과 같은 폭·리듬으로 자리를 잡아 로딩이 끝날 때 레이아웃이 뛰지 않게 한다. */
 .wrap {
+  width: 100%;
   max-width: var(--w-reading);
   margin-inline: auto;
-  padding-inline: var(--outer);
-  padding-top: var(--space-9);
+  padding-block: var(--space-8);
 }
+
 .meta {
   margin-top: var(--space-4);
 }
+
 .body {
-  margin-top: var(--space-8);
-  display: grid;
-  gap: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  /* 본문 행간(1.7)에서 줄 사이에 남는 만큼. 촘촘하면 문단이 아니라 표로 읽힌다. */
+  gap: var(--space-3);
+  margin-top: var(--space-7);
 }

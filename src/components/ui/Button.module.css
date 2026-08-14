@@ -1,24 +1,37 @@
-/* 이 사이트에서 링크는 액센트 텍스트로 두고, 상태를 바꾸는 동작만 테두리를 갖는다.
-   둘을 같은 모양으로 만들면 "누르면 무엇이 일어나는가"의 차이가 지워진다. */
+/* 알약(--radius-pill)은 헤더에만 쓴다. 컨트롤까지 동글게 만들면 강조가 반복되어
+   강조를 잃고, 화면 전체가 한 가지 모양으로 수렴한다. */
 .button {
-  padding: var(--space-3) var(--space-5);
-  border: 1px solid var(--color-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
-  background: none;
+  background: var(--color-surface);
+  color: var(--color-text);
   font-size: var(--fs-15);
+  font-weight: 600;
+  line-height: var(--lh-lead);
   cursor: pointer;
   transition:
-    background-color var(--dur) var(--ease),
+    background var(--dur) var(--ease),
+    border-color var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
 
+/* 상태마다 표현은 하나씩. hover는 배경, 정적 구분은 보더. 둘을 겹치면 상태가 뭉갠다. */
 .button:hover {
-  background: var(--color-text);
-  color: var(--color-canvas);
+  background: var(--color-canvas);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .button {
-    transition: none;
-  }
+.button:active {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  color: var(--color-text-muted);
+  background: var(--color-canvas);
 }

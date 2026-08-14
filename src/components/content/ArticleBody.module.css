@@ -1,54 +1,178 @@
+/* 본문. 마크다운이 만드는 요소를 전부 여기서 받는다.
+   base.css가 전역에서 리스트를 죽였으므로 읽기 화면에서 되살리는 것도 여기 일이다. */
 .prose {
-  max-width: var(--w-reading);
-  font-size: var(--font-body-size);
+  font-size: var(--fs-18);
   line-height: var(--lh-body);
-}
-.prose :global(h2) {
-  font-size: var(--fs-28);
-  line-height: var(--lh-tight);
-  margin-top: var(--space-8);
-  margin-bottom: var(--space-4);
-}
-.prose :global(h3) {
-  font-size: var(--fs-20);
-  margin-top: var(--space-6);
-  margin-bottom: var(--space-3);
-}
-.prose :global(p),
-.prose :global(ul),
-.prose :global(ol),
-.prose :global(blockquote) {
-  margin-block: var(--space-4);
-}
-.prose :global(ul),
-.prose :global(ol) {
-  padding-left: var(--space-5);
-}
-.prose :global(a) {
-  color: var(--color-accent);
-}
-.prose :global(blockquote) {
-  padding-left: var(--space-4);
-  border-left: 2px solid var(--color-border);
   color: var(--color-text-secondary);
 }
-.prose :global(pre) {
+
+/* 문단 사이는 행간이 아니라 문단 간격으로 끊는다. */
+.prose p {
   margin-block: var(--space-5);
-  padding: var(--space-4);
-  border-radius: var(--radius);
-  overflow-x: auto;
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose > :last-child {
+  margin-bottom: 0;
+}
+
+/* 제목은 본문보다 밝다. 위계가 크기만이 아니라 밝기로도 서야 스캔이 된다. */
+.prose h2,
+.prose h3,
+.prose h4 {
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-4);
+  color: var(--color-text);
+  letter-spacing: var(--ls-title);
+  line-height: var(--lh-title);
+  /* 목차 링크로 뛰었을 때 제목이 유리 헤더 밑에 숨지 않게 한다. */
+  scroll-margin-top: var(--space-9);
+}
+
+.prose h2 {
+  font-size: var(--fs-28);
+}
+
+.prose h3 {
+  font-size: var(--fs-20);
+}
+
+.prose h4 {
+  font-size: var(--fs-18);
+}
+
+.prose strong {
+  color: var(--color-text);
+}
+
+.prose a {
+  color: var(--color-accent);
+  border-bottom: 1px solid rgb(var(--color-accent-rgb) / 0.28);
+  transition: border-color var(--dur) linear;
+}
+
+.prose a:hover {
+  color: var(--color-accent-hover);
+  border-bottom-color: var(--color-accent-hover);
+}
+
+/* 전역에서 죽인 리스트를 여기서만 되살린다. 반대로 하면 목록·칩·내비게이션마다
+   초기화를 반복하게 된다. */
+.prose ul,
+.prose ol {
+  margin-block: var(--space-5);
+  padding-left: var(--space-5);
+}
+
+.prose ul {
+  list-style: disc;
+}
+
+.prose ol {
+  list-style: decimal;
+}
+
+.prose li {
+  margin-block: var(--space-2);
+  padding-left: var(--space-2);
+}
+
+.prose li::marker {
+  color: var(--color-text-muted);
+}
+
+.prose ul ul,
+.prose ol ol,
+.prose ul ol,
+.prose ol ul {
+  margin-block: var(--space-2);
+}
+
+/* 인용은 면을 깔지 않는다. 좌측 획 하나로 충분하고, 어두운 바탕에서 면을 더하면
+   본문 흐름이 거기서 끊긴다. */
+.prose blockquote {
+  margin-block: var(--space-6);
+  padding-left: var(--space-5);
+  border-left: 2px solid var(--color-accent-deep);
+  color: var(--color-text-muted);
+}
+
+.prose blockquote p {
+  margin-block: var(--space-3);
+}
+
+/* 코드. shiki가 인라인 색을 넣으므로 여기서는 면·보더·여백만 맡는다. */
+.prose :not(pre) > code {
+  padding: 0.15em 0.4em;
   border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: 0.9em;
+  color: var(--color-text);
+  word-break: break-all;
+}
+
+.prose pre {
+  margin-block: var(--space-6);
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-canvas-2);
+  /* 긴 줄은 페이지를 밀지 않고 블록 안에서만 넘긴다. */
+  overflow-x: auto;
+  font-size: var(--fs-14);
+  line-height: var(--lh-dense);
+  tab-size: 2;
+}
+
+.prose pre code {
+  display: block;
+  min-width: fit-content;
+}
+
+/* 표도 자기 안에서만 넘친다. */
+.prose table {
+  display: block;
+  width: 100%;
+  margin-block: var(--space-6);
+  overflow-x: auto;
+  border-collapse: collapse;
   font-size: var(--fs-15);
 }
-.prose :global(code) {
-  font-family: var(--font-mono), monospace;
+
+.prose th,
+.prose td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
 }
-.prose :global(img) {
+
+.prose th {
+  color: var(--color-text);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.prose img {
+  margin-block: var(--space-6);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius);
-  margin-block: var(--space-5);
 }
-.prose :global(hr) {
-  border: none;
-  border-top: 1px solid var(--color-border);
+
+.prose hr {
   margin-block: var(--space-8);
+  border: 0;
+  border-top: 1px solid var(--color-border);
+}
+
+/* 제목 앵커. rehype-slug가 id를 붙이고, 링크는 hover에서만 나타난다. */
+.prose h2 > a,
+.prose h3 > a,
+.prose h4 > a {
+  border-bottom: 0;
+  color: inherit;
 }

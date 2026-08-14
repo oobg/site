@@ -1,7 +1,6 @@
-import { ArrowLink } from '@components/ui/ArrowLink';
-import { Eyebrow } from '@components/ui/Eyebrow';
-import { ROUTES } from '@constants/routes';
+import Link from 'next/link';
 import { now } from '@constants/profile';
+import { ROUTES } from '@constants/routes';
 import styles from './Now.module.css';
 
 /* 랜딩에서 유일하게 고유명사가 들어가는 구간. 회사·제품 이름이 박혀 있어야
@@ -10,9 +9,13 @@ import styles from './Now.module.css';
 export function Now() {
   return (
     <section className={styles.section}>
-      <Eyebrow>지금</Eyebrow>
-      <p className={styles.body}>{now}</p>
-      <ArrowLink href={ROUTES.ABOUT}>More about me</ArrowLink>
+      <p className={styles.body}>
+        <span className={styles.inline}>지금</span>
+        {now}{' '}
+        <Link className={styles.link} href={ROUTES.ABOUT}>
+          더 자세히
+        </Link>
+      </p>
     </section>
   );
 }

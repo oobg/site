@@ -1,33 +1,29 @@
-/* 404·에러가 사이트 밖으로 튀어나온 화면처럼 보이지 않게 하는 공통 골격.
-   본문 화면들과 같은 컨테이너·토큰 위에서 조판된다. */
+/* 404·에러 화면. 실제로 도달하는 공개 화면이라 미검수 상태로 두면 안 된다.
+   빈 화면이 아니라 다음 행동이 있는 화면이어야 한다. */
 .screen {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 62vh;
+  padding-block: var(--space-8) var(--space-9);
   max-width: var(--w-reading);
-  padding-block: var(--space-10) var(--space-9);
 }
 
 .title {
-  margin-top: var(--space-5);
-  font-size: var(--fs-56);
-  line-height: var(--lh-tight);
-  letter-spacing: -0.02em;
+  margin-top: var(--space-3);
+  font-size: clamp(2rem, 4.4vw, 2.5rem);
+  line-height: var(--lh-title);
+  letter-spacing: -0.036em;
 }
 
 .description {
-  margin-top: var(--space-5);
-  font-size: var(--fs-20);
-  line-height: var(--lh-lead);
+  margin-top: var(--space-4);
+  font-size: var(--fs-16);
+  line-height: var(--lh-body);
   color: var(--color-text-secondary);
 }
 
 .action {
-  margin-top: var(--space-7);
-}
-
-@media (max-width: 900px) {
-  .screen {
-    padding-block: var(--space-8) var(--space-8);
-  }
-  .title {
-    font-size: var(--fs-40);
-  }
+  margin-top: var(--space-6);
 }

@@ -1,41 +1,15 @@
+/* 읽기 화면. 본문 폭이 주인공이고 나머지는 그 폭에 맞춘다.
+   3열을 쓰던 구조를 버렸다 — 컨테이너가 1080px이라 3열로 나누면 읽기 열이
+   600px대로 눌리고, 그건 읽기 화면이 가장 먼저 지켜야 할 값이다. */
 .page {
-  width: 100%;
-  max-width: var(--w-container);
-  margin-inline: auto;
-  padding-inline: var(--outer);
+  position: relative;
+  padding-block: var(--space-8) var(--space-9);
 }
-.layout {
-  display: grid;
-  grid-template-columns: 220px minmax(0, var(--w-reading)) 300px;
-  gap: var(--space-7);
-  justify-content: center;
-  align-items: start;
-}
-.tocCol,
-.asideCol {
-  padding-top: var(--space-9);
-}
+
+/* 목차 기둥의 기준면이다. */
 .main {
-  min-width: 0;
-}
-
-@media (max-width: 1180px) {
-  .layout {
-    grid-template-columns: minmax(0, var(--w-reading)) 300px;
-  }
-  .tocCol {
-    display: none;
-  }
-}
-
-@media (max-width: 900px) {
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .asideCol {
-    padding-top: var(--space-6);
-  }
-  .page {
-    padding-bottom: var(--space-9);
-  }
+  position: relative;
+  width: 100%;
+  max-width: var(--w-reading);
+  margin-inline: auto;
 }

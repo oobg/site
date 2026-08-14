@@ -1,23 +1,27 @@
+/* About은 읽는 화면이다. 글 상세와 같은 폭·같은 리듬을 쓴다. */
 .about {
+  width: 100%;
   max-width: var(--w-reading);
+  margin-inline: auto;
+  padding-block: var(--space-8) var(--space-9);
 }
 
 .title {
-  font-size: var(--fs-56);
-  line-height: var(--lh-tight);
-  letter-spacing: -0.02em;
+  font-size: clamp(2rem, 4.4vw, 2.5rem);
+  line-height: var(--lh-title);
+  letter-spacing: -0.036em;
 }
 
 .lead {
-  margin-top: var(--space-6);
+  margin-top: var(--space-5);
   font-size: var(--fs-20);
-  line-height: var(--lh-body);
+  line-height: var(--lh-lead);
   color: var(--color-text);
 }
 
 .body {
   margin-top: var(--space-4);
-  font-size: var(--fs-18);
+  font-size: var(--fs-16);
   line-height: var(--lh-body);
   color: var(--color-text-secondary);
 }
@@ -28,91 +32,131 @@
   border-top: 1px solid var(--color-border);
 }
 
-.block .body {
-  margin-top: var(--space-3);
-}
-
-/* Focus */
+/* 일하는 방식과 파고 있는 것은 성격이 달라 골격도 다르다.
+   앞은 문단이 긴 서술, 뒤는 짧은 항목이라 번호를 세운다. */
 .focusList {
-  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
   margin-top: var(--space-5);
-}
-.focusItem + .focusItem {
-  margin-top: var(--space-6);
-}
-.focusTitle {
-  font-size: var(--fs-20);
-  line-height: var(--lh-tight);
 }
 
-/* Experience */
-.expList {
-  list-style: none;
+.focusItem .body {
+  margin-top: var(--space-2);
+}
+
+.focusTitle {
+  font-size: var(--fs-18);
+  letter-spacing: var(--ls-body);
+}
+
+.exploreList {
+  counter-reset: explore;
+  display: flex;
+  flex-direction: column;
   margin-top: var(--space-5);
 }
-.expItem {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: var(--space-3);
-  row-gap: var(--space-1);
-  padding: var(--space-4) 0;
+
+.exploreItem {
+  display: grid;
+  grid-template-columns: var(--space-7) minmax(0, 1fr);
+  gap: var(--space-2) var(--space-3);
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.exploreItem:last-child {
   border-bottom: 1px solid var(--color-border);
 }
-.expCompany {
-  font-size: var(--fs-18);
-  font-weight: var(--fw-title);
+
+/* 번호는 실제 순서가 아니라 열거라 표지로만 쓰고 색을 낮춘다. */
+.exploreItem::before {
+  counter-increment: explore;
+  content: counter(explore, decimal-leading-zero);
+  grid-row: 1 / span 2;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+  padding-top: 4px;
 }
+
+.exploreItem .body {
+  margin-top: 0;
+}
+
+/* 경력은 시간이 축이라 표로 세운다 — 여기서는 격자가 맞는 도구다. */
+.expList {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-5);
+}
+
+.expItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-4);
+  align-items: baseline;
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.expItem:last-child {
+  border-bottom: 1px solid var(--color-border);
+}
+
+@media (max-width: 640px) {
+  .expItem {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.expCompany {
+  font-size: var(--fs-16);
+  color: var(--color-text);
+}
+
 .expRole {
-  font-size: var(--fs-15);
+  font-size: var(--fs-14);
   color: var(--color-text-secondary);
 }
+
 .expPeriod {
-  margin-left: auto;
   font-family: var(--font-mono), monospace;
   font-size: var(--fs-13);
+  font-variant-numeric: tabular-nums;
   color: var(--color-text-muted);
   white-space: nowrap;
 }
 
-/* Stack tags */
 .stack {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
   margin-top: var(--space-5);
-  list-style: none;
 }
+
 .tag {
   padding: var(--space-1) var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  font-family: var(--font-mono), monospace;
   font-size: var(--fs-13);
   color: var(--color-text-secondary);
 }
 
-/* Connect */
 .connect {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-5);
-  margin-top: var(--space-4);
-  list-style: none;
+  gap: var(--space-3) var(--space-6);
+  margin-top: var(--space-5);
+  font-size: var(--fs-16);
 }
 
 .link {
   color: var(--color-accent);
-  text-decoration: none;
-  border-bottom: 1px solid transparent;
-  transition: border-color var(--dur) var(--ease);
-}
-.link:hover {
-  border-bottom-color: var(--color-accent);
+  transition: color var(--dur) linear;
 }
 
-@media (max-width: 900px) {
-  .title {
-    font-size: var(--fs-40);
-  }
+.link:hover {
+  color: var(--color-accent-hover);
 }

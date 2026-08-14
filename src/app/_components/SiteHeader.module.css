@@ -1,26 +1,125 @@
-.header {
-  border-bottom: 1px solid var(--color-border);
+/* 헤더 위 1px 감시자. 높이가 --header-top과 같아서 두 가지 일을 한다 —
+   최상단에서 알약이 화면 끝에 붙지 않게 여백을 만들고, 이것이 헤더 밑으로
+   사라지는 순간이 곧 유리를 켜는 시점이다. 임의의 스크롤 임계값이 필요 없다. */
+.sentinel {
+  height: var(--header-top);
 }
-.nav {
+
+.header {
+  position: sticky;
+  top: var(--header-top);
+  z-index: 50;
+}
+
+/* 알약은 언제나 콘텐츠 폭이다. 전폭이 되는 상태는 없다. */
+.pill {
+  --sweep: 50%;
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-block: var(--space-5);
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-2) var(--space-3) var(--space-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  /* padding 전환은 레이아웃을 부르므로 원칙적으로는 피할 것이다. 여기서만 남기는
+     이유는 대안이 더 나쁘기 때문이다 — scaleY로 높이를 줄이면 알약의 둥근 테두리와
+     그 안의 글자가 함께 눌린다. 대상이 자식 둘뿐인 합성 레이어라 비용이 작고,
+     시간은 --dur-slow(240ms)로 규칙 안에 둔다. */
+  transition:
+    padding var(--dur-slow) var(--ease),
+    background var(--dur) linear,
+    border-color var(--dur) linear,
+    box-shadow var(--dur) linear,
+    -webkit-backdrop-filter var(--dur) linear,
+    backdrop-filter var(--dur) linear;
 }
+
+/* 유리는 스크롤한 뒤에만 켠다. 비칠 것이 없는 순간에 켜면 그건 유리가 아니라
+   그냥 알약이다. 어두운 바탕에서는 어두운 틴트에 밝은 림이 경계가 된다. */
+.header[data-stuck] .pill {
+  padding-block: var(--space-2);
+  background: var(--glass-tint);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  border-color: var(--glass-rim);
+  box-shadow: var(--glass-hi), var(--glass-shadow);
+}
+
+/* ::before = 베벨 림 + 프레넬. 유리는 가운데보다 가장자리가 밝다.
+   ::after  = 스페큘러. 포인터를 따라 움직이는 반사광 한 줄. */
+.pill::before,
+.pill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--dur) linear;
+}
+
+.pill::before {
+  box-shadow: var(--glass-rim-bevel);
+  background: radial-gradient(132% 108% at 50% 0%, transparent 52%, rgb(255 255 255 / 0.07) 100%);
+}
+
+.pill::after {
+  background: linear-gradient(
+    102deg,
+    transparent calc(var(--sweep) - 22%),
+    rgb(255 255 255 / 0.09) var(--sweep),
+    transparent calc(var(--sweep) + 22%)
+  );
+  transition:
+    opacity var(--dur) linear,
+    background 90ms linear;
+}
+
+.header[data-stuck] .pill::before,
+.header[data-stuck] .pill::after {
+  opacity: 1;
+}
+
+/* 축소는 font-size가 아니라 scale로 한다. font-size를 애니메이트하면 매 프레임
+   텍스트를 다시 조판하고 서브픽셀 단계마다 글자가 떤다. scale은 합성만으로 끝나고,
+   레이아웃 박스가 그대로라 옆의 링크 묶음도 밀리지 않는다.
+   16px → 15px에 해당하는 배율이 0.9375다. */
 .wordmark {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--fs-15);
-  transition: color var(--dur) var(--ease);
+  font-size: var(--fs-16);
+  font-weight: 600;
+  letter-spacing: var(--ls-body);
+  white-space: nowrap;
+  transform-origin: left center;
+  transition:
+    transform var(--dur-slow) var(--ease),
+    color var(--dur) var(--ease);
 }
+.header[data-stuck] .wordmark {
+  transform: scale(0.9375);
+}
+
 .links {
   display: flex;
-  gap: var(--space-5);
-  font-size: var(--fs-15);
+  align-items: center;
+  gap: var(--space-1);
 }
 .links a {
-  transition: color var(--dur) var(--ease);
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-15);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  transition:
+    background var(--dur) linear,
+    color var(--dur) linear;
 }
-.wordmark:hover,
 .links a:hover {
+  color: var(--color-text);
+  background: rgb(255 255 255 / 0.06);
+}
+
+.wordmark:hover {
   color: var(--color-accent);
 }

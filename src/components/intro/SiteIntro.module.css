@@ -1,6 +1,6 @@
-/* src/components/intro/SiteIntro.module.css */
-
-/* 기본은 숨김 — no-JS(속성 미설정) 시 콘텐츠를 가리지 않는다. */
+/* 기본은 숨김 — no-JS(속성 미설정) 시 콘텐츠를 가리지 않는다.
+   이 한 줄이 빠지면 오버레이가 모든 페이지 최상단에 'raven.krraven.kr'로 눌러앉는다.
+   숨김이 기본값이라는 것이 이 파일의 핵심이다. */
 .overlay {
   display: none;
   position: fixed;
@@ -41,14 +41,15 @@
   will-change: transform;
 }
 
-/* 채워지기 전 '빈' 글자 — 옅은 톤.
+/* 채워지기 전 '빈' 글자. 어두운 바탕에서는 잉크가 밝은 쪽으로 차오르므로
+   ghost는 캔버스보다 조금 밝은 값이다.
    본문용 --color-text-muted를 빌려 쓰면 그 색이 가독성 기준으로 조정될 때
    인트로의 잉크 대비가 같이 무너진다. 그래서 전용 토큰을 둔다. */
 .base {
   color: var(--color-ink-ghost);
 }
 
-/* 잉크 채움 — base 위에 정확히 겹쳐 놓고 clip-path로 좌→우 노출(Motion loading-fill-text 방식) */
+/* 잉크 채움 — base 위에 정확히 겹쳐 놓고 clip-path로 좌→우 노출 */
 .fill {
   position: absolute;
   inset: 0;

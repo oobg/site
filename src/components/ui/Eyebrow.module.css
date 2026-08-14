@@ -1,13 +1,10 @@
-/* 섹션 레이블. 대문자 mono로 벌려 쓰던 것을 자연어 한글 기준으로 바꿨다.
-   영문 대문자 eyebrow는 한글 내비게이션과 레지스터가 갈리고, 무엇보다
-   uppercase가 한글에는 아무 효과가 없어 규칙이 반만 작동했다.
-
-   색은 muted가 아니라 secondary다 — 레이블이 본문보다 흐리면 위계가 뒤집힌다.
-   포인트 색은 쓰지 않는다. 섹션마다 액센트가 반복되면 강조가 강조를 잃는다. */
+/* 섹션 레이블. 자연어 한글로 쓴다 — 영문 대문자 mono를 쓰던 시절엔 uppercase가
+   한글에 아무 효과가 없어 규칙이 반만 작동했고, 한글 내비게이션과 레지스터도 갈렸다.
+   간격은 여기서 정하지 않는다. 호출부가 className으로 준다. */
 .eyebrow {
   font-size: var(--fs-12);
   font-weight: 600;
-  line-height: var(--lh-dense);
   letter-spacing: var(--ls-eyebrow);
+  line-height: var(--lh-lead);
   color: var(--color-text-secondary);
 }

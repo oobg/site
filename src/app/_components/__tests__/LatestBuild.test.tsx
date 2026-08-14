@@ -31,9 +31,11 @@ describe('LatestBuild', () => {
     expect(container.querySelector('img')).toBeNull();
   });
 
-  it('cover_image_url이 있으면 해당 커버를 렌더한다', () => {
+  /* 커버가 있어도 쓰지 않는다. 커버 유무로 레이아웃이 무너지던 구조를 없애면서
+     이 구간은 조판만으로 서게 했다. 이미지가 새어 들어오면 그 결정이 깨진다. */
+  it('cover_image_url이 있어도 이미지를 렌더하지 않는다', () => {
     const withCover = { ...project, cover_image_url: 'https://cdn.raven.kr/b.png' };
     const { container } = render(<LatestBuild project={withCover} />);
-    expect(container.querySelector('img')).toHaveAttribute('src', 'https://cdn.raven.kr/b.png');
+    expect(container.querySelector('img')).toBeNull();
   });
 });
