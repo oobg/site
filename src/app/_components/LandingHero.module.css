@@ -26,7 +26,7 @@
    좌우 가장자리에서 이미 투명해지게 잡았다 — 잘라내는 게 아니라 닿기 전에 꺼진다. */
 .bloom {
   position: absolute;
-  inset: -24% 0 -40%;
+  inset: -24% -30% -40%;
   z-index: 0;
   pointer-events: none;
   /* 초점은 포인터를 따라간다(--bloom-x/y). 기본값은 마크가 있는 쪽이라
@@ -37,16 +37,11 @@
     rgb(var(--color-accent-deep-rgb) / 0.09) 40%,
     transparent 72%
   );
-  /* 세로만 지우면 초점이 좌우 끝으로 갔을 때 빛이 90도로 잘린다.
-     가로 마스크를 겹쳐 어디로 움직이든 가장자리에서 꺼지게 한다. */
-  -webkit-mask-image:
-    linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%),
-    linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
-  -webkit-mask-composite: source-in;
-  mask-image:
-    linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%),
-    linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
-  mask-composite: intersect;
+  /* 가로 마스크는 두지 않는다. 빛이 컨테이너 좌우 여백을 넘어 흐르는 것이 이 효과의
+     핵심인데, 마스크를 걸면 그 자리가 벽이 되어 잘린 것처럼 보인다.
+     대신 잔광 상자를 좌우로 넉넉히 넘기고, 잘라내는 일은 main이 뷰포트 밖에서 한다. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
   /* 포인터가 히어로를 벗어나면 꺼진다. 위치가 아니라 밝기로 끄는 이유는
      빛이 화면 밖으로 도망가는 게 아니라 잦아드는 것으로 읽혀야 하기 때문이다.
      opacity라 합성 단계에서 끝나 비용도 없다. */

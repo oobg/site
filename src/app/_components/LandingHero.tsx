@@ -13,12 +13,14 @@ import styles from './LandingHero.module.css';
 export function LandingHero() {
   const { revealed } = useIntro();
   const heroRef = useRef<HTMLElement>(null);
+  const bloomRef = useRef<HTMLSpanElement>(null);
 
   /* 잔광은 마크의 광원이 배경으로 새어 나온 것이라 같은 포인터를 따라야 한다.
      마크만 따라가고 잔광이 멈춰 있으면 광원이 둘로 갈라져 보인다. */
   useEffect(() => {
     const hero = heroRef.current;
-    if (!hero) return;
+    const bloom = bloomRef.current;
+    if (!hero || !bloom) return;
     if (!window.matchMedia('(pointer: fine)').matches) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
@@ -40,14 +42,23 @@ export function LandingHero() {
 
     const onMove = (event: PointerEvent) => {
       if (event.pointerType !== 'mouse') return;
-      const rect = hero.getBoundingClientRect();
-      const x = (event.clientX - rect.left) / rect.width;
-      const y = (event.clientY - rect.top) / rect.height;
-      /* 히어로를 벗어나면 빛을 끈다. 켜고 끄는 것은 opacity라 합성 단계에서 끝나고,
-         위치는 계속 따라가므로 다시 들어왔을 때 엉뚱한 데서 켜지지 않는다. */
-      hero.dataset.lit = x >= 0 && x <= 1 && y >= 0 && y <= 1 ? 'on' : 'off';
-      target.x = Math.max(-0.2, Math.min(1.2, x));
-      target.y = Math.max(-0.2, Math.min(1.2, y));
+      /* 비율은 잔광 상자 기준으로 잰다. --bloom-x가 그 상자의 퍼센트로 해석되기
+         때문이다. 히어로 기준으로 재면 상자가 더 커서 좌표가 어긋나고, 가장자리로
+         갈수록 오차가 커져 빛이 화면 밖으로 날아간다. */
+      const box = bloom.getBoundingClientRect();
+      const x = (event.clientX - box.left) / box.width;
+      const y = (event.clientY - box.top) / box.height;
+      const heroRect = hero.getBoundingClientRect();
+      const heroY = (event.clientY - heroRect.top) / heroRect.height;
+      /* 켜고 끄는 판정은 세로로만 한다. 히어로 상자는 컨테이너 여백 안쪽이라
+         가로까지 보면 포인터가 좌우 여백에 들어서는 순간 빛이 꺼진다 — 화면상
+         그 자리도 히어로의 일부인데 벽이 생긴 것처럼 보인다.
+         스크롤로 히어로를 지나갈 때만 잦아들면 된다. */
+      hero.dataset.lit = heroY >= -0.12 && heroY <= 1.12 ? 'on' : 'off';
+      /* 컨테이너 여백 밖까지 따라간다. 여기서 좁게 묶으면 빛이 여백 경계에서
+         멈춰 벽에 부딪힌 것처럼 보인다. */
+      target.x = Math.max(-0.1, Math.min(1.1, x));
+      target.y = Math.max(-0.1, Math.min(1.1, y));
       if (!raf) raf = requestAnimationFrame(tick);
     };
 
@@ -73,7 +84,7 @@ export function LandingHero() {
       animate={revealed ? { opacity: 1, y: 0 } : { opacity: 0, y: 12 }}
       transition={{ duration: 0.2 }}
     >
-      <span className={styles.bloom} aria-hidden />
+      <span className={styles.bloom} ref={bloomRef} aria-hidden />
       <div className={styles.copy}>
         <p className={styles.eyebrow}>
           <i aria-hidden />
