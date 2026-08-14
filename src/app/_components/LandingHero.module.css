@@ -47,6 +47,19 @@
     linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%),
     linear-gradient(to right, transparent 0%, #000 14%, #000 86%, transparent 100%);
   mask-composite: intersect;
+  /* 포인터가 히어로를 벗어나면 꺼진다. 위치가 아니라 밝기로 끄는 이유는
+     빛이 화면 밖으로 도망가는 게 아니라 잦아드는 것으로 읽혀야 하기 때문이다.
+     opacity라 합성 단계에서 끝나 비용도 없다. */
+  opacity: 0.55;
+  transition: opacity 520ms linear;
+}
+
+.hero[data-lit='on'] .bloom {
+  opacity: 1;
+}
+
+.hero[data-lit='off'] .bloom {
+  opacity: 0;
 }
 
 .copy {

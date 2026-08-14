@@ -49,8 +49,20 @@ export function RavenMark() {
     };
 
     let lastPointer = 0;
+    /* 히어로를 벗어나면 손을 따라가지 않는다. 배경 잔광은 그 지점에서 꺼지는데
+       마크만 계속 따라가면 빛이 둘로 갈라져 보인다. 대신 유휴로 돌아가 혼자 떠다닌다. */
+    const scope = root.closest('section') ?? root;
+
     const onMove = (event: PointerEvent) => {
       if (event.pointerType !== 'mouse') return;
+      const bounds = scope.getBoundingClientRect();
+      const inside =
+        event.clientX >= bounds.left &&
+        event.clientX <= bounds.right &&
+        event.clientY >= bounds.top &&
+        event.clientY <= bounds.bottom;
+      if (!inside) return;
+
       const rect = root.getBoundingClientRect();
       /* fx·fy가 cx·cy·r이 그리는 원 밖으로 나가면 브라우저가 가장자리로 잘라내
          빛이 멈춘 것처럼 보인다. 0~1로 묶어 항상 원 안에 두었다. */
