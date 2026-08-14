@@ -1,2 +1,162 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+/* About은 읽는 화면이다. 글 상세와 같은 폭·같은 리듬을 쓴다. */
+.about {
+  width: 100%;
+  max-width: var(--w-reading);
+  margin-inline: auto;
+  padding-block: var(--space-8) var(--space-9);
+}
+
+.title {
+  font-size: clamp(2rem, 4.4vw, 2.5rem);
+  line-height: var(--lh-title);
+  letter-spacing: -0.036em;
+}
+
+.lead {
+  margin-top: var(--space-5);
+  font-size: var(--fs-20);
+  line-height: var(--lh-lead);
+  color: var(--color-text);
+}
+
+.body {
+  margin-top: var(--space-4);
+  font-size: var(--fs-16);
+  line-height: var(--lh-body);
+  color: var(--color-text-secondary);
+}
+
+.block {
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+/* 일하는 방식과 파고 있는 것은 성격이 달라 골격도 다르다.
+   앞은 문단이 긴 서술, 뒤는 짧은 항목이라 번호를 세운다. */
+.focusList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  margin-top: var(--space-5);
+}
+
+.focusItem .body {
+  margin-top: var(--space-2);
+}
+
+.focusTitle {
+  font-size: var(--fs-18);
+  letter-spacing: var(--ls-body);
+}
+
+.exploreList {
+  counter-reset: explore;
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-5);
+}
+
+.exploreItem {
+  display: grid;
+  grid-template-columns: var(--space-7) minmax(0, 1fr);
+  gap: var(--space-2) var(--space-3);
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.exploreItem:last-child {
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 번호는 실제 순서가 아니라 열거라 표지로만 쓰고 색을 낮춘다. */
+.exploreItem::before {
+  counter-increment: explore;
+  content: counter(explore, decimal-leading-zero);
+  grid-row: 1 / span 2;
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+  padding-top: 4px;
+}
+
+.exploreItem .body {
+  margin-top: 0;
+}
+
+/* 경력은 시간이 축이라 표로 세운다 — 여기서는 격자가 맞는 도구다. */
+.expList {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-5);
+}
+
+.expItem {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: var(--space-2) var(--space-4);
+  align-items: baseline;
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.expItem:last-child {
+  border-bottom: 1px solid var(--color-border);
+}
+
+@media (max-width: 640px) {
+  .expItem {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.expCompany {
+  font-size: var(--fs-16);
+  color: var(--color-text);
+}
+
+.expRole {
+  font-size: var(--fs-14);
+  color: var(--color-text-secondary);
+}
+
+.expPeriod {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-13);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+}
+
+.tag {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-13);
+  color: var(--color-text-secondary);
+}
+
+.connect {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-6);
+  margin-top: var(--space-5);
+  font-size: var(--fs-16);
+}
+
+.link {
+  color: var(--color-accent);
+  transition: color var(--dur) linear;
+}
+
+.link:hover {
+  color: var(--color-accent-hover);
+}

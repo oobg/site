@@ -19,17 +19,21 @@
 
 /* 마크의 글로우가 배경으로 새어 나온 것이라 히어로에 묶어 둔다. 페이지 전역에
    깔면 콘텐츠 구간까지 따라와 근거 없는 얼룩이 된다. 경계에서 잘라내지 않고
-   마스크로 서서히 지운다 — 90도로 끊기면 빛이 아니라 오려낸 조각으로 보인다. */
+   마스크로 서서히 지운다 — 90도로 끊기면 빛이 아니라 오려낸 조각으로 보인다.
+
+   가로로는 히어로 폭을 넘지 않는다. 넘기면 실제로 가로 스크롤이 생기고, 그건
+   전역 overflow로 덮을 문제가 아니다. 대신 초점을 안쪽으로 당기고 반경을 줄여
+   좌우 가장자리에서 이미 투명해지게 잡았다 — 잘라내는 게 아니라 닿기 전에 꺼진다. */
 .bloom {
   position: absolute;
-  inset: -24% -30% -40%;
+  inset: -24% 0 -40%;
   z-index: 0;
   pointer-events: none;
   background: radial-gradient(
-    46rem 34rem at 68% 34%,
-    rgb(var(--color-accent-rgb) / 0.13) 0%,
-    rgb(var(--color-accent-deep-rgb) / 0.08) 38%,
-    transparent 68%
+    24rem 30rem at 58% 38%,
+    rgb(var(--color-accent-rgb) / 0.17) 0%,
+    rgb(var(--color-accent-deep-rgb) / 0.09) 40%,
+    transparent 72%
   );
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
   mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);

@@ -11,10 +11,13 @@
   overflow: visible;
 }
 
-/* 마크가 배경에 남기는 글로우. 장식이 아니라 같은 광원의 연장이다. */
+/* 마크가 배경에 남기는 글로우. 장식이 아니라 같은 광원의 연장이다.
+   가로로는 마크 폭을 넘지 않는다 — 좁은 화면에서 마크가 뷰포트를 거의 채우므로
+   옆으로 번지면 그만큼 그대로 가로 스크롤이 된다. 세로는 위아래로 여유가 있어
+   번져도 문제가 없다. */
 .halo {
   position: absolute;
-  inset: -18%;
+  inset: -18% 0;
   z-index: -1;
   pointer-events: none;
   background: radial-gradient(

@@ -1,2 +1,60 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+/* 목록의 한 행. 랜딩과 같은 언어를 쓰되, 여기는 목록이 주인공이라
+   요약과 태그를 다 보여준다. */
+.row {
+  position: relative;
+  padding: var(--space-5) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+/* hover는 광원이 그 행을 스치는 것이다 — 랜딩 목록과 같다. */
+.row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: var(--space-4);
+  bottom: var(--space-4);
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--color-accent), var(--color-accent-deep));
+  transform: scaleY(0);
+  transition: transform var(--dur) var(--ease);
+}
+
+.row:hover::before {
+  transform: scaleY(1);
+}
+
+.title {
+  font-size: var(--fs-20);
+  letter-spacing: var(--ls-title);
+  line-height: var(--lh-title);
+  transition: color var(--dur) linear;
+}
+
+.row:hover .title {
+  color: #fff;
+}
+
+.summary {
+  max-width: 62ch;
+  margin-top: var(--space-2);
+  font-size: var(--fs-15);
+  line-height: var(--lh-lead);
+  color: var(--color-text-muted);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-3);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-13);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.footer {
+  margin-top: var(--space-4);
+}

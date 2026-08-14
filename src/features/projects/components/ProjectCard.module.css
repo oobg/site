@@ -1,2 +1,59 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+/* 프로젝트는 목록에서 동급 여럿이 나란히 서므로 여기서는 면을 준다.
+   랜딩의 단건이 면을 안 쓰는 것과 반대인데, 카드는 '동급 묶음'일 때만 맞는 도구다. */
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  transition: border-color var(--dur) linear;
+}
+
+.card:hover {
+  border-color: var(--color-border-strong);
+}
+
+.cover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--space-2);
+  padding: var(--space-5);
+}
+
+.title {
+  font-size: var(--fs-18);
+  letter-spacing: var(--ls-body);
+  transition: color var(--dur) linear;
+}
+
+.card:hover .title {
+  color: var(--color-accent);
+}
+
+.summary {
+  font-size: var(--fs-14);
+  line-height: var(--lh-lead);
+  color: var(--color-text-secondary);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: auto;
+  padding-top: var(--space-3);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}

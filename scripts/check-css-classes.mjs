@@ -24,21 +24,33 @@ let skipped = 0;
 for (const file of tsxFiles) {
   const source = readFileSync(file, 'utf8');
 
-  // import styles from './X.module.css'  —  기본 import만 대상으로 한다.
-  const importMatch = source.match(
-    /import\s+(\w+)\s+from\s+['"](\.[^'"]*\.module\.css)['"]/,
-  );
-  if (!importMatch) continue;
+  /* 한 파일이 CSS 모듈을 여러 개 들여올 수 있다(로딩 화면이 그렇다).
+     첫 하나만 보면 나머지는 조용히 검사 밖으로 빠진다. */
+  const imports = [
+    ...source.matchAll(/import\s+(\w+)\s+from\s+['"]([^'"]*\.module\.css)['"]/g),
+  ];
+  if (imports.length === 0) continue;
 
-  const [, binding, relative] = importMatch;
-  const cssPath = resolve(dirname(file), relative);
+  /* 사용처를 찾기 전에 import 줄을 걷어낸다. 그러지 않으면 경로 문자열
+     './projects.module.css'가 projects.module 사용으로 잡힌다. */
+  const body = source.replace(/^\s*import[\s\S]*?from\s+['"][^'"]*['"];?\s*$/gm, '');
+
+  for (const [, binding, relative] of imports) {
+    checkOne(file, body, binding, relative);
+  }
+}
+
+function checkOne(file, source, binding, relative) {
+  const cssPath = relative.startsWith('.')
+    ? resolve(dirname(file), relative)
+    : resolve(SRC, relative.replace(/^@features\//, 'features/').replace(/^@components\//, 'components/'));
 
   let css;
   try {
     css = readFileSync(cssPath, 'utf8');
   } catch {
     findings.push({ file, message: `import한 ${relative}가 없다` });
-    continue;
+    return;
   }
 
   // 주석을 걷어내고 클래스 선택자만 모은다.
@@ -49,7 +61,7 @@ for (const file of tsxFiles) {
 
   if (defined.size === 0) {
     skipped += 1;
-    continue;
+    return;
   }
   checked += 1;
 

@@ -1,2 +1,29 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+/* 404·에러 화면. 실제로 도달하는 공개 화면이라 미검수 상태로 두면 안 된다.
+   빈 화면이 아니라 다음 행동이 있는 화면이어야 한다. */
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 62vh;
+  padding-block: var(--space-8) var(--space-9);
+  max-width: var(--w-reading);
+}
+
+.title {
+  margin-top: var(--space-3);
+  font-size: clamp(2rem, 4.4vw, 2.5rem);
+  line-height: var(--lh-title);
+  letter-spacing: -0.036em;
+}
+
+.description {
+  margin-top: var(--space-4);
+  font-size: var(--fs-16);
+  line-height: var(--lh-body);
+  color: var(--color-text-secondary);
+}
+
+.action {
+  margin-top: var(--space-6);
+}
