@@ -1,2 +1,45 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+/* 여백이 아니라 선으로 끊는 자리다. 세 구간이 다 같은 방식으로 나뉘면
+   그것도 균일성이 된다. */
+.section {
+  padding-block: var(--space-8) var(--space-9);
+  border-top: 1px solid var(--color-border);
+}
+
+.label {
+  margin-bottom: var(--space-5);
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: var(--ls-eyebrow);
+  color: var(--color-text-secondary);
+}
+
+.item {
+  display: block;
+}
+
+.title {
+  font-size: clamp(1.625rem, 3.4vw, 2.375rem);
+  letter-spacing: -0.036em;
+  line-height: var(--lh-tight);
+  transition: color var(--dur) linear;
+}
+
+.item:hover .title {
+  color: #fff;
+}
+
+.desc {
+  max-width: 52ch;
+  margin-top: var(--space-3);
+  font-size: var(--fs-16);
+  line-height: var(--lh-body);
+  color: var(--color-text-secondary);
+}
+
+.stack {
+  margin-top: var(--space-4);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}

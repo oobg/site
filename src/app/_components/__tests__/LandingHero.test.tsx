@@ -6,10 +6,13 @@ describe('LandingHero', () => {
   it('헤드라인과 보조문을 렌더한다', () => {
     render(<LandingHero />);
     expect(
-      screen.getByRole('heading', { name: 'Ideas deserve good interfaces.' }),
+      screen.getByRole('heading', { name: '서버부터 화면까지 혼자 만듭니다.' }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText('생각이 시스템이 되고, 시스템이 제품이 되는 과정을 기록합니다.'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('만들면서 남은 기록을 여기 둡니다.')).toBeInTheDocument();
+  });
+
+  it('브랜드 마크를 이미지 역할로 노출한다', () => {
+    render(<LandingHero />);
+    expect(screen.getByRole('img', { name: 'raven.kr 심볼' })).toBeInTheDocument();
   });
 });

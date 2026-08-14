@@ -1,2 +1,31 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+/* 레이블을 위에 얹지 않고 문장 첫머리에 붙인다. 앞의 두 구간과 읽는 방식 자체가
+   달라진다. 선도 쓰지 않고 여백으로만 끊는다. */
+.section {
+  padding-block: 0 var(--space-9);
+}
+
+.body {
+  max-width: 58ch;
+  font-size: var(--fs-18);
+  line-height: var(--lh-body);
+  color: var(--color-text-secondary);
+}
+
+.inline {
+  margin-right: var(--space-3);
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: var(--ls-eyebrow);
+  color: var(--color-text-muted);
+  vertical-align: 2px;
+}
+
+.link {
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border-strong);
+  transition: border-color var(--dur) linear;
+}
+
+.link:hover {
+  border-color: var(--color-accent);
+}

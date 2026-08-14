@@ -1,2 +1,176 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+.section {
+  padding-block: var(--space-9) var(--space-5);
+}
+
+.label {
+  margin-bottom: var(--space-4);
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: var(--ls-eyebrow);
+  color: var(--color-text-secondary);
+}
+
+/* 단축키는 있는데 안 보이면 없는 것과 같다. 조용히, 그러나 보이게 둔다. */
+.keys {
+  margin-left: var(--space-3);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-4);
+  align-items: baseline;
+  padding: var(--space-4) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+/* hover는 광원이 그 행을 스치는 것이다 — 히어로의 빛이 여기까지 이어진다.
+   배경을 칠하면 어두운 바탕이 탁해지고, 이 페이지는 빛으로 말한다. */
+.row::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    16rem 8rem at 50% 50%,
+    rgb(var(--color-accent-rgb) / 0.12) 0%,
+    rgb(var(--color-accent-deep-rgb) / 0.05) 42%,
+    transparent 72%
+  );
+  opacity: 0;
+  transition: opacity var(--dur) linear;
+}
+
+.row::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: var(--space-3);
+  bottom: var(--space-3);
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--color-accent), var(--color-accent-deep));
+  transform: scaleY(0);
+  transition:
+    transform var(--dur) var(--ease),
+    opacity var(--dur) linear;
+}
+
+.row:hover::after,
+.active::after {
+  opacity: 1;
+}
+
+.row:hover::before,
+.active::before {
+  transform: scaleY(1);
+  opacity: 1;
+}
+
+/* 읽은 글에는 빛이 한 번 지나간 자국이 남는다. */
+.row[data-read]::before {
+  transform: scaleY(1);
+  opacity: 0.28;
+}
+
+.row[data-read] .what {
+  color: var(--color-text-secondary);
+}
+
+/* 기본 outline은 끈다. 포커스 표시는 .active가 빛·레일·흰 제목으로 이미 하고 있어,
+   테두리까지 그리면 한 상태를 두 번 말하면서 조판이 튄다. */
+.row:focus,
+.row:focus-visible {
+  outline: none;
+}
+
+.row > * {
+  position: relative;
+  z-index: 1;
+}
+
+.when {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-13);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.what {
+  min-width: 0;
+  font-size: var(--fs-16);
+  letter-spacing: var(--ls-body);
+  line-height: var(--lh-lead);
+  transition: color var(--dur) linear;
+}
+
+/* 링크를 행 전체로 늘린다. 행이 빛나는데 제목 글자만 눌린다면 그건 가짜 인터랙션이다.
+   진짜 <a>를 넓히는 방식이라 가운데클릭·⌘클릭·우클릭이 그대로 산다. */
+.what::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  cursor: pointer;
+}
+
+.row:hover .what,
+.active .what {
+  color: #fff;
+}
+
+.len {
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-13);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+/* 요약은 API 스키마에 이미 있던 필드다. 제목만으로는 열지 말지 판단할 근거가 없다. */
+.sum {
+  grid-column: 2;
+  font-size: var(--fs-13);
+  line-height: var(--lh-lead);
+  color: var(--color-text-muted);
+  transition: color var(--dur) linear;
+}
+
+.row:hover .sum,
+.active .sum {
+  color: var(--color-text-secondary);
+}
+
+.more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  font-size: var(--fs-14);
+  color: var(--color-text-secondary);
+  transition: color var(--dur) linear;
+}
+
+.more span {
+  transition: transform var(--dur) var(--ease);
+}
+
+.more:hover {
+  color: var(--color-text);
+}
+
+.more:hover span {
+  transform: translateX(var(--space-1));
+}

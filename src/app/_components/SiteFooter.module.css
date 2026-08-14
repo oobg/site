@@ -1,7 +1,7 @@
 /* 사이트의 명제는 홈 히어로가 정본이다. 푸터는 "여기가 어디이고 어디로 갈 수 있나"만 맡는다.
    면을 깔지 않고 hairline 하나로 끊는다 — 푸터에 배경을 주면 페이지가 거기서 잘린다. */
 .footer {
-  margin-top: var(--space-9);
+  margin-top: var(--space-8);
   padding-block: var(--space-7) var(--space-6);
   border-top: 1px solid var(--color-border);
 }
@@ -53,13 +53,19 @@
   margin-bottom: var(--space-2);
 }
 
+/* 하단 줄은 편집기 하단의 상태줄에 가깝게 둔다 — 형태를 베끼는 게 아니라
+   정보 배치의 관습만 가져온다. */
 .bottom {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   gap: var(--space-3) var(--space-5);
   margin-top: var(--space-8);
-  font-size: var(--fs-13);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+  letter-spacing: 0.05em;
   color: var(--color-text-muted);
 }
 

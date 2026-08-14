@@ -36,16 +36,14 @@
 }
 
 /* 유리는 스크롤한 뒤에만 켠다. 비칠 것이 없는 순간에 켜면 그건 유리가 아니라
-   그냥 흰 알약이다. */
+   그냥 알약이다. 어두운 바탕에서는 어두운 틴트에 밝은 림이 경계가 된다. */
 .header[data-stuck] .pill {
   padding-block: var(--space-2);
-  background: rgb(255 255 255 / var(--glass-tint));
+  background: var(--glass-tint);
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-  border-color: var(--glass-edge);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.7),
-    var(--glass-shadow);
+  border-color: var(--glass-rim);
+  box-shadow: var(--glass-hi), var(--glass-shadow);
 }
 
 /* ::before = 베벨 림 + 프레넬. 유리는 가운데보다 가장자리가 밝다.
@@ -62,15 +60,15 @@
 }
 
 .pill::before {
-  box-shadow: var(--glass-rim);
-  background: radial-gradient(132% 108% at 50% 0%, transparent 50%, rgb(255 255 255 / 0.28) 100%);
+  box-shadow: var(--glass-rim-bevel);
+  background: radial-gradient(132% 108% at 50% 0%, transparent 52%, rgb(255 255 255 / 0.07) 100%);
 }
 
 .pill::after {
   background: linear-gradient(
     102deg,
     transparent calc(var(--sweep) - 22%),
-    rgb(255 255 255 / 0.5) var(--sweep),
+    rgb(255 255 255 / 0.09) var(--sweep),
     transparent calc(var(--sweep) + 22%)
   );
   transition:
@@ -119,7 +117,7 @@
 }
 .links a:hover {
   color: var(--color-text);
-  background: rgb(26 31 38 / 0.05);
+  background: rgb(255 255 255 / 0.06);
 }
 
 .wordmark:hover {

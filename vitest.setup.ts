@@ -21,3 +21,17 @@ class IntersectionObserverStub implements IntersectionObserver {
 }
 
 globalThis.IntersectionObserver = IntersectionObserverStub;
+
+/* jsdom은 matchMedia도 구현하지 않는다. RavenMark가 포인터 종류와 모션 축소 설정을
+   여기로 묻는다. 기본을 전부 false로 두면 테스트는 '포인터 없음 · 모션 허용' 환경이
+   되어, 커서를 따라가는 광원 로직이 붙지 않은 상태를 검사하게 된다. */
+window.matchMedia = (query: string): MediaQueryList => ({
+  media: query,
+  matches: false,
+  onchange: null,
+  addEventListener: () => {},
+  removeEventListener: () => {},
+  addListener: () => {},
+  removeListener: () => {},
+  dispatchEvent: () => false,
+});

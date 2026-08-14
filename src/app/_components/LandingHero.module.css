@@ -1,2 +1,113 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.82fr);
+  align-items: center;
+  gap: var(--space-7);
+  min-height: 78vh;
+  padding-block: var(--space-8) var(--space-9);
+}
+
+@media (max-width: 820px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
+    min-height: 0;
+    padding-block: var(--space-6) var(--space-8);
+  }
+}
+
+/* 마크의 글로우가 배경으로 새어 나온 것이라 히어로에 묶어 둔다. 페이지 전역에
+   깔면 콘텐츠 구간까지 따라와 근거 없는 얼룩이 된다. 경계에서 잘라내지 않고
+   마스크로 서서히 지운다 — 90도로 끊기면 빛이 아니라 오려낸 조각으로 보인다. */
+.bloom {
+  position: absolute;
+  inset: -24% -30% -40%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    46rem 34rem at 68% 34%,
+    rgb(var(--color-accent-rgb) / 0.13) 0%,
+    rgb(var(--color-accent-deep-rgb) / 0.08) 38%,
+    transparent 68%
+  );
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
+  mask-image: linear-gradient(to bottom, #000 0%, #000 52%, transparent 92%);
+}
+
+.copy {
+  position: relative;
+  z-index: 1;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+  letter-spacing: 0.14em;
+  color: var(--color-text-muted);
+}
+
+.eyebrow i {
+  width: 18px;
+  height: 1px;
+  background: var(--color-border-strong);
+}
+
+.title {
+  margin-top: var(--space-5);
+  font-size: clamp(2.5rem, 6.2vw, 4.75rem);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+}
+
+/* 강조는 색이 아니라 광원이 지나간 자국이다. 마크와 같은 그라디언트를 쓴다. */
+.title em {
+  font-style: normal;
+  background: linear-gradient(
+    96deg,
+    var(--color-accent) 0%,
+    var(--lamp-1) 52%,
+    var(--color-accent-deep) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.subtitle {
+  max-width: 34ch;
+  margin-top: var(--space-5);
+  font-size: var(--fs-16);
+  line-height: var(--lh-dense);
+  color: var(--color-text-secondary);
+}
+
+.enter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-6);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-15);
+  transition:
+    border-color var(--dur) linear,
+    background var(--dur) linear;
+}
+
+.enter span {
+  transition: transform var(--dur) var(--ease);
+}
+
+.enter:hover {
+  border-color: var(--color-accent);
+  background: rgb(var(--color-accent-rgb) / 0.09);
+}
+
+.enter:hover span {
+  transform: translateX(var(--space-1));
+}
