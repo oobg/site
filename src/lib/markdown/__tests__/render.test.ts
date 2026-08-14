@@ -17,7 +17,27 @@ describe('renderMarkdown', () => {
     const { html } = await renderMarkdown(md);
     expect(html).toContain('<pre');
     expect(html).toContain('shiki');
-    expect(html).toContain('github-light');
+  });
+
+  /* shiki는 pre에 배경색을 인라인으로 박아서 CSS로 덮을 수 없다. 테마를 바꿔도
+     코드블럭이 페이지와 같은 계조에 앉는지가 지켜야 할 것이고, 테마 이름은 아니다. */
+  it('코드블럭 배경을 페이지 토큰으로 넘긴다', async () => {
+    const { html } = await renderMarkdown('```ts\nconst x = 1;\n```');
+    expect(html).toContain('background-color:var(--color-canvas-2)');
+    expect(html).not.toContain('background-color:#fff');
+  });
+
+  it('코드블럭을 창틀로 감싸고 언어를 라벨로 남긴다', async () => {
+    const { html } = await renderMarkdown('```ts\nconst x = 1;\n```');
+    expect(html).toContain('<figure data-code');
+    expect(html).toContain('data-code-lang=""');
+    expect(html).toMatch(/data-code-lang=""[^>]*>ts</);
+  });
+
+  it('언어를 안 적은 코드펜스도 창틀은 붙이되 라벨은 비운다', async () => {
+    const { html } = await renderMarkdown('```\nplain\n```');
+    expect(html).toContain('<figure data-code');
+    expect(html).toMatch(/data-code-lang=""[^>]*><\/span>/);
   });
 
   it('h1/h4는 toc에 넣지 않는다', async () => {

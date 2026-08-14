@@ -1,8 +1,9 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { render, screen, waitFor, cleanup } from '@testing-library/react';
 import { TableOfContents } from '@/app/blog/[slug]/_components/TableOfContents';
+import type { TocEntry } from '@lib/markdown/toc.types';
 
-const TOC = [
+const TOC: TocEntry[] = [
   { id: '왜-헥사고날인가', text: '왜 헥사고날인가', depth: 2 },
   { id: '포트와-어댑터', text: '포트와 어댑터', depth: 3 },
 ];
