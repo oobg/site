@@ -1,2 +1,23 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+/* 이동을 알리는 링크. 상태를 바꾸는 동작은 Button이 맡는다. */
+.link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  font-size: var(--fs-15);
+  font-weight: 600;
+  color: var(--color-accent);
+  transition: color var(--dur) var(--ease);
+}
+
+.link:hover {
+  color: var(--color-accent-hover);
+}
+
+/* 화살표만 움직인다. 링크 전체가 밀리면 그 줄의 조판이 흔들린다. */
+.arrow {
+  transition: transform var(--dur) var(--ease);
+}
+
+.link:hover .arrow {
+  transform: translateX(var(--space-1));
+}

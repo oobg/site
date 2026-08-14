@@ -1,2 +1,70 @@
-/* 사이클 2~6에서 다시 쓴다. 지금은 import가 풀리도록 비워 둔다.
-   설계문: docs/superpowers/specs/2026-08-14-glass-header-foundation-design.md §3 */
+/* 사이트의 명제는 홈 히어로가 정본이다. 푸터는 "여기가 어디이고 어디로 갈 수 있나"만 맡는다.
+   면을 깔지 않고 hairline 하나로 끊는다 — 푸터에 배경을 주면 페이지가 거기서 잘린다. */
+.footer {
+  margin-top: var(--space-9);
+  padding-block: var(--space-7) var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-7) var(--space-8);
+}
+
+/* 진입 인트로가 이 글자를 헤더로 넘기는 안무와 짝을 맞춘다. */
+.wordmark {
+  font-size: var(--fs-20);
+  font-weight: var(--fw-title);
+  letter-spacing: var(--ls-title);
+}
+
+.tagline {
+  margin-top: var(--space-2);
+  font-size: var(--fs-15);
+  line-height: var(--lh-lead);
+  color: var(--color-text-muted);
+}
+
+.columns {
+  display: flex;
+  gap: var(--space-8);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: var(--space-2);
+  font-size: var(--fs-15);
+}
+
+.column a {
+  color: var(--color-text-secondary);
+  transition: color var(--dur) var(--ease);
+}
+
+.column a:hover {
+  color: var(--color-accent);
+}
+
+.colLabel {
+  margin-bottom: var(--space-2);
+}
+
+.bottom {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-5);
+  margin-top: var(--space-8);
+  font-size: var(--fs-13);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 560px) {
+  .columns {
+    gap: var(--space-7);
+  }
+}
