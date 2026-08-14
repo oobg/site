@@ -1,62 +1,74 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import styles from './RavenMark.module.css';
+
+/** viewBox 좌표계. 광원 좌표를 여기에 맞춰야 면 전체가 한 광원을 공유한다. */
+const VB_W = 320;
+const VB_H = 300;
+/** 포인터를 놓고 이만큼 지나면 빛이 다시 혼자 떠다닌다. */
+const IDLE_MS = 3000;
 
 /**
  * 브랜드 마크. 그림을 붙이지 않고 면으로 짓는다.
  *
- * 폴리곤 7개가 광원 하나를 공유하고, 면마다 각도가 달라 밝기가 따로 변한다.
- * 초점이 포인터를 따라가면 그림이 아니라 깎인 물체로 읽힌다.
+ * 폴리곤 일곱이 광원 하나를 공유하고, 초점이 포인터를 따라가면 면마다 각도가 달라
+ * 밝기가 따로 변한다. 그래서 그림이 아니라 깎인 물체로 읽힌다.
  *
- * 각 면은 로드할 때 서로 다른 방향에서 모인다 — 한 방향으로 몰면 조각이 아니라
- * 판 하나로 읽힌다.
- *
- * 좌표는 2026-02 브랜드 에셋(`public/assets/logo.png`, main-legacy1)을 옮긴 것이다.
- * 원본 벡터가 확보되면 이 path를 교체한다.
+ * 좌표는 2026-02 브랜드 에셋(main-legacy1의 public/assets/logo.png)을 옮긴 근사치다.
+ * 원본 벡터가 확보되면 polygon points를 교체한다.
  */
-export function RavenMark({ decorative = false }: { decorative?: boolean }) {
+export function RavenMark() {
   const rootRef = useRef<HTMLDivElement>(null);
   const lampRef = useRef<SVGRadialGradientElement>(null);
   const rafRef = useRef(0);
-  const target = useRef({ x: 0.3, y: 0.18 });
-  const at = useRef({ x: 0.3, y: 0.18 });
-
-  const push = useCallback(() => {
-    if (rafRef.current) return;
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = 0;
-      const lamp = lampRef.current;
-      if (!lamp) return;
-      at.current.x += (target.current.x - at.current.x) * 0.08;
-      at.current.y += (target.current.y - at.current.y) * 0.08;
-      lamp.setAttribute('fx', `${(at.current.x * 100).toFixed(1)}%`);
-      lamp.setAttribute('fy', `${(at.current.y * 100).toFixed(1)}%`);
-    });
-  }, []);
+  const target = useRef({ x: 0.32, y: 0.2 });
+  const at = useRef({ x: 0.32, y: 0.2 });
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!root) return;
+    const lamp = lampRef.current;
+    if (!root || !lamp) return;
     if (!window.matchMedia('(pointer: fine)').matches) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+    /* 목표에 닿을 때까지 프레임을 이어간다. 이벤트마다 한 프레임만 돌리면
+       포인터가 멈추는 순간 빛도 가는 길에 멈춰 서서 따라오지 않는 것처럼 보인다. */
+    const tick = () => {
+      const dx = target.current.x - at.current.x;
+      const dy = target.current.y - at.current.y;
+      at.current.x += dx * 0.12;
+      at.current.y += dy * 0.12;
+      lamp.setAttribute('fx', (at.current.x * VB_W).toFixed(1));
+      lamp.setAttribute('fy', (at.current.y * VB_H).toFixed(1));
+      rafRef.current =
+        Math.abs(dx) > 0.0015 || Math.abs(dy) > 0.0015 ? requestAnimationFrame(tick) : 0;
+    };
+    const kick = () => {
+      if (!rafRef.current) rafRef.current = requestAnimationFrame(tick);
+    };
+
+    let lastPointer = 0;
     const onMove = (event: PointerEvent) => {
       if (event.pointerType !== 'mouse') return;
       const rect = root.getBoundingClientRect();
-      target.current.x = Math.max(-0.4, Math.min(1.4, (event.clientX - rect.left) / rect.width));
-      target.current.y = Math.max(-0.4, Math.min(1.4, (event.clientY - rect.top) / rect.height));
-      push();
+      /* fx·fy가 cx·cy·r이 그리는 원 밖으로 나가면 브라우저가 가장자리로 잘라내
+         빛이 멈춘 것처럼 보인다. 0~1로 묶어 항상 원 안에 두었다. */
+      target.current.x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+      target.current.y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
+      lastPointer = performance.now();
+      kick();
     };
 
-    /* 포인터가 없을 때도 빛은 아주 느리게 떠다닌다. 완전히 멈추면 조명이 꺼진 것처럼
-       보이고, 재질이 아니라 그림이 된다. */
+    /* 포인터가 없을 때만 아주 느리게 떠다닌다. 손을 대고 있는 동안 끼어들면
+       방금 따라온 위치를 덮어써서 빛이 손을 뿌리치는 것처럼 보인다. */
     let phase = 0;
     const drift = window.setInterval(() => {
+      if (performance.now() - lastPointer < IDLE_MS) return;
       phase += 0.06;
-      target.current.x = 0.42 + Math.cos(phase) * 0.26;
-      target.current.y = 0.3 + Math.sin(phase * 0.8) * 0.2;
-      push();
+      target.current.x = 0.45 + Math.cos(phase) * 0.24;
+      target.current.y = 0.34 + Math.sin(phase * 0.8) * 0.18;
+      kick();
     }, 900);
 
     window.addEventListener('pointermove', onMove, { passive: true });
@@ -65,25 +77,39 @@ export function RavenMark({ decorative = false }: { decorative?: boolean }) {
       window.clearInterval(drift);
       cancelAnimationFrame(rafRef.current);
     };
-  }, [push]);
+  }, []);
 
   return (
     <div className={styles.mark} ref={rootRef}>
       <span className={styles.halo} aria-hidden />
-      <svg
-        viewBox="0 0 320 300"
-        role={decorative ? undefined : 'img'}
-        aria-label={decorative ? undefined : 'raven.kr 심볼'}
-        aria-hidden={decorative || undefined}
-      >
+      <svg viewBox={`0 0 ${VB_W} ${VB_H}`} role="img" aria-label="raven.kr 심볼">
         <defs>
-          <radialGradient id="raven-lamp" cx="50%" cy="50%" r="78%" ref={lampRef}>
+          {/* userSpaceOnUse가 핵심이다. 기본값(objectBoundingBox)이면 폴리곤마다
+              자기 바운딩박스에 그라디언트를 따로 매핑해, 광원이 하나가 아니라
+              면 수만큼 생긴다. 그러면 각도에 따라 다르게 받는다는 전제가 사라진다. */}
+          <radialGradient
+            id="raven-lamp"
+            ref={lampRef}
+            gradientUnits="userSpaceOnUse"
+            cx={VB_W / 2}
+            cy={VB_H / 2}
+            r={VB_W * 0.78}
+            fx={VB_W * 0.32}
+            fy={VB_H * 0.2}
+          >
             <stop offset="0%" className={styles.s1} />
             <stop offset="34%" className={styles.s2} />
             <stop offset="72%" className={styles.s3} />
             <stop offset="100%" className={styles.s4} />
           </radialGradient>
-          <linearGradient id="raven-edge" x1="0" y1="0" x2="1" y2="1">
+          <linearGradient
+            id="raven-edge"
+            gradientUnits="userSpaceOnUse"
+            x1="0"
+            y1="0"
+            x2={VB_W}
+            y2={VB_H}
+          >
             <stop offset="0%" className={styles.s1} stopOpacity="0.55" />
             <stop offset="100%" className={styles.s3} stopOpacity="0.1" />
           </linearGradient>
