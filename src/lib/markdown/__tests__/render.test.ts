@@ -34,6 +34,15 @@ describe('renderMarkdown', () => {
     expect(html).toMatch(/data-code-lang=""[^>]*>ts</);
   });
 
+  it('코드블럭마다 복사 버튼을 심는다', async () => {
+    const { html } = await renderMarkdown('```ts\nconst x = 1;\n```\n\n```\nplain\n```');
+    expect(html.match(/data-code-copy=""/g)).toHaveLength(2);
+    /* 상태 문구는 초점이 이미 버튼에 있을 때도 읽히도록 aria-live로 둔다.
+       aria-label만 바꾸면 바뀐 이름이 다시 읽히지 않는다. */
+    expect(html).toContain('aria-live="polite"');
+    expect(html).toContain('코드 복사');
+  });
+
   it('언어를 안 적은 코드펜스도 창틀은 붙이되 라벨은 비운다', async () => {
     const { html } = await renderMarkdown('```\nplain\n```');
     expect(html).toContain('<figure data-code');

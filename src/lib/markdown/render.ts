@@ -52,6 +52,57 @@ function collectCodeLangs(langs: string[]) {
   };
 }
 
+/** 아이콘 두 개를 함께 심고 상태에 따라 CSS가 하나만 보인다 — 누른 뒤 아이콘을
+    바꾸려고 자바스크립트로 DOM을 새로 만들 이유가 없다. */
+function icon(kind: 'idle' | 'done'): Element {
+  const path =
+    kind === 'idle'
+      ? 'M9 9V6.5A1.5 1.5 0 0 1 10.5 5h7A1.5 1.5 0 0 1 19 6.5v7a1.5 1.5 0 0 1-1.5 1.5H15M6.5 9h7A1.5 1.5 0 0 1 15 10.5v7A1.5 1.5 0 0 1 13.5 19h-7A1.5 1.5 0 0 1 5 17.5v-7A1.5 1.5 0 0 1 6.5 9Z'
+      : 'M5 12.5 10 17.5 19 7.5';
+  return {
+    type: 'element',
+    tagName: 'svg',
+    properties: {
+      [kind === 'idle' ? 'data-copy-idle' : 'data-copy-done']: '',
+      viewBox: '0 0 24 24',
+      width: 16,
+      height: 16,
+      fill: 'none',
+      stroke: 'currentColor',
+      strokeWidth: 1.7,
+      strokeLinecap: 'round',
+      strokeLinejoin: 'round',
+      'aria-hidden': 'true',
+    },
+    children: [{ type: 'element', tagName: 'path', properties: { d: path }, children: [] }],
+  };
+}
+
+/**
+ * 복사 버튼. 마크업만 서버에서 심고 동작은 CodeCopy가 위임으로 붙인다.
+ * 본문이 raw HTML이라 여기에 React 컴포넌트를 넣을 수 없다.
+ *
+ * 상태 문구는 스크린리더용으로 따로 둔다. aria-label만 바꾸면 초점이 이미 버튼에
+ * 있을 때 바뀐 이름이 다시 읽히지 않는다.
+ */
+function copyButton(): Element {
+  return {
+    type: 'element',
+    tagName: 'button',
+    properties: { type: 'button', 'data-code-copy': '' },
+    children: [
+      icon('idle'),
+      icon('done'),
+      {
+        type: 'element',
+        tagName: 'span',
+        properties: { 'data-code-copy-status': '', 'aria-live': 'polite' },
+        children: [{ type: 'text', value: '코드 복사' }],
+      },
+    ],
+  };
+}
+
 /**
  * 코드블럭을 창틀로 감싼다.
  *
@@ -85,8 +136,16 @@ function frameCodeBlocks(langs: string[]) {
           {
             type: 'element',
             tagName: 'span',
-            properties: { 'data-code-lang': '' },
-            children: lang ? [{ type: 'text', value: lang }] : [],
+            properties: { 'data-code-right': '' },
+            children: [
+              {
+                type: 'element',
+                tagName: 'span',
+                properties: { 'data-code-lang': '' },
+                children: lang ? [{ type: 'text', value: lang }] : [],
+              },
+              copyButton(),
+            ],
           },
         ],
       };

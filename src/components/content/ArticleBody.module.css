@@ -155,11 +155,70 @@
   background: #28c840;
 }
 
+.prose figure[data-code] figcaption span[data-code-right] {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
 .prose figure[data-code] figcaption span[data-code-lang] {
   font-family: var(--font-mono), monospace;
   font-size: var(--fs-12);
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
+}
+
+.prose figure[data-code] button[data-code-copy] {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    color var(--dur) linear,
+    border-color var(--dur) linear;
+}
+
+.prose figure[data-code] button[data-code-copy]:hover {
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+/* 복사된 뒤에는 액센트로 한 번 알린다. 되돌아가는 것은 CodeCopy가 맡는다. */
+.prose figure[data-code] button[data-code-copy][data-copied] {
+  color: var(--color-accent);
+  border-color: transparent;
+}
+
+/* 아이콘 둘을 같은 자리에 겹쳐 두고 상태에 따라 하나만 보인다.
+   자리를 나눠 쓰면 상태가 바뀔 때 버튼 폭이 흔들린다. */
+.prose figure[data-code] button[data-code-copy] svg {
+  grid-area: 1 / 1;
+}
+
+.prose figure[data-code] button[data-code-copy] svg[data-copy-done],
+.prose figure[data-code] button[data-code-copy][data-copied] svg[data-copy-idle] {
+  display: none;
+}
+
+.prose figure[data-code] button[data-code-copy][data-copied] svg[data-copy-done] {
+  display: block;
+}
+
+/* 상태 문구는 스크린리더만 읽는다. 눈으로는 아이콘이 이미 말하고 있다. */
+.prose figure[data-code] span[data-code-copy-status] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .prose pre {
