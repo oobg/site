@@ -104,11 +104,65 @@ function copyButton(): Element {
 }
 
 /**
+ * 콜아웃. GitHub 표기(`> [!NOTE]`)를 그대로 받는다.
+ *
+ * 없으면 인용문을 경고 용도로 전용하게 되고, 그러면 남의 말을 옮긴 것과 내가 주의를
+ * 주는 것이 같은 모양이 된다. 표기법을 새로 만들지 않는 이유는 원고가 Obsidian에서
+ * 오기 때문이다 — 거기서도 같은 문법이 콜아웃으로 보여야 한다.
+ *
+ * 라벨은 한글로 심어 화면에 남긴다. 아이콘만 두면 색을 구별 못 하는 사람에게 종류가
+ * 사라지고, 표기(`[!NOTE]`)를 그대로 노출하면 그건 원고 문법이 새어 나온 것이다.
+ */
+const CALLOUTS: Record<string, string> = {
+  NOTE: '참고',
+  TIP: '팁',
+  IMPORTANT: '중요',
+  WARNING: '주의',
+  CAUTION: '경고',
+};
+
+function calloutBlocks() {
+  return (tree: Root) => {
+    visit(tree, 'element', (node: Element) => {
+      if (node.tagName !== 'blockquote') return;
+
+      // 첫 문단의 첫 텍스트에서만 표기를 찾는다. 본문 중간의 [!NOTE]는 글자다.
+      const first = node.children.find(
+        (child): child is Element => child.type === 'element' && child.tagName === 'p',
+      );
+      const head = first?.children[0];
+      if (!head || head.type !== 'text') return;
+
+      const match = /^\[!([A-Z]+)\]\s*\n?/.exec(head.value);
+      const kind = match && CALLOUTS[match[1]] ? match[1] : null;
+      if (!match || !kind) return;
+
+      // 표기를 걷어낸다. 남은 것이 없으면 그 문단째 버린다(제목만 있는 콜아웃).
+      head.value = head.value.slice(match[0].length);
+      if (head.value === '' && first!.children.length === 1) {
+        node.children = node.children.filter((child) => child !== first);
+      }
+
+      node.properties = { ...node.properties, 'data-callout': kind.toLowerCase() };
+      node.children.unshift({
+        type: 'element',
+        tagName: 'p',
+        properties: { 'data-callout-label': '' },
+        children: [{ type: 'text', value: CALLOUTS[kind] }],
+      });
+    });
+  };
+}
+
+/**
  * 코드블럭을 창틀로 감싼다.
  *
- * 점 세 개는 관습이고, 정보를 나르는 것은 오른쪽 언어 라벨이다. 장식만 남기지
- * 않으려고 둘을 같은 줄에 둔다. 클래스가 아니라 data 속성을 쓰는 이유는 이 HTML이
- * CSS 모듈 밖에서 만들어져 클래스 이름이 해시되지 않기 때문이다.
+ * macOS 창 버튼을 흉내 낸 점 세 개를 두었다가 뺐다. 창틀이 해야 할 일은 언어 라벨과
+ * 복사 버튼이 이미 하고 있어서, 점에는 "코드처럼 보이게" 하는 것 말고 남는 역할이
+ * 없었다. 정보를 나르지 않는 관습은 관습이라는 이유만으로는 자리를 못 얻는다.
+ *
+ * 클래스가 아니라 data 속성을 쓰는 이유는 이 HTML이 CSS 모듈 밖에서 만들어져
+ * 클래스 이름이 해시되지 않기 때문이다.
  */
 function frameCodeBlocks(langs: string[]) {
   return (tree: Root) => {
@@ -125,28 +179,10 @@ function frameCodeBlocks(langs: string[]) {
           {
             type: 'element',
             tagName: 'span',
-            properties: { 'data-code-dots': '', 'aria-hidden': 'true' },
-            children: [1, 2, 3].map(() => ({
-              type: 'element' as const,
-              tagName: 'i',
-              properties: {},
-              children: [],
-            })),
+            properties: { 'data-code-lang': '' },
+            children: lang ? [{ type: 'text', value: lang }] : [],
           },
-          {
-            type: 'element',
-            tagName: 'span',
-            properties: { 'data-code-right': '' },
-            children: [
-              {
-                type: 'element',
-                tagName: 'span',
-                properties: { 'data-code-lang': '' },
-                children: lang ? [{ type: 'text', value: lang }] : [],
-              },
-              copyButton(),
-            ],
-          },
+          copyButton(),
         ],
       };
       parent.children[index] = {
@@ -170,6 +206,7 @@ export async function renderMarkdown(md: string): Promise<{ html: string; toc: T
     .use(rehypeSlug)
     .use(collectToc, toc)
     .use(collectCodeLangs, langs)
+    .use(calloutBlocks)
     /* 어두운 화면이라 어두운 테마를 쓴다. shiki는 pre에 배경색을 인라인으로 박기
        때문에 CSS로는 덮을 수 없다 — colorReplacements로 테마의 면 색만 우리 토큰에
        넘겨 코드블럭이 페이지와 같은 계조에 앉게 한다. */

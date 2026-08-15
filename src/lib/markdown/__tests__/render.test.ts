@@ -53,4 +53,55 @@ describe('renderMarkdown', () => {
     const { toc } = await renderMarkdown('# 제목\n\n#### 작은제목');
     expect(toc).toEqual([]);
   });
+
+  /* 창틀의 점 세 개는 정보를 나르지 않는다. 언어 라벨과 복사 버튼이 창틀의 일을
+     이미 하고 있어서, 점은 "코드처럼 보이게" 하는 장식만 남는다. */
+  it('코드블럭 창틀에 장식용 점을 두지 않는다', async () => {
+    const { html } = await renderMarkdown('```ts\nconst x = 1;\n```');
+    expect(html).not.toContain('data-code-dots');
+  });
+
+  describe('콜아웃', () => {
+    /* 기술 글은 "주의"·"참고"를 자주 쓴다. 없으면 인용문을 그 용도로 전용하게 되고,
+       그러면 진짜 인용과 경고가 같은 모양이 된다. GitHub 표기를 그대로 받는다. */
+    it('> [!NOTE] 를 콜아웃으로 바꾼다', async () => {
+      const { html } = await renderMarkdown('> [!NOTE]\n> 알아 둘 것.');
+      expect(html).toContain('data-callout="note"');
+      expect(html).toContain('참고');
+      expect(html).toContain('알아 둘 것.');
+      // 표기 자체는 화면에 남지 않는다.
+      expect(html).not.toContain('[!NOTE]');
+    });
+
+    it('종류마다 다른 라벨을 붙인다', async () => {
+      const { html } = await renderMarkdown('> [!WARNING]\n> 조심.');
+      expect(html).toContain('data-callout="warning"');
+      expect(html).toContain('주의');
+    });
+
+    it('라벨은 장식이 아니라 읽히는 글자다', async () => {
+      const { html } = await renderMarkdown('> [!TIP]\n> 팁.');
+      expect(html).toMatch(/data-callout-label[^>]*>[^<]*팁[^<]*</);
+    });
+
+    it('표기가 없는 인용문은 그대로 둔다', async () => {
+      const { html } = await renderMarkdown('> 그냥 인용.');
+      expect(html).toContain('<blockquote>');
+      expect(html).not.toContain('data-callout');
+    });
+
+    it('모르는 종류는 인용문으로 남긴다', async () => {
+      const { html } = await renderMarkdown('> [!SOMETHING]\n> 내용.');
+      expect(html).not.toContain('data-callout');
+    });
+  });
+
+  /* 각주는 remark-gfm이 이미 처리한다. 회귀로 고정해 두는 이유는 이게 조용히
+     빠지면 본문에 [^1]이 그대로 노출되기 때문이다. */
+  it('각주를 각주로 렌더한다', async () => {
+    const { html } = await renderMarkdown('본문.[^1]\n\n[^1]: 각주 내용.');
+    expect(html).toContain('data-footnotes');
+    expect(html).toContain('각주 내용.');
+    expect(html).not.toContain('[^1]');
+  });
 });
