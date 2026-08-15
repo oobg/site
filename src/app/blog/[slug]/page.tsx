@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Container } from '@components/layout/Container';
 import { getPost, getPosts } from '@features/posts/services/posts.api';
 import { getRelatedPosts } from '@features/posts/utils/related';
 import { renderMarkdown } from '@lib/markdown/render';
@@ -51,16 +52,22 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
     // 읽기 화면은 본문 폭을 온전히 쓴다. 목차는 흐름에서 빼 컨테이너 밖 여백에 띄우고,
     // 사이드바에 있던 태그·공유·관련 글은 본문 끝으로 내렸다 — 읽는 중에 옆에서 부를
     // 이유가 없고, 다 읽은 뒤가 그것들이 필요한 순간이다.
-    <div className={styles.page}>
-      <article className={styles.main}>
-        {/* 목차는 <article> 안에 둔다. 바깥 기둥의 높이가 본문에 묶여야 본문이 끝날 때
-            목차도 함께 멈춘다 — 페이지 전체에 걸면 사이드·내비 구간까지 따라온다. */}
-        <TableOfContents toc={toc} />
-        <ArticleHeader post={post} readingMin={readingMin} />
-        <ArticleBody html={html} />
-      </article>
-      <ArticleAside post={post} related={related} readingMin={readingMin} />
-      <PostNav prev={prev} next={next} />
-    </div>
+    //
+    // Container를 반드시 거친다. 읽기 열은 max-width로 자기 폭을 정하지만 좌우 여백은
+    // 갖지 못해서, 뷰포트가 읽기 폭보다 좁아지는 순간 글자가 화면 끝에 붙는다.
+    // 데스크톱 기하는 바뀌지 않는다 — 컨테이너가 뷰포트보다 좁아 중앙 정렬 결과가 같다.
+    <Container>
+      <div className={styles.page}>
+        <article className={styles.main}>
+          {/* 목차는 <article> 안에 둔다. 바깥 기둥의 높이가 본문에 묶여야 본문이 끝날 때
+              목차도 함께 멈춘다 — 페이지 전체에 걸면 사이드·내비 구간까지 따라온다. */}
+          <TableOfContents toc={toc} />
+          <ArticleHeader post={post} readingMin={readingMin} />
+          <ArticleBody html={html} />
+        </article>
+        <ArticleAside post={post} related={related} readingMin={readingMin} />
+        <PostNav prev={prev} next={next} />
+      </div>
+    </Container>
   );
 }

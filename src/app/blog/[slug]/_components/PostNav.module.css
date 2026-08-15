@@ -1,9 +1,11 @@
-/* 본문을 다 읽은 뒤 다음 글로 넘어가는 경계라 위를 크게 끊는다. */
+/* 본문을 다 읽은 뒤 다음 글로 넘어가는 경계라 위를 크게 끊는다.
+   다만 경계를 두 번 세우지 않는다 — 바로 위 ArticleAside가 이미 상단 보더로 한 번 끊고
+   자기 여백을 갖는다. 여기에 160px을 더하면 공유 아이콘 하나 밑으로 화면 한 뼘이 빈다. */
 .nav {
   width: 100%;
   max-width: var(--w-reading);
   margin-inline: auto;
-  margin-top: var(--section-gap);
+  margin-top: var(--space-9);
 }
 
 .top {

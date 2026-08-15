@@ -1,9 +1,10 @@
 /* 본문. 마크다운이 만드는 요소를 전부 여기서 받는다.
    base.css가 전역에서 리스트를 죽였으므로 읽기 화면에서 되살리는 것도 여기 일이다. */
+/* 크기·행간·색은 읽기 조판 토큰이 정한다. 여기서 직접 적으면 About과 또 갈린다. */
 .prose {
-  font-size: var(--fs-18);
-  line-height: var(--lh-body);
-  color: var(--color-text-secondary);
+  font-size: var(--reading-size);
+  line-height: var(--reading-lh);
+  color: var(--reading-color);
 }
 
 /* 문단 사이는 행간이 아니라 문단 간격으로 끊는다. */
@@ -144,15 +145,15 @@
   width: 11px;
   height: 11px;
   border-radius: 50%;
-  background: #ff5f57;
+  background: var(--code-dot-1);
 }
 
 .prose figure[data-code] figcaption i:nth-child(2) {
-  background: #febc2e;
+  background: var(--code-dot-2);
 }
 
 .prose figure[data-code] figcaption i:nth-child(3) {
-  background: #28c840;
+  background: var(--code-dot-3);
 }
 
 .prose figure[data-code] figcaption span[data-code-right] {

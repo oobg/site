@@ -12,11 +12,12 @@ export function AboutContent() {
 
       <section className={styles.block} aria-labelledby="about-focus">
         <Eyebrow id="about-focus">What I focus on</Eyebrow>
+        {/* 항목 간격은 .focusList의 gap이 맡는다 — <li>에 따로 줄 것이 없다. */}
         <ul className={styles.focusList}>
           {focus.map((item) => (
-            <li key={item.title} className={styles.focusItem}>
+            <li key={item.title}>
               <h2 className={styles.focusTitle}>{item.title}</h2>
-              <p className={styles.body}>{item.body}</p>
+              <p className={styles.itemBody}>{item.body}</p>
             </li>
           ))}
         </ul>
@@ -28,7 +29,7 @@ export function AboutContent() {
           {exploring.map((item) => (
             <li key={item.title} className={styles.exploreItem}>
               <h2 className={styles.focusTitle}>{item.title}</h2>
-              <p className={styles.body}>{item.body}</p>
+              <p className={styles.itemBody}>{item.body}</p>
             </li>
           ))}
         </ul>

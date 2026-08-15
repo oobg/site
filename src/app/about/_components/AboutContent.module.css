@@ -19,8 +19,19 @@
   color: var(--color-text);
 }
 
+/* 길게 읽는 문단. 글 상세와 같은 읽기 조판 토큰을 쓴다 — 한 파일이 자기 크기를 적으면
+   그 약속이 조용히 깨진다(실제로 18px/16px로 갈려 있었다). */
 .body {
   margin-top: var(--space-4);
+  font-size: var(--reading-size);
+  line-height: var(--reading-lh);
+  color: var(--reading-color);
+}
+
+/* 제목 아래 붙는 한두 줄 설명. 읽는 문단이 아니라 항목의 부연이라 한 단 작다.
+   이 둘을 .body 하나로 쓰던 것이 About 본문이 16px에 머문 이유였다. */
+.itemBody {
+  margin-top: var(--space-2);
   font-size: var(--fs-16);
   line-height: var(--lh-body);
   color: var(--color-text-secondary);
@@ -41,15 +52,12 @@
   margin-top: var(--space-5);
 }
 
-.focusItem .body {
-  margin-top: var(--space-2);
-}
-
 .focusTitle {
   font-size: var(--fs-18);
   letter-spacing: var(--ls-body);
 }
 
+/* 일하는 방식과 파고 있는 것은 성격이 달라 골격도 다르다. */
 .exploreList {
   counter-reset: explore;
   display: flex;
@@ -65,10 +73,6 @@
   border-top: 1px solid var(--color-border);
 }
 
-.exploreItem:last-child {
-  border-bottom: 1px solid var(--color-border);
-}
-
 /* 번호는 실제 순서가 아니라 열거라 표지로만 쓰고 색을 낮춘다. */
 .exploreItem::before {
   counter-increment: explore;
@@ -81,8 +85,12 @@
   padding-top: 4px;
 }
 
-.exploreItem .body {
+.exploreItem .itemBody {
   margin-top: 0;
+}
+
+.exploreItem:last-child {
+  border-bottom: 1px solid var(--color-border);
 }
 
 /* 경력은 시간이 축이라 표로 세운다 — 여기서는 격자가 맞는 도구다. */
