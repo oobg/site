@@ -32,8 +32,34 @@
   transition: color var(--dur) linear;
 }
 
+/* 링크는 제목에 붙지만 누를 수 있는 면은 행 전체다. 제목 글자만 과녁이면 hover에서
+   행이 반응하는데 눌리는 건 글자뿐이라 손이 자꾸 빗나간다. */
+.title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+/* hover 표현은 랜딩의 최근 글 목록과 같다 — 좌측 획이 서고 제목이 한 단 올라간다.
+   전역 a:hover(액센트)가 그 자리에 끼면 목록마다 hover 색이 달라지므로 막는다.
+   반응하는 주체는 링크가 아니라 행이다. */
+.title a:hover {
+  color: inherit;
+}
+
 .row:hover .title {
-  color: #fff;
+  color: var(--color-text-strong);
+}
+
+/* 과녁이 ::after라 포커스 링이 글자에만 걸린다. 행이 대신 두르게 한다. */
+.row:has(.title a:focus-visible) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.title a:focus-visible {
+  outline: none;
 }
 
 .summary {
@@ -53,8 +79,4 @@
   font-size: var(--fs-13);
   font-variant-numeric: tabular-nums;
   color: var(--color-text-muted);
-}
-
-.footer {
-  margin-top: var(--space-4);
 }

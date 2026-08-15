@@ -21,8 +21,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {`try{var k=${JSON.stringify(INTRO_STORAGE_KEY)};if(sessionStorage.getItem(k)){document.documentElement.dataset.intro='shown';}else{document.documentElement.dataset.intro='pending';sessionStorage.setItem(k,'1');}}catch(e){document.documentElement.dataset.intro='shown';}`}
         </Script>
         <AppProviders>
+          {/* 헤더보다 먼저 온다 — 탭 순서에서 첫 번째여야 건너뛸 것이 남는다. */}
+          <a className={styles.skip} href="#main">
+            본문으로 건너뛰기
+          </a>
           <SiteHeader />
-          <main className={styles.main}>{children}</main>
+          <main id="main" className={styles.main}>
+            {children}
+          </main>
           <SiteFooter />
         </AppProviders>
       </body>

@@ -31,9 +31,6 @@ export default function BlogLoading() {
               <Skeleton width="5rem" height="var(--fs-13)" />
               <Skeleton width="4rem" height="var(--fs-13)" />
             </div>
-            <div className={row.footer}>
-              <Skeleton width="7rem" height="var(--fs-15)" />
-            </div>
           </article>
         ))}
       </div>
