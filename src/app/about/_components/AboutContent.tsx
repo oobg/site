@@ -11,7 +11,7 @@ export function AboutContent() {
       <p className={styles.body}>{body}</p>
 
       <section className={styles.block} aria-labelledby="about-focus">
-        <Eyebrow id="about-focus">What I focus on</Eyebrow>
+        <Eyebrow id="about-focus">무엇을 중요하게 보나</Eyebrow>
         {/* 항목 간격은 .focusList의 gap이 맡는다 — <li>에 따로 줄 것이 없다. */}
         <ul className={styles.focusList}>
           {focus.map((item) => (
@@ -35,7 +35,7 @@ export function AboutContent() {
         </ul>
       </section>
       <section className={styles.block} aria-labelledby="about-experience">
-        <Eyebrow id="about-experience">Experience</Eyebrow>
+        <Eyebrow id="about-experience">지나온 곳</Eyebrow>
         <ul className={styles.expList}>
           {experience.map((item) => (
             <li key={`${item.company}-${item.period}`} className={styles.expItem}>
@@ -55,12 +55,12 @@ export function AboutContent() {
       </section>
 
       <section className={styles.block} aria-labelledby="about-now">
-        <Eyebrow id="about-now">Now</Eyebrow>
+        <Eyebrow id="about-now">지금</Eyebrow>
         <p className={styles.body}>{now}</p>
       </section>
 
       <section className={styles.block} aria-labelledby="about-connect">
-        <Eyebrow id="about-connect">Connect</Eyebrow>
+        <Eyebrow id="about-connect">연결</Eyebrow>
         <ul className={styles.connect}>
           {connect.map((item) => (
             <li key={item.label}>

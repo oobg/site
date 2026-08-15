@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "check:css": "node scripts/check-css-classes.mjs",
+    "check:design": "node scripts/check-design-rules.mjs",
     "test": "vitest run",
     "prepare": "husky"
   },

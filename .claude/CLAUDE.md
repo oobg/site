@@ -18,3 +18,7 @@
 
 - pnpm · no-barrel · path alias · RSC-first · CSS 토큰만(Tailwind 금지) · sonner는 @lib/toast만
 - 커밋: Conventional Commits(자연어 한국어)
+- 게이트: `typecheck` · `lint` · `test` · `check:css`(정의 없는 클래스 참조) ·
+  `check:design`(라우트 좌우 여백 · 섹션 레이블 한글 · 토큰 밖 색)
+- **토큰 값을 바꾸면 `docs/references/design-language.md`를 같은 커밋에서 고친다.**
+  SSOT가 코드와 갈라진 채로 두면 다음 세션이 문서를 믿고 이미 고친 것을 되돌린다.

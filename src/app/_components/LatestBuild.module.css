@@ -25,7 +25,7 @@
 }
 
 .item:hover .title {
-  color: #fff;
+  color: var(--color-text-strong);
 }
 
 .desc {
