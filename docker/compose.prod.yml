@@ -3,6 +3,11 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+      args:
+        CONTENT_SOURCE: ${CONTENT_SOURCE:-mock}
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:-}
     image: ${PROJECT_NAME:-raven-web}:${IMAGE_TAG:-latest}
     container_name: raven-web
     env_file: .env

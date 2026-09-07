@@ -5,6 +5,7 @@ import { getRelatedPosts } from '@features/posts/utils/related';
 import { renderMarkdown } from '@lib/markdown/render';
 import { computeReadingTime } from '@lib/markdown/reading-time';
 import { buildMetadata } from '@lib/metadata/metadata';
+import { env } from '@configs/env';
 import { ROUTES } from '@constants/routes';
 import { ArticleHeader } from '@/app/blog/[slug]/_components/ArticleHeader';
 import { ArticleBody } from '@components/content/ArticleBody';
@@ -14,8 +15,10 @@ import { PostNav } from '@/app/blog/[slug]/_components/PostNav';
 import styles from './article.module.css';
 
 export const dynamicParams = true;
+export const dynamic = 'force-dynamic';
 
 export async function generateStaticParams(): Promise<{ slug: string }[]> {
+  if (env.CONTENT_SOURCE === 'supabase') return [];
   const posts = await getPosts();
   return posts.map((post) => ({ slug: post.slug }));
 }

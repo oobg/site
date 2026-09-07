@@ -9,6 +9,7 @@ import rehypeShiki from '@shikijs/rehype';
 import { visit } from 'unist-util-visit';
 import type { Root, Element } from 'hast';
 import type { TocEntry } from '@lib/markdown/toc.types';
+import { env } from '@configs/env';
 
 // 구조적 타입으로 텍스트만 추출(hast 세부 타입 마찰 회피)
 type TextishNode = { type: string; value?: string; children?: TextishNode[] };
@@ -154,6 +155,44 @@ function calloutBlocks() {
   };
 }
 
+function resolveAssetPath(value: string, publicUrl: string): string | null {
+  if (!value.startsWith('/assets/')) return null;
+
+  const suffixAt = value.search(/[?#]/);
+  const pathname = suffixAt === -1 ? value : value.slice(0, suffixAt);
+  const suffix = suffixAt === -1 ? '' : value.slice(suffixAt);
+
+  try {
+    const decoded = decodeURIComponent(pathname);
+    const segments = decoded.split('/').slice(2);
+    if (
+      decoded.includes('\\') ||
+      segments.length === 0 ||
+      segments.some((segment) => segment === '' || segment === '.' || segment === '..')
+    ) {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+
+  return `${publicUrl.replace(/\/+$/, '')}${pathname}${suffix}`;
+}
+
+/** CMS가 저장한 루트 기준 자산 경로만 R2 공개 URL로 연결한다. */
+function resolveAssetPaths(publicUrl: string) {
+  return (tree: Root) => {
+    visit(tree, 'element', (node: Element) => {
+      for (const property of ['src', 'href'] as const) {
+        const value = node.properties?.[property];
+        if (typeof value !== 'string') continue;
+        const resolved = resolveAssetPath(value, publicUrl);
+        if (resolved) node.properties[property] = resolved;
+      }
+    });
+  };
+}
+
 /**
  * 코드블럭을 창틀로 감싼다.
  *
@@ -196,13 +235,17 @@ function frameCodeBlocks(langs: string[]) {
   };
 }
 
-export async function renderMarkdown(md: string): Promise<{ html: string; toc: TocEntry[] }> {
+export async function renderMarkdown(
+  md: string,
+  options: { assetPublicUrl?: string } = {},
+): Promise<{ html: string; toc: TocEntry[] }> {
   const toc: TocEntry[] = [];
   const langs: string[] = [];
   const file = await unified()
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkRehype)
+    .use(resolveAssetPaths, options.assetPublicUrl ?? env.R2_PUBLIC_URL)
     .use(rehypeSlug)
     .use(collectToc, toc)
     .use(collectCodeLangs, langs)

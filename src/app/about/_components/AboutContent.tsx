@@ -34,17 +34,22 @@ export function AboutContent() {
           ))}
         </ul>
       </section>
-      <section className={styles.block} aria-labelledby="about-experience">
-        <Eyebrow id="about-experience">지나온 곳</Eyebrow>
-        <ul className={styles.expList}>
-          {experience.map((item) => (
-            <li key={`${item.company}-${item.period}`} className={styles.expItem}>
-              <span className={styles.expCompany}>{item.company}</span>
-              <span className={styles.expRole}>{item.role}</span>
-              <span className={styles.expPeriod}>{item.period}</span>
-            </li>
-          ))}
-        </ul>
+      {experience.length > 0 ? (
+        <section className={styles.block} aria-labelledby="about-experience">
+          <Eyebrow id="about-experience">지나온 곳</Eyebrow>
+          <ul className={styles.expList}>
+            {experience.map((item) => (
+              <li key={`${item.company}-${item.period}`} className={styles.expItem}>
+                <span className={styles.expCompany}>{item.company}</span>
+                <span className={styles.expRole}>{item.role}</span>
+                <span className={styles.expPeriod}>{item.period}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+      <section className={styles.block} aria-labelledby="about-stack">
+        <Eyebrow id="about-stack">다루는 기술</Eyebrow>
         <ul className={styles.stack}>
           {stack.map((tag) => (
             <li key={tag} className={styles.tag}>
@@ -59,18 +64,20 @@ export function AboutContent() {
         <p className={styles.body}>{now}</p>
       </section>
 
-      <section className={styles.block} aria-labelledby="about-connect">
-        <Eyebrow id="about-connect">연결</Eyebrow>
-        <ul className={styles.connect}>
-          {connect.map((item) => (
-            <li key={item.label}>
-              <a href={item.href} className={styles.link}>
-                {item.label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </section>
+      {connect.length > 0 ? (
+        <section className={styles.block} aria-labelledby="about-connect">
+          <Eyebrow id="about-connect">연결</Eyebrow>
+          <ul className={styles.connect}>
+            {connect.map((item) => (
+              <li key={item.label}>
+                <a href={item.href} className={styles.link}>
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
     </article>
   );
 }

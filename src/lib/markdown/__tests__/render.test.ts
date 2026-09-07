@@ -54,6 +54,35 @@ describe('renderMarkdown', () => {
     expect(toc).toEqual([]);
   });
 
+  describe('CMS 자산 경로', () => {
+    it('/assets 경로를 설정된 R2 공개 URL로 바꾼다', async () => {
+      const { html } = await renderMarkdown(
+        '![설계도](/assets/posts/example/diagram.png?version=2#preview)',
+        { assetPublicUrl: 'https://cdn.raven.kr/' },
+      );
+      expect(html).toContain(
+        'src="https://cdn.raven.kr/assets/posts/example/diagram.png?version=2#preview"',
+      );
+    });
+
+    it('외부 URL과 일반 내부 경로는 그대로 둔다', async () => {
+      const { html } = await renderMarkdown(
+        '[외부](https://example.com/assets/a.png)\n\n![내부](/images/a.png)',
+        { assetPublicUrl: 'https://cdn.raven.kr' },
+      );
+      expect(html).toContain('href="https://example.com/assets/a.png"');
+      expect(html).toContain('src="/images/a.png"');
+    });
+
+    it('경로 탈출과 잘못 인코딩된 자산 경로는 CDN에 연결하지 않는다', async () => {
+      const { html } = await renderMarkdown(
+        '![상위](/assets/%2e%2e/private.png)\n\n![오류](/assets/%E0%A4%A)',
+        { assetPublicUrl: 'https://cdn.raven.kr' },
+      );
+      expect(html).not.toContain('https://cdn.raven.kr/assets/');
+    });
+  });
+
   /* 창틀의 점 세 개는 정보를 나르지 않는다. 언어 라벨과 복사 버튼이 창틀의 일을
      이미 하고 있어서, 점은 "코드처럼 보이게" 하는 장식만 남는다. */
   it('코드블럭 창틀에 장식용 점을 두지 않는다', async () => {

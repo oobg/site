@@ -88,7 +88,7 @@ export function LandingHero() {
       <div className={styles.copy}>
         <p className={styles.eyebrow}>
           <i aria-hidden />
-          배윤석
+          raven.kr
         </p>
         {/* JSX가 줄바꿈 앞뒤 공백을 지워서 <br /> 양쪽 글자가 붙는다. 눈으로는 두 줄로
             보여도 접근성 이름은 "…화면까지혼자…"가 되어 한 덩어리로 읽힌다. */}

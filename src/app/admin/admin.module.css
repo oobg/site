@@ -1,0 +1,54 @@
+.newLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: var(--space-7);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-control);
+  background: var(--color-accent);
+  color: var(--color-canvas);
+  font-size: var(--fs-14);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.newLink:hover {
+  color: var(--color-canvas);
+  background: var(--color-accent-hover);
+}
+
+.authError {
+  margin-top: var(--space-4);
+  color: var(--color-callout-caution);
+  font-size: var(--fs-14);
+}
+
+.skeleton {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-7);
+}
+
+.skeletonRow {
+  height: var(--space-9);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  animation: pulse var(--dur-skeleton) var(--ease) infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonRow {
+    animation: none;
+  }
+}

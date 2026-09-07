@@ -1,25 +1,19 @@
-/* 프로필 정적 콘텐츠 데이터. 홈과 About이 공유하는 단일 출처.
-   이전 포트폴리오(main-legacy1: src/shared/content/profile.ts)의 실제 프로필에서 옮겨왔다.
-   문구·경력은 여기서만 수정한다.
+/* 사이트 소개 콘텐츠. 홈과 About이 공유하는 단일 출처.
+   개인을 식별할 수 있는 이름·경력·연락처는 포함하지 않는다.
 
    페이지별 역할 분담:
-   - 홈    — lead·now만 쓴다("누가, 지금 무엇을").
-   - About — 전부 쓴다(서사·focus·경력·스택·연락처).
-   경력(experience)은 About 전용이다. 홈에 요약본을 두면 같은 표가 두 곳에 생긴다.
+   - 홈    — lead·now만 쓴다.
+   - About — 사이트 소개·관심 주제·기술·공개 서비스 링크를 쓴다. */
 
-   개인화 확인 필요: 연차·현재 재직 상태는 시점에 따라 갱신. 전화번호는 의도적으로 제외. */
+export const name = 'raven.kr';
+export const roleLabel = '기술 기록';
 
-export const name = '배윤석';
-export const roleLabel = '프론트엔드 개발자';
-
-export const lead = `안녕하세요. 사용자 경험을 고민하는 ${roleLabel} ${name}입니다.`;
+export const lead = `${name}은 제품과 소프트웨어를 만들며 배운 것을 정리하는 ${roleLabel} 공간입니다.`;
 
 export const body =
-  '사용자 편의성과 제품의 안정성을 최우선으로, 더 나은 경험을 제공하는 데 집중합니다. ' +
-  '개발은 혼자가 아니라 함께 만들어가는 과정이라 믿고, 다양한 피드백을 수용하며 팀워크를 중요하게 생각합니다.';
+  '복잡한 문제를 명료한 인터페이스와 안정적인 시스템으로 풀어가는 과정을 기록합니다.';
 
-/** 요즘 파고 있는 주제. 경력(experience)이 지나온 것이라면 이쪽은 향하는 것이다.
-    랜딩에 두던 것을 About으로 모았다 — 자기소개는 About이 정본이다. */
+/** 사이트에서 다루는 주제. */
 export const exploring: { title: string; body: string }[] = [
   {
     title: 'Better Interfaces',
@@ -38,15 +32,15 @@ export const exploring: { title: string; body: string }[] = [
 export const focus: { title: string; body: string }[] = [
   {
     title: '사용자의 편의성',
-    body: '성능 최적화와 최신 기술로 사용자 경험을 개선합니다. 대용량 HTML 문서의 초기 로딩을 12초에서 3초로 줄이고, Canvas 기반 AI 이미지 편집기를 설계·출시했습니다.',
+    body: '성능과 접근성을 함께 살피며 사용하기 편한 인터페이스를 탐구합니다.',
   },
   {
     title: '성장성',
-    body: '한 기술에 안주하지 않고 Vue·React 등 다양한 스택을 오가며 역량을 확장합니다. 학습과 실험을 실질적인 성장으로 잇는 것을 중요하게 생각합니다.',
+    body: '학습과 실험에서 얻은 내용을 재사용할 수 있는 지식으로 정리합니다.',
   },
   {
     title: '소통',
-    body: '기획·디자인·백엔드 등 다양한 직군과 협업하며, 문제를 조율하고 함께 해결책을 만들어온 경험을 쌓아왔습니다.',
+    body: '문제와 선택의 근거를 분명하게 남겨 협업에 필요한 맥락을 공유합니다.',
   },
 ];
 
@@ -56,12 +50,7 @@ export interface ExperienceItem {
   period: string;
 }
 
-export const experience: ExperienceItem[] = [
-  { company: '(주) 솔라테크', role: '주임', period: '2025.11 - 현재' },
-  { company: '(주) 스모어톡', role: '팀원', period: '2025.02 - 2025.11' },
-  { company: '(주) 닷', role: '연구원', period: '2022.09 - 2025.01' },
-  { company: '(주) 시스템알앤디', role: '주임', period: '2017.12 - 2022.03' },
-];
+export const experience: ExperienceItem[] = [];
 
 export const stack: string[] = [
   'TypeScript',
@@ -73,12 +62,6 @@ export const stack: string[] = [
   'Docker',
 ];
 
-export const now =
-  '현재 (주)솔라테크에서 지도 기반 태양광 지붕 임대 견적 서비스를 만들고 있고, ' +
-  '개인적으로 raven.kr과 콘텐츠 API(api.raven.kr)를 다듬고 있습니다.';
+export const now = '블로그와 글 작성 화면을 다듬으며 개발 과정에서 얻은 지식을 기록하고 있습니다.';
 
-export const connect: { label: string; href: string }[] = [
-  { label: 'GitHub', href: 'https://github.com/oobg' },
-  { label: 'Blog', href: 'https://blog.osb.im/' },
-  { label: 'Email', href: 'mailto:yoonseok.bae98@gmail.com' },
-];
+export const connect: { label: string; href: string }[] = [];

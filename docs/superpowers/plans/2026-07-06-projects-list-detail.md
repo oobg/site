@@ -476,10 +476,10 @@ const base: Project = {
   status: 'published',
   body_markdown: '본문',
   frontmatter: {
-    role: '1인 개발',
+    role: '개발',
     period: '2026-06 ~ 진행중',
     stack: ['TypeScript', 'NestJS'],
-    links: { repo: 'https://github.com/oobg/api', live: 'https://api.raven.kr' },
+    links: { repo: 'https://github.com/example-org/example-api', live: 'https://api.raven.kr' },
   },
 };
 
@@ -487,13 +487,13 @@ describe('ProjectHeader', () => {
   it('제목과 고유 필드(role·period·stack·links)를 렌더한다', () => {
     render(<ProjectHeader project={base} />);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(base.title);
-    expect(screen.getByText('1인 개발')).toBeInTheDocument();
+    expect(screen.getByText('개발')).toBeInTheDocument();
     expect(screen.getByText('2026-06 ~ 진행중')).toBeInTheDocument();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
     expect(screen.getByText('NestJS')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: /repo/i })).toHaveAttribute(
       'href',
-      'https://github.com/oobg/api',
+      'https://github.com/example-org/example-api',
     );
     expect(screen.getByRole('link', { name: /live/i })).toHaveAttribute(
       'href',
@@ -505,7 +505,7 @@ describe('ProjectHeader', () => {
     render(<ProjectHeader project={{ ...base, frontmatter: {} }} />);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(base.title);
     expect(screen.queryByRole('link')).toBeNull();
-    expect(screen.queryByText('1인 개발')).toBeNull();
+    expect(screen.queryByText('개발')).toBeNull();
   });
 });
 ```

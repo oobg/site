@@ -54,14 +54,34 @@ jobs:
           [ "$rc_tc" -eq 0 ] && [ "$rc_lt" -eq 0 ] && [ "$rc_ts" -eq 0 ]
       - name: .env 생성
         env:
+          CONTENT_SOURCE: ${{ vars.CONTENT_SOURCE || 'mock' }}
           REVALIDATE_SECRET: ${{ secrets.REVALIDATE_SECRET }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_GOOGLE_CLIENT_ID }}
+          CMS_OWNER_EMAILS: ${{ secrets.CMS_OWNER_EMAILS }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+          R2_PUBLIC_URL: ${{ secrets.R2_PUBLIC_URL }}
         run: |
           umask 177
           mkdir -p docker
           printf '%s\n' \
             'NODE_ENV=production' \
             'CONTENT_API_BASE=https://api.raven.kr' \
-            'CONTENT_SOURCE=mock' \
+            "CONTENT_SOURCE=${CONTENT_SOURCE}" \
+            'SITE_URL=https://raven.kr' \
+            "NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}" \
+            "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}" \
+            "NEXT_PUBLIC_GOOGLE_CLIENT_ID=${NEXT_PUBLIC_GOOGLE_CLIENT_ID}" \
+            "CMS_OWNER_EMAILS=${CMS_OWNER_EMAILS}" \
+            "R2_ACCOUNT_ID=${R2_ACCOUNT_ID}" \
+            "R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}" \
+            "R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}" \
+            "R2_BUCKET=${R2_BUCKET}" \
+            "R2_PUBLIC_URL=${R2_PUBLIC_URL}" \
             "REVALIDATE_SECRET=${REVALIDATE_SECRET}" \
             > docker/.env
       - name: 빌드 · 기동 · 헬스체크 (실패 시 롤백)
@@ -76,7 +96,7 @@ jobs:
           docker compose -p "$APP_NAME" -f docker/compose.prod.yml up -d --build
           ok=""
           # 홈서버 러너는 빌드 직후 CPU가 달궈져 standalone 콜드 스타트가 ~50s까지 걸릴 수 있음 → 창 넉넉히(≈120s)
-          for i in $(seq 1 40); do
+          for _ in $(seq 1 40); do
             cid=$(docker compose -p "$APP_NAME" -f docker/compose.prod.yml ps -q web)
             if [ -n "$cid" ] && docker exec "$cid" wget -qO- http://127.0.0.1:3000/health | grep -q '"status":"ready"'; then ok=1; break; fi
             sleep 3

@@ -17,7 +17,7 @@ function sortItems(items: ContentListItem[], sort: string): ContentListItem[] {
 }
 
 export async function getProjects(params: ListParams = {}): Promise<ContentListItem[]> {
-  if (env.CONTENT_SOURCE === 'mock') {
+  if (env.CONTENT_SOURCE !== 'api') {
     const filtered = params.tag
       ? mockProjectList.filter((p) => p.tags.includes(params.tag!))
       : mockProjectList;
@@ -36,7 +36,7 @@ export async function getProjects(params: ListParams = {}): Promise<ContentListI
 }
 
 export async function getProject(slug: string): Promise<Project> {
-  if (env.CONTENT_SOURCE === 'mock') {
+  if (env.CONTENT_SOURCE !== 'api') {
     const project = mockProjectDetails[slug];
     if (!project) notFound();
     return project;

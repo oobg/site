@@ -13,6 +13,8 @@ export const metadata: Metadata = buildMetadata({
   path: ROUTES.BLOG.LIST,
 });
 
+export const dynamic = 'force-dynamic';
+
 export default async function BlogListPage({
   searchParams,
 }: {

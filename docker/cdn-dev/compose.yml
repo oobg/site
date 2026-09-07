@@ -1,0 +1,59 @@
+name: raven-cdn-dev
+
+services:
+  images:
+    image: ghcr.io/weserv/images:5.x@sha256:7ea16cf503bc8d69a3959e89d97e638e794eede9591c90670315d07d87a7faf5
+    container_name: raven-cdn-dev
+    restart: unless-stopped
+    init: true
+    read_only: true
+    shm_size: 1gb
+    mem_limit: 2g
+    mem_reservation: 256m
+    cpus: 2
+    pids_limit: 256
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - NET_BIND_SERVICE
+      - SETGID
+      - SETUID
+    tmpfs:
+      - /run:size=8m,mode=0755
+      - /var/lib/nginx:size=16m,mode=0755
+      - /var/log/nginx:size=8m,mode=0755
+    command:
+      - /bin/sh
+      - -c
+      - >-
+        mkdir -p /var/lib/nginx/tmp/client_body /var/lib/nginx/tmp/proxy
+        /var/lib/nginx/tmp/fastcgi /var/lib/nginx/tmp/uwsgi
+        /var/lib/nginx/tmp/scgi && chown -R nginx:nginx /var/lib/nginx/tmp &&
+        exec nginx -g 'daemon off;'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${RAVEN_CDN_DEV_ASSET_DIR:-/srv/docker/raven-cdn-dev/assets}:/srv/assets:ro
+    expose:
+      - "80"
+    healthcheck:
+      test: [CMD, curl, -fsS, http://127.0.0.1/health]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+    networks:
+      - tunnel
+
+networks:
+  tunnel:
+    external: true
+    name: nginx-proxy-manager_default

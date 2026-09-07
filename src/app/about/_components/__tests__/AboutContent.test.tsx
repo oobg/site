@@ -8,21 +8,18 @@ describe('AboutContent', () => {
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
   });
 
-  it('이름을 렌더한다', () => {
+  it('사이트 소개를 렌더한다', () => {
     render(<AboutContent />);
-    expect(screen.getByText(/배윤석/)).toBeInTheDocument();
+    expect(screen.getByText(/raven\.kr은/)).toBeInTheDocument();
   });
 
-  it('경력의 회사명을 렌더한다', () => {
+  it('개인 경력 섹션을 렌더하지 않는다', () => {
     render(<AboutContent />);
-    expect(screen.getByText('(주) 솔라테크')).toBeInTheDocument();
+    expect(screen.queryByText('지나온 곳')).not.toBeInTheDocument();
   });
 
-  it('GitHub 연결 링크를 렌더한다', () => {
+  it('개인 연결 링크를 렌더하지 않는다', () => {
     render(<AboutContent />);
-    expect(screen.getByRole('link', { name: /github/i })).toHaveAttribute(
-      'href',
-      'https://github.com/oobg',
-    );
+    expect(screen.queryByText('연결')).not.toBeInTheDocument();
   });
 });

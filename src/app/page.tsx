@@ -9,6 +9,8 @@ import { Now } from '@/app/_components/Now';
 /** 홈에 띄우는 최근 글 수. 늘어날수록 화면이 자연히 채워진다. */
 const RECENT_POST_LIMIT = 5;
 
+export const dynamic = 'force-dynamic';
+
 export default async function HomePage() {
   const [posts, [latestProject]] = await Promise.all([
     getPosts({ limit: RECENT_POST_LIMIT, sort: '-published_at' }),

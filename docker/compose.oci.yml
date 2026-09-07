@@ -1,0 +1,68 @@
+name: raven-production
+
+services:
+  web:
+    container_name: raven-web-production
+    image: raven-web-production:current
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      args:
+        CONTENT_SOURCE: ${CONTENT_SOURCE:?CONTENT_SOURCE is required}
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL is required}
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:?NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is required}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:?NEXT_PUBLIC_GOOGLE_CLIENT_ID is required}
+    env_file:
+      - path: ${RAVEN_ENV_FILE:?RAVEN_ENV_FILE is required}
+        required: true
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      TZ: Asia/Seoul
+    expose:
+      - "3000"
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: [CMD, wget, -qO-, http://127.0.0.1:3000/health]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    networks:
+      - cloudflare
+
+  tunnel:
+    container_name: raven-tunnel-production
+    image: cloudflare/cloudflared:latest@sha256:51c9cefcb4569df44e1ad403ab1d3d8065aa8e84339bcfc6aee75502e1140339
+    command: tunnel --no-autoupdate run
+    env_file:
+      - path: ${RAVEN_TUNNEL_ENV_FILE:?RAVEN_TUNNEL_ENV_FILE is required}
+        required: true
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      web:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - cloudflare
+
+networks:
+  cloudflare:
+    external: true

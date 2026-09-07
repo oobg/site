@@ -1,8 +1,8 @@
-# 콘텐츠 API 소비 컨벤션
+# 콘텐츠 읽기 컨벤션
 
 > SSOT. 이 파일만 고친다. `.claude/CLAUDE.md`는 링크 인덱스일 뿐이다.
 > 설계 원본: `docs/superpowers/specs/2026-07-06-personal-site-foundation-design.md` §8.
-> API 계약 SSOT: [`docs/api-contract/content-v2.md`](../api-contract/content-v2.md) (원본은 api repo).
+> 운영 구조는 Next.js 단일 앱과 Supabase 직접 조회다. [`docs/api-contract/content-v2.md`](../api-contract/content-v2.md)는 기존 API 호환 모드의 보관 계약이다.
 
 ## server-read-first
 
@@ -10,20 +10,26 @@
 - `features/posts/services/posts.api.ts`, `features/projects/services/projects.api.ts`의 함수를 서버 컴포넌트에서 직접 호출.
 - 두 파일 모두 `import 'server-only'` 선언 — 클라이언트 번들 불가.
 
-## mock ↔ api 어댑터
+## 콘텐츠 소스 어댑터
 
 - `CONTENT_SOURCE` 환경변수로 분기:
   - `mock` (기본): 각 피처 `fixtures/*.mock.ts` 사용.
-  - `api`: `lib/api/http.ts` fetch 래퍼로 실 API 호출.
-- 백엔드 준비 후 env만 바꾸면 된다 — 소비 코드 수정 불필요.
+  - `supabase` (운영): posts는 Supabase Postgres에서 직접 읽고 projects는 mock을 유지.
+  - `api` (기존 호환): `lib/api/http.ts` fetch 래퍼로 외부 콘텐츠 API 호출.
+- 별도 콘텐츠 백엔드는 운영 구성에 포함하지 않는다.
 
 ## 환경변수
 
-| 변수                | 기본값                 | 설명                     |
-| ------------------- | ---------------------- | ------------------------ |
-| `CONTENT_API_BASE`  | `https://api.raven.kr` | 실 API 베이스 URL        |
-| `CONTENT_SOURCE`    | `mock`                 | `mock` 또는 `api`        |
-| `REVALIDATE_SECRET` | —                      | revalidation 웹훅 시크릿 |
+| 변수                | 기본값                 | 설명                                          |
+| ------------------- | ---------------------- | --------------------------------------------- |
+| `CONTENT_API_BASE`  | `https://api.raven.kr` | 기존 `api` 모드 전용                          |
+| `CONTENT_SOURCE`    | `mock`                 | `mock`, `api`, `supabase`                     |
+| `REVALIDATE_SECRET` | —                      | revalidation 웹훅 시크릿                      |
+| `R2_PUBLIC_URL`     | —                      | Markdown의 `/assets/...`를 연결할 공개 origin |
+
+`supabase` 공개 조회는 RLS와 별도로 목록·상세 쿼리에 `status = 'published'`를 넣는다. 현재 posts 테이블에는 tags와 cover 컬럼이 없으므로 기존 계약에는 `tags: []`, `cover_image_url: null`, `description → summary`, `body → body_markdown`으로 맞춘다.
+
+Markdown의 `/assets/...` `src`·`href`는 렌더 단계에서 `${R2_PUBLIC_URL}/assets/...`로 바꾼다. 외부 URL과 다른 root-relative 경로는 그대로 둔다. 경로 탈출 형태는 변환하지 않는다.
 
 ## 캐시 태그 스킴
 
@@ -37,7 +43,7 @@
 - fetch 래퍼(`lib/api/http.ts`)에서 `next: { tags, revalidate }` 설정.
 - 기본 revalidate: 3600s.
 
-## revalidate 웹훅 (`POST /api/revalidate`)
+## 기존 API 호환 revalidate 웹훅 (`POST /api/revalidate`)
 
 ```
 POST /api/revalidate
@@ -49,7 +55,7 @@ X-Revalidate-Secret: <REVALIDATE_SECRET>
 - 각 항목 `revalidateTag('post:'+slug)` 등 + 목록 태그 무효화.
 - 200 `{ revalidated: true, count }`. `changed`가 비면 목록 태그만.
 
-## 공통 계약 타입 (`lib/api/contract.types.ts`)
+## 기존 API 호환 계약 타입 (`lib/api/contract.types.ts`)
 
 `content-v2.md` 스키마를 TypeScript로 미러링. 직접 수정 금지 — 계약 변경 시 `content-v2.md` 먼저 수정 후 여기 반영.
 

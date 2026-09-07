@@ -1,6 +1,6 @@
 # raven.kr
 
-개인 사이트 겸 기술 블로그와 포트폴리오. Next.js App Router로 만들었고, 글과 프로젝트는 별도 백엔드(`api.raven.kr`)에서 서버사이드로 받아 보여준다.
+개인 사이트 겸 기술 블로그와 포트폴리오. 하나의 Next.js App Router 앱이 공개 사이트와 관리자 CMS를 함께 제공한다. 글과 로그인은 Supabase Postgres/Auth, 이미지는 Cloudflare R2를 사용한다.
 
 ## 스택
 
@@ -10,6 +10,7 @@
 - Base UI (`@base-ui/react`), motion (`motion/react`)
 - 마크다운 렌더: unified + remark/rehype, 코드 하이라이트는 shiki
 - 서버 상태: TanStack Query (상호작용 페이지 등장 시), 검증: zod
+- 콘텐츠·인증: Supabase Postgres/Auth, 이미지: Cloudflare R2
 
 RSC 우선. 읽기 전용 콘텐츠는 서버 컴포넌트에서 직접 fetch하고 클라이언트에서 다시 요청하지 않는다.
 
@@ -19,7 +20,7 @@ RSC 우선. 읽기 전용 콘텐츠는 서버 컴포넌트에서 직접 fetch하
 
 ```bash
 pnpm install
-pnpm dev        # 개발 서버 (http://localhost:3000)
+pnpm dev        # 개발 서버 (http://localhost:3500)
 ```
 
 기본은 mock 데이터로 뜬다. 백엔드 없이 바로 돌려볼 수 있다.
@@ -35,27 +36,28 @@ pnpm dev        # 개발 서버 (http://localhost:3000)
 
 ## 라우트
 
-| 경로                            | 설명                            |
-| ------------------------------- | ------------------------------- |
-| `/`                             | 홈 (히어로 + 최근 글)           |
-| `/blog`, `/blog/[slug]`         | 글 목록과 상세                  |
-| `/projects`, `/projects/[slug]` | 프로젝트 목록과 상세            |
-| `/health`                       | 헬스 체크 (배포 폴링용)         |
-| `/api/revalidate`               | 백엔드 ingest 웹훅 (ISR 재생성) |
+| 경로                            | 설명                          |
+| ------------------------------- | ----------------------------- |
+| `/`                             | 홈 (히어로 + 최근 글)         |
+| `/blog`, `/blog/[slug]`         | 글 목록과 상세                |
+| `/projects`, `/projects/[slug]` | 프로젝트 목록과 상세          |
+| `/health`                       | 헬스 체크 (배포 폴링용)       |
+| `/api/revalidate`               | 기존 외부 API 연동용 ISR 웹훅 |
 
 ## 콘텐츠
 
-글과 프로젝트는 이 저장소에 없다. Obsidian에서 마크다운을 쓰고 콘텐츠 저장소에 커밋하면, GitHub Action이 `api.raven.kr`로 수집하고, 프론트는 그 API를 서버에서 읽는다.
+글은 같은 Next.js 앱의 `/admin`에서 Markdown으로 작성한다. 공개 화면도 이 앱이 Supabase에서 `published` 글만 직접 읽으며, 별도 콘텐츠 API는 사용하지 않는다. `/assets/...` 이미지 경로는 렌더링할 때 `R2_PUBLIC_URL` 아래의 공개 URL로 바뀐다.
 
 소스는 환경변수로 바꾼다.
 
-| 변수                | 기본값                 | 설명                                                   |
-| ------------------- | ---------------------- | ------------------------------------------------------ |
-| `CONTENT_SOURCE`    | `mock`                 | `mock`이면 `src/features/*/fixtures`, `api`면 실제 API |
-| `CONTENT_API_BASE`  | `https://api.raven.kr` | 콘텐츠 API 베이스 URL                                  |
-| `REVALIDATE_SECRET` | —                      | revalidate 웹훅 인증 시크릿                            |
+| 변수                | 기본값                 | 설명                               |
+| ------------------- | ---------------------- | ---------------------------------- |
+| `CONTENT_SOURCE`    | `mock`                 | 글 소스: `mock`, `api`, `supabase` |
+| `CONTENT_API_BASE`  | `https://api.raven.kr` | 기존 `api` 호환 모드에서만 사용    |
+| `REVALIDATE_SECRET` | —                      | revalidate 웹훅 인증 시크릿        |
+| `R2_PUBLIC_URL`     | —                      | `/assets/...`를 제공할 R2 공개 URL |
 
-`mock`에서 `api`로 넘어갈 때 소비 코드는 그대로 두고 `CONTENT_SOURCE`만 바꾸면 된다. 계약은 `docs/api-contract/content-v2.md`에 있다.
+운영 구조는 `CONTENT_SOURCE=supabase`다. `mock`은 외부 설정 없는 로컬 개발과 안전한 초기 배포에, `api`는 이전 콘텐츠 API 호환에만 남아 있다. CMS를 쓰려면 `.env.example`을 `.env.local`로 복사하고 [CMS 설정 문서](docs/cms-setup.md)를 따른다. 프로젝트는 현재 mock 데이터를 유지한다.
 
 ## 구조
 
@@ -81,13 +83,14 @@ src/
 
 ## 배포
 
-홈서버에서 Docker Compose로 돌리고, nginx-proxy-manager가 `raven.kr`을 컨테이너로 라우팅한다. `main`에 푸시하면 self-hosted 러너가 서버에서 직접 빌드하고, `/health`가 응답하면 교체, 아니면 이전 이미지로 되돌린다.
+현재 `main`은 홈서버 Docker Compose와 self-hosted runner로 자동 배포된다. 운영 목표는 main을 OCI와 새 Supabase Cloud 및 production R2(`cdn.raven.kr`)로 먼저 옮긴 뒤, dev를 홈서버의 self-hosted Supabase와 별도 이미지 서버로 분리하는 것이다. OCI 전환은 수동 opt-in으로 검증하고 acceptance 이후 자동 전환 여부를 결정한다.
 
-절차와 오너 설정은 `docs/deployment.md`를 본다.
+현재 상태, 단계별 acceptance, 환경별 경계와 보존 규칙은 [`docs/deployment.md`](docs/deployment.md)와 [`docs/environment-split.md`](docs/environment-split.md)를 본다.
 
 ## 문서
 
 - `docs/references/`에 아키텍처, 상태 모델, 디자인 언어, 콘텐츠 API 소비 규칙이 있다. 컨벤션의 기준 문서다.
-- `docs/api-contract/content-v2.md`는 프론트와 백엔드가 공유하는 콘텐츠 API 계약이다.
+- `docs/api-contract/content-v2.md`는 현재 사용하지 않는 기존 콘텐츠 API 계약의 보관본이다.
 - `docs/deployment.md`는 배포 절차를 다룬다.
+- `docs/cms-setup.md`는 Supabase Auth/Postgres와 Cloudflare R2 설정을 다룬다.
 - `docs/superpowers/`에 기능별 설계 스펙과 구현 계획이 쌓여 있다.

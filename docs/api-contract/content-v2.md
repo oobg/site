@@ -96,7 +96,7 @@
       "tags": ["nestjs", "architecture"],
       "published_at": "2026-06-24T00:00:00.000Z",
       "updated_at": "2026-07-01T09:12:00.000Z",
-      "cover_image_url": "https://raw.githubusercontent.com/oobg/raven-content/main/posts/hexagonal-nestjs/cover.png",
+      "cover_image_url": "https://raw.githubusercontent.com/example-org/example-content/main/posts/hexagonal-nestjs/cover.png",
       "reading_time_min": 8,
       "status": "published"
     }
@@ -120,10 +120,10 @@
     "tags": ["nestjs", "architecture"],
     "published_at": "2026-06-24T00:00:00.000Z",
     "updated_at": "2026-07-01T09:12:00.000Z",
-    "cover_image_url": "https://raw.githubusercontent.com/oobg/raven-content/main/posts/hexagonal-nestjs/cover.png",
+    "cover_image_url": "https://raw.githubusercontent.com/example-org/example-content/main/posts/hexagonal-nestjs/cover.png",
     "reading_time_min": 8,
     "status": "published",
-    "body_markdown": "## 왜 헥사고날인가\n\n![다이어그램](https://raw.githubusercontent.com/oobg/raven-content/main/posts/hexagonal-nestjs/diagram.png)\n\n본문...",
+    "body_markdown": "## 왜 헥사고날인가\n\n![다이어그램](https://raw.githubusercontent.com/example-org/example-content/main/posts/hexagonal-nestjs/diagram.png)\n\n본문...",
     "frontmatter": {
       "title": "가벼운 헥사고날로 NestJS 모놀리스 나누기",
       "summary": "포트/어댑터를 최소로 쓰면서 모듈 경계를 지키는 법.",
@@ -146,7 +146,7 @@
   "data": {
     "slug": "raven-api",
     "title": "raven.kr 백엔드 API",
-    "summary": "멀티테넌트 NestJS API를 개인 홈서버에서 운영.",
+    "summary": "멀티테넌트 NestJS 콘텐츠 API 구축 사례.",
     "tags": ["backend"],
     "published_at": "2026-06-01T00:00:00.000Z",
     "updated_at": "2026-07-05T00:00:00.000Z",
@@ -154,10 +154,13 @@
     "status": "published",
     "body_markdown": "프로젝트 회고 본문...",
     "frontmatter": {
-      "role": "1인 개발",
+      "role": "개발",
       "period": "2026-06 ~ 진행중",
       "stack": ["TypeScript", "NestJS", "Prisma", "Supabase"],
-      "links": { "repo": "https://github.com/oobg/api", "live": "https://api.raven.kr" }
+      "links": {
+        "repo": "https://github.com/example-org/example-api",
+        "live": "https://api.raven.kr"
+      }
     }
   },
   "meta": { "requestId": "01J...", "serverTime": "2026-07-06T10:30:45.123Z" }
