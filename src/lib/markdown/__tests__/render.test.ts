@@ -54,6 +54,17 @@ describe('renderMarkdown', () => {
     expect(toc).toEqual([]);
   });
 
+  it('raw HTML과 실행 가능한 URL protocol을 출력하지 않는다', async () => {
+    const { html } = await renderMarkdown(
+      '<script>alert(1)</script>\n\n[실행](JaVa ScRiPt:alert(1))\n\n' +
+        '[엔티티](java&#x73;cript:alert(1))\n\n![실행](data:image/svg+xml,x)',
+    );
+    expect(html).not.toContain('<script');
+    expect(html.toLowerCase()).not.toContain('javascript:');
+    expect(html.toLowerCase()).not.toContain('java&#x73;cript:');
+    expect(html).not.toContain('data:image');
+  });
+
   describe('CMS 자산 경로', () => {
     it('/assets 경로를 설정된 R2 공개 URL로 바꾼다', async () => {
       const { html } = await renderMarkdown(

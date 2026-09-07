@@ -193,6 +193,25 @@ function resolveAssetPaths(publicUrl: string) {
   };
 }
 
+function removeUnsafeResourceUrls() {
+  return (tree: Root) => {
+    visit(tree, 'element', (node: Element) => {
+      for (const property of ['src', 'href'] as const) {
+        const value = node.properties?.[property];
+        if (typeof value !== 'string') continue;
+        const compact = value.replace(/[\u0000-\u0020\u007f]+/g, '');
+        const scheme = /^([a-z][a-z0-9+.-]*):/i.exec(compact)?.[1]?.toLowerCase();
+        const allowed =
+          !scheme ||
+          scheme === 'http' ||
+          scheme === 'https' ||
+          (property === 'href' && scheme === 'mailto');
+        if (!allowed) delete node.properties[property];
+      }
+    });
+  };
+}
+
 /**
  * 코드블럭을 창틀로 감싼다.
  *
@@ -246,6 +265,7 @@ export async function renderMarkdown(
     .use(remarkGfm)
     .use(remarkRehype)
     .use(resolveAssetPaths, options.assetPublicUrl ?? env.R2_PUBLIC_URL)
+    .use(removeUnsafeResourceUrls)
     .use(rehypeSlug)
     .use(collectToc, toc)
     .use(collectCodeLangs, langs)
