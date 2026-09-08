@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Check, LinkSimple, ShareNetwork } from '@phosphor-icons/react';
 import styles from './ShareButtons.module.css';
 
@@ -8,6 +8,8 @@ const noopSubscribe = () => () => {};
 
 export function ShareButtons({ title }: { title: string }) {
   const [copied, setCopied] = useState(false);
+  const resetTimer = useRef<number>(undefined);
+  const mounted = useRef(true);
   // 서버 렌더에서는 항상 false로 두고(하이드레이션 mismatch 방지), 클라이언트에서만 실제 지원 여부를 읽는다.
   const canNativeShare = useSyncExternalStore(
     noopSubscribe,
@@ -15,13 +17,23 @@ export function ShareButtons({ title }: { title: string }) {
     () => false,
   );
 
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+      window.clearTimeout(resetTimer.current);
+    };
+  }, []);
+
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(window.location.href);
+      if (!mounted.current) return;
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      window.clearTimeout(resetTimer.current);
+      resetTimer.current = window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      setCopied(false);
+      if (mounted.current) setCopied(false);
     }
   }
 

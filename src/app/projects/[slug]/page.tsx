@@ -3,6 +3,7 @@ import { Container } from '@components/layout/Container';
 import { getProject, getProjects } from '@features/projects/services/projects.api';
 import { renderMarkdown } from '@lib/markdown/render';
 import { buildMetadata } from '@lib/metadata/metadata';
+import { normalizeRouteSlug } from '@lib/navigation/slug';
 import { ROUTES } from '@constants/routes';
 import { ArticleBody } from '@components/content/ArticleBody';
 import { ProjectHeader } from '@/app/projects/[slug]/_components/ProjectHeader';
@@ -22,7 +23,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const key = decodeURIComponent(slug).normalize('NFC');
+  const key = normalizeRouteSlug(slug);
   const project = await getProject(key);
   return buildMetadata({
     title: project.title,
@@ -33,7 +34,7 @@ export async function generateMetadata({
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const key = decodeURIComponent(slug).normalize('NFC');
+  const key = normalizeRouteSlug(slug);
   const project = await getProject(key);
   const { html } = await renderMarkdown(project.body_markdown);
 

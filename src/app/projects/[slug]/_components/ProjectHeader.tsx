@@ -1,15 +1,36 @@
-import type { Project, ProjectFrontmatter } from '@features/projects/types/projects.types';
+import type { Project } from '@features/projects/types/projects.types';
 import styles from './ProjectHeader.module.css';
 
 function formatDate(iso: string): string {
   return new Date(iso).toISOString().slice(0, 10);
 }
 
+function record(value: unknown): Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function safeLink(value: unknown): string | undefined {
+  if (typeof value !== 'string' || value.trim() === '') return undefined;
+  try {
+    const url = new URL(value, 'https://raven.invalid');
+    return url.protocol === 'http:' || url.protocol === 'https:' ? value : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 export function ProjectHeader({ project }: { project: Project }) {
-  const fm = project.frontmatter as ProjectFrontmatter;
-  const stack = fm.stack ?? [];
-  const repo = fm.links?.repo;
-  const live = fm.links?.live;
+  const fm = record(project.frontmatter);
+  const role = typeof fm.role === 'string' ? fm.role : undefined;
+  const period = typeof fm.period === 'string' ? fm.period : undefined;
+  const stack = Array.isArray(fm.stack)
+    ? fm.stack.filter((value): value is string => typeof value === 'string')
+    : [];
+  const links = record(fm.links);
+  const repo = safeLink(links.repo);
+  const live = safeLink(links.live);
 
   return (
     <header className={styles.header}>
@@ -21,16 +42,16 @@ export function ProjectHeader({ project }: { project: Project }) {
             <time dateTime={project.published_at}>{formatDate(project.published_at)}</time>
           </dd>
         </div>
-        {fm.role ? (
+        {role ? (
           <div className={styles.row}>
             <dt className={styles.label}>Role</dt>
-            <dd>{fm.role}</dd>
+            <dd>{role}</dd>
           </div>
         ) : null}
-        {fm.period ? (
+        {period ? (
           <div className={styles.row}>
             <dt className={styles.label}>Period</dt>
-            <dd>{fm.period}</dd>
+            <dd>{period}</dd>
           </div>
         ) : null}
         {stack.length > 0 ? (

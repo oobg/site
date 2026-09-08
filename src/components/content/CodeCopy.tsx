@@ -15,6 +15,7 @@ const RESET_MS = 1600;
 export function CodeCopy() {
   useEffect(() => {
     const timers = new Map<HTMLButtonElement, number>();
+    let active = true;
 
     const onClick = async (event: MouseEvent) => {
       const target = event.target;
@@ -33,6 +34,9 @@ export function CodeCopy() {
         return;
       }
 
+      // 클립보드 작업 중 페이지를 떠났다면 분리된 버튼과 새 타이머를 만들지 않는다.
+      if (!active || !button.isConnected) return;
+
       const status = button.querySelector('[data-code-copy-status]');
       button.setAttribute('data-copied', '');
       if (status) status.textContent = '복사됨';
@@ -50,6 +54,7 @@ export function CodeCopy() {
 
     document.addEventListener('click', onClick);
     return () => {
+      active = false;
       document.removeEventListener('click', onClick);
       for (const id of timers.values()) window.clearTimeout(id);
     };

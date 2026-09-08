@@ -5,6 +5,7 @@ import { getRelatedPosts } from '@features/posts/utils/related';
 import { renderMarkdown } from '@lib/markdown/render';
 import { computeReadingTime } from '@lib/markdown/reading-time';
 import { buildMetadata } from '@lib/metadata/metadata';
+import { normalizeRouteSlug } from '@lib/navigation/slug';
 import { env } from '@configs/env';
 import { ROUTES } from '@constants/routes';
 import { ArticleHeader } from '@/app/blog/[slug]/_components/ArticleHeader';
@@ -29,7 +30,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const key = decodeURIComponent(slug).normalize('NFC');
+  const key = normalizeRouteSlug(slug);
   const post = await getPost(key);
   return buildMetadata({
     title: post.title,
@@ -40,7 +41,7 @@ export async function generateMetadata({
 
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const key = decodeURIComponent(slug).normalize('NFC');
+  const key = normalizeRouteSlug(slug);
   const post = await getPost(key);
   const { html, toc } = await renderMarkdown(post.body_markdown);
   const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);

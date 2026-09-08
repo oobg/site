@@ -29,7 +29,11 @@ function readSnapshot(): ReadonlySet<string> {
   if (raw === cachedRaw) return cachedSet;
   cachedRaw = raw;
   try {
-    cachedSet = new Set(raw ? (JSON.parse(raw) as string[]) : []);
+    const parsed: unknown = raw ? JSON.parse(raw) : [];
+    cachedSet =
+      Array.isArray(parsed) && parsed.every((value) => typeof value === 'string')
+        ? new Set(parsed)
+        : EMPTY;
   } catch {
     cachedSet = EMPTY;
   }
@@ -91,7 +95,11 @@ export function RecentPosts({ posts }: { posts: PostListItem[] }) {
       };
       if (event.key === 'j' || event.key === 'ArrowDown') move(1);
       else if (event.key === 'k' || event.key === 'ArrowUp') move(active <= 0 ? 0 : -1);
-      else if (event.key === 'Enter' && active >= 0) {
+      else if (
+        event.key === 'Enter' &&
+        active >= 0 &&
+        listRef.current?.querySelectorAll('li')[active] === document.activeElement
+      ) {
         event.preventDefault();
         /* 진짜 링크를 누른다. 라우터로 직접 밀면 가운데클릭·⌘클릭이 죽는다. */
         listRef.current?.querySelectorAll('a')[active]?.click();
