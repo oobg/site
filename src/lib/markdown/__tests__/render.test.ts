@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { renderMarkdown } from '@lib/markdown/render';
+import { env } from '@configs/env';
 
 describe('renderMarkdown', () => {
   it('헤딩에 id를 부여하고 toc를 추출한다', async () => {
@@ -74,6 +75,33 @@ describe('renderMarkdown', () => {
       expect(html).toContain(
         'src="https://cdn.raven.kr/assets/posts/example/diagram.png?version=2#preview"',
       );
+    });
+
+    it('dev asset origin으로 같은 root-relative 경로를 연결한다', async () => {
+      const { html } = await renderMarkdown('![사진](/assets/posts/2026-09-07/example.webp)', {
+        assetPublicUrl: 'https://cdn-dev.raven.kr',
+      });
+      expect(html).toContain('src="https://cdn-dev.raven.kr/assets/posts/2026-09-07/example.webp"');
+    });
+
+    it('R2 backend에서는 잘못 섞인 dev 공개 주소를 무시한다', async () => {
+      const original = {
+        backend: env.ASSET_STORAGE_BACKEND,
+        assetPublicUrl: env.ASSET_PUBLIC_URL,
+        r2PublicUrl: env.R2_PUBLIC_URL,
+      };
+      env.ASSET_STORAGE_BACKEND = 'r2';
+      env.ASSET_PUBLIC_URL = 'https://cdn-dev.raven.kr';
+      env.R2_PUBLIC_URL = 'https://cdn.raven.kr';
+      try {
+        const { html } = await renderMarkdown('![사진](/assets/posts/example.png)');
+        expect(html).toContain('src="https://cdn.raven.kr/assets/posts/example.png"');
+        expect(html).not.toContain('cdn-dev.raven.kr');
+      } finally {
+        env.ASSET_STORAGE_BACKEND = original.backend;
+        env.ASSET_PUBLIC_URL = original.assetPublicUrl;
+        env.R2_PUBLIC_URL = original.r2PublicUrl;
+      }
     });
 
     it('외부 URL과 일반 내부 경로는 그대로 둔다', async () => {

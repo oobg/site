@@ -1,12 +1,13 @@
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { NextResponse } from 'next/server';
 
-import { CmsConfigurationError, getR2Config } from '@configs/cms-env';
+import { CmsConfigurationError, getAssetStorageConfig } from '@configs/cms-env';
+import { storeAsset } from '@lib/assets/storage';
 import { OwnerAuthorizationError, requireOwner } from '@lib/auth/owner';
 
 export const runtime = 'nodejs';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
+const MAX_REQUEST_SIZE = MAX_FILE_SIZE + 1024 * 1024;
 const imageTypes = {
   'image/jpeg': {
     extension: 'jpg',
@@ -39,7 +40,16 @@ export async function POST(request: Request) {
     }
 
     await requireOwner();
-    const formData = await request.formData();
+    const declaredLength = Number(request.headers.get('content-length'));
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_REQUEST_SIZE)
+      return NextResponse.json({ error: '요청 본문이 너무 큽니다.' }, { status: 413 });
+
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch {
+      return NextResponse.json({ error: '요청 형식이 올바르지 않습니다.' }, { status: 400 });
+    }
     const file = formData.get('file');
     if (!(file instanceof File))
       return NextResponse.json({ error: '이미지 파일이 필요합니다.' }, { status: 400 });
@@ -59,23 +69,10 @@ export async function POST(request: Request) {
         { status: 415 },
       );
 
-    const config = getR2Config();
+    const config = getAssetStorageConfig();
     const date = new Date().toISOString().slice(0, 10);
     const path = `assets/posts/${date}/${crypto.randomUUID()}.${imageType.extension}`;
-    const client = new S3Client({
-      region: 'auto',
-      endpoint: `https://${config.accountId}.r2.cloudflarestorage.com`,
-      credentials: { accessKeyId: config.accessKeyId, secretAccessKey: config.secretAccessKey },
-    });
-    await client.send(
-      new PutObjectCommand({
-        Bucket: config.bucket,
-        Key: path,
-        Body: bytes,
-        ContentType: file.type,
-        CacheControl: 'public, max-age=31536000, immutable',
-      }),
-    );
+    await storeAsset(config, { key: path, body: bytes, contentType: file.type });
 
     const markdownPath = `/${path}`;
     return NextResponse.json(
@@ -87,7 +84,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     if (error instanceof CmsConfigurationError)
       return NextResponse.json({ error: error.message }, { status: 503 });
-    console.error('R2 upload failed', error);
+    console.error('Asset upload failed', {
+      kind: error instanceof Error ? error.name : 'UnknownError',
+    });
     return NextResponse.json({ error: '이미지를 업로드하지 못했습니다.' }, { status: 500 });
   }
 }

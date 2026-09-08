@@ -1,6 +1,6 @@
 # CMS 설정
 
-공개 사이트와 관리자 CMS는 하나의 Next.js 앱에서 동작한다. 별도 콘텐츠 API를 두지 않고 Supabase Postgres에 글을 저장하며, Google Identity Services(GIS)의 공식 버튼으로 받은 ID token을 Supabase Auth에서 검증해 관리자 로그인을 처리한다. 본문 이미지는 Cloudflare R2의 `assets/posts/...` 키에 저장한다. 공개 페이지는 `status = 'published'` 조건으로 직접 조회하므로 draft는 목록과 상세에 나오지 않는다.
+공개 사이트와 관리자 CMS는 하나의 Next.js 앱에서 동작한다. 별도 콘텐츠 API를 두지 않고 Supabase Postgres에 글을 저장하며, Google Identity Services(GIS)의 공식 버튼으로 받은 ID token을 Supabase Auth에서 검증해 관리자 로그인을 처리한다. production 이미지는 Cloudflare R2에, dev 이미지는 홈서버의 전용 local volume에 저장한다. 공개 페이지는 `status = 'published'` 조건으로 직접 조회하므로 draft는 목록과 상세에 나오지 않는다.
 
 ## 1. Supabase 프로젝트와 테이블
 
@@ -45,6 +45,8 @@
 
 업로드 object key는 `assets/posts/<YYYY-MM-DD>/<uuid>.<ext>`이고 에디터에는 같은 키의 root-relative 경로 `/assets/posts/...`가 들어간다. 공개 Markdown renderer는 이를 `${R2_PUBLIC_URL}/assets/posts/...`로 바꾼다. 외부 URL과 `/images/...` 같은 다른 경로는 바꾸지 않으며, `..`, 역슬래시, 잘못된 percent encoding이 포함된 자산 경로는 CDN에 연결하지 않는다.
 
+dev에서는 R2 대신 local backend를 사용한다. 동일한 Markdown 경로를 유지하되 `ASSET_PUBLIC_URL=https://cdn-dev.raven.kr`로 공개 URL을 만든다. CDN nginx가 `/assets/` prefix를 제거해 `/srv/assets` alias를 조회하므로 앱은 mount root 아래 `posts/...`에 기록한다. local backend에는 production R2 credentials를 설정하지 않는다.
+
 ## 4. 환경변수
 
 `.env.example`을 `.env.local`로 복사해 채운다.
@@ -62,6 +64,9 @@
 | `R2_SECRET_ACCESS_KEY`                 | R2 API token secret access key                                                                    |
 | `R2_BUCKET`                            | R2 bucket 이름                                                                                    |
 | `R2_PUBLIC_URL`                        | custom domain origin. 끝 `/`는 선택 사항                                                          |
+| `ASSET_STORAGE_BACKEND`                | 기본 `r2`. dev local volume은 `local`                                                             |
+| `ASSET_LOCAL_ROOT`                     | local backend의 컨테이너 내부 원본 mount root                                                     |
+| `ASSET_PUBLIC_URL`                     | local backend의 공개 origin. dev는 `https://cdn-dev.raven.kr`                                     |
 
 `NEXT_PUBLIC_SUPABASE_*`는 브라우저 bundle에도 들어가므로 Docker build argument로 전달된다. publishable key는 공개 클라이언트용이며 권한은 RLS가 제한한다. `CMS_OWNER_EMAILS`와 R2 credentials는 서버에서만 읽는다. OCI production은 이 값을 호스트의 mode `600` config 파일에서 공급하고 GitHub Actions에 앱 runtime secret을 두지 않는다. 기존 홈서버 workflow를 사용할 때만 해당 환경의 GitHub secrets에서 runtime 값을 공급한다. service role key는 이 앱에서 사용하지 않는다.
 
@@ -75,6 +80,8 @@ pnpm dev
 2. draft 글을 저장하고 `/blog` 및 `/blog/<slug>`에서 노출되지 않는지 확인한다.
 3. 글을 발행해 공개 목록과 상세에 표시되는지 확인한다.
 4. 이미지를 올려 Markdown에 `/assets/posts/...`가 들어가고 상세 페이지의 HTML이 `R2_PUBLIC_URL`로 시작하는지 확인한다.
+
+dev는 Raven 전용 DB/Auth/REST와 Google OAuth client를 사용하고 기존 Day0와는 외부 Kong 하나만 공유한다. dev client는 `https://dev.raven.kr` origin과 `https://supabase-dev.raven.kr/auth/v1/callback`으로 생성했으며 production과 Day0 client는 변경하지 않았다. `SITE_URL=https://dev.raven.kr`, `SITE_INDEXABLE=false`를 Docker build와 runtime에 전달해 metadata와 Open Graph origin을 dev로 맞추고 `noindex, nofollow`를 확인했다. Raven Auth provider와 database migration을 적용했고 공개 origin에서 Google 로그인, owner 관리자 진입, draft 비공개, 발행 글 공개, local 이미지 업로드와 CDN 변환을 확인했다. 서버 준비와 acceptance는 [`dev-setup.md`](dev-setup.md)를 따른다.
 
 OCI production에서는 표의 runtime 값을 서버 config에 두고 `CONTENT_SOURCE=supabase`로 실행한다. 배포 workflow에는 서버 접속에 필요한 설정만 둔다. 기존 홈서버 workflow를 계속 사용할 경우에는 그 환경의 GitHub secrets와 `CONTENT_SOURCE` variable을 사용한다. `REVALIDATE_SECRET`은 기존 외부 API 호환 웹훅을 사용할 때만 필요하다.
 

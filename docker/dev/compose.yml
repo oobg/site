@@ -1,0 +1,59 @@
+name: raven-dev
+
+services:
+  web:
+    container_name: raven-web-dev
+    image: raven-web-dev:current
+    build:
+      context: ../..
+      dockerfile: docker/dev/Dockerfile
+      args:
+        CONTENT_SOURCE: ${CONTENT_SOURCE:?CONTENT_SOURCE is required}
+        SITE_URL: ${SITE_URL:?SITE_URL is required}
+        SITE_INDEXABLE: ${SITE_INDEXABLE:?SITE_INDEXABLE is required}
+        ASSET_STORAGE_BACKEND: ${ASSET_STORAGE_BACKEND:?ASSET_STORAGE_BACKEND is required}
+        ASSET_PUBLIC_URL: ${ASSET_PUBLIC_URL:?ASSET_PUBLIC_URL is required}
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL:?NEXT_PUBLIC_SUPABASE_URL is required}
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:?NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY is required}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID:?NEXT_PUBLIC_GOOGLE_CLIENT_ID is required}
+    env_file:
+      - path: ${RAVEN_DEV_ENV_FILE:?RAVEN_DEV_ENV_FILE is required}
+        required: true
+    environment:
+      NODE_ENV: production
+      HOSTNAME: 0.0.0.0
+      PORT: "3000"
+      TZ: Asia/Seoul
+    volumes:
+      # The home server runs SELinux Enforcing. `z` gives the app and wsrv a
+      # shared container label while wsrv keeps its own mount read-only.
+      - ${RAVEN_DEV_ASSET_DIR:-/srv/docker/raven-cdn-dev/assets}:/srv/assets:rw,z
+    expose:
+      - "3000"
+    restart: unless-stopped
+    init: true
+    stop_grace_period: 20s
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+      - /app/.next/cache:size=64m,mode=0755
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: [CMD, wget, -qO-, http://127.0.0.1:3000/health]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    networks:
+      - tunnel
+
+networks:
+  tunnel:
+    external: true
+    name: nginx-proxy-manager_default

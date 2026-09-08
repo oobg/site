@@ -264,7 +264,11 @@ export async function renderMarkdown(
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkRehype)
-    .use(resolveAssetPaths, options.assetPublicUrl ?? env.R2_PUBLIC_URL)
+    .use(
+      resolveAssetPaths,
+      options.assetPublicUrl ??
+        (env.ASSET_STORAGE_BACKEND === 'local' ? env.ASSET_PUBLIC_URL : env.R2_PUBLIC_URL),
+    )
     .use(removeUnsafeResourceUrls)
     .use(rehypeSlug)
     .use(collectToc, toc)

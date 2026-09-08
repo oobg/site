@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+docs
+.env
+.env.*
+*.env
+**/.env
+**/.env.*
+**/*.env
+.superpowers
+.raven-release

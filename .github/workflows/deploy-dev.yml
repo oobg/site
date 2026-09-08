@@ -1,0 +1,146 @@
+name: deploy-dev
+
+run-name: "Raven dev 배포 ${{ github.event_name == 'workflow_dispatch' && inputs.sha || github.sha }} by @${{ github.actor }}"
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: dev에 포함된 정확한 40자리 commit SHA
+        required: true
+        type: string
+
+concurrency:
+  group: deploy-dev
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Raven dev home server
+    runs-on: [self-hosted, Linux, X64, raven-dev]
+    timeout-minutes: 60
+    steps:
+      - name: Raven dev 호스트 표식 확인
+        run: |
+          set -euo pipefail
+          marker=/srv/docker/raven-dev/config/DEPLOY_TARGET
+          test -f "$marker" && test ! -L "$marker"
+          test "$(tr -d '\r\n' < "$marker")" = raven-dev
+          test -d /srv/docker/raven-dev/bootstrap
+          test ! -L /srv/docker/raven-dev/bootstrap
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: dev에 포함된 SHA인지 확인
+        id: target
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo '::error::40자리 lowercase commit SHA가 필요합니다.'; exit 1; }
+          git show-ref --verify --quiet refs/remotes/origin/dev \
+            || { echo '::error::checkout에 origin/dev ref가 없습니다.'; exit 1; }
+          git cat-file -e "$TARGET_SHA^{commit}"
+          git merge-base --is-ancestor "$TARGET_SHA" origin/dev \
+            || { echo '::error::대상 SHA는 origin/dev의 조상이 아닙니다.'; exit 1; }
+          echo "sha=$TARGET_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: 검증한 SHA 체크아웃
+        run: git checkout --detach '${{ steps.target.outputs.sha }}'
+
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 9.12.0
+          run_install: false
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: 의존성 설치
+        run: |
+          pnpm config set store-dir "$HOME/.pnpm-store"
+          HUSKY=0 pnpm install --frozen-lockfile
+
+      - name: 코드 검증
+        run: |
+          set +e
+          logs=$(mktemp -d)
+          pnpm typecheck > "$logs/typecheck.log" 2>&1 & typecheck_pid=$!
+          pnpm lint > "$logs/lint.log" 2>&1 & lint_pid=$!
+          pnpm test > "$logs/test.log" 2>&1 & test_pid=$!
+          wait "$typecheck_pid"; typecheck_rc=$?
+          wait "$lint_pid"; lint_rc=$?
+          wait "$test_pid"; test_rc=$?
+          show_log() { echo "::group::$1 (exit $2)"; cat "$3"; echo '::endgroup::'; }
+          show_log typecheck "$typecheck_rc" "$logs/typecheck.log"
+          show_log lint "$lint_rc" "$logs/lint.log"
+          show_log test "$test_rc" "$logs/test.log"
+          test "$typecheck_rc" -eq 0 && test "$lint_rc" -eq 0 && test "$test_rc" -eq 0
+
+      - name: 검증한 snapshot 배포
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
+        run: |
+          set -Eeuo pipefail
+          root=/srv/docker/raven-dev
+          release_dir=''
+          backup=''
+          activated=0
+
+          cleanup() {
+            rc=$?
+            preserve_release=0
+            if [ "$activated" -eq 1 ] && [ -n "$backup" ] && [ -d "$backup" ]; then
+              failed="$release_dir/failed-app"
+              if { [ ! -e "$root/app" ] || mv "$root/app" "$failed"; } && mv "$backup" "$root/app"; then
+                echo '이전 app source를 복구했습니다.'
+              else
+                echo "::error::app source 자동 복구에 실패했습니다. 보존 경로: $release_dir, $backup"
+                preserve_release=1
+                rc=1
+              fi
+            fi
+            if [ "$preserve_release" -eq 0 ]; then
+              case "$release_dir" in
+                "$root/bootstrap/workflow-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-"*) rm -rf -- "$release_dir" ;;
+              esac
+            fi
+            exit "$rc"
+          }
+          trap cleanup EXIT
+
+          test "$(tr -d '\r\n' < "$root/config/DEPLOY_TARGET")" = raven-dev
+          rm -f -- "$GITHUB_WORKSPACE/tsconfig.tsbuildinfo"
+          release_dir=$(mktemp -d "$root/bootstrap/workflow-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-XXXXXX")
+          chmod 700 "$release_dir"
+          python3 deploy/server/dev-source.py prepare "$GITHUB_WORKSPACE" "$release_dir/app"
+          test "$(sed -n 's/^BASE_GIT_SHA=//p' "$release_dir/app/.raven-release")" = "$TARGET_SHA"
+          test "$(sed -n 's/^SOURCE_STATE=//p' "$release_dir/app/.raven-release")" = clean
+          expected=$(sed -n 's/^SOURCE_SHA256=//p' "$release_dir/app/.raven-release")
+          actual=$(python3 "$release_dir/app/deploy/server/dev-source.py" digest "$release_dir/app")
+          test "$actual" = "$expected"
+
+          exec 200>/tmp/raven-dev-deploy.lock
+          flock -w 600 200
+          backup="$root/bootstrap/app-before-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          test ! -e "$backup"
+          test -d "$root/app" && test ! -L "$root/app"
+          mv "$root/app" "$backup"
+          activated=1
+          mv "$release_dir/app" "$root/app"
+          chmod 700 "$root/app"
+
+          RAVEN_DEV_LOCK_HELD=1 bash "$root/app/deploy/server/deploy-dev.sh" "$TARGET_SHA"
+          activated=0
+          rm -rf -- "$backup"
+          backup=''
