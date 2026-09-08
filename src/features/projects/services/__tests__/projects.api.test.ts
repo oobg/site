@@ -96,4 +96,40 @@ describe('projects.api', () => {
     );
     expect(init.next.tags).toEqual(['project:한글-프로젝트']);
   });
+
+  it.each([
+    ['question?draft=1', '/content/projects/question%3Fdraft%3D1'],
+    ['hash#part', '/content/projects/hash%23part'],
+    ['nested/slug', '/content/projects/nested%2Fslug'],
+  ])('api 상세 slug %s를 하나의 path segment로 전달한다', async (slug, pathname) => {
+    vi.stubEnv('CONTENT_SOURCE', 'api');
+    vi.stubEnv('CONTENT_API_BASE', 'https://api.raven.kr');
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ data: { slug }, meta: {} }), { status: 200 }),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+    const { getProject } = await import('@features/projects/services/projects.api');
+
+    await getProject(slug);
+
+    const calledUrl = fetchMock.mock.calls[0][0] as URL;
+    expect(calledUrl.pathname).toBe(pathname);
+    expect(calledUrl.search).toBe('');
+    expect(calledUrl.hash).toBe('');
+  });
+
+  it.each(['.', '..'])('api 상세에서 경로로 정규화되는 slug %s를 404로 보낸다', async (slug) => {
+    vi.stubEnv('CONTENT_SOURCE', 'api');
+    vi.stubEnv('CONTENT_API_BASE', 'https://api.raven.kr');
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const { getProject } = await import('@features/projects/services/projects.api');
+
+    await expect(getProject(slug)).rejects.toMatchObject({
+      digest: 'NEXT_HTTP_ERROR_FALLBACK;404',
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

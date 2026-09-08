@@ -115,7 +115,8 @@ const getPostCached = cache(async (slug: string): Promise<Post> => {
     const row = data as SupabasePostDetailRow;
     return { ...toPostListItem(row), body_markdown: row.body, frontmatter: {} };
   }
-  return apiGet<Post>(`/content/posts/${slug}`, { tags: [`post:${slug}`] });
+  if (slug === '.' || slug === '..') notFound();
+  return apiGet<Post>(`/content/posts/${encodeURIComponent(slug)}`, { tags: [`post:${slug}`] });
 });
 
 /** generateMetadata와 페이지 본문이 같은 글을 요청할 때 한 번만 읽는다. */

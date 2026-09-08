@@ -47,7 +47,10 @@ const getProjectCached = cache(async (slug: string): Promise<Project> => {
     const project = mockProjectDetails[slug];
     return project;
   }
-  return apiGet<Project>(`/content/projects/${slug}`, { tags: [`project:${slug}`] });
+  if (slug === '.' || slug === '..') notFound();
+  return apiGet<Project>(`/content/projects/${encodeURIComponent(slug)}`, {
+    tags: [`project:${slug}`],
+  });
 });
 
 /** generateMetadata와 페이지 본문이 같은 프로젝트를 요청할 때 한 번만 읽는다. */
