@@ -2,6 +2,7 @@
    base.css가 전역에서 리스트를 죽였으므로 읽기 화면에서 되살리는 것도 여기 일이다. */
 /* 크기·행간·색은 읽기 조판 토큰이 정한다. 여기서 직접 적으면 About과 또 갈린다. */
 .prose {
+  padding-top: var(--space-4);
   font-size: var(--reading-size);
   line-height: var(--reading-lh);
   color: var(--reading-color);
@@ -34,7 +35,25 @@
 }
 
 .prose h2 {
+  position: relative;
   font-size: var(--fs-28);
+}
+
+.prose h2::before {
+  content: '';
+  position: absolute;
+  top: 0.15em;
+  bottom: 0.15em;
+  left: calc(-1 * var(--space-5));
+  width: 2px;
+  border-radius: 2px;
+  background: var(--color-accent);
+}
+
+@media (max-width: 640px) {
+  .prose h2::before {
+    left: calc(-1 * var(--space-3));
+  }
 }
 
 .prose h3 {

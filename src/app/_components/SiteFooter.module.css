@@ -15,9 +15,19 @@
 
 /* 진입 인트로가 이 글자를 헤더로 넘기는 안무와 짝을 맞춘다. */
 .wordmark {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   font-size: var(--fs-20);
   font-weight: var(--fw-title);
   letter-spacing: var(--ls-title);
+  transition:
+    color var(--dur) linear,
+    transform var(--dur) var(--ease);
+}
+
+.wordmark:active {
+  transform: scale(0.96);
 }
 
 .tagline {
@@ -41,6 +51,9 @@
 }
 
 .column a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   color: var(--color-text-secondary);
   transition: color var(--dur) var(--ease);
 }
@@ -70,6 +83,12 @@
 }
 
 @media (max-width: 640px) {
+  .top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-7);
+  }
+
   .columns {
     gap: var(--space-7);
   }

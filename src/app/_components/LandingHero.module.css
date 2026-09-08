@@ -1,14 +1,14 @@
 .hero {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.82fr);
+  grid-template-columns: minmax(0, 0.9fr) minmax(340px, 0.78fr);
   align-items: center;
   gap: var(--space-7);
   /* 78vh였을 때 버튼 아래로 300px이 비었다. 히어로가 화면을 채우는 게 아니라 다음 구간을
      접힘선 밖으로 밀어내기만 했다 — 초대형 조판이 화면을 비웠던 것과 같은 일이 여백에서
      난다. 목록 첫 행이 접힘선에 걸치는 높이로 내린다. */
   min-height: 64vh;
-  padding-block: var(--space-8) var(--space-8);
+  padding-block: var(--space-7) var(--space-8);
 }
 
 @media (max-width: 900px) {
@@ -63,29 +63,22 @@
 .copy {
   position: relative;
   z-index: 1;
+  padding-left: var(--space-5);
+  border-left: 1px solid var(--color-border-strong);
 }
 
 .eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
   font-family: var(--font-mono), monospace;
   font-size: var(--fs-12);
-  letter-spacing: 0.14em;
+  letter-spacing: 0.08em;
   color: var(--color-text-muted);
-}
-
-.eyebrow i {
-  width: 18px;
-  height: 1px;
-  background: var(--color-border-strong);
 }
 
 .title {
   margin-top: var(--space-5);
-  font-size: clamp(2.5rem, 6.2vw, 4.75rem);
-  line-height: 1.02;
-  letter-spacing: -0.045em;
+  font-size: clamp(var(--fs-40), 5.2vw, 4.5rem);
+  line-height: 1.04;
+  letter-spacing: -0.042em;
 }
 
 /* 강조는 색이 아니라 광원이 지나간 자국이다. 마크와 같은 그라디언트를 쓴다. */
@@ -113,26 +106,40 @@
 .enter {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
   margin-top: var(--space-6);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--color-border-strong);
-  border-radius: var(--radius-pill);
+  min-height: 44px;
+  padding-inline: var(--space-1);
+  border-bottom: 1px solid var(--color-border-strong);
   font-size: var(--fs-15);
   transition:
     border-color var(--dur) linear,
-    background var(--dur) linear;
-}
-
-.enter span {
-  transition: transform var(--dur) var(--ease);
+    color var(--dur) linear,
+    transform var(--dur) var(--ease);
 }
 
 .enter:hover {
   border-color: var(--color-accent);
-  background: rgb(var(--color-accent-rgb) / 0.09);
+  color: var(--color-accent-hover);
 }
 
-.enter:hover span {
-  transform: translateX(var(--space-1));
+.enter:active {
+  transform: scale(0.96);
+}
+
+.visual {
+  position: relative;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .copy {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: clamp(2.25rem, 12vw, var(--fs-56));
+  }
 }

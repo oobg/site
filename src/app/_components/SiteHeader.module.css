@@ -86,6 +86,9 @@
    레이아웃 박스가 그대로라 옆의 링크 묶음도 밀리지 않는다.
    16px → 15px에 해당하는 배율이 0.9375다. */
 .wordmark {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   font-size: var(--fs-16);
   font-weight: 600;
   letter-spacing: var(--ls-body);
@@ -113,7 +116,27 @@
   white-space: nowrap;
   transition:
     background var(--dur) linear,
-    color var(--dur) linear;
+    color var(--dur) linear,
+    transform var(--dur) var(--ease);
+}
+.links a:active,
+.wordmark:active {
+  transform: scale(0.96);
+}
+
+@media (max-width: 640px) {
+  .pill {
+    padding-left: var(--space-4);
+  }
+
+  .links a {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    padding-inline: var(--space-2);
+    font-size: var(--fs-14);
+  }
 }
 .links a:hover {
   color: var(--color-text);

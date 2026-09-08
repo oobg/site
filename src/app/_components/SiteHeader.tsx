@@ -53,6 +53,7 @@ export function SiteHeader() {
             className={styles.pill}
             onPointerMove={handlePointerMove}
             onPointerLeave={handlePointerLeave}
+            aria-label="주요 내비게이션"
           >
             <Link href={ROUTES.HOME} className={styles.wordmark} data-site-wordmark>
               raven.kr

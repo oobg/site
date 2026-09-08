@@ -12,18 +12,32 @@ export default function BlogLoading() {
     <Container>
       <div aria-busy aria-label="불러오는 중">
         <header className={blog.header}>
-          <Skeleton width="5rem" height="var(--fs-40)" />
+          <Skeleton width="5rem" height="var(--fs-56)" />
         </header>
 
         <nav className={filter.filter} aria-hidden>
-          <Skeleton width="3rem" height="var(--fs-15)" radius="var(--radius)" />
-          <Skeleton width="5rem" height="var(--fs-15)" radius="var(--radius)" />
-          <Skeleton width="4rem" height="var(--fs-15)" radius="var(--radius)" />
+          <Skeleton
+            width="3rem"
+            height="calc(var(--space-7) - var(--space-1))"
+            radius="var(--radius-sm)"
+          />
+          <Skeleton
+            width="5rem"
+            height="calc(var(--space-7) - var(--space-1))"
+            radius="var(--radius-sm)"
+          />
+          <Skeleton
+            width="4rem"
+            height="calc(var(--space-7) - var(--space-1))"
+            radius="var(--radius-sm)"
+          />
         </nav>
 
         {ROWS.map((titleWidth, i) => (
           <article className={row.row} key={i}>
-            <Skeleton width={titleWidth} height="var(--fs-28)" />
+            <div className={row.title}>
+              <Skeleton width={titleWidth} height="var(--fs-30)" />
+            </div>
             <div className={row.summary}>
               <Skeleton width="90%" height="var(--fs-15)" />
             </div>
