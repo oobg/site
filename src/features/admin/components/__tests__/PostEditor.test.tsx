@@ -135,4 +135,20 @@ describe('PostEditor slug editing', () => {
     );
     expect(fetch).not.toHaveBeenCalled();
   });
+
+  it('handles an invalid preview response without crashing', async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response('null', { status: 200, headers: { 'Content-Type': 'application/json' } }),
+    );
+    render(<PostEditor action={action} />);
+
+    fireEvent.change(screen.getByRole('textbox', { name: '본문' }), {
+      target: { value: '본문' },
+    });
+    fireEvent.click(screen.getByRole('tab', { name: '미리보기' }));
+    await act(async () => vi.advanceTimersByTimeAsync(350));
+
+    expect(screen.getByRole('status')).toHaveTextContent('미리보기를 만들지 못했습니다.');
+  });
 });

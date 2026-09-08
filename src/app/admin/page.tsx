@@ -18,13 +18,16 @@ const authMessages: Record<string, string> = {
   'not-configured': '관리자 로그인 환경 변수가 아직 설정되지 않았습니다.',
 };
 
+export const getAuthMessage = (key: string | undefined) =>
+  key && Object.hasOwn(authMessages, key) ? authMessages[key] : undefined;
+
 export default async function AdminPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>;
 }) {
   const [access, query] = await Promise.all([getOwnerAccess(), searchParams]);
-  const authError = query.error ? authMessages[query.error] : undefined;
+  const authError = getAuthMessage(query.error);
 
   if (!access.configured || !access.authenticated) {
     return (

@@ -1,9 +1,21 @@
 'use client';
 
+import { useEffect } from 'react';
+
 import { Button } from '@components/ui/Button';
 import { StatusScreen } from '@/app/_components/StatusScreen';
 
-export default function Error({ reset }: { error: Error; reset: () => void }) {
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    console.error('Route rendering failed', { digest: error.digest });
+  }, [error]);
+
   return (
     <StatusScreen
       code="ERROR"

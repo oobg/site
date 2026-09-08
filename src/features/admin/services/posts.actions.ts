@@ -21,6 +21,13 @@ const failure = (error: unknown): PostActionState => ({
   message: error instanceof OwnerAuthorizationError ? error.message : '요청을 처리하지 못했습니다.',
 });
 
+const logFailure = (operation: string, error: unknown) => {
+  if (error instanceof OwnerAuthorizationError) return;
+  console.error(`${operation} post failed`, {
+    kind: error instanceof Error ? error.name : 'UnknownError',
+  });
+};
+
 function refreshPostPaths(slug?: string) {
   revalidatePath(ROUTES.HOME);
   revalidatePath(ROUTES.BLOG.LIST);
@@ -61,7 +68,7 @@ export async function createPostAction(
     refreshPostPaths(parsed.data.slug);
     return { status: 'success', message: '글을 저장했습니다.', postId: data.id };
   } catch (error) {
-    if (!(error instanceof OwnerAuthorizationError)) console.error('Create post failed', error);
+    logFailure('Create', error);
     return failure(error);
   }
 }
@@ -109,7 +116,7 @@ export async function updatePostAction(
     refreshPostPaths(parsed.data.slug);
     return { status: 'success', message: '글을 수정했습니다.' };
   } catch (error) {
-    if (!(error instanceof OwnerAuthorizationError)) console.error('Update post failed', error);
+    logFailure('Update', error);
     return failure(error);
   }
 }
@@ -134,7 +141,7 @@ export async function deletePostAction(
     refreshPostPaths(data.slug);
     return { status: 'success', message: '글을 삭제했습니다.' };
   } catch (error) {
-    if (!(error instanceof OwnerAuthorizationError)) console.error('Delete post failed', error);
+    logFailure('Delete', error);
     return failure(error);
   }
 }

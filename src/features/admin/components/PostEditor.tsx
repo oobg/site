@@ -19,8 +19,28 @@ type PostDraft = {
   status: PostStatus;
 };
 
-type UploadResponse = { path: string; url: string } | { error: string };
-type PreviewResponse = { html: string } | { error: string };
+const errorMessage = (value: unknown) =>
+  typeof value === 'object' && value !== null && 'error' in value && typeof value.error === 'string'
+    ? value.error
+    : null;
+
+const previewHtmlFrom = (value: unknown) =>
+  typeof value === 'object' && value !== null && 'html' in value && typeof value.html === 'string'
+    ? value.html
+    : null;
+
+const uploadUrlFrom = (value: unknown) => {
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !('url' in value) ||
+    typeof value.url !== 'string'
+  )
+    return null;
+  return /^\/assets\/posts\/[0-9-]+\/[0-9a-f-]+\.(?:jpg|png|gif|webp)$/.test(value.url)
+    ? value.url
+    : null;
+};
 
 function fieldError(state: PostActionState, name: string) {
   return state.fieldErrors?.[name]?.[0];
@@ -51,8 +71,17 @@ export function PostEditor({
   const previewSequenceRef = useRef(0);
   const router = useRouter();
   const [state, formAction, pending] = useActionState(
-    async (previousState: PostActionState, formData: FormData) => {
-      const nextState = await action(previousState, formData);
+    async (previousState: PostActionState, formData: FormData): Promise<PostActionState> => {
+      let nextState: PostActionState;
+      try {
+        nextState = await action(previousState, formData);
+      } catch {
+        const failed: PostActionState = {
+          status: 'error',
+          message: '요청을 처리하지 못했습니다.',
+        };
+        return failed;
+      }
       if (nextState.status === 'success') {
         setDirty(false);
         if (!post && nextState.postId) router.replace(ROUTES.ADMIN.POST(nextState.postId));
@@ -82,12 +111,13 @@ export function PostEditor({
           body: JSON.stringify({ markdown: body }),
           signal: controller.signal,
         });
-        const result = (await response.json()) as PreviewResponse;
+        const result: unknown = await response.json();
         if (controller.signal.aborted || sequence !== previewSequenceRef.current) return;
-        if (!response.ok || 'error' in result) {
-          throw new Error('error' in result ? result.error : '미리보기를 만들지 못했습니다.');
+        const html = previewHtmlFrom(result);
+        if (!response.ok || html === null) {
+          throw new Error(errorMessage(result) ?? '미리보기를 만들지 못했습니다.');
         }
-        setPreviewHtml(result.html);
+        setPreviewHtml(html);
         setPreviewMessage('');
       } catch (error) {
         if (controller.signal.aborted || sequence !== previewSequenceRef.current) return;
@@ -137,9 +167,10 @@ export function PostEditor({
       const payload = new FormData();
       payload.set('file', file);
       const response = await fetch('/api/admin/uploads', { method: 'POST', body: payload });
-      const result = (await response.json()) as UploadResponse;
-      if (!response.ok || 'error' in result) {
-        throw new Error('error' in result ? result.error : '이미지를 업로드하지 못했습니다.');
+      const result: unknown = await response.json();
+      const uploadedUrl = uploadUrlFrom(result);
+      if (!response.ok || uploadedUrl === null) {
+        throw new Error(errorMessage(result) ?? '이미지를 업로드하지 못했습니다.');
       }
 
       const textarea = bodyRef.current;
@@ -152,7 +183,7 @@ export function PostEditor({
           .replace(/[-_]+/g, ' ')
           .replace(/[\[\]()\r\n]/g, '')
           .trim() || '업로드한 이미지';
-      const markdown = `![${alt}](${result.url})`;
+      const markdown = `![${alt}](${uploadedUrl})`;
       const prefix = start > 0 && currentBody[start - 1] !== '\n' ? '\n\n' : '';
       const suffix = end < currentBody.length && currentBody[end] !== '\n' ? '\n\n' : '';
       const next = `${currentBody.slice(0, start)}${prefix}${markdown}${suffix}${currentBody.slice(end)}`;

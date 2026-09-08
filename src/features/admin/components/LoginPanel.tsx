@@ -19,14 +19,8 @@ export function LoginPanel({ configured }: { configured: boolean }) {
           <div>
             <h2 className={styles.heading}>관리자 연결이 필요해요</h2>
             <p className={styles.copy}>
-              Supabase Google 로그인과 콘텐츠 저장소 환경 변수를 설정한 뒤 다시 열어 주세요.
+              관리자에게 로그인과 콘텐츠 저장소 설정을 확인해 달라고 요청해 주세요.
             </p>
-            <code className={styles.code}>
-              NEXT_PUBLIC_SUPABASE_URL{`\n`}NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY{`\n`}
-              NEXT_PUBLIC_GOOGLE_CLIENT_ID{`\n`}CMS_OWNER_EMAILS{`\n`}R2_ACCOUNT_ID /
-              R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY
-              {`\n`}R2_BUCKET / R2_PUBLIC_URL
-            </code>
           </div>
         </div>
       )}

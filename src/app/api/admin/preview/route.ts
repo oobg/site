@@ -42,7 +42,9 @@ export async function POST(request: Request) {
     if (error instanceof SyntaxError) {
       return NextResponse.json({ error: '요청 형식이 올바르지 않습니다.' }, { status: 400 });
     }
-    console.error('Markdown preview failed', error);
+    console.error('Markdown preview failed', {
+      kind: error instanceof Error ? error.name : 'UnknownError',
+    });
     return NextResponse.json({ error: '미리보기를 만들지 못했습니다.' }, { status: 500 });
   }
 }
