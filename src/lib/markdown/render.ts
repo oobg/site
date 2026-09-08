@@ -1,11 +1,13 @@
 import 'server-only';
-import { unified } from 'unified';
+import { unified, type Processor } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
 import rehypeSlug from 'rehype-slug';
 import rehypeStringify from 'rehype-stringify';
 import rehypeShiki from '@shikijs/rehype';
+import { bundledLanguages, type BuiltinLanguage } from 'shiki';
+import { isSpecialLang } from 'shiki/core';
 import { visit } from 'unist-util-visit';
 import type { Root, Element } from 'hast';
 import type { TocEntry } from '@lib/markdown/toc.types';
@@ -50,6 +52,25 @@ function collectCodeLangs(langs: string[]) {
       const found = list.find((name) => name.startsWith('language-'));
       langs.push(found ? found.slice('language-'.length) : '');
     });
+  };
+}
+
+/** 글에 실제로 쓰인 지원 언어 문법만 shiki에 초기화한다. */
+function highlightCodeBlocks(this: Processor, langs: string[]) {
+  return async (tree: Root) => {
+    const supportedLangs = Array.from(
+      new Set(
+        langs.filter((lang): lang is BuiltinLanguage => Object.hasOwn(bundledLanguages, lang)),
+      ),
+    );
+    if (supportedLangs.length === 0 && !langs.some(isSpecialLang)) return;
+
+    const highlight = rehypeShiki.call(this, {
+      theme: 'poimandres',
+      langs: supportedLangs,
+      colorReplacements: { '#1b1e28': 'var(--color-canvas-2)' },
+    }) as (tree: Root) => Root | undefined | Promise<Root | undefined>;
+    await highlight(tree);
   };
 }
 
@@ -277,10 +298,7 @@ export async function renderMarkdown(
     /* 어두운 화면이라 어두운 테마를 쓴다. shiki는 pre에 배경색을 인라인으로 박기
        때문에 CSS로는 덮을 수 없다 — colorReplacements로 테마의 면 색만 우리 토큰에
        넘겨 코드블럭이 페이지와 같은 계조에 앉게 한다. */
-    .use(rehypeShiki, {
-      theme: 'poimandres',
-      colorReplacements: { '#1b1e28': 'var(--color-canvas-2)' },
-    })
+    .use(highlightCodeBlocks, langs)
     .use(frameCodeBlocks, langs)
     .use(rehypeStringify)
     .process(md);

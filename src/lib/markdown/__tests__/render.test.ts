@@ -48,6 +48,38 @@ describe('renderMarkdown', () => {
     const { html } = await renderMarkdown('```\nplain\n```');
     expect(html).toContain('<figure data-code');
     expect(html).toMatch(/data-code-lang=""[^>]*><\/span>/);
+    expect(html).toContain('<pre><code>plain');
+    expect(html).not.toContain('class="shiki');
+  });
+
+  it('언어 별칭과 모르는 언어의 기존 출력을 유지한다', async () => {
+    const alias = await renderMarkdown('```js\nconst x = 1;\n```');
+    const text = await renderMarkdown('```text\nplain\n```');
+    const unknown = await renderMarkdown('```not-a-language\nplain\n```');
+    const inheritedKey = await renderMarkdown('```constructor\nplain\n```');
+
+    expect(alias.html).toContain('class="shiki');
+    expect(alias.html).toContain('data-code-lang="">js</span>');
+    expect(text.html).toContain('class="shiki');
+    expect(text.html).toContain('data-code-lang="">text</span>');
+    expect(unknown.html).toContain('<pre><code class="language-not-a-language">plain');
+    expect(unknown.html).not.toContain('class="shiki');
+    expect(inheritedKey.html).toContain('<pre><code class="language-constructor">plain');
+    expect(inheritedKey.html).not.toContain('class="shiki');
+  });
+
+  it('동시 렌더의 toc와 코드 언어를 서로 섞지 않는다', async () => {
+    const [first, second] = await Promise.all([
+      renderMarkdown('## 첫 번째\n\n```ts\nconst first = 1;\n```'),
+      renderMarkdown('## 두 번째\n\n```js\nconst second = 2;\n```'),
+    ]);
+
+    expect(first.toc).toEqual([{ id: '첫-번째', text: '첫 번째', depth: 2 }]);
+    expect(second.toc).toEqual([{ id: '두-번째', text: '두 번째', depth: 2 }]);
+    expect(first.html).toContain('data-code-lang="">ts</span>');
+    expect(first.html).not.toContain('data-code-lang="">js</span>');
+    expect(second.html).toContain('data-code-lang="">js</span>');
+    expect(second.html).not.toContain('data-code-lang="">ts</span>');
   });
 
   it('h1/h4는 toc에 넣지 않는다', async () => {
