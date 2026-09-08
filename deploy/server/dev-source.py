@@ -111,7 +111,8 @@ def prepare(source: Path, destination: Path) -> None:
         die("source HEAD is not a 40-character Git SHA")
     initial_status = git_output(source, "status", "--porcelain=v1")
     selected_entries = entries(source)
-    included_ignored = any(path not in git_visible_paths(source) for path in selected_entries)
+    visible_paths = git_visible_paths(source)
+    included_ignored = any(path not in visible_paths for path in selected_entries)
     source_state = "dirty" if initial_status or included_ignored else "clean"
     source_sha = fingerprint(source)
 
