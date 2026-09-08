@@ -28,11 +28,24 @@ const logFailure = (operation: string, error: unknown) => {
   });
 };
 
-function refreshPostPaths(slug?: string) {
-  revalidatePath(ROUTES.HOME);
-  revalidatePath(ROUTES.BLOG.LIST);
-  revalidatePath(ROUTES.ADMIN.HOME);
-  if (slug) revalidatePath(ROUTES.BLOG.DETAIL(slug));
+function refreshPostPaths(...slugs: (string | undefined)[]) {
+  const paths = new Set([
+    ROUTES.HOME,
+    ROUTES.BLOG.LIST,
+    ROUTES.ADMIN.HOME,
+    ...slugs.filter((slug): slug is string => Boolean(slug)).map(ROUTES.BLOG.DETAIL),
+  ]);
+
+  for (const path of paths) {
+    try {
+      revalidatePath(path);
+    } catch (error) {
+      console.error('Post cache revalidation failed', {
+        kind: error instanceof Error ? error.name : 'UnknownError',
+        path,
+      });
+    }
+  }
 }
 
 export async function createPostAction(
@@ -112,8 +125,7 @@ export async function updatePostAction(
       };
     }
     if (error) throw error;
-    refreshPostPaths(current.slug);
-    refreshPostPaths(parsed.data.slug);
+    refreshPostPaths(current.slug, parsed.data.slug);
     return { status: 'success', message: '글을 수정했습니다.' };
   } catch (error) {
     logFailure('Update', error);

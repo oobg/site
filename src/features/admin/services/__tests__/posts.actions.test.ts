@@ -80,6 +80,32 @@ describe('post actions', () => {
     );
   });
 
+  it('keeps a successful create result and continues refreshing when one path fails', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    mocks.revalidatePath.mockImplementationOnce(() => {
+      throw new Error('cache unavailable');
+    });
+    const single = vi.fn().mockResolvedValue({ data: { id: 'post-id' }, error: null });
+    const insert = vi.fn().mockReturnValue({ select: () => ({ single }) });
+    mocks.createClient.mockResolvedValue({ from: vi.fn().mockReturnValue({ insert }) });
+
+    await expect(createPostAction(previous, form())).resolves.toMatchObject({
+      status: 'success',
+      postId: 'post-id',
+    });
+    expect(mocks.revalidatePath.mock.calls.map(([path]) => path)).toEqual([
+      '/',
+      '/blog',
+      '/admin',
+      '/blog/post-slug',
+    ]);
+    expect(log).toHaveBeenCalledWith('Post cache revalidation failed', {
+      kind: 'Error',
+      path: '/',
+    });
+    log.mockRestore();
+  });
+
   it('returns a safe message when storage fails', async () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     mocks.createClient.mockRejectedValue(new Error('database secret detail'));
@@ -154,6 +180,50 @@ describe('post actions', () => {
 
     await expect(deletePostAction(previous, data)).resolves.toMatchObject({ status: 'success' });
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/blog/deleted-post');
+  });
+
+  it('deduplicates update paths and keeps success when cache revalidation fails', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    mocks.revalidatePath.mockImplementationOnce(() => {
+      throw new Error('cache unavailable');
+    });
+    const readSingle = vi.fn().mockResolvedValue({
+      data: { slug: 'post-slug', status: 'draft', published_at: null },
+      error: null,
+    });
+    const update = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+    const table = {
+      select: vi.fn().mockReturnValue({ eq: () => ({ single: readSingle }) }),
+      update,
+    };
+    mocks.createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(table) });
+    const data = form();
+    data.set('id', '8e10a748-fd28-41a0-9f3d-8b81fc40c753');
+
+    await expect(updatePostAction(previous, data)).resolves.toMatchObject({ status: 'success' });
+    expect(mocks.revalidatePath.mock.calls.map(([path]) => path)).toEqual([
+      '/',
+      '/blog',
+      '/admin',
+      '/blog/post-slug',
+    ]);
+    log.mockRestore();
+  });
+
+  it('keeps a successful delete result when cache revalidation fails', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    mocks.revalidatePath.mockImplementationOnce(() => {
+      throw new Error('cache unavailable');
+    });
+    const single = vi.fn().mockResolvedValue({ data: { slug: 'deleted-post' }, error: null });
+    const remove = vi.fn().mockReturnValue({ eq: () => ({ select: () => ({ single }) }) });
+    mocks.createClient.mockResolvedValue({ from: vi.fn().mockReturnValue({ delete: remove }) });
+    const data = new FormData();
+    data.set('id', '8e10a748-fd28-41a0-9f3d-8b81fc40c753');
+
+    await expect(deletePostAction(previous, data)).resolves.toMatchObject({ status: 'success' });
+    expect(mocks.revalidatePath).toHaveBeenCalledTimes(4);
+    log.mockRestore();
   });
 
   it.each(['update', 'delete'] as const)(
