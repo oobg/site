@@ -95,4 +95,4 @@ production 앱이 읽는 키는 [`cms-setup.md`](cms-setup.md)와 [`deploy/env.p
 
 dev 설치와 검증 순서는 [`dev-setup.md`](dev-setup.md)를 따른다. 실제 secret 값은 문서에 기록하지 않는다.
 
-`SITE_INDEXABLE`은 검색 허용 여부를 명시하며 hostname 추론에 의존하지 않는다. `ASSET_STORAGE_BACKEND=r2`는 production R2 설정을, `local`은 dev local volume 설정을 선택한다. Supabase URL과 publishable key, Google client ID와 server-side provider secret도 각 배포 환경의 값을 사용한다. 이 same-code 환경 계약과 dev 배포 gate는 129개 test와 실제 서버 acceptance를 통과했다. 최신 dev 앱은 dirty snapshot digest `d57de14f186eb41fc85d9324c07f2b749266a43d233895260570a94fd937c1fc`의 `snapshot-d57de14f186eb41f` 이미지다. dev workflow는 로컬에 작성했으며 commit·push하지 않았다.
+`SITE_INDEXABLE`은 검색 허용 여부를 명시하며 hostname 추론에 의존하지 않는다. `ASSET_STORAGE_BACKEND=r2`는 production R2 설정을, `local`은 dev local volume 설정을 선택한다. Supabase URL과 publishable key, Google client ID와 server-side provider secret도 각 배포 환경의 값을 사용한다. 2026-09-07 acceptance 당시 이 same-code 환경 계약과 dev 배포 gate는 129개 test와 실제 서버 검증을 통과했다. 당시 검증한 dev 앱은 dirty snapshot digest `d57de14f186eb41fc85d9324c07f2b749266a43d233895260570a94fd937c1fc`의 `snapshot-d57de14f186eb41f` 이미지다. dev workflow는 원격에서 활성화되어 `dev` push와 수동 SHA 배포에 적용된다.

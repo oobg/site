@@ -71,21 +71,21 @@ jobs:
           pnpm config set store-dir "$HOME/.pnpm-store"
           HUSKY=0 pnpm install --frozen-lockfile
 
-      - name: 코드 검증
+      - name: 테스트
+        run: pnpm test
+
+      - name: 정적 검증
         run: |
           set +e
           logs=$(mktemp -d)
           pnpm typecheck > "$logs/typecheck.log" 2>&1 & typecheck_pid=$!
           pnpm lint > "$logs/lint.log" 2>&1 & lint_pid=$!
-          pnpm test > "$logs/test.log" 2>&1 & test_pid=$!
           wait "$typecheck_pid"; typecheck_rc=$?
           wait "$lint_pid"; lint_rc=$?
-          wait "$test_pid"; test_rc=$?
           show_log() { echo "::group::$1 (exit $2)"; cat "$3"; echo '::endgroup::'; }
           show_log typecheck "$typecheck_rc" "$logs/typecheck.log"
           show_log lint "$lint_rc" "$logs/lint.log"
-          show_log test "$test_rc" "$logs/test.log"
-          test "$typecheck_rc" -eq 0 && test "$lint_rc" -eq 0 && test "$test_rc" -eq 0
+          test "$typecheck_rc" -eq 0 && test "$lint_rc" -eq 0
 
       - name: 검증한 snapshot 배포
         env:

@@ -65,7 +65,7 @@ dev 공개 전에는 Raven 전용 database 초기화와 migration/RLS, Auth prov
 
 공개 acceptance에서 Google GIS부터 GoTrue 교환과 owner 관리자 진입까지 확인했다. 고유 draft는 공개 목록에 노출되지 않았고 발행 뒤 상세 title과 body가 표시됐다. local PNG 업로드는 `/assets/posts/...` Markdown을 만들었고 CDN WebP 폭 변환도 성공했다. 테스트 row와 원본 asset을 정확히 삭제한 뒤 공개 상세와 cache-bust CDN 요청이 모두 404임을 확인했다. Day0 공개 Supabase origin도 기존 no-key 응답에 도달한다.
 
-dev에서 검증한 애플리케이션 변경은 main에 정상 병합해 같은 코드를 배포한다. production은 `SITE_URL=https://raven.kr`, `SITE_INDEXABLE=true`, `ASSET_STORAGE_BACKEND=r2`와 production Supabase·Google·R2 설정을 사용한다. dev는 `SITE_URL=https://dev.raven.kr`, `SITE_INDEXABLE=false`, `ASSET_STORAGE_BACKEND=local`과 Raven dev 전용 Supabase·Google 설정을 사용한다. dev 배포 marker와 origin 검사는 잘못된 target에 배포하지 않기 위한 별도 안전장치다. `.github/workflows/deploy-dev.yml`은 `dev` push와 수동 SHA 배포용으로 로컬에 작성하고 검증했지만 commit·push하지 않았다.
+dev에서 검증한 애플리케이션 변경은 main에 정상 병합해 같은 코드를 배포한다. production은 `SITE_URL=https://raven.kr`, `SITE_INDEXABLE=true`, `ASSET_STORAGE_BACKEND=r2`와 production Supabase·Google·R2 설정을 사용한다. dev는 `SITE_URL=https://dev.raven.kr`, `SITE_INDEXABLE=false`, `ASSET_STORAGE_BACKEND=local`과 Raven dev 전용 Supabase·Google 설정을 사용한다. dev 배포 marker와 origin 검사는 잘못된 target에 배포하지 않기 위한 별도 안전장치다. 원격의 `.github/workflows/deploy-dev.yml`은 `dev` push와 수동 SHA 배포를 받으며 test, typecheck, lint를 통과한 snapshot만 홈서버에 배포한다.
 
 ## 현재 홈서버 배포
 
