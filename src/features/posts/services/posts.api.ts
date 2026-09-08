@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import { notFound } from 'next/navigation';
 import { env } from '@configs/env';
 import { apiGet } from '@lib/api/http';
@@ -6,6 +7,7 @@ import type { ContentListItem, ListParams } from '@lib/api/contract.types';
 import type { Post } from '@features/posts/types/posts.types';
 import { mockPostDetails, mockPostList } from '@features/posts/fixtures/posts.mock';
 import { createPublicClient } from '@lib/supabase/public';
+import { sortContentItems } from '@lib/content/sort';
 
 interface SupabasePostRow {
   title: string;
@@ -38,22 +40,12 @@ function toPostListItem(row: SupabasePostRow): ContentListItem {
   };
 }
 
-function sortItems(items: ContentListItem[], sort: string): ContentListItem[] {
-  const desc = sort.startsWith('-');
-  const key = (desc ? sort.slice(1) : sort) as keyof ContentListItem;
-  return [...items].sort((a, b) => {
-    const av = String(a[key] ?? '');
-    const bv = String(b[key] ?? '');
-    return desc ? bv.localeCompare(av) : av.localeCompare(bv);
-  });
-}
-
-export async function getPosts(params: ListParams = {}): Promise<ContentListItem[]> {
+async function fetchPosts(params: ListParams): Promise<ContentListItem[]> {
   if (env.CONTENT_SOURCE === 'mock') {
     const filtered = params.tag
       ? mockPostList.filter((p) => p.tags.includes(params.tag!))
       : mockPostList;
-    const sorted = sortItems(filtered, params.sort ?? '-published_at');
+    const sorted = sortContentItems(filtered, params.sort ?? '-published_at');
     return typeof params.limit === 'number' ? sorted.slice(0, params.limit) : sorted;
   }
   if (env.CONTENT_SOURCE === 'supabase') {
@@ -89,10 +81,24 @@ export async function getPosts(params: ListParams = {}): Promise<ContentListItem
   });
 }
 
-export async function getPost(slug: string): Promise<Post> {
+const getPostsCached = cache(
+  (
+    tag: string | undefined,
+    page: number | undefined,
+    limit: number | undefined,
+    sort: ListParams['sort'],
+  ) => fetchPosts({ tag, page, limit, sort }),
+);
+
+/** 같은 서버 렌더 안의 동일한 목록 요청을 하나로 합친다. */
+export function getPosts(params: ListParams = {}): Promise<ContentListItem[]> {
+  return getPostsCached(params.tag, params.page, params.limit, params.sort ?? '-published_at');
+}
+
+const getPostCached = cache(async (slug: string): Promise<Post> => {
   if (env.CONTENT_SOURCE === 'mock') {
+    if (!Object.hasOwn(mockPostDetails, slug)) notFound();
     const post = mockPostDetails[slug];
-    if (!post) notFound();
     return post;
   }
   if (env.CONTENT_SOURCE === 'supabase') {
@@ -110,4 +116,9 @@ export async function getPost(slug: string): Promise<Post> {
     return { ...toPostListItem(row), body_markdown: row.body, frontmatter: {} };
   }
   return apiGet<Post>(`/content/posts/${slug}`, { tags: [`post:${slug}`] });
+});
+
+/** generateMetadata와 페이지 본문이 같은 글을 요청할 때 한 번만 읽는다. */
+export function getPost(slug: string): Promise<Post> {
+  return getPostCached(slug);
 }

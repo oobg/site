@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 describe('posts.api', () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.doUnmock('@lib/supabase/public');
     vi.unstubAllEnvs();
     vi.resetModules();
   });
@@ -30,6 +31,14 @@ describe('posts.api', () => {
     const { getPosts } = await import('@features/posts/services/posts.api');
     const posts = await getPosts();
     expect(posts[0].slug).toBe('rsc-우선-데이터-패칭');
+  });
+
+  it('mock 상세 조회는 객체 프로토타입 이름을 글로 취급하지 않는다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'mock');
+    const { getPost } = await import('@features/posts/services/posts.api');
+    await expect(getPost('__proto__')).rejects.toMatchObject({
+      digest: 'NEXT_HTTP_ERROR_FALLBACK;404',
+    });
   });
 
   it('api 소스에서 envelope의 data를 언랩한다', async () => {
@@ -136,5 +145,58 @@ describe('posts.api', () => {
         body_markdown: '본문',
       }),
     );
+  });
+
+  it('supabase 태그 필터는 스키마에 태그가 없어 조회하지 않고 빈 목록을 반환한다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'supabase');
+    const from = vi.fn();
+    vi.doMock('@lib/supabase/public', () => ({ createPublicClient: () => ({ from }) }));
+    const { getPosts } = await import('@features/posts/services/posts.api');
+    await expect(getPosts({ tag: 'nextjs' })).resolves.toEqual([]);
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it('supabase 목록의 빈 결과를 빈 배열로 정규화한다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'supabase');
+    const order = vi.fn().mockResolvedValue({ data: null, error: null });
+    const statusEq = vi.fn(() => ({ order }));
+    const from = vi.fn(() => ({ select: () => ({ eq: statusEq }) }));
+    vi.doMock('@lib/supabase/public', () => ({ createPublicClient: () => ({ from }) }));
+    const { getPosts } = await import('@features/posts/services/posts.api');
+    await expect(getPosts()).resolves.toEqual([]);
+    expect(order).toHaveBeenCalledWith('published_at', { ascending: false, nullsFirst: false });
+  });
+
+  it('supabase 목록 오류를 공개 서비스 문맥이 있는 오류로 바꾼다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'supabase');
+    const order = vi.fn().mockResolvedValue({ data: null, error: { message: 'db unavailable' } });
+    const from = vi.fn(() => ({ select: () => ({ eq: () => ({ order }) }) }));
+    vi.doMock('@lib/supabase/public', () => ({ createPublicClient: () => ({ from }) }));
+    const { getPosts } = await import('@features/posts/services/posts.api');
+    await expect(getPosts()).rejects.toThrow('공개 글 목록을 불러오지 못했습니다: db unavailable');
+  });
+
+  it('supabase 상세 오류를 공개 서비스 문맥이 있는 오류로 바꾼다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'supabase');
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: { message: 'timeout' } });
+    const from = vi.fn(() => ({
+      select: () => ({ eq: () => ({ eq: () => ({ maybeSingle }) }) }),
+    }));
+    vi.doMock('@lib/supabase/public', () => ({ createPublicClient: () => ({ from }) }));
+    const { getPost } = await import('@features/posts/services/posts.api');
+    await expect(getPost('missing')).rejects.toThrow('공개 글을 불러오지 못했습니다: timeout');
+  });
+
+  it('supabase에 공개 상세가 없으면 notFound로 보낸다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'supabase');
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+    const from = vi.fn(() => ({
+      select: () => ({ eq: () => ({ eq: () => ({ maybeSingle }) }) }),
+    }));
+    vi.doMock('@lib/supabase/public', () => ({ createPublicClient: () => ({ from }) }));
+    const { getPost } = await import('@features/posts/services/posts.api');
+    await expect(getPost('missing')).rejects.toMatchObject({
+      digest: 'NEXT_HTTP_ERROR_FALLBACK;404',
+    });
   });
 });

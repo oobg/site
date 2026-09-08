@@ -21,8 +21,9 @@ export default async function BlogListPage({
   searchParams: Promise<{ tag?: string }>;
 }) {
   const { tag } = await searchParams;
-  const all = await getPosts();
-  const posts = tag ? await getPosts({ tag }) : all;
+  const [all, posts] = tag
+    ? await Promise.all([getPosts(), getPosts({ tag })])
+    : await getPosts().then((items) => [items, items]);
   const tags = [...new Set(all.flatMap((p) => p.tags))].sort();
 
   return (
