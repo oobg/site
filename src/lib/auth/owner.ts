@@ -31,10 +31,7 @@ export async function getOwnerAccess(): Promise<OwnerAccess> {
     const { data, error } = await supabase.auth.getUser();
     const email = data.user?.email?.trim().toLowerCase() ?? null;
     const isVerifiedGoogleUser =
-      Boolean(data.user?.email_confirmed_at) &&
-      (data.user?.app_metadata.provider === 'google' ||
-        (Array.isArray(data.user?.app_metadata.providers) &&
-          data.user.app_metadata.providers.includes('google')));
+      Boolean(data.user?.email_confirmed_at) && data.user?.app_metadata.provider === 'google';
 
     if (error || !email || !isVerifiedGoogleUser) {
       return { configured: true, authenticated: false, authorized: false, email: null };

@@ -132,13 +132,30 @@ describe('owner authorization', () => {
     await expect(requireOwner()).rejects.toMatchObject({ status: 403 });
   });
 
-  it('accepts Google in the providers array', async () => {
+  it('does not treat a linked Google identity as the primary Google provider', async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: true, error: null });
     mocks.createClient.mockResolvedValue(
       userClient(
         {
           email: 'owner@example.com',
           email_confirmed_at: 'now',
           app_metadata: { provider: 'email', providers: ['email', 'google'] },
+        },
+        null,
+        rpc,
+      ),
+    );
+    await expect(requireOwner()).rejects.toMatchObject({ status: 401 });
+    expect(rpc).not.toHaveBeenCalled();
+  });
+
+  it('accepts the primary Google provider when the providers list is also present', async () => {
+    mocks.createClient.mockResolvedValue(
+      userClient(
+        {
+          email: 'owner@example.com',
+          email_confirmed_at: 'now',
+          app_metadata: { provider: 'google', providers: ['email', 'google'] },
         },
         null,
         vi.fn().mockResolvedValue({ data: true, error: null }),
