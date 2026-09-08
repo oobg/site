@@ -1,5 +1,5 @@
 import { beforeEach, describe, it, expect, vi } from 'vitest';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { RecentPosts } from '@/app/_components/RecentPosts';
 import type { PostListItem } from '@features/posts/types/posts.types';
 
@@ -68,16 +68,49 @@ describe('RecentPosts', () => {
     expect(container.querySelector('li')).toHaveAttribute('data-read');
   });
 
-  it('j/k와 방향키로 목록을 벗어나지 않고 이동한다', () => {
+  it('j/k는 전역에서, 방향키는 목록에 포커스가 있을 때만 이동한다', () => {
     const { container } = render(
       <RecentPosts posts={[makePost('a', '첫 글'), makePost('b', '둘째 글')]} />,
     );
+    const rows = container.querySelectorAll('li');
+    const scrollTarget = document.body;
+    scrollTarget.focus();
+    const outsideArrow = new KeyboardEvent('keydown', {
+      key: 'ArrowDown',
+      bubbles: true,
+      cancelable: true,
+    });
+    window.dispatchEvent(outsideArrow);
+    expect(outsideArrow.defaultPrevented).toBe(false);
+    expect(rows[0]).not.toHaveFocus();
+
     fireEvent.keyDown(window, { key: 'j' });
     fireEvent.keyDown(window, { key: 'ArrowDown' });
     fireEvent.keyDown(window, { key: 'ArrowDown' });
-    expect(container.querySelectorAll('li')[1]).toHaveFocus();
+    expect(rows[1]).toHaveFocus();
     fireEvent.keyDown(window, { key: 'k' });
+    expect(rows[0]).toHaveFocus();
+  });
+
+  it('링크를 Tab으로 포커스해도 방향키 이동 상태를 맞춘다', () => {
+    const { container } = render(
+      <RecentPosts posts={[makePost('a', '첫 글'), makePost('b', '둘째 글')]} />,
+    );
+    act(() => screen.getByRole('link', { name: '둘째 글' }).focus());
+    fireEvent.keyDown(window, { key: 'ArrowUp' });
     expect(container.querySelectorAll('li')[0]).toHaveFocus();
+  });
+
+  it('빠르게 연속 이동해도 DOM 포커스를 기준으로 한 행씩 이동한다', () => {
+    const { container } = render(
+      <RecentPosts
+        posts={[makePost('a', '첫 글'), makePost('b', '둘째 글'), makePost('c', '셋째 글')]}
+      />,
+    );
+    fireEvent.keyDown(window, { key: 'j' });
+    fireEvent.keyDown(window, { key: 'j' });
+    fireEvent.keyDown(window, { key: 'j' });
+    expect(container.querySelectorAll('li')[2]).toHaveFocus();
   });
 
   it('목록을 떠난 뒤 Enter는 이전 활성 글을 열지 않는다', () => {

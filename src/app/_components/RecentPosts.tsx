@@ -85,17 +85,22 @@ export function RecentPosts({ posts }: { posts: PostListItem[] }) {
       ) {
         return;
       }
+      const rows = listRef.current?.querySelectorAll('li');
+      const focusedRow =
+        document.activeElement instanceof Element ? document.activeElement.closest('li') : null;
+      const focusedIndex = rows && focusedRow ? Array.from(rows).indexOf(focusedRow) : -1;
       const move = (delta: number) => {
         event.preventDefault();
-        setActive((prev) => {
-          const next = Math.max(0, Math.min(posts.length - 1, prev + delta));
-          listRef.current?.querySelectorAll('li')[next]?.focus();
-          return next;
-        });
+        const current = focusedIndex >= 0 ? focusedIndex : active;
+        const next = Math.max(0, Math.min(posts.length - 1, current + delta));
+        rows?.[next]?.focus();
+        setActive(next);
       };
-      if (event.key === 'j' || event.key === 'ArrowDown') move(1);
-      else if (event.key === 'k' || event.key === 'ArrowUp') move(active <= 0 ? 0 : -1);
-      else if (
+      const focusIsInList = listRef.current?.contains(document.activeElement) ?? false;
+      if (event.key === 'j' || (event.key === 'ArrowDown' && focusIsInList)) move(1);
+      else if (event.key === 'k' || (event.key === 'ArrowUp' && focusIsInList)) {
+        move(-1);
+      } else if (
         event.key === 'Enter' &&
         active >= 0 &&
         listRef.current?.querySelectorAll('li')[active] === document.activeElement
@@ -123,6 +128,10 @@ export function RecentPosts({ posts }: { posts: PostListItem[] }) {
             className={index === active ? `${styles.row} ${styles.active}` : styles.row}
             data-read={read.has(post.slug) || undefined}
             tabIndex={-1}
+            onFocus={() => setActive(index)}
+            onBlur={(event) => {
+              if (!event.currentTarget.parentElement?.contains(event.relatedTarget)) setActive(-1);
+            }}
           >
             <time className={styles.when} dateTime={post.published_at}>
               {post.published_at.slice(5, 10)}
