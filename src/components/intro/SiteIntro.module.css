@@ -33,9 +33,11 @@
 .wordmark {
   position: relative;
   display: inline-block;
-  font-family: var(--font-mono), monospace;
+  font-family: var(--d0-font);
   font-size: var(--fs-40);
-  line-height: 1;
+  font-weight: 700;
+  line-height: var(--lh-body);
+  letter-spacing: var(--d0-tracking-title);
   white-space: nowrap;
   transform-origin: top left;
   will-change: transform;

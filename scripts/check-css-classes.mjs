@@ -26,9 +26,7 @@ for (const file of tsxFiles) {
 
   /* 한 파일이 CSS 모듈을 여러 개 들여올 수 있다(로딩 화면이 그렇다).
      첫 하나만 보면 나머지는 조용히 검사 밖으로 빠진다. */
-  const imports = [
-    ...source.matchAll(/import\s+(\w+)\s+from\s+['"]([^'"]*\.module\.css)['"]/g),
-  ];
+  const imports = [...source.matchAll(/import\s+(\w+)\s+from\s+['"]([^'"]*\.module\.css)['"]/g)];
   if (imports.length === 0) continue;
 
   /* 사용처를 찾기 전에 import 줄을 걷어낸다. 그러지 않으면 경로 문자열
@@ -43,7 +41,13 @@ for (const file of tsxFiles) {
 function checkOne(file, source, binding, relative) {
   const cssPath = relative.startsWith('.')
     ? resolve(dirname(file), relative)
-    : resolve(SRC, relative.replace(/^@features\//, 'features/').replace(/^@components\//, 'components/'));
+    : resolve(
+        SRC,
+        relative
+          .replace(/^@\//, '')
+          .replace(/^@features\//, 'features/')
+          .replace(/^@components\//, 'components/'),
+      );
 
   let css;
   try {
@@ -55,9 +59,7 @@ function checkOne(file, source, binding, relative) {
 
   // 주석을 걷어내고 클래스 선택자만 모은다.
   const stripped = css.replace(/\/\*[\s\S]*?\*\//g, '');
-  const defined = new Set(
-    [...stripped.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map((m) => m[1]),
-  );
+  const defined = new Set([...stripped.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map((m) => m[1]));
 
   if (defined.size === 0) {
     skipped += 1;

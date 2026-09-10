@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Button } from '@components/ui/Button';
 import { FeaturedCarousel } from '@/app/_components/FeaturedCarousel';
 import { BlogShell } from '@/app/_components/BlogShell';
+import { BlogArchiveContentSkeleton } from '@/app/_components/BlogLoadingSkeleton';
 import { PostCard } from '@features/posts/components/PostCard';
 import { useBlogPosts } from '@features/posts/services/use-blog-posts';
 import type { BlogHomeData, BlogPostFilters } from '@features/posts/types/posts.types';
@@ -173,9 +174,7 @@ export function BlogHomeContainer({
                 <Button onClick={() => result.refetch()}>다시 시도</Button>
               </div>
             ) : !data ? (
-              <div className={styles.state} aria-live="polite">
-                <p>글을 불러오고 있어요.</p>
-              </div>
+              <BlogArchiveContentSkeleton showHeading={false} />
             ) : data.archive.items.length === 0 ? (
               <div className={styles.state}>
                 <p>

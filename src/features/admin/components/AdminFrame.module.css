@@ -2,6 +2,40 @@
   padding-block: var(--space-8) var(--space-9);
 }
 
+.frame[data-compact] {
+  position: relative;
+  padding-block: var(--space-4) var(--space-7);
+}
+
+.frame[data-compact] .header {
+  align-items: center;
+  min-height: var(--d0-control-lg);
+  padding: 0 140px var(--space-2) 0;
+}
+
+.frame[data-compact] .kicker {
+  display: none;
+}
+
+.frame[data-compact] .title {
+  font-size: 24px;
+}
+
+.frame[data-compact] .description {
+  display: none;
+}
+
+.frame[data-compact] .session {
+  position: absolute;
+  top: var(--space-4);
+  right: 0;
+  min-height: var(--d0-control-sm);
+}
+
+.frame[data-compact] .session > span {
+  display: none;
+}
+
 .header {
   display: flex;
   align-items: flex-end;
@@ -88,5 +122,29 @@
 
   .session {
     justify-content: space-between;
+  }
+
+  .frame[data-compact] {
+    padding-block: var(--space-3) var(--space-6);
+  }
+
+  .frame[data-compact] .header {
+    align-items: center;
+    flex-direction: row;
+    min-height: var(--d0-control-md);
+    padding: 0 104px var(--space-2) 0;
+  }
+
+  .frame[data-compact] .title {
+    font-size: 20px;
+  }
+
+  .frame[data-compact] .headerActions,
+  .frame[data-compact] .headerActions > * {
+    width: auto;
+  }
+
+  .frame[data-compact] .session {
+    top: var(--space-3);
   }
 }

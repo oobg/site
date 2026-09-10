@@ -11,6 +11,7 @@ import type { PostActionState, PostStatus } from '@features/admin/types/posts-ad
 import type { BlogCategory } from '@features/posts/types/posts.types';
 import { initialPostActionState } from '@features/admin/types/posts-admin.types';
 import styles from './PostEditor.module.css';
+import { useAdminNavigationGuard } from './AdminNavigationProvider';
 
 type PostDraft = {
   id?: string;
@@ -87,12 +88,16 @@ export function PostEditor({
   const [previewMessage, setPreviewMessage] = useState('미리보기를 준비하고 있어요.');
   const [editorTab, setEditorTab] = useState<'write' | 'preview'>('write');
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
   const bodyValueRef = useRef(body);
   const previewSequenceRef = useRef(0);
+  const editRevisionRef = useRef(0);
   const router = useRouter();
   const queryClient = useQueryClient();
+  useAdminNavigationGuard(dirty);
   const [state, formAction, pending] = useActionState(
     async (previousState: PostActionState, formData: FormData): Promise<PostActionState> => {
+      const savedRevision = editRevisionRef.current;
       let nextState: PostActionState;
       try {
         nextState = await action(previousState, formData);
@@ -104,10 +109,21 @@ export function PostEditor({
         return failed;
       }
       if (nextState.status === 'success') {
-        setDirty(false);
-        await queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
-        await queryClient.invalidateQueries({ queryKey: ['post'] });
-        if (!post && nextState.postId) router.replace(ROUTES.ADMIN.POST(nextState.postId));
+        setDirty(editRevisionRef.current !== savedRevision);
+        try {
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['blog-posts'] }),
+            queryClient.invalidateQueries({ queryKey: ['post'] }),
+          ]);
+        } catch {
+          nextState = {
+            ...nextState,
+            message: `${nextState.message} 화면의 최신 목록은 새로고침하면 확인할 수 있어요.`,
+          };
+        }
+        if (!post && nextState.postId && editRevisionRef.current === savedRevision) {
+          router.replace(ROUTES.ADMIN.POST(nextState.postId));
+        }
       }
       return nextState;
     },
@@ -117,6 +133,10 @@ export function PostEditor({
   useEffect(() => {
     bodyValueRef.current = body;
   }, [body]);
+
+  useEffect(() => {
+    titleRef.current?.focus();
+  }, [post?.id]);
 
   useEffect(() => {
     const sequence = ++previewSequenceRef.current;
@@ -153,28 +173,6 @@ export function PostEditor({
       controller.abort();
     };
   }, [body, editorTab]);
-
-  useEffect(() => {
-    const warn = (event: BeforeUnloadEvent) => {
-      if (!dirty) return;
-      event.preventDefault();
-    };
-    const warnLink = (event: MouseEvent) => {
-      if (!dirty || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey)
-        return;
-      const target = event.target;
-      const link = target instanceof Element ? target.closest('a[href]') : null;
-      if (!link || window.confirm('저장하지 않은 변경이 있어요. 이 페이지를 나갈까요?')) return;
-      event.preventDefault();
-      event.stopPropagation();
-    };
-    window.addEventListener('beforeunload', warn);
-    document.addEventListener('click', warnLink, true);
-    return () => {
-      window.removeEventListener('beforeunload', warn);
-      document.removeEventListener('click', warnLink, true);
-    };
-  }, [dirty]);
 
   async function upload(file: File) {
     if (!file.type.startsWith('image/')) {
@@ -255,6 +253,23 @@ export function PostEditor({
     }
   }
 
+  function wrapSelection(prefix: string, suffix = prefix, fallback = '텍스트') {
+    const textarea = bodyRef.current;
+    if (!textarea) return;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selected = body.slice(start, end) || fallback;
+    const next = `${body.slice(0, start)}${prefix}${selected}${suffix}${body.slice(end)}`;
+    bodyValueRef.current = next;
+    setBody(next);
+    editRevisionRef.current += 1;
+    setDirty(true);
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+    });
+  }
+
   const busy = pending || uploading;
   const visiblePreviewMessage = body.trim()
     ? previewMessage
@@ -263,18 +278,24 @@ export function PostEditor({
   return (
     <form
       action={formAction}
+      aria-busy={pending}
       className={styles.form}
-      onChange={() => setDirty(true)}
+      inert={pending ? true : undefined}
+      onChange={() => {
+        editRevisionRef.current += 1;
+        setDirty(true);
+      }}
       onSubmit={(event) => {
         if (uploading) event.preventDefault();
       }}
     >
       {post?.id ? <input type="hidden" name="id" value={post.id} /> : null}
-      <div className={styles.fields}>
+      <div className={styles.mainFields}>
         <h2 className={styles.groupHeading}>기본 정보</h2>
-        <label className={styles.field}>
+        <label className={`${styles.field} ${styles.titleField}`}>
           <span>제목</span>
           <input
+            ref={titleRef}
             aria-describedby={fieldError(state, 'title') ? 'title-error' : undefined}
             aria-invalid={Boolean(fieldError(state, 'title'))}
             name="title"
@@ -290,6 +311,213 @@ export function PostEditor({
           {fieldError(state, 'title') ? (
             <small id="title-error">{fieldError(state, 'title')}</small>
           ) : null}
+        </label>
+
+        <label className={`${styles.field} ${styles.wide}`}>
+          <span>설명</span>
+          <textarea
+            aria-describedby={fieldError(state, 'description') ? 'description-error' : undefined}
+            aria-invalid={Boolean(fieldError(state, 'description'))}
+            name="description"
+            value={description}
+            onChange={(event) => setDescription(event.target.value)}
+            rows={3}
+            required
+          />
+          {fieldError(state, 'description') ? (
+            <small id="description-error">{fieldError(state, 'description')}</small>
+          ) : null}
+        </label>
+      </div>
+
+      <div className={styles.editorBlock}>
+        <div className={styles.editorHeading}>
+          <div>
+            <label htmlFor="post-body">본문</label>
+            <p>Markdown으로 작성해요.</p>
+          </div>
+          <label className={styles.uploadButton} aria-disabled={busy}>
+            <UploadSimple aria-hidden size={17} weight="bold" />
+            이미지 선택
+            <input
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              disabled={busy}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void upload(file);
+                event.target.value = '';
+              }}
+              type="file"
+            />
+          </label>
+        </div>
+        <div className={styles.toolbar} role="toolbar" aria-label="Markdown 서식">
+          <button
+            type="button"
+            onClick={() => wrapSelection('## ', '', '소제목')}
+            aria-label="소제목"
+          >
+            H2
+          </button>
+          <button type="button" onClick={() => wrapSelection('**', '**')} aria-label="굵게">
+            B
+          </button>
+          <button
+            type="button"
+            onClick={() => wrapSelection('[', '](https://)', '링크 텍스트')}
+            aria-label="링크"
+          >
+            링크
+          </button>
+          <button
+            type="button"
+            onClick={() => wrapSelection('> ', '', '인용문')}
+            aria-label="인용문"
+          >
+            인용
+          </button>
+          <button
+            type="button"
+            onClick={() => wrapSelection('`', '`', '코드')}
+            aria-label="인라인 코드"
+          >
+            코드
+          </button>
+        </div>
+        <div
+          className={styles.editorTabs}
+          role="tablist"
+          aria-label="본문 편집 보기"
+          onKeyDown={(event) => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            const next =
+              event.key === 'Home'
+                ? 'write'
+                : event.key === 'End'
+                  ? 'preview'
+                  : editorTab === 'write'
+                    ? 'preview'
+                    : 'write';
+            setEditorTab(next);
+            const tabs = event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+            tabs[next === 'write' ? 0 : 1]?.focus();
+          }}
+        >
+          <button
+            id="editor-write-tab"
+            type="button"
+            role="tab"
+            aria-controls="editor-write-panel"
+            aria-selected={editorTab === 'write'}
+            tabIndex={editorTab === 'write' ? 0 : -1}
+            onClick={() => setEditorTab('write')}
+          >
+            작성
+          </button>
+          <button
+            id="editor-preview-tab"
+            type="button"
+            role="tab"
+            aria-controls="editor-preview-panel"
+            aria-selected={editorTab === 'preview'}
+            tabIndex={editorTab === 'preview' ? 0 : -1}
+            onClick={() => setEditorTab('preview')}
+          >
+            미리보기
+          </button>
+        </div>
+        <div className={styles.editorColumns}>
+          <div
+            id="editor-write-panel"
+            role="tabpanel"
+            aria-labelledby="editor-write-tab"
+            hidden={editorTab !== 'write'}
+            className={`${styles.dropzone} ${dragging ? styles.dragging : ''}`}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setDragging(true);
+            }}
+            onDragOver={(event) => event.preventDefault()}
+            onDragLeave={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+                setDragging(false);
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              setDragging(false);
+              const file = event.dataTransfer.files[0];
+              if (file && !busy) void upload(file);
+            }}
+          >
+            {dragging ? (
+              <div className={styles.dropHint} aria-hidden>
+                <ImageSquare size={24} /> 놓아서 본문에 삽입
+              </div>
+            ) : null}
+            <textarea
+              ref={bodyRef}
+              id="post-body"
+              aria-label="본문"
+              aria-describedby="body-help"
+              aria-invalid={Boolean(fieldError(state, 'body'))}
+              className={styles.body}
+              name="body"
+              value={body}
+              onChange={(event) => {
+                const value = event.target.value;
+                setBody(value);
+                if (!value.trim()) {
+                  setPreviewHtml('');
+                  setPreviewMessage('본문을 입력하면 여기에 미리보기가 표시돼요.');
+                }
+              }}
+              onInvalid={() => setEditorTab('write')}
+              spellCheck
+              required
+            />
+          </div>
+          <section
+            id="editor-preview-panel"
+            role="tabpanel"
+            aria-labelledby="editor-preview-tab"
+            hidden={editorTab !== 'preview'}
+            className={styles.preview}
+            onClick={(event) => event.preventDefault()}
+          >
+            {previewHtml ? (
+              <div
+                className={articleStyles.prose}
+                dangerouslySetInnerHTML={{ __html: previewHtml }}
+              />
+            ) : null}
+            {visiblePreviewMessage ? (
+              <p className={styles.previewMessage} role="status">
+                {visiblePreviewMessage}
+              </p>
+            ) : null}
+          </section>
+        </div>
+        <p id="body-help" className={styles.helper} aria-live="polite">
+          {fieldError(state, 'body') ||
+            uploadMessage ||
+            '이미지를 끌어 놓으면 현재 커서 위치에 경로가 들어가요.'}
+        </p>
+      </div>
+
+      <aside className={styles.settings} aria-label="글 설정">
+        <h2 className={styles.groupHeading}>발행 설정</h2>
+        <label className={styles.statusField}>
+          <span>상태</span>
+          <select
+            value={status}
+            name="status"
+            disabled={busy}
+            onChange={(event) => setStatus(event.target.value as PostStatus)}
+          >
+            <option value="draft">초안</option>
+            <option value="published">공개</option>
+          </select>
         </label>
         <div className={styles.field}>
           <label htmlFor="post-slug">슬러그</label>
@@ -329,21 +557,6 @@ export function PostEditor({
                 : '제목으로 자동 생성돼요. 필요하면 직접 수정할 수 있어요.')}
           </small>
         </div>
-        <label className={`${styles.field} ${styles.wide}`}>
-          <span>설명</span>
-          <textarea
-            aria-describedby={fieldError(state, 'description') ? 'description-error' : undefined}
-            aria-invalid={Boolean(fieldError(state, 'description'))}
-            name="description"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            rows={3}
-            required
-          />
-          {fieldError(state, 'description') ? (
-            <small id="description-error">{fieldError(state, 'description')}</small>
-          ) : null}
-        </label>
         <h2 className={styles.groupHeading}>분류</h2>
         <label className={styles.field}>
           <span>카테고리</span>
@@ -436,162 +649,9 @@ export function PostEditor({
             />
           </label>
         </section>
-      </div>
-
-      <div className={styles.editorBlock}>
-        <div className={styles.editorHeading}>
-          <div>
-            <label htmlFor="post-body">본문</label>
-            <p>Markdown으로 작성해요.</p>
-          </div>
-          <label className={styles.uploadButton} aria-disabled={busy}>
-            <UploadSimple aria-hidden size={17} weight="bold" />
-            이미지 선택
-            <input
-              accept="image/jpeg,image/png,image/gif,image/webp"
-              disabled={busy}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void upload(file);
-                event.target.value = '';
-              }}
-              type="file"
-            />
-          </label>
-        </div>
-        <div
-          className={styles.editorTabs}
-          role="tablist"
-          aria-label="본문 편집 보기"
-          onKeyDown={(event) => {
-            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-            event.preventDefault();
-            const next =
-              event.key === 'Home'
-                ? 'write'
-                : event.key === 'End'
-                  ? 'preview'
-                  : editorTab === 'write'
-                    ? 'preview'
-                    : 'write';
-            setEditorTab(next);
-            const tabs = event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]');
-            tabs[next === 'write' ? 0 : 1]?.focus();
-          }}
-        >
-          <button
-            id="editor-write-tab"
-            type="button"
-            role="tab"
-            aria-controls="editor-write-panel"
-            aria-selected={editorTab === 'write'}
-            tabIndex={editorTab === 'write' ? 0 : -1}
-            onClick={() => setEditorTab('write')}
-          >
-            작성
-          </button>
-          <button
-            id="editor-preview-tab"
-            type="button"
-            role="tab"
-            aria-controls="editor-preview-panel"
-            aria-selected={editorTab === 'preview'}
-            tabIndex={editorTab === 'preview' ? 0 : -1}
-            onClick={() => setEditorTab('preview')}
-          >
-            미리보기
-          </button>
-        </div>
-        <div className={styles.editorColumns}>
-          <div
-            id="editor-write-panel"
-            role="tabpanel"
-            aria-labelledby="editor-write-tab"
-            hidden={editorTab !== 'write'}
-            className={`${styles.dropzone} ${dragging ? styles.dragging : ''}`}
-            onDragEnter={(event) => {
-              event.preventDefault();
-              setDragging(true);
-            }}
-            onDragOver={(event) => event.preventDefault()}
-            onDragLeave={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node | null))
-                setDragging(false);
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              setDragging(false);
-              const file = event.dataTransfer.files[0];
-              if (file && !busy) void upload(file);
-            }}
-          >
-            {dragging ? (
-              <div className={styles.dropHint} aria-hidden>
-                <ImageSquare size={24} /> 놓아서 본문에 삽입
-              </div>
-            ) : null}
-            <textarea
-              ref={bodyRef}
-              id="post-body"
-              aria-describedby="body-help"
-              aria-invalid={Boolean(fieldError(state, 'body'))}
-              className={styles.body}
-              name="body"
-              value={body}
-              onChange={(event) => {
-                const value = event.target.value;
-                setBody(value);
-                if (!value.trim()) {
-                  setPreviewHtml('');
-                  setPreviewMessage('본문을 입력하면 여기에 미리보기가 표시돼요.');
-                }
-              }}
-              onInvalid={() => setEditorTab('write')}
-              spellCheck
-              required
-            />
-          </div>
-          <section
-            id="editor-preview-panel"
-            role="tabpanel"
-            aria-labelledby="editor-preview-tab"
-            hidden={editorTab !== 'preview'}
-            className={styles.preview}
-            onClick={(event) => event.preventDefault()}
-          >
-            {previewHtml ? (
-              <div
-                className={articleStyles.prose}
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
-              />
-            ) : null}
-            {visiblePreviewMessage ? (
-              <p className={styles.previewMessage} role="status">
-                {visiblePreviewMessage}
-              </p>
-            ) : null}
-          </section>
-        </div>
-        <p id="body-help" className={styles.helper} aria-live="polite">
-          {fieldError(state, 'body') ||
-            uploadMessage ||
-            '이미지를 끌어 놓으면 현재 커서 위치에 경로가 들어가요.'}
-        </p>
-      </div>
+      </aside>
 
       <footer className={styles.footer}>
-        <label className={styles.statusField}>
-          <span>상태</span>
-          <select
-            value={status}
-            name="status"
-            disabled={busy}
-            onChange={(event) => setStatus(event.target.value as PostStatus)}
-          >
-            <option value="draft">초안</option>
-            <option value="published">공개</option>
-          </select>
-        </label>
         <div className={styles.submitArea}>
           <span className={styles.saveState} aria-live="polite">
             {uploading
@@ -604,7 +664,13 @@ export function PostEditor({
             disabled={busy}
             onClick={() => setEditorTab('write')}
           >
-            {pending ? '저장 중...' : post ? '변경사항 저장' : '글 저장'}
+            {pending
+              ? '저장 중...'
+              : status === 'published'
+                ? '저장하고 공개'
+                : post
+                  ? '초안 저장'
+                  : '초안 만들기'}
           </button>
         </div>
       </footer>

@@ -10,12 +10,19 @@ const FILL_MS = 850; // 글자 내부가 좌→우로 차오르는 시간
 const SETTLE_MS = 400; // 다 찬 뒤 이동 전 정지(숨)
 const MOVE_MS = 700; // 좌상단 헤더 워드마크로 축소·이동(천천히)
 const FADE_MS = 280; // 오버레이 페이드아웃(핸드오프)
+const FAILSAFE_MS = 5000;
+const FONT_WAIT_MS = 1500;
 // 이동·페이드용 부드러운 ease-out(급가속·bounce 없음).
 const EASE = [0.22, 0.61, 0.36, 1] as const;
 // 채움용 ease-in-out — 시작이 완만해 "생기자마자 절반" 없이 고르게 차오른다.
 const FILL_EASE = [0.65, 0, 0.35, 1] as const;
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function waitForFonts(): Promise<void> {
+  if (!('fonts' in document)) return;
+  await Promise.race([document.fonts.ready, wait(FONT_WAIT_MS)]);
+}
 
 export function SiteIntro() {
   const { playing, finish } = useIntro();
@@ -30,6 +37,13 @@ export function SiteIntro() {
   useEffect(() => {
     if (!shouldPlay) return;
     let cancelled = false;
+    const failsafe = window.setTimeout(() => {
+      if (!cancelled) {
+        cancelled = true;
+        finish();
+        setRemoved(true);
+      }
+    }, FAILSAFE_MS);
     (async () => {
       try {
         // 0) 빈 글자를 잠깐 보여준 뒤 시작(초기 스타트 딜레이).
@@ -44,6 +58,10 @@ export function SiteIntro() {
         );
         if (cancelled) return;
         await wait(SETTLE_MS);
+        if (cancelled) return;
+
+        // fallback 글꼴에서 잰 폭으로 이동하면 Pretendard가 뒤늦게 적용되는 순간 착지가 어긋난다.
+        await waitForFonts();
         if (cancelled) return;
 
         // 2) 실제 헤더 워드마크 위치·크기로 축소·이동(FLIP). transform-origin은 top-left.
@@ -62,6 +80,22 @@ export function SiteIntro() {
             { transform: `translate(${tx}px, ${ty}px) scale(${scale})` },
             { duration: MOVE_MS / 1000, ease: EASE },
           );
+
+          // 이동 중 resize가 발생했어도 마지막 프레임은 현재 header rect에 맞춘다.
+          // 같은 서체·굵기·자간·line-height를 쓰므로 너비 비율 하나로 glyph와 box가 함께 맞는다.
+          const landed = wrap.getBoundingClientRect();
+          const latest = target.getBoundingClientRect();
+          const correctionX = latest.left - landed.left;
+          const correctionY = latest.top + latest.height / 2 - (landed.top + landed.height / 2);
+          if (Math.abs(correctionX) > 0.25 || Math.abs(correctionY) > 0.25) {
+            await animate(
+              wrap,
+              {
+                transform: `translate(${tx + correctionX}px, ${ty + correctionY}px) scale(${scale})`,
+              },
+              { duration: 0.12, ease: EASE },
+            );
+          }
         }
         if (cancelled) return;
 
@@ -78,6 +112,7 @@ export function SiteIntro() {
     })();
     return () => {
       cancelled = true;
+      window.clearTimeout(failsafe);
     };
   }, [shouldPlay, animate, finish, scope]);
 
@@ -88,10 +123,10 @@ export function SiteIntro() {
       <div className={styles.stage}>
         <span className={styles.wordmark} data-intro-wordmark>
           {/* 채워지기 전의 옅은 '빈' 글자 */}
-          <span className={styles.base}>raven.kr</span>
+          <span className={styles.base}>raven</span>
           {/* 아래→위로 드러나는 잉크 채움(clip-path로 마스킹) */}
           <span className={styles.fill} data-intro-fill aria-hidden="true">
-            raven.kr
+            raven
           </span>
         </span>
       </div>

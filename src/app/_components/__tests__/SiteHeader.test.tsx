@@ -19,7 +19,9 @@ function renderHeader() {
 describe('SiteHeader', () => {
   it('로고와 command palette trigger만 렌더한다', () => {
     renderHeader();
-    expect(screen.getByRole('link', { name: 'raven' })).toHaveAttribute('href', '/');
+    const wordmark = screen.getByRole('link', { name: 'raven' });
+    expect(wordmark).toHaveAttribute('href', '/');
+    expect(wordmark).toHaveAttribute('data-site-wordmark');
     expect(screen.getByRole('button', { name: /검색/ })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '소개' })).not.toBeInTheDocument();
   });

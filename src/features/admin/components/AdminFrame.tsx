@@ -10,16 +10,22 @@ export function AdminFrame({
   description,
   userEmail,
   actions,
+  compact = false,
   children,
 }: {
   title: string;
   description: string;
   userEmail?: string;
   actions?: ReactNode;
+  compact?: boolean;
   children: ReactNode;
 }) {
   return (
-    <section className={styles.frame} aria-labelledby="admin-title">
+    <section
+      className={styles.frame}
+      data-compact={compact || undefined}
+      aria-labelledby="admin-title"
+    >
       <header className={styles.header}>
         <div>
           <Link className={styles.kicker} href={ROUTES.ADMIN.HOME}>

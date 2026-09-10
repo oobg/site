@@ -1,6 +1,12 @@
-import { ArticleSkeleton } from '@components/ui/ArticleSkeleton';
+import { Suspense } from 'react';
+import { BlogHomeSkeleton } from '@/app/_components/BlogLoadingSkeleton';
+import { QueryAwareRootLoading } from '@/app/_components/QueryAwareRootLoading';
 
-// 루트 fallback(주로 정적 라우트라 드물게 노출). 중립적인 콘텐츠 스켈레톤.
+// 홈의 공통 블로그 shell과 카드 기하를 유지하는 route fallback.
 export default function RootLoading() {
-  return <ArticleSkeleton />;
+  return (
+    <Suspense fallback={<BlogHomeSkeleton />}>
+      <QueryAwareRootLoading />
+    </Suspense>
+  );
 }

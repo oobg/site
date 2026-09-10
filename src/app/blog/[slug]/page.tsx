@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { getBlogCategories, getBlogPost, getPosts } from '@features/posts/services/posts.api';
 import { getRelatedPosts } from '@features/posts/utils/related';
 import { renderMarkdown } from '@lib/markdown/render';
@@ -14,6 +15,8 @@ import { ArticleAside } from '@/app/blog/[slug]/_components/ArticleAside';
 import { PostNav } from '@/app/blog/[slug]/_components/PostNav';
 import { ShareButtons } from '@/app/blog/[slug]/_components/ShareButtons';
 import { BlogShell } from '@/app/_components/BlogShell';
+import { BlogArticleDataSkeleton } from '@/app/_components/BlogLoadingSkeleton';
+import type { BlogCategoryWithCount, BlogPost } from '@features/posts/types/posts.types';
 import styles from './article.module.css';
 
 export const dynamicParams = true;
@@ -40,17 +43,20 @@ export async function generateMetadata({
   });
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const key = normalizeRouteSlug(slug);
-  const post = await getBlogPost(key);
-  const { html, toc } = await renderMarkdown(post.body_markdown);
+async function BlogPostContent({
+  post,
+  categories,
+  html,
+  toc,
+}: {
+  post: BlogPost;
+  categories: BlogCategoryWithCount[];
+  html: string;
+  toc: Awaited<ReturnType<typeof renderMarkdown>>['toc'];
+}) {
   const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);
 
-  const [all, categories] = await Promise.all([
-    getPosts({ sort: '-published_at' }),
-    getBlogCategories(),
-  ]);
+  const all = await getPosts({ sort: '-published_at' });
   const index = all.findIndex((p) => p.slug === post.slug);
   const next = index > 0 ? all[index - 1] : null;
   const prev = index >= 0 && index < all.length - 1 ? all[index + 1] : null;
@@ -75,5 +81,28 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <PostNav prev={prev} next={next} />
       </div>
     </BlogShell>
+  );
+}
+
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const key = normalizeRouteSlug(slug);
+  const [post, categories] = await Promise.all([getBlogPost(key), getBlogCategories()]);
+  const { html, toc } = await renderMarkdown(post.body_markdown);
+  const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);
+
+  return (
+    <Suspense
+      fallback={
+        <BlogArticleDataSkeleton
+          post={post}
+          categories={categories}
+          readingMin={readingMin}
+          toc={toc}
+        />
+      }
+    >
+      <BlogPostContent post={post} categories={categories} html={html} toc={toc} />
+    </Suspense>
   );
 }

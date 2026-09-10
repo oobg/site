@@ -1,0 +1,31 @@
+.skeleton input,
+.skeleton textarea,
+.skeleton button,
+.rail {
+  color: transparent;
+  background: var(--d0-grey-50);
+  animation: pulse var(--dur-skeleton) var(--d0-ease) infinite alternate;
+}
+.skeleton textarea {
+  resize: none;
+}
+.rail {
+  min-height: 38rem;
+  border-radius: var(--d0-radius-control);
+}
+@keyframes pulse {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .skeleton input,
+  .skeleton textarea,
+  .skeleton button,
+  .rail {
+    animation: none;
+  }
+}

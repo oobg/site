@@ -1,0 +1,29 @@
+.featuredCopy {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.archiveHeading {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.bylineText,
+.body {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.summary {
+  margin-top: var(--space-4);
+}
+
+.body {
+  margin-top: var(--space-7);
+}
+
+@media (max-width: 640px) {
+  .featuredCopy {
+    gap: var(--space-3);
+  }
+}

@@ -33,8 +33,12 @@ const PADDING_PROVIDERS = [
   'Container',
   'StatusScreen',
   'ArticleSkeleton',
+  'BlogArticleSkeleton',
+  'BlogArchiveSkeleton',
   'BlogHomeContainer',
+  'BlogHomeSkeleton',
   'BlogShell',
+  'AdminEditorLoading',
 ];
 
 const routeFiles = globSync(`${SRC}/app/**/{page,loading,not-found,error,global-error}.tsx`);

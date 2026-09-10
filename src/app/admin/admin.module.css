@@ -38,6 +38,14 @@
   animation: pulse var(--dur-skeleton) var(--ease) infinite alternate;
 }
 
+.skeletonTitle {
+  width: min(70%, 560px);
+  height: var(--d0-field-height);
+  border-radius: var(--d0-radius-control);
+  background: var(--d0-grey-100);
+  animation: pulse var(--dur-skeleton) var(--d0-ease) infinite alternate;
+}
+
 @keyframes pulse {
   from {
     opacity: 0.5;
@@ -48,7 +56,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .skeletonRow {
+  .skeletonRow,
+  .skeletonTitle {
     animation: none;
   }
 }

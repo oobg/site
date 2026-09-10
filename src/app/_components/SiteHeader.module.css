@@ -32,6 +32,7 @@
   color: var(--d0-grey-900);
   font-size: 20px;
   font-weight: 700;
+  line-height: var(--lh-body);
   letter-spacing: var(--d0-tracking-title);
 }
 .wordmark:focus-visible {

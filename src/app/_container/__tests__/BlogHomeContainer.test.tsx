@@ -94,7 +94,7 @@ describe('BlogHomeContainer', () => {
         initialFilters={{ q: '이전검색', page: 1, pageSize: 12 }}
       />,
     );
-    expect(screen.getByText('글을 불러오고 있어요.')).toBeInTheDocument();
+    expect(screen.getByLabelText('글 목록을 불러오는 중')).toHaveAttribute('aria-busy', 'true');
     expect(screen.queryByText('아직 공개한 글이 없어요.')).not.toBeInTheDocument();
     expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
   });
