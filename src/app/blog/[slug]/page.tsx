@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getBlogCategories, getBlogPost, getPosts } from '@features/posts/services/posts.api';
 import { getRelatedPosts } from '@features/posts/utils/related';
+import { getAdjacentPosts } from '@features/posts/utils/series';
 import { renderMarkdown } from '@lib/markdown/render';
 import { computeReadingTime } from '@lib/markdown/reading-time';
 import { buildMetadata } from '@lib/metadata/metadata';
@@ -57,9 +58,7 @@ async function BlogPostContent({
   const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);
 
   const all = await getPosts({ sort: '-published_at' });
-  const index = all.findIndex((p) => p.slug === post.slug);
-  const next = index > 0 ? all[index - 1] : null;
-  const prev = index >= 0 && index < all.length - 1 ? all[index + 1] : null;
+  const { prev, next } = getAdjacentPosts(post, all);
   const related = getRelatedPosts(post, all, 3);
 
   return (

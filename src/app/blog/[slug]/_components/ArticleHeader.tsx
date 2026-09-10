@@ -7,6 +7,16 @@ import styles from './ArticleHeader.module.css';
 
 export function ArticleHeader({ post, readingMin }: { post: BlogPost; readingMin: number }) {
   const { author } = SITE;
+  const normalizeTag = (value: string) =>
+    value.normalize('NFKC').replace(/\s+/g, '').toLocaleLowerCase('ko-KR');
+  const categoryKey = normalizeTag(post.category.name);
+  const seenTags = new Set<string>();
+  const visibleTags = post.tags.filter((tag) => {
+    const key = normalizeTag(tag);
+    if (!key || key === categoryKey || seenTags.has(key)) return false;
+    seenTags.add(key);
+    return true;
+  });
   return (
     <header className={styles.header}>
       {post.cover_image_url ? (
@@ -43,7 +53,7 @@ export function ArticleHeader({ post, readingMin }: { post: BlogPost; readingMin
         <li>
           <Link href={homeSearchHref({ category: post.category.slug })}>{post.category.name}</Link>
         </li>
-        {post.tags.map((tag) => (
+        {visibleTags.map((tag) => (
           <li key={tag}>
             <Link href={homeSearchHref({ tag })}>{tag}</Link>
           </li>

@@ -36,3 +36,36 @@ export function comparePostSeriesOrder(a: PostListItem, b: PostListItem): number
   const byDate = Date.parse(a.published_at) - Date.parse(b.published_at);
   return byDate || a.slug.localeCompare(b.slug);
 }
+
+export interface AdjacentPosts {
+  prev: PostListItem | null;
+  next: PostListItem | null;
+}
+
+/** 연재 글은 같은 시리즈의 편 번호를, 일반 글은 발행일을 기준으로 앞뒤 글을 찾는다. */
+export function getAdjacentPosts(current: PostListItem, posts: PostListItem[]): AdjacentPosts {
+  const position = parsePostSeriesPosition(current.slug);
+
+  if (position) {
+    const seriesPosts = posts
+      .filter((post) => parsePostSeriesPosition(post.slug)?.series === position.series)
+      .sort(comparePostSeriesOrder);
+    const index = seriesPosts.findIndex((post) => post.slug === current.slug);
+    if (index < 0) return { prev: null, next: null };
+    return {
+      prev: index > 0 ? seriesPosts[index - 1] : null,
+      next: index < seriesPosts.length - 1 ? seriesPosts[index + 1] : null,
+    };
+  }
+
+  const newestFirst = [...posts].sort((a, b) => {
+    const byDate = Date.parse(b.published_at) - Date.parse(a.published_at);
+    return byDate || a.slug.localeCompare(b.slug);
+  });
+  const index = newestFirst.findIndex((post) => post.slug === current.slug);
+  if (index < 0) return { prev: null, next: null };
+  return {
+    prev: index < newestFirst.length - 1 ? newestFirst[index + 1] : null,
+    next: index > 0 ? newestFirst[index - 1] : null,
+  };
+}

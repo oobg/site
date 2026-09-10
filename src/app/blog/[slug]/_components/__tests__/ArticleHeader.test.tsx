@@ -41,4 +41,22 @@ describe('ArticleHeader', () => {
     expect(image).toHaveStyle({ objectPosition: '25% 75%' });
     expect(container).not.toHaveTextContent('raven.kr');
   });
+
+  it('keeps the category chip and removes equivalent or repeated tags in source order', () => {
+    render(
+      <ArticleHeader
+        post={{
+          ...post,
+          category: { ...post.category, name: '디자인 시스템' },
+          tags: ['디자인시스템', ' 디자인 시스템 ', 'React', 'react', '프론트엔드', 'REACT'],
+        }}
+        readingMin={3}
+      />,
+    );
+
+    expect(screen.getAllByRole('link', { name: '디자인 시스템' })).toHaveLength(1);
+    expect(screen.getAllByRole('link', { name: /react/i })).toHaveLength(1);
+    expect(screen.getByRole('link', { name: 'React' })).toHaveAttribute('href', '/?tag=React');
+    expect(screen.getByRole('link', { name: '프론트엔드' })).toBeInTheDocument();
+  });
 });
