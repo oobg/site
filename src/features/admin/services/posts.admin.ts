@@ -7,13 +7,13 @@ import type { BlogCategory } from '@features/posts/types/posts.types';
 import { requireOwner } from '@lib/auth/owner';
 import { createClient } from '@lib/supabase/server';
 
-const listColumns = 'id,title,slug,status,updated_at,pin_order,category_id';
+const listColumns = 'id,title,slug,status,created_at,updated_at,pin_order,category_id';
 const detailColumns =
   'id,title,slug,description,body,status,published_at,created_at,updated_at,category_id,tags,cover_image_key,cover_image_url,cover_position_x,cover_position_y,cover_alt,pin_order';
 export type AdminPostSummary = Pick<
   AdminPost,
   'id' | 'title' | 'slug' | 'status' | 'updated_at' | 'pin_order'
-> & { category_id?: string | null };
+> & { created_at?: string; category_id?: string | null };
 
 export async function listAdminPosts(): Promise<AdminPostSummary[]> {
   noStore();
@@ -22,7 +22,7 @@ export async function listAdminPosts(): Promise<AdminPostSummary[]> {
   const { data, error } = await supabase
     .from('posts')
     .select(listColumns)
-    .order('updated_at', { ascending: false });
+    .order('created_at', { ascending: false });
 
   if (error) throw new Error(`글 목록을 불러오지 못했습니다: ${error.message}`);
   return (data ?? []) as AdminPostSummary[];

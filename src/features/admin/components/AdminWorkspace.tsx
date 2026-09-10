@@ -26,9 +26,12 @@ export function AdminWorkspace({
           title: post.title,
           slug: post.slug,
           status: post.status,
+          createdAt: post.created_at ?? post.updated_at,
           updatedAt: post.updated_at,
+          categoryId: post.category_id,
           categoryName: categories.find((category) => category.id === post.category_id)?.name,
         }))}
+        categories={categories}
       />
     </div>
   );

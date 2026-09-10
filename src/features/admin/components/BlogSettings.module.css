@@ -30,14 +30,74 @@
 }
 .postRow {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: minmax(0, 1fr) 120px 32px 32px;
   gap: var(--space-2);
   align-items: center;
   padding-block: var(--space-2);
   border-bottom: 1px solid var(--d0-grey-100);
 }
+.categoryChip {
+  display: inline-block;
+  margin-inline: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: 999px;
+  background: var(--d0-grey-100);
+  color: var(--d0-grey-700);
+  font-size: var(--fs-12);
+  font-weight: 600;
+}
+.postTableHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px 32px 32px;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+  color: var(--d0-grey-600);
+  font-size: var(--fs-12);
+  font-weight: 600;
+}
+.postFilters {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 180px;
+  gap: var(--space-2);
+}
+.postFilters input,
+.postFilters select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid var(--d0-grey-200);
+  border-radius: var(--d0-radius-control);
+  background: var(--color-surface);
+  color: var(--d0-grey-900);
+  padding-inline: var(--space-3);
+  font: inherit;
+}
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
 @media (max-width: 640px) {
   .categoryForm {
     grid-template-columns: 1fr;
+  }
+  .postFilters {
+    grid-template-columns: 1fr;
+  }
+  .postTableHeader {
+    display: none;
+  }
+  .postRow {
+    grid-template-columns: 1fr auto auto;
+  }
+  .postRow time {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: var(--fs-12);
+  }
+  .postRow time::before {
+    content: '생성일: ';
   }
 }

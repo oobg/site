@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { ROUTES } from '@constants/routes';
+import type { BlogCategory } from '@features/posts/types/posts.types';
 import styles from './PostList.module.css';
 
 export type AdminPostListItem = {
@@ -10,7 +11,9 @@ export type AdminPostListItem = {
   slug: string;
   title: string;
   status: 'draft' | 'published';
+  createdAt: string;
   updatedAt: string;
+  categoryId?: string | null;
   categoryName?: string;
 };
 
@@ -22,23 +25,29 @@ export function PostList({
   posts,
   selectedId,
   compact = false,
+  categories = [],
 }: {
   posts: AdminPostListItem[];
   selectedId?: string;
   compact?: boolean;
+  categories?: BlogCategory[];
 }) {
   const listRef = useRef<HTMLUListElement>(null);
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<'all' | 'draft' | 'published'>('all');
+  const [category, setCategory] = useState('');
   const visiblePosts = useMemo(
     () =>
-      posts.filter(
-        (post) =>
-          (status === 'all' || post.status === status) &&
-          (!query.trim() ||
-            post.title.toLocaleLowerCase('ko').includes(query.trim().toLocaleLowerCase('ko'))),
-      ),
-    [posts, query, status],
+      [...posts]
+        .filter(
+          (post) =>
+            (status === 'all' || post.status === status) &&
+            (!category || post.categoryId === category) &&
+            (!query.trim() ||
+              post.title.toLocaleLowerCase('ko').includes(query.trim().toLocaleLowerCase('ko'))),
+        )
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    [category, posts, query, status],
   );
 
   useEffect(() => {
@@ -46,12 +55,14 @@ export function PostList({
       const saved = JSON.parse(sessionStorage.getItem('raven:admin-list-context') ?? '{}') as {
         query?: string;
         status?: 'all' | 'draft' | 'published';
+        category?: string;
         scrollTop?: number;
         windowScrollY?: number;
       };
       requestAnimationFrame(() => {
         setQuery(saved.query ?? '');
         setStatus(saved.status ?? 'all');
+        setCategory(saved.category ?? '');
         requestAnimationFrame(() => {
           listRef.current?.scrollTo({ top: saved.scrollTop ?? 0 });
           if (!compact) {
@@ -71,6 +82,7 @@ export function PostList({
         JSON.stringify({
           query,
           status,
+          category,
           scrollTop: listRef.current?.scrollTop ?? 0,
           windowScrollY: window.scrollY,
         }),
@@ -102,6 +114,21 @@ export function PostList({
           ))}
         </div>
         <label>
+          <span className={styles.visuallyHidden}>카테고리 필터</span>
+          <select
+            aria-label="카테고리 필터"
+            value={category}
+            onChange={(event) => setCategory(event.target.value)}
+          >
+            <option value="">모든 카테고리</option>
+            {categories.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
           <span className={styles.visuallyHidden}>제목 검색</span>
           <input
             aria-label="제목 검색"
@@ -117,7 +144,8 @@ export function PostList({
           <span>제목</span>
           <span>상태</span>
           <span>카테고리</span>
-          <span>최종 수정일 ↓</span>
+          <span>생성일 ↓</span>
+          <span>최종 수정일</span>
           <span />
         </div>
       ) : null}
@@ -149,7 +177,12 @@ export function PostList({
                 {post.status === 'published' ? '공개' : '초안'}
               </span>
               <span className={styles.category}>{post.categoryName ?? '미분류'}</span>
-              <time dateTime={post.updatedAt}>{formatDate(post.updatedAt)}</time>
+              <time data-label="생성일" dateTime={post.createdAt}>
+                {formatDate(post.createdAt)}
+              </time>
+              <time data-label="수정일" dateTime={post.updatedAt}>
+                {formatDate(post.updatedAt)}
+              </time>
               <Link
                 className={styles.more}
                 href={ROUTES.ADMIN.POST(post.id)}
@@ -165,7 +198,7 @@ export function PostList({
             <h2>{posts.length ? '조건에 맞는 글이 없어요' : '아직 작성한 글이 없어요'}</h2>
             <p>
               {posts.length
-                ? '검색어나 상태를 바꿔 보세요.'
+                ? '검색어나 필터를 바꿔 보세요.'
                 : '상단의 새 글 버튼으로 첫 초안을 작성해 보세요.'}
             </p>
           </li>

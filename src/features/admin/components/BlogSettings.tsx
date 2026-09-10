@@ -14,6 +14,14 @@ import {
 } from '@features/admin/services/categories.actions';
 import styles from './BlogSettings.module.css';
 
+function formatPostDate(value?: string) {
+  if (!value) return '날짜 없음';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime())
+    ? '날짜 없음'
+    : new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' }).format(date);
+}
+
 function CategoryRow({ category }: { category: BlogCategory }) {
   const queryClient = useQueryClient();
   const withInvalidation =
@@ -107,6 +115,8 @@ export function BlogSettings({
       .sort((a, b) => (a.pin_order ?? 99) - (b.pin_order ?? 99))
       .map((post) => post.id),
   );
+  const [postQuery, setPostQuery] = useState('');
+  const [postCategory, setPostCategory] = useState('');
   const [pinState, pinAction, pinning] = useActionState(
     async (state: PostActionState, data: FormData) => {
       const result = await reorderPinnedPostsAction(state, data);
@@ -136,12 +146,17 @@ export function BlogSettings({
       return next;
     });
   };
-  const orderedPosts = [
-    ...pinnedIds
-      .map((id) => published.find((post) => post.id === id))
-      .filter((post): post is AdminPostSummary => Boolean(post)),
-    ...published.filter((post) => !pinnedIds.includes(post.id)),
-  ];
+  const orderedPosts = [...published].sort(
+    (a, b) =>
+      new Date(b.created_at ?? b.updated_at).getTime() -
+      new Date(a.created_at ?? a.updated_at).getTime(),
+  );
+  const visiblePosts = orderedPosts.filter(
+    (post) =>
+      (!postQuery.trim() ||
+        post.title.toLocaleLowerCase('ko').includes(postQuery.trim().toLocaleLowerCase('ko'))) &&
+      (!postCategory || post.category_id === postCategory),
+  );
 
   return (
     <div className={styles.settings}>
@@ -166,11 +181,44 @@ export function BlogSettings({
       <section>
         <h2>대표 글</h2>
         <p>공개 글을 최대 5개 선택하고 화살표로 순서를 정해요.</p>
+        <div className={styles.postFilters}>
+          <label>
+            <span className={styles.visuallyHidden}>대표 글 검색</span>
+            <input
+              type="search"
+              aria-label="대표 글 검색"
+              placeholder="제목 검색"
+              value={postQuery}
+              onChange={(event) => setPostQuery(event.target.value)}
+            />
+          </label>
+          <label>
+            <span className={styles.visuallyHidden}>대표 글 카테고리</span>
+            <select
+              aria-label="대표 글 카테고리"
+              value={postCategory}
+              onChange={(event) => setPostCategory(event.target.value)}
+            >
+              <option value="">모든 카테고리</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className={styles.postTableHeader} aria-hidden>
+          <span>대표 글</span>
+          <span>생성일 ↓</span>
+          <span />
+          <span />
+        </div>
         <form action={pinAction}>
           {published.length === 0 ? (
             <p>고정할 공개 글이 없어요.</p>
           ) : (
-            orderedPosts.map((post) => {
+            visiblePosts.map((post) => {
               const checked = pinnedIds.includes(post.id);
               const index = pinnedIds.indexOf(post.id);
               return (
@@ -182,9 +230,16 @@ export function BlogSettings({
                       disabled={pinning || (!checked && pinnedIds.length >= 5)}
                       onChange={() => toggle(post.id)}
                     />
+                    <span className={styles.categoryChip}>
+                      {categories.find((category) => category.id === post.category_id)?.name ??
+                        '미분류'}
+                    </span>
                     {checked ? `${index + 1}. ` : ''}
                     {post.title}
                   </label>
+                  <time data-label="생성일" dateTime={post.created_at ?? post.updated_at}>
+                    {formatPostDate(post.created_at ?? post.updated_at)}
+                  </time>
                   <button
                     type="button"
                     aria-label={`${post.title} 위로`}
@@ -205,6 +260,9 @@ export function BlogSettings({
               );
             })
           )}
+          {published.length > 0 && visiblePosts.length === 0 ? (
+            <p>조건에 맞는 대표 글이 없어요.</p>
+          ) : null}
           {pinnedIds.map((id) => (
             <input key={id} type="hidden" name="post_ids" value={id} />
           ))}

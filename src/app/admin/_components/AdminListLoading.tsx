@@ -8,11 +8,13 @@ export function AdminListLoading() {
         <div className={styles.filters} aria-hidden>
           <span />
           <span />
+          <span />
         </div>
         <div className={styles.tableHeader} aria-hidden>
           <span>제목</span>
           <span>상태</span>
           <span>카테고리</span>
+          <span>생성일</span>
           <span>최종 수정일</span>
           <span />
         </div>
@@ -25,6 +27,7 @@ export function AdminListLoading() {
               </div>
               <span className={styles.status} />
               <span className={styles.category} />
+              <span className={styles.createdDate} />
               <span className={styles.date} />
               <span className={styles.action} />
             </div>
