@@ -56,6 +56,10 @@ RLS 검증은 gateway를 통해 수행한다.
 
 RLS policy와 함께 `anon`, `authenticated`의 table grant도 확인한다. secret/service-role key로 acceptance를 수행하면 RLS를 우회하므로 사용하지 않는다.
 
+2026-09-10에는 앱 배포 뒤 `20260910000000_add_blog_taxonomy_and_featured_posts.sql`이 Raven dev DB에 적용되지 않아 공개 글 API가 500을 반환하고 관리자 데이터 조회가 실패했다. 대상이 `raven-supabase-dev-db`의 `postgres` DB임을 확인하고 백업한 뒤 해당 migration 하나만 트랜잭션으로 적용했다. 기존 `posts`는 0행이었고 RLS와 네 정책을 보존했으며, 적용 뒤 taxonomy 필드의 비로그인 REST 조회가 200을 반환했다.
+
+dev 자동 배포 workflow는 앱 이미지만 배포하며 database migration을 실행하지 않는다. 새 migration이 포함된 배포는 Raven 전용 DB와 백업을 확인하고 migration을 별도 적용한 뒤 앱 API를 검증해야 한다.
+
 ## 앱 설정과 배포 준비
 
 [`deploy/env.dev.example`](../deploy/env.dev.example)을 `/srv/docker/raven-dev/config/.env.dev`의 키 목록으로 사용한다. 실제 값을 저장소에 넣지 않고 파일 mode를 `600`으로 둔다.
