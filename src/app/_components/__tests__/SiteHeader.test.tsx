@@ -1,20 +1,85 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { describe, it, expect, vi } from 'vitest';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { SiteHeader } from '@/app/_components/SiteHeader';
 
+const push = vi.fn();
+vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
+
+function renderHeader() {
+  return render(
+    <QueryClientProvider
+      client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+    >
+      <SiteHeader />
+    </QueryClientProvider>,
+  );
+}
+
 describe('SiteHeader', () => {
-  it('홈, 소개, 프로젝트, 검색 링크를 올바른 href로 렌더한다', () => {
-    render(<SiteHeader />);
+  it('로고와 command palette trigger만 렌더한다', () => {
+    renderHeader();
     expect(screen.getByRole('link', { name: 'raven' })).toHaveAttribute('href', '/');
-    expect(screen.getAllByRole('link', { name: '프로젝트' })[0]).toHaveAttribute(
-      'href',
-      '/projects',
+    expect(screen.getByRole('button', { name: /검색/ })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: '소개' })).not.toBeInTheDocument();
+  });
+
+  it('trigger와 단축키로 열고 Escape 뒤 호출 요소로 focus를 복원한다', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            featured: [],
+            categories: [],
+            sections: [],
+            archive: { items: [], page: 1, pageSize: 6, totalItems: 0, totalPages: 0 },
+          }),
+          { status: 200 },
+        ),
+      ),
     );
-    expect(screen.getAllByRole('link', { name: '소개' })[0]).toHaveAttribute('href', '/about');
-    expect(screen.getAllByRole('link', { name: '검색' })[0]).toHaveAttribute(
-      'href',
-      '/?view=all#archive-title',
+    renderHeader();
+    const trigger = screen.getByRole('button', { name: /검색/ });
+    fireEvent.click(trigger);
+    const firstInput = await screen.findByRole('combobox');
+    await waitFor(() => expect(firstInput).toHaveFocus());
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    await waitFor(() => expect(trigger).toHaveFocus());
+
+    const logo = screen.getByRole('link', { name: 'raven' });
+    logo.focus();
+    fireEvent.keyDown(window, { key: 'k', ctrlKey: true });
+    const shortcutInput = await screen.findByRole('combobox');
+    await waitFor(() => expect(shortcutInput).toHaveFocus());
+    fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    await waitFor(() => expect(logo).toHaveFocus());
+  });
+
+  it('방향키와 Enter로 결과를 선택하고 IME Enter는 무시한다', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            featured: [],
+            categories: [],
+            sections: [],
+            archive: { items: [], page: 1, pageSize: 6, totalItems: 0, totalPages: 0 },
+          }),
+          { status: 200 },
+        ),
+      ),
     );
-    expect(screen.getByRole('button', { name: '메뉴 열기' })).toBeInTheDocument();
+    renderHeader();
+    fireEvent.click(screen.getByRole('button', { name: /검색/ }));
+    const input = await screen.findByRole('combobox');
+    fireEvent.compositionStart(input);
+    fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 });
+    expect(push).not.toHaveBeenCalled();
+    fireEvent.compositionEnd(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(push).toHaveBeenCalledWith('/about');
   });
 });

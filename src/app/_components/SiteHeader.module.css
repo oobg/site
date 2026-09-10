@@ -17,6 +17,10 @@
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
+.inner {
+  width: min(100% - 40px, 1200px);
+  margin-inline: auto;
+}
 .nav {
   display: flex;
   height: 64px;
@@ -30,99 +34,17 @@
   font-weight: 700;
   letter-spacing: var(--d0-tracking-title);
 }
-.links {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-.links a {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  padding-inline: var(--space-3);
+.wordmark:focus-visible {
   border-radius: var(--d0-radius-sm);
-  color: var(--d0-grey-600);
-  font-size: 14px;
-  font-weight: 600;
+  box-shadow: 0 0 0 3px rgb(61 125 229 / 0.2);
 }
-.links a:hover {
-  background: var(--d0-grey-50);
-  color: var(--d0-grey-900);
-}
-.menuButton {
-  display: none;
-  width: 44px;
-  height: 44px;
-  place-items: center;
-  align-content: center;
-  gap: 5px;
-  border: 0;
-  border-radius: var(--d0-radius-sm);
-  background: transparent;
-}
-.menuButton span {
-  width: 20px;
-  height: 1px;
-  background: var(--d0-grey-900);
-}
-.backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  background: rgb(26 31 38 / 0.2);
-}
-.menu {
-  position: fixed;
-  inset: 0 0 auto auto;
-  z-index: 61;
-  width: min(86vw, 360px);
-  min-height: 100dvh;
-  padding: var(--space-6);
-  background: var(--color-surface);
-  box-shadow: var(--d0-shadow-overlay);
-  transition: transform var(--d0-dur) var(--d0-ease);
-}
-.menu[data-starting-style],
-.menu[data-ending-style] {
-  transform: translateX(100%);
-}
-.menuTitle {
-  font-size: 20px;
-}
-.menuLinks {
-  display: grid;
-  margin-top: var(--space-7);
-}
-.menuLinks a {
-  padding-block: var(--space-4);
-  border-bottom: 1px solid var(--d0-grey-100);
-  color: var(--d0-grey-900);
-  font-size: 20px;
-  font-weight: 600;
-}
-.close {
-  position: absolute;
-  top: 14px;
-  right: 16px;
-  width: 40px;
-  height: 40px;
-  border: 0;
-  border-radius: var(--d0-radius-sm);
-  background: transparent;
-  color: var(--d0-grey-700);
-  font-size: 26px;
-}
-@media (max-width: 640px) {
-  .links {
-    display: none;
-  }
-  .menuButton {
-    display: grid;
+@media (max-width: 900px) {
+  .inner {
+    width: min(100% - 32px, 780px);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .header,
-  .menu {
+  .header {
     transition-duration: 0ms;
   }
 }
