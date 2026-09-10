@@ -78,3 +78,5 @@ $$;
 
 revoke all on function public.create_post_comment(text, text, text, text, text) from public, anon, authenticated;
 grant execute on function public.create_post_comment(text, text, text, text, text) to service_role;
+
+notify pgrst, 'reload schema';

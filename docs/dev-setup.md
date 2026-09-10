@@ -49,6 +49,10 @@ dev 전용 Google Web application client는 Raven 프로젝트에 생성했다. 
 
 ## 데이터베이스와 RLS
 
+새 테이블이나 RPC migration을 `psql`로 직접 적용한 뒤에는 migration에 포함된
+`notify pgrst, 'reload schema'`가 실행됐는지 확인한다. 앱 acceptance 전에 PostgREST schema
+cache가 갱신되지 않으면 존재하는 테이블도 `PGRST205`로 응답할 수 있다.
+
 새 Raven DB에 `supabase/migrations`를 순서대로 적용한다. 적용 전에 대상 DB가 Raven 전용인지 확인하고 SQL을 검토한다. production dump를 복원하거나 Day0 DB를 migration 대상으로 사용하지 않는다. 이미 데이터가 있는 DB에는 자동 down migration이나 초기화를 실행하지 않는다.
 
 RLS 검증은 gateway를 통해 수행한다.
