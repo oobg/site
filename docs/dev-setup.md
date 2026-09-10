@@ -2,6 +2,10 @@
 
 `dev.raven.kr`은 홈서버의 Raven 전용 Next.js 앱과 self-hosted Supabase를 사용한다. 기존 Day0 Supabase와 외부 Kong gateway 하나를 공유하지만 database, Auth, REST, API key, 이미지 자격증명, Compose project와 volume은 분리한다. 프로젝트 조직 관리 UI는 두지 않는다. 이 문서는 외부 DNS나 tunnel을 바꾸기 전에 내부 구성을 준비하고 검증하는 절차다.
 
+## 공개 연재 slug 정렬 계약
+
+현재 공개 연재는 `design-system-NN-*`와 `ai-memory-NN-*` 두 형식이며 `NN`은 두 자리 편 번호다. 카테고리 전체 글은 이 zero-padded slug를 오름차순으로 조회해 `00` 프롤로그 또는 `01`부터 표시한다. 상세 화면의 관련 글은 같은 시리즈의 편 번호 거리가 가까운 글을 먼저 보여 주고, 거리가 같으면 이전 편을 우선한다. 새 연재를 추가할 때는 `src/features/posts/utils/series.ts`의 registry와 회귀 테스트를 함께 갱신한다.
+
 ## 디렉터리와 서비스 경계
 
 홈서버에는 다음 경계를 사용한다.
