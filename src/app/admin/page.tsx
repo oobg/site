@@ -5,8 +5,8 @@ import { ROUTES } from '@constants/routes';
 import { AccessPanel } from '@features/admin/components/AccessPanel';
 import { AdminFrame } from '@features/admin/components/AdminFrame';
 import { LoginPanel } from '@features/admin/components/LoginPanel';
-import { PostList } from '@features/admin/components/PostList';
-import { listAdminPosts } from '@features/admin/services/posts.admin';
+import { AdminWorkspace } from '@features/admin/components/AdminWorkspace';
+import { listAdminCategories, listAdminPosts } from '@features/admin/services/posts.admin';
 import { getOwnerAccess } from '@lib/auth/owner';
 import styles from './admin.module.css';
 
@@ -58,7 +58,7 @@ export default async function AdminPage({
     );
   }
 
-  const posts = await listAdminPosts();
+  const [posts, categories] = await Promise.all([listAdminPosts(), listAdminCategories()]);
   return (
     <Container>
       <AdminFrame
@@ -71,15 +71,7 @@ export default async function AdminPage({
           </Link>
         }
       >
-        <PostList
-          posts={posts.map((post) => ({
-            id: post.id,
-            title: post.title,
-            slug: post.slug,
-            status: post.status,
-            updatedAt: post.updated_at,
-          }))}
-        />
+        <AdminWorkspace posts={posts} categories={categories} />
       </AdminFrame>
     </Container>
   );

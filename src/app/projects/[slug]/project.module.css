@@ -4,5 +4,5 @@
   width: 100%;
   max-width: var(--w-reading);
   margin-inline: auto;
-  padding-block: var(--space-8) var(--space-9);
+  padding-block: var(--space-7) var(--space-10);
 }

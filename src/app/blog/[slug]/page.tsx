@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Container } from '@components/layout/Container';
-import { getPost, getPosts } from '@features/posts/services/posts.api';
+import { getBlogPost, getPosts } from '@features/posts/services/posts.api';
 import { getRelatedPosts } from '@features/posts/utils/related';
 import { renderMarkdown } from '@lib/markdown/render';
 import { computeReadingTime } from '@lib/markdown/reading-time';
@@ -31,7 +31,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const key = normalizeRouteSlug(slug);
-  const post = await getPost(key);
+  const post = await getBlogPost(key);
   return buildMetadata({
     title: post.title,
     description: post.summary ?? undefined,
@@ -42,7 +42,7 @@ export async function generateMetadata({
 export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const key = normalizeRouteSlug(slug);
-  const post = await getPost(key);
+  const post = await getBlogPost(key);
   const { html, toc } = await renderMarkdown(post.body_markdown);
   const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);
 
@@ -65,8 +65,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <article className={styles.main}>
           {/* 목차는 <article> 안에 둔다. 바깥 기둥의 높이가 본문에 묶여야 본문이 끝날 때
               목차도 함께 멈춘다 — 페이지 전체에 걸면 사이드·내비 구간까지 따라온다. */}
-          <TableOfContents toc={toc} />
           <ArticleHeader post={post} readingMin={readingMin} />
+          <TableOfContents toc={toc} />
           <ArticleBody html={html} />
         </article>
         <ArticleAside post={post} related={related} readingMin={readingMin} />

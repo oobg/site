@@ -1,0 +1,129 @@
+.section {
+  padding-block: var(--space-8) var(--space-7);
+  border-bottom: 1px solid var(--d0-grey-100);
+}
+.section:not([data-with-cover]) {
+  padding-block: var(--space-7);
+}
+.slide {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  align-items: center;
+  gap: clamp(32px, 6vw, 80px);
+  touch-action: pan-y;
+}
+.cover {
+  aspect-ratio: 16/10;
+  overflow: hidden;
+  border-radius: var(--d0-radius-card);
+  background: var(--d0-grey-50);
+}
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.copy {
+  max-width: 520px;
+}
+.copy:not([data-with-cover]) {
+  grid-column: 1/-1;
+}
+.category {
+  color: var(--d0-blue-dark);
+  font-size: 13px;
+  font-weight: 600;
+}
+.copy h1 {
+  margin-top: var(--space-3);
+  font-size: clamp(32px, 4vw, 52px);
+  line-height: var(--d0-leading-display);
+  letter-spacing: var(--d0-tracking-display);
+}
+.copy h1 a:hover {
+  color: var(--d0-blue-dark);
+}
+.copy p {
+  margin-top: var(--space-4);
+  color: var(--d0-grey-600);
+  font-size: 18px;
+  line-height: 1.6;
+}
+.copy time {
+  display: block;
+  margin-top: var(--space-4);
+  color: var(--d0-grey-600);
+  font-size: 13px;
+}
+.read {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-5);
+  color: var(--d0-blue-dark);
+  font-size: 15px;
+  font-weight: 600;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+  color: var(--d0-grey-600);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.controls button {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid var(--d0-grey-200);
+  border-radius: var(--d0-radius-sm);
+  background: var(--color-surface);
+  color: var(--d0-grey-800);
+  cursor: pointer;
+}
+.controls button:hover {
+  background: var(--d0-grey-50);
+}
+.controls button:focus-visible {
+  outline: 2px solid var(--d0-blue);
+  outline-offset: 2px;
+}
+@media (max-width: 640px) {
+  .section {
+    padding-top: var(--space-6);
+  }
+  .slide {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+  .copy {
+    display: contents;
+  }
+  .copy .category {
+    order: 2;
+  }
+  .copy h1 {
+    order: 3;
+    font-size: 30px;
+  }
+  .copy p {
+    order: 4;
+    margin-top: calc(var(--space-3) * -1);
+    font-size: 16px;
+  }
+  .copy time {
+    order: 5;
+  }
+  .copy .read {
+    order: 6;
+    margin-top: 0;
+  }
+  .cover {
+    order: 1;
+  }
+}

@@ -66,9 +66,9 @@ function highlightCodeBlocks(this: Processor, langs: string[]) {
     if (supportedLangs.length === 0 && !langs.some(isSpecialLang)) return;
 
     const highlight = rehypeShiki.call(this, {
-      theme: 'poimandres',
+      theme: 'github-light',
       langs: supportedLangs,
-      colorReplacements: { '#1b1e28': 'var(--color-canvas-2)' },
+      colorReplacements: { '#fff': 'var(--color-canvas-2)' },
     }) as (tree: Root) => Root | undefined | Promise<Root | undefined>;
     await highlight(tree);
   };

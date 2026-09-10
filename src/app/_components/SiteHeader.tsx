@@ -1,18 +1,18 @@
 'use client';
-
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { Dialog } from '@base-ui/react/dialog';
 import { Container } from '@components/layout/Container';
 import { ROUTES } from '@constants/routes';
 import styles from './SiteHeader.module.css';
-
+const links = [
+  { href: ROUTES.ABOUT, label: '소개' },
+  { href: ROUTES.PROJECTS.LIST, label: '프로젝트' },
+  { href: '/#archive-title', label: '검색' },
+];
 export function SiteHeader() {
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const pillRef = useRef<HTMLElement>(null);
-  const rafRef = useRef(0);
   const [stuck, setStuck] = useState(false);
-
-  /* 스크롤 이벤트 대신 감시자 하나를 관찰한다. 스크롤마다 콜백이 도는 구조를 피한다. */
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
@@ -20,49 +20,48 @@ export function SiteHeader() {
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, []);
-
-  useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
-
-  /* 스페큘러는 포인터를 따라간다. 자동으로 반짝이면 장식이 되고, 손을 따라오면 재질이 된다.
-     포인터가 없는 기기와 모션 감축 설정에서는 가운데 고정. */
-  const handlePointerMove = useCallback((event: React.PointerEvent<HTMLElement>) => {
-    const pill = pillRef.current;
-    if (!pill || event.pointerType !== 'mouse') return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (rafRef.current) return;
-    const { clientX } = event;
-    rafRef.current = requestAnimationFrame(() => {
-      rafRef.current = 0;
-      const rect = pill.getBoundingClientRect();
-      const ratio = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-      pill.style.setProperty('--sweep', `${(ratio * 100).toFixed(1)}%`);
-    });
-  }, []);
-
-  const handlePointerLeave = useCallback(() => {
-    pillRef.current?.style.removeProperty('--sweep');
-  }, []);
-
   return (
     <>
       <div ref={sentinelRef} className={styles.sentinel} aria-hidden="true" />
       <header className={styles.header} data-stuck={stuck || undefined}>
         <Container>
-          <nav
-            ref={pillRef}
-            className={styles.pill}
-            onPointerMove={handlePointerMove}
-            onPointerLeave={handlePointerLeave}
-            aria-label="주요 내비게이션"
-          >
-            <Link href={ROUTES.HOME} className={styles.wordmark} data-site-wordmark>
-              raven.kr
+          <nav className={styles.nav} aria-label="주요 내비게이션">
+            <Link href={ROUTES.HOME} className={styles.wordmark}>
+              raven
             </Link>
             <div className={styles.links}>
-              <Link href={ROUTES.BLOG.LIST}>글</Link>
-              <Link href={ROUTES.PROJECTS.LIST}>프로젝트</Link>
-              <Link href={ROUTES.ABOUT}>About</Link>
+              {links.map((link) => (
+                <Link key={link.href} href={link.href}>
+                  {link.label}
+                </Link>
+              ))}
             </div>
+            <Dialog.Root>
+              <Dialog.Trigger className={styles.menuButton} aria-label="메뉴 열기">
+                <span />
+                <span />
+              </Dialog.Trigger>
+              <Dialog.Portal>
+                <Dialog.Backdrop className={styles.backdrop} />
+                <Dialog.Popup className={styles.menu}>
+                  <Dialog.Title className={styles.menuTitle}>메뉴</Dialog.Title>
+                  <div className={styles.menuLinks}>
+                    {links.map((link) => (
+                      <Dialog.Close
+                        key={link.href}
+                        nativeButton={false}
+                        render={<Link href={link.href} />}
+                      >
+                        {link.label}
+                      </Dialog.Close>
+                    ))}
+                  </div>
+                  <Dialog.Close className={styles.close} aria-label="메뉴 닫기">
+                    ×
+                  </Dialog.Close>
+                </Dialog.Popup>
+              </Dialog.Portal>
+            </Dialog.Root>
           </nav>
         </Container>
       </header>

@@ -33,7 +33,9 @@ afterEach(() => {
 
 describe('TableOfContents', () => {
   it('toc 항목을 앵커 링크로 렌더한다', () => {
-    render(<TableOfContents toc={TOC} />);
+    const { container } = render(<TableOfContents toc={TOC} />);
+    expect(container.querySelector('details')).toHaveAttribute('open');
+    expect(screen.getByText('목차', { selector: 'summary' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '왜 헥사고날인가' })).toHaveAttribute(
       'href',
       '#왜-헥사고날인가',

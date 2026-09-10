@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 
+vi.mock('next/cache', () => ({
+  unstable_cache:
+    <TArgs extends unknown[], TResult>(fn: (...args: TArgs) => TResult) =>
+    (...args: TArgs) =>
+      fn(...args),
+}));
+
 describe('posts.api', () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -183,13 +190,69 @@ describe('posts.api', () => {
     );
   });
 
-  it('supabase 태그 필터는 스키마에 태그가 없어 조회하지 않고 빈 목록을 반환한다', async () => {
+  it('새 공개 상세 모델은 category·tags·cover 메타데이터를 보존한다', async () => {
     vi.stubEnv('CONTENT_SOURCE', 'supabase');
-    const from = vi.fn();
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: {
+        title: '공개 글',
+        slug: 'public-post',
+        description: '요약',
+        body: '본문',
+        status: 'published',
+        published_at: '2026-09-01T00:00:00Z',
+        created_at: '2026-08-01T00:00:00Z',
+        updated_at: '2026-09-02T00:00:00Z',
+        tags: ['react'],
+        cover_image_key: 'covers/post.webp',
+        cover_image_url: 'https://cdn.raven.kr/covers/post.webp',
+        cover_position_x: 0.25,
+        cover_position_y: 0.75,
+        cover_alt: '대표 이미지',
+        pin_order: 2,
+        category: {
+          id: '10000000-0000-4000-8000-000000000001',
+          slug: 'engineering',
+          name: '개발',
+          sort_order: 1,
+          is_default: false,
+        },
+      },
+      error: null,
+    });
+    const slugEq = vi.fn(() => ({ maybeSingle }));
+    const statusEq = vi.fn(() => ({ eq: slugEq }));
+    const from = vi.fn(() => ({ select: () => ({ eq: statusEq }) }));
+    vi.doMock('next/cache', () => ({
+      unstable_cache:
+        <TArgs extends unknown[], TResult>(fn: (...args: TArgs) => TResult) =>
+        (...args: TArgs) =>
+          fn(...args),
+    }));
+    vi.doMock('@lib/supabase/public', () => ({ createPublicClient: () => ({ from }) }));
+
+    const { getBlogPost } = await import('@features/posts/services/posts.api');
+    const post = await getBlogPost('public-post');
+    expect(statusEq).toHaveBeenCalledWith('status', 'published');
+    expect(post).toMatchObject({
+      tags: ['react'],
+      cover_image_key: 'covers/post.webp',
+      cover_image_url: 'https://cdn.raven.kr/covers/post.webp',
+      cover_position: { x: 0.25, y: 0.75 },
+      cover_alt: '대표 이미지',
+      category: { slug: 'engineering' },
+      body_markdown: '본문',
+    });
+  });
+
+  it('supabase 태그 필터는 정규화한 tags 배열 조건을 DB에 적용한다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'supabase');
+    const contains = vi.fn().mockResolvedValue({ data: [], error: null });
+    const order = vi.fn(() => ({ contains }));
+    const from = vi.fn(() => ({ select: () => ({ eq: () => ({ order }) }) }));
     vi.doMock('@lib/supabase/public', () => ({ createPublicClient: () => ({ from }) }));
     const { getPosts } = await import('@features/posts/services/posts.api');
-    await expect(getPosts({ tag: 'nextjs' })).resolves.toEqual([]);
-    expect(from).not.toHaveBeenCalled();
+    await expect(getPosts({ tag: 'NextJS' })).resolves.toEqual([]);
+    expect(contains).toHaveBeenCalledWith('tags', ['nextjs']);
   });
 
   it('supabase 목록의 빈 결과를 빈 배열로 정규화한다', async () => {

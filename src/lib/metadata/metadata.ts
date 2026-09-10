@@ -19,7 +19,7 @@ function getSiteUrl(): URL {
   }
 }
 
-const siteUrl = getSiteUrl();
+export const siteUrl = getSiteUrl();
 
 function isSiteIndexable(): boolean {
   const value = process.env.SITE_INDEXABLE?.trim().toLowerCase();
@@ -29,7 +29,7 @@ function isSiteIndexable(): boolean {
   throw new Error('SITE_INDEXABLE은 true 또는 false여야 합니다.');
 }
 
-const siteIndexable = isSiteIndexable();
+export const siteIndexable = isSiteIndexable();
 
 export const baseMetadata: Metadata = {
   metadataBase: siteUrl,
@@ -52,11 +52,12 @@ export function buildMetadata(input: {
   const baseOg = baseMetadata.openGraph as Record<string, unknown>;
   return {
     title: input.title,
-    description: input.description,
+    description: input.description ?? SITE.description,
+    alternates: input.path ? { canonical: input.path } : undefined,
     openGraph: {
       ...baseOg,
       title: input.title,
-      description: input.description,
+      description: input.description ?? SITE.description,
       url: input.path,
     },
   };

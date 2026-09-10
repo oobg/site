@@ -1,5 +1,4 @@
-/* 사이트의 명제는 홈 히어로가 정본이다. 푸터는 "여기가 어디이고 어디로 갈 수 있나"만 맡는다.
-   면을 깔지 않고 hairline 하나로 끊는다 — 푸터에 배경을 주면 페이지가 거기서 잘린다. */
+/* 면을 깔지 않고 hairline 하나로 본문과 구분한다. */
 .footer {
   margin-top: var(--space-8);
   padding-block: var(--space-7) var(--space-6);
@@ -13,7 +12,6 @@
   gap: var(--space-7) var(--space-8);
 }
 
-/* 진입 인트로가 이 글자를 헤더로 넘기는 안무와 짝을 맞춘다. */
 .wordmark {
   display: inline-flex;
   min-height: 44px;

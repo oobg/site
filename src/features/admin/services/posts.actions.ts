@@ -7,6 +7,7 @@ import { postIdSchema, postInputSchema } from '@/features/admin/services/posts.s
 import { ROUTES } from '@constants/routes';
 import { OwnerAuthorizationError, requireOwner } from '@lib/auth/owner';
 import { createClient } from '@lib/supabase/server';
+import { invalidatePublicPostCache } from '@lib/cache/posts';
 
 const valuesFrom = (formData: FormData) => ({
   title: formData.get('title'),
@@ -14,6 +15,13 @@ const valuesFrom = (formData: FormData) => ({
   description: formData.get('description'),
   body: formData.get('body'),
   status: formData.get('status'),
+  category_id: formData.get('category_id') ?? undefined,
+  tags: formData.get('tags') ?? undefined,
+  cover_image_key: formData.get('cover_image_key') || null,
+  cover_image_url: formData.get('cover_image_url') ?? '',
+  cover_position_x: formData.get('cover_position_x') ?? undefined,
+  cover_position_y: formData.get('cover_position_y') ?? undefined,
+  cover_alt: formData.get('cover_alt') ?? '',
 });
 
 const failure = (error: unknown): PostActionState => ({
@@ -48,6 +56,16 @@ function refreshPostPaths(...slugs: (string | undefined)[]) {
   }
 }
 
+function refreshPublicPostCache(oldSlug?: string, newSlug?: string) {
+  try {
+    invalidatePublicPostCache({ oldSlug, newSlug });
+  } catch (error) {
+    console.error('Post data cache invalidation failed', {
+      kind: error instanceof Error ? error.name : 'UnknownError',
+    });
+  }
+}
+
 export async function createPostAction(
   _previousState: PostActionState,
   formData: FormData,
@@ -78,6 +96,7 @@ export async function createPostAction(
       };
     }
     if (error) throw error;
+    refreshPublicPostCache(undefined, parsed.data.slug);
     refreshPostPaths(parsed.data.slug);
     return { status: 'success', message: '글을 저장했습니다.', postId: data.id };
   } catch (error) {
@@ -125,6 +144,7 @@ export async function updatePostAction(
       };
     }
     if (error) throw error;
+    refreshPublicPostCache(current.slug, parsed.data.slug);
     refreshPostPaths(current.slug, parsed.data.slug);
     return { status: 'success', message: '글을 수정했습니다.' };
   } catch (error) {
@@ -150,6 +170,7 @@ export async function deletePostAction(
       .select('slug')
       .single();
     if (error) throw error;
+    refreshPublicPostCache(data.slug);
     refreshPostPaths(data.slug);
     return { status: 'success', message: '글을 삭제했습니다.' };
   } catch (error) {

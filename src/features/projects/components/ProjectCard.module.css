@@ -5,21 +5,19 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  transition: border-color var(--dur) linear;
+  border-bottom: 1px solid var(--d0-grey-100);
+  transition: color var(--d0-dur-fast) var(--d0-ease);
 }
 
 .card:hover {
-  border-color: var(--color-border-strong);
+  color: var(--d0-blue-dark);
 }
 
 .cover {
   width: 100%;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--d0-grey-100);
 }
 
 .body {
@@ -27,17 +25,18 @@
   flex-direction: column;
   flex: 1;
   gap: var(--space-2);
-  padding: var(--space-5);
+  padding: var(--space-4) 0 var(--space-6);
 }
 
 .title {
   font-size: var(--fs-18);
+  font-weight: 650;
   letter-spacing: var(--ls-body);
-  transition: color var(--dur) linear;
+  transition: color var(--d0-dur-fast) var(--d0-ease);
 }
 
 .card:hover .title {
-  color: var(--color-accent);
+  color: var(--d0-blue-dark);
 }
 
 .summary {
@@ -55,5 +54,5 @@
   font-family: var(--font-mono), monospace;
   font-size: var(--fs-12);
   letter-spacing: 0.05em;
-  color: var(--color-text-muted);
+  color: var(--d0-grey-600);
 }

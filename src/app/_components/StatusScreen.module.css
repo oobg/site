@@ -12,16 +12,16 @@
 
 .title {
   margin-top: var(--space-3);
-  font-size: clamp(2rem, 4.4vw, 2.5rem);
-  line-height: var(--lh-title);
-  letter-spacing: -0.036em;
+  font-size: var(--fs-30);
+  line-height: var(--d0-leading-title);
+  letter-spacing: var(--d0-tracking-title);
 }
 
 .description {
   margin-top: var(--space-4);
-  font-size: var(--fs-16);
-  line-height: var(--lh-body);
-  color: var(--color-text-secondary);
+  font-size: var(--d0-text-control);
+  line-height: var(--d0-leading-body);
+  color: var(--d0-grey-600);
 }
 
 .action {

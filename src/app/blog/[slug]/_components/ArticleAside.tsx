@@ -1,7 +1,8 @@
 import Link from 'next/link';
-import type { Post, PostListItem } from '@features/posts/types/posts.types';
+import type { BlogPost, PostListItem } from '@features/posts/types/posts.types';
 import { Eyebrow } from '@components/ui/Eyebrow';
-import { ROUTES } from '@constants/routes';
+import { homeSearchHref, ROUTES } from '@constants/routes';
+import { SITE } from '@constants/site';
 import { formatDateKo } from '@utils/date';
 import { ShareButtons } from './ShareButtons';
 import styles from './ArticleAside.module.css';
@@ -11,11 +12,10 @@ export function ArticleAside({
   related,
   readingMin,
 }: {
-  post: Post;
+  post: BlogPost;
   related: PostListItem[];
   readingMin: number;
 }) {
-  const category = post.tags[0] ?? null;
   const showUpdated = post.updated_at !== post.published_at;
 
   return (
@@ -43,22 +43,32 @@ export function ArticleAside({
             <dt>읽기 시간</dt>
             <dd>{readingMin}분</dd>
           </div>
-          {category ? (
-            <div className={styles.row}>
-              <dt>카테고리</dt>
-              <dd>{category}</dd>
-            </div>
-          ) : null}
+          <div className={styles.row}>
+            <dt>카테고리</dt>
+            <dd>{post.category.name}</dd>
+          </div>
         </dl>
         {post.tags.length > 0 ? (
           <ul className={styles.tags}>
             {post.tags.map((tag) => (
-              <li key={tag} className={styles.tag}>
-                {tag}
+              <li key={tag}>
+                <Link className={styles.tag} href={homeSearchHref({ tag })}>
+                  {tag}
+                </Link>
               </li>
             ))}
           </ul>
         ) : null}
+      </section>
+
+      <section className={styles.authorBlock}>
+        <Eyebrow as="h2" className={styles.blockTitle}>
+          쓴 사람
+        </Eyebrow>
+        <p>
+          <strong>{SITE.author.name}</strong>
+        </p>
+        <p className={styles.authorDescription}>제품과 소프트웨어를 만들며 배운 것을 기록해요.</p>
       </section>
 
       {related.length > 0 ? (

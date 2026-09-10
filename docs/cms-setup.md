@@ -12,7 +12,10 @@
    supabase db push
    ```
 
-   적용할 SQL은 `supabase/migrations/20260907000000_create_posts.sql`이다. 이 마이그레이션은 `posts`, `cms_owners`, RLS 정책과 `updated_at` 트리거를 만든다.
+   적용할 SQL은 순서대로 `supabase/migrations/20260907000000_create_posts.sql`과
+   `supabase/migrations/20260910000000_add_blog_taxonomy_and_featured_posts.sql`이다.
+   첫 마이그레이션은 `posts`, `cms_owners`, RLS 정책과 `updated_at` 트리거를 만들고,
+   두 번째는 카테고리·태그·커버 메타데이터·대표 글 순서를 추가한다.
 
 3. SQL Editor에서 로그인할 Google 계정을 소문자로 등록한다.
 
@@ -21,6 +24,28 @@
    ```
 
 `cms_owners` 테이블은 클라이언트에서 직접 읽을 수 없다. `posts`의 `anon`·`authenticated` 공개 SELECT 정책은 published 행만 허용하고, 등록된 owner는 CMS에서 draft를 포함해 관리할 수 있다. Supabase는 노출 스키마의 테이블에 RLS와 최소 권한을 함께 설정할 것을 권장한다. 자세한 기준은 [Supabase Row Level Security 문서](https://supabase.com/docs/guides/database/postgres/row-level-security)를 참고한다.
+
+두 번째 마이그레이션을 되돌려야 할 때는 먼저 서비스 영향과 백업을 확인한 뒤
+[`supabase/rollback/20260910000000_add_blog_taxonomy_and_featured_posts.sql`](../supabase/rollback/20260910000000_add_blog_taxonomy_and_featured_posts.sql)을
+SQL Editor에서 검토해 수동 적용한다. 이 rollback은 데이터 손실이 발생할 수 있으므로
+자동 실행하지 않는다.
+
+## 2.1 카테고리·대표 글 운영
+
+카테고리는 관리자에서 만들고 순서를 정한다. 글에는 하나의 카테고리를 지정하며,
+카테고리를 삭제하면 연결된 글은 기본 카테고리 `미분류`로 이동한다. 기본 카테고리
+자체는 삭제하거나 이름·slug를 바꿀 수 없다. 태그는 글별 자유 입력값이며 저장 시
+소문자로 정규화한다.
+
+대표 글은 공개 상태인 글만 최대 5개까지 선택하고 순서를 저장한다. 고정된 글이
+있으면 그 순서를 사용하며, 없을 때 공개 화면은 카테고리별 최신 글을 자동으로
+선정한다. 초안은 대표 글과 공개 목록에서 제외되고 공개 전환 시 기존 고정 순서도
+자동으로 해제된다.
+
+글 편집 화면은 커버 이미지 파일을 서버 업로드 route로 전송하고 커버 URL·alt·초점
+위치를 저장한다. 지원 형식은 JPEG, PNG, GIF, WebP이며 파일은 10MB 이하이다.
+본문 이미지는 Markdown 업로드 경로로 삽입된다. 커버가 없는 글은 공개 화면의
+텍스트형 fallback을 사용한다.
 
 ## 2. Google 로그인
 
@@ -67,6 +92,7 @@ dev에서는 R2 대신 local backend를 사용한다. 동일한 Markdown 경로�
 | `ASSET_STORAGE_BACKEND`                | 기본 `r2`. dev local volume은 `local`                                                             |
 | `ASSET_LOCAL_ROOT`                     | local backend의 컨테이너 내부 원본 mount root                                                     |
 | `ASSET_PUBLIC_URL`                     | local backend의 공개 origin. dev는 `https://cdn-dev.raven.kr`                                     |
+| `SITE_INDEXABLE`                       | `false`이면 robots와 sitemap에서 공개 인덱싱을 막음. 기본값은 `true`                              |
 
 `NEXT_PUBLIC_SUPABASE_*`는 브라우저 bundle에도 들어가므로 Docker build argument로 전달된다. publishable key는 공개 클라이언트용이며 권한은 RLS가 제한한다. `CMS_OWNER_EMAILS`와 R2 credentials는 서버에서만 읽는다. OCI production은 이 값을 호스트의 mode `600` config 파일에서 공급하고 GitHub Actions에 앱 runtime secret을 두지 않는다. 기존 홈서버 workflow를 사용할 때만 해당 환경의 GitHub secrets에서 runtime 값을 공급한다. service role key는 이 앱에서 사용하지 않는다.
 
@@ -80,8 +106,18 @@ pnpm dev
 2. draft 글을 저장하고 `/blog` 및 `/blog/<slug>`에서 노출되지 않는지 확인한다.
 3. 글을 발행해 공개 목록과 상세에 표시되는지 확인한다.
 4. 이미지를 올려 Markdown에 `/assets/posts/...`가 들어가고 상세 페이지의 HTML이 `R2_PUBLIC_URL`로 시작하는지 확인한다.
+5. 카테고리와 대표 글 순서를 저장한 뒤 공개 홈에 반영되는지 확인한다.
+6. `SITE_INDEXABLE=false` 환경에서 `/robots.txt`가 전체 경로를 차단하고 `/sitemap.xml`이 비어 있는지 확인한다.
 
-dev는 Raven 전용 DB/Auth/REST와 Google OAuth client를 사용하고 기존 Day0와는 외부 Kong 하나만 공유한다. dev client는 `https://dev.raven.kr` origin과 `https://supabase-dev.raven.kr/auth/v1/callback`으로 생성했으며 production과 Day0 client는 변경하지 않았다. `SITE_URL=https://dev.raven.kr`, `SITE_INDEXABLE=false`를 Docker build와 runtime에 전달해 metadata와 Open Graph origin을 dev로 맞추고 `noindex, nofollow`를 확인했다. Raven Auth provider와 database migration을 적용했고 공개 origin에서 Google 로그인, owner 관리자 진입, draft 비공개, 발행 글 공개, local 이미지 업로드와 CDN 변환을 확인했다. 서버 준비와 acceptance는 [`dev-setup.md`](dev-setup.md)를 따른다.
+공개 글·카테고리·대표 영역 데이터는 서버에서 최대 60초 캐시된다. 관리자 저장·삭제·
+발행·카테고리 변경·대표 순서 변경은 `invalidatePublicPostCache`와 경로 재검증으로
+서버 캐시를 즉시 무효화한다. 브라우저 query cache는 공개 홈의 prefetch/상호작용
+범위에서만 사용한다. 관리자 Markdown 미리보기는 owner 인증을 거치고
+`Cache-Control: no-store`로 응답한다.
+
+dev 환경은 Raven 전용 DB/Auth/REST와 Google OAuth client를 사용한다. dev 환경의
+`SITE_URL`은 dev origin으로, `SITE_INDEXABLE`은 `false`로 설정해 검색 노출을 막는다.
+서버 준비와 acceptance는 [`dev-setup.md`](dev-setup.md)를 따른다.
 
 OCI production에서는 표의 runtime 값을 서버 config에 두고 `CONTENT_SOURCE=supabase`로 실행한다. 배포 workflow에는 서버 접속에 필요한 설정만 둔다. 기존 홈서버 workflow를 계속 사용할 경우에는 그 환경의 GitHub secrets와 `CONTENT_SOURCE` variable을 사용한다. `REVALIDATE_SECRET`은 기존 외부 API 호환 웹훅을 사용할 때만 필요하다.
 

@@ -3,10 +3,12 @@
 import { useActionState, useEffect, useRef, useState } from 'react';
 import { ImageSquare, UploadSimple } from '@phosphor-icons/react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { ROUTES } from '@constants/routes';
 import articleStyles from '@components/content/ArticleBody.module.css';
 import { normalizeSlug } from '@features/admin/services/slug';
 import type { PostActionState, PostStatus } from '@features/admin/types/posts-admin.types';
+import type { BlogCategory } from '@features/posts/types/posts.types';
 import { initialPostActionState } from '@features/admin/types/posts-admin.types';
 import styles from './PostEditor.module.css';
 
@@ -17,6 +19,13 @@ type PostDraft = {
   description: string;
   body: string;
   status: PostStatus;
+  category_id?: string;
+  tags?: string[];
+  cover_image_key?: string | null;
+  cover_image_url?: string | null;
+  cover_position_x?: number;
+  cover_position_y?: number;
+  cover_alt?: string | null;
 };
 
 const errorMessage = (value: unknown) =>
@@ -49,8 +58,10 @@ function fieldError(state: PostActionState, name: string) {
 export function PostEditor({
   post,
   action,
+  categories = [],
 }: {
   post?: PostDraft;
+  categories?: BlogCategory[];
   action: (previousState: PostActionState, formData: FormData) => Promise<PostActionState>;
 }) {
   const [title, setTitle] = useState(post?.title ?? '');
@@ -58,6 +69,15 @@ export function PostEditor({
   const [description, setDescription] = useState(post?.description ?? '');
   const [body, setBody] = useState(post?.body ?? '');
   const [status, setStatus] = useState<PostStatus>(post?.status ?? 'draft');
+  const [categoryId, setCategoryId] = useState(
+    post?.category_id ?? categories.find((category) => category.is_default)?.id ?? '',
+  );
+  const [tags, setTags] = useState(post?.tags?.join(', ') ?? '');
+  const [coverKey, setCoverKey] = useState(post?.cover_image_key ?? '');
+  const [coverUrl, setCoverUrl] = useState(post?.cover_image_url ?? '');
+  const [coverAlt, setCoverAlt] = useState(post?.cover_alt ?? '');
+  const [coverX, setCoverX] = useState(post?.cover_position_x ?? 0.5);
+  const [coverY, setCoverY] = useState(post?.cover_position_y ?? 0.5);
   const [dirty, setDirty] = useState(false);
   const [slugEdited, setSlugEdited] = useState(Boolean(post?.slug));
   const [dragging, setDragging] = useState(false);
@@ -70,6 +90,7 @@ export function PostEditor({
   const bodyValueRef = useRef(body);
   const previewSequenceRef = useRef(0);
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [state, formAction, pending] = useActionState(
     async (previousState: PostActionState, formData: FormData): Promise<PostActionState> => {
       let nextState: PostActionState;
@@ -84,6 +105,8 @@ export function PostEditor({
       }
       if (nextState.status === 'success') {
         setDirty(false);
+        await queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
+        await queryClient.invalidateQueries({ queryKey: ['post'] });
         if (!post && nextState.postId) router.replace(ROUTES.ADMIN.POST(nextState.postId));
       }
       return nextState;
@@ -203,6 +226,35 @@ export function PostEditor({
     }
   }
 
+  async function uploadCover(file: File) {
+    setUploading(true);
+    setUploadMessage('대표 이미지를 올리는 중이에요.');
+    try {
+      const payload = new FormData();
+      payload.set('file', file);
+      const response = await fetch('/api/admin/uploads', { method: 'POST', body: payload });
+      const result = (await response.json()) as {
+        path?: unknown;
+        publicUrl?: unknown;
+        error?: unknown;
+      };
+      if (!response.ok || typeof result.path !== 'string' || typeof result.publicUrl !== 'string') {
+        throw new Error(errorMessage(result) ?? '대표 이미지를 업로드하지 못했습니다.');
+      }
+      setCoverKey(result.path.replace(/^\//, ''));
+      setCoverUrl(result.publicUrl);
+      if (!coverAlt) setCoverAlt(file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '));
+      setDirty(true);
+      setUploadMessage('대표 이미지를 올렸어요.');
+    } catch (error) {
+      setUploadMessage(
+        error instanceof Error ? error.message : '대표 이미지를 업로드하지 못했습니다.',
+      );
+    } finally {
+      setUploading(false);
+    }
+  }
+
   const busy = pending || uploading;
   const visiblePreviewMessage = body.trim()
     ? previewMessage
@@ -219,6 +271,7 @@ export function PostEditor({
     >
       {post?.id ? <input type="hidden" name="id" value={post.id} /> : null}
       <div className={styles.fields}>
+        <h2 className={styles.groupHeading}>기본 정보</h2>
         <label className={styles.field}>
           <span>제목</span>
           <input
@@ -238,7 +291,6 @@ export function PostEditor({
             <small id="title-error">{fieldError(state, 'title')}</small>
           ) : null}
         </label>
-
         <div className={styles.field}>
           <label htmlFor="post-slug">슬러그</label>
           <span className={styles.slugControl}>
@@ -277,8 +329,7 @@ export function PostEditor({
                 : '제목으로 자동 생성돼요. 필요하면 직접 수정할 수 있어요.')}
           </small>
         </div>
-
-        <label className={styles.field}>
+        <label className={`${styles.field} ${styles.wide}`}>
           <span>설명</span>
           <textarea
             aria-describedby={fieldError(state, 'description') ? 'description-error' : undefined}
@@ -293,6 +344,98 @@ export function PostEditor({
             <small id="description-error">{fieldError(state, 'description')}</small>
           ) : null}
         </label>
+        <h2 className={styles.groupHeading}>분류</h2>
+        <label className={styles.field}>
+          <span>카테고리</span>
+          <select
+            name="category_id"
+            value={categoryId}
+            onChange={(event) => setCategoryId(event.target.value)}
+            required
+          >
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={styles.field}>
+          <span>태그</span>
+          <input
+            name="tags"
+            value={tags}
+            onChange={(event) => setTags(event.target.value)}
+            placeholder="react, nextjs"
+          />
+          <small>쉼표로 나눠 입력해요. 저장할 때 소문자와 중복을 정리합니다.</small>
+        </label>
+        <h2 className={styles.groupHeading} id="cover-heading">
+          대표 이미지
+        </h2>
+        <section className={`${styles.field} ${styles.coverField}`} aria-labelledby="cover-heading">
+          {coverUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element -- owner-selected CDN URL is not a configured image host
+            <img
+              src={coverUrl}
+              alt={coverAlt || ''}
+              style={{
+                objectPosition: `${coverX * 100}% ${coverY * 100}%`,
+                maxWidth: '320px',
+                aspectRatio: '16 / 9',
+                objectFit: 'cover',
+              }}
+            />
+          ) : null}
+          <input type="hidden" name="cover_image_key" value={coverKey} />
+          <input type="hidden" name="cover_image_url" value={coverUrl} />
+          <label>
+            가로 위치
+            <input
+              type="range"
+              name="cover_position_x"
+              min="0"
+              max="1"
+              step="0.01"
+              value={coverX}
+              onChange={(event) => setCoverX(Number(event.target.value))}
+            />
+          </label>
+          <label>
+            세로 위치
+            <input
+              type="range"
+              name="cover_position_y"
+              min="0"
+              max="1"
+              step="0.01"
+              value={coverY}
+              onChange={(event) => setCoverY(Number(event.target.value))}
+            />
+          </label>
+          <label>
+            대체 텍스트
+            <input
+              name="cover_alt"
+              value={coverAlt}
+              onChange={(event) => setCoverAlt(event.target.value)}
+              placeholder="이미지 내용을 설명해 주세요"
+            />
+          </label>
+          <label className={styles.uploadButton} aria-disabled={busy}>
+            대표 이미지 선택
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              disabled={busy}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void uploadCover(file);
+                event.target.value = '';
+              }}
+            />
+          </label>
+        </section>
       </div>
 
       <div className={styles.editorBlock}>

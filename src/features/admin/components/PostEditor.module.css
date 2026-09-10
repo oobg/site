@@ -10,6 +10,22 @@
   gap: var(--space-5);
 }
 
+.groupHeading {
+  grid-column: 1 / -1;
+  margin: var(--space-3) 0 0;
+  color: var(--color-text);
+  font-size: var(--fs-18);
+}
+
+.groupHeading:first-child {
+  margin-top: 0;
+}
+
+.wide,
+.coverField {
+  grid-column: 1 / -1;
+}
+
 .field {
   display: flex;
   min-width: 0;
@@ -26,6 +42,7 @@
 
 .field input,
 .field textarea,
+.field select,
 .statusField select,
 .body {
   width: 100%;
@@ -38,9 +55,51 @@
 }
 
 .field input,
+.field select,
 .statusField select {
   min-height: var(--space-7);
   padding: var(--space-2) var(--space-3);
+}
+
+.field select {
+  appearance: none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
+    linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 50%,
+    calc(100% - 11px) 50%;
+  background-repeat: no-repeat;
+  background-size: 5px 5px;
+}
+
+.coverField {
+  display: grid;
+  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-4) var(--space-5);
+}
+
+.coverField img {
+  grid-row: span 4;
+  width: 100%;
+  border-radius: var(--radius-control);
+}
+
+.coverField > label:not(.uploadButton) {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.coverField input[type='range'] {
+  min-height: var(--space-5);
+  padding: 0;
+  border: 0;
+  accent-color: var(--color-accent);
+}
+
+.coverField .uploadButton {
+  width: fit-content;
 }
 
 .slugControl {
@@ -265,9 +324,9 @@
   padding: var(--space-4);
   border: 1px solid var(--color-border-strong);
   border-radius: var(--radius);
-  background: var(--glass-tint);
-  box-shadow: var(--glass-shadow), var(--glass-hi);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  box-shadow: var(--d0-shadow-card);
+  backdrop-filter: blur(12px);
 }
 
 .statusField {
@@ -334,6 +393,14 @@
 @media (max-width: 640px) {
   .fields {
     grid-template-columns: 1fr;
+  }
+
+  .coverField {
+    grid-template-columns: 1fr;
+  }
+
+  .coverField img {
+    grid-row: auto;
   }
 
   .editorHeading,

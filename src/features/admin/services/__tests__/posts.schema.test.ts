@@ -12,7 +12,23 @@ const validPost = {
 
 describe('postInputSchema', () => {
   it('accepts the supported CMS fields', () => {
-    expect(postInputSchema.parse(validPost)).toEqual(validPost);
+    expect(postInputSchema.parse(validPost)).toMatchObject({
+      ...validPost,
+      tags: [],
+      cover_image_key: null,
+      cover_image_url: null,
+      cover_position_x: 0.5,
+      cover_position_y: 0.5,
+      cover_alt: null,
+    });
+  });
+
+  it('태그를 소문자 unique 배열로 만들고 cover crop 범위를 검증한다', () => {
+    expect(postInputSchema.parse({ ...validPost, tags: 'React, react, NextJS' }).tags).toEqual([
+      'react',
+      'nextjs',
+    ]);
+    expect(postInputSchema.safeParse({ ...validPost, cover_position_x: 1.1 }).success).toBe(false);
   });
 
   it('accepts Korean slugs and normalizes them to NFC', () => {

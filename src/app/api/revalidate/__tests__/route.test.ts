@@ -32,8 +32,9 @@ describe('POST /api/revalidate', () => {
       ),
     );
     expect(res.status).toBe(200);
-    expect(revalidateTag).toHaveBeenCalledWith('post:hexagonal-nestjs', {});
-    expect(revalidateTag).toHaveBeenCalledWith('posts', {});
+    expect(revalidateTag).toHaveBeenCalledWith('post:hexagonal-nestjs', { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith('posts', { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith('post-categories', { expire: 0 });
   });
 
   it('changed가 빈 배열이면 posts·projects 태그를 전체 무효화한다', async () => {
@@ -42,8 +43,9 @@ describe('POST /api/revalidate', () => {
     expect(res.status).toBe(200);
     const body = (await res.json()) as { revalidated: boolean; count: number };
     expect(body).toEqual({ revalidated: true, count: 0 });
-    expect(revalidateTag).toHaveBeenCalledWith('posts', {});
-    expect(revalidateTag).toHaveBeenCalledWith('projects', {});
+    expect(revalidateTag).toHaveBeenCalledWith('posts', { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith('post-categories', { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith('projects', { expire: 0 });
   });
 
   it.each([
@@ -72,8 +74,8 @@ describe('POST /api/revalidate', () => {
     const res = await POST(post({ 'x-revalidate-secret': 'test-secret' }, {}));
 
     expect(res.status).toBe(200);
-    expect(revalidateTag).toHaveBeenCalledWith('posts', {});
-    expect(revalidateTag).toHaveBeenCalledWith('projects', {});
+    expect(revalidateTag).toHaveBeenCalledWith('posts', { expire: 0 });
+    expect(revalidateTag).toHaveBeenCalledWith('projects', { expire: 0 });
   });
 
   it('콘텐츠 API가 허용하는 비관리자 슬러그 문자열을 그대로 사용한다', async () => {
@@ -86,7 +88,7 @@ describe('POST /api/revalidate', () => {
     );
 
     expect(res.status).toBe(200);
-    expect(revalidateTag).toHaveBeenCalledWith('project:Case_Study.v2', {});
+    expect(revalidateTag).toHaveBeenCalledWith('project:Case_Study.v2', { expire: 0 });
   });
 
   it('100개를 넘는 변경 목록을 거부한다', async () => {

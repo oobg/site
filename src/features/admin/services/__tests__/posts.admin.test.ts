@@ -16,7 +16,7 @@ describe('listAdminPosts', () => {
 
     await expect(listAdminPosts()).resolves.toEqual([]);
     expect(mocks.requireOwner).toHaveBeenCalledOnce();
-    expect(select).toHaveBeenCalledWith('id,title,slug,status,updated_at');
+    expect(select).toHaveBeenCalledWith('id,title,slug,status,updated_at,pin_order');
   });
 
   it('does not create a database client when authorization fails', async () => {

@@ -1,37 +1,68 @@
-/* 알약(--radius-pill)은 헤더에만 쓴다. 컨트롤까지 동글게 만들면 강조가 반복되어
-   강조를 잃고, 화면 전체가 한 가지 모양으로 수렴한다. */
 .button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: var(--space-2) var(--space-4);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
+  height: var(--d0-control-md);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--d0-grey-200);
+  border-radius: var(--d0-radius-control);
   background: var(--color-surface);
-  color: var(--color-text);
-  font-size: var(--fs-15);
-  font-weight: 600;
-  line-height: var(--lh-lead);
+  color: var(--d0-grey-900);
+  font: 600 var(--d0-text-control)/1 var(--d0-font);
+  letter-spacing: var(--d0-tracking-body);
   cursor: pointer;
   transition:
-    background var(--dur) var(--ease),
-    border-color var(--dur) var(--ease),
-    color var(--dur) var(--ease);
+    background var(--d0-dur-fast) var(--d0-ease),
+    border-color var(--d0-dur-fast) var(--d0-ease),
+    color var(--d0-dur-fast) var(--d0-ease),
+    transform var(--d0-dur-fast) var(--d0-ease);
 }
-
-/* 상태마다 표현은 하나씩. hover는 배경, 정적 구분은 보더. 둘을 겹치면 상태가 뭉갠다. */
-.button:hover {
-  background: var(--color-canvas);
+.button[data-size='sm'] {
+  height: var(--d0-control-sm);
+  border-radius: var(--d0-radius-sm);
+  font-size: var(--d0-text-control-sm);
 }
-
+.button[data-size='lg'] {
+  height: var(--d0-control-lg);
+  padding-inline: var(--space-5);
+  font-size: var(--d0-text-control-lg);
+}
+.button[data-variant='primary'] {
+  border-color: var(--d0-blue-dark);
+  background: var(--d0-blue-dark);
+  color: var(--color-surface);
+}
+.button[data-variant='danger'] {
+  border-color: var(--d0-red-dark);
+  background: var(--d0-red-dark);
+  color: var(--color-surface);
+}
+.button[data-variant='ghost'] {
+  border-color: transparent;
+  background: transparent;
+}
+.button:is([data-variant='secondary'], [data-variant='ghost']):hover {
+  background: var(--d0-grey-100);
+}
+.button[data-variant='primary']:hover,
+.button[data-variant='danger']:hover {
+  filter: brightness(0.9);
+}
 .button:active {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  transform: scale(0.98);
 }
-
+.button:focus-visible {
+  outline: 2px solid var(--d0-blue-dark);
+  outline-offset: 2px;
+}
 .button:disabled {
+  opacity: 0.5;
   cursor: not-allowed;
-  color: var(--color-text-muted);
-  background: var(--color-canvas);
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition-duration: 0ms;
+  }
 }

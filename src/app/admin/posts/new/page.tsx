@@ -5,6 +5,7 @@ import { AdminFrame } from '@features/admin/components/AdminFrame';
 import { LoginPanel } from '@features/admin/components/LoginPanel';
 import { PostEditor } from '@features/admin/components/PostEditor';
 import { createPostAction } from '@features/admin/services/posts.actions';
+import { listAdminCategories } from '@features/admin/services/posts.admin';
 import { getOwnerAccess } from '@lib/auth/owner';
 
 export const metadata = { title: '새 글 작성' };
@@ -37,6 +38,7 @@ export default async function NewPostPage() {
     );
   }
 
+  const categories = await listAdminCategories();
   return (
     <Container>
       <AdminFrame
@@ -45,7 +47,7 @@ export default async function NewPostPage() {
         userEmail={access.email ?? undefined}
         actions={<AdminBackLink />}
       >
-        <PostEditor action={createPostAction} />
+        <PostEditor action={createPostAction} categories={categories} />
       </AdminFrame>
     </Container>
   );

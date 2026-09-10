@@ -1,74 +1,86 @@
 :root {
-  /* ── 색 ───────────────────────────────────────────────────────────────────
-     까마귀 깃털은 검지 않다. 각도에 따라 청록에서 보라로 번지는 광택이 있고,
-     브랜드 마크가 그 현상을 그대로 그린 것이다. 팔레트를 거기서 뽑았다.
+  --d0-blue: #3d7de5;
+  --d0-blue-dark: #2f66c4;
+  --d0-blue-light: #eef3fb;
+  --d0-grey-50: #f7f8fa;
+  --d0-grey-100: #eef0f3;
+  --d0-grey-200: #e2e5ea;
+  --d0-grey-300: #c9ced6;
+  --d0-grey-400: #a8b0bb;
+  --d0-grey-500: #87919e;
+  --d0-grey-600: #68707c;
+  --d0-grey-700: #4c5460;
+  --d0-grey-800: #323942;
+  --d0-grey-900: #1a1f26;
+  --d0-green: #1f9d61;
+  --d0-green-bg: #edf7f1;
+  --d0-red: #e15b66;
+  --d0-red-dark: #ad2937;
+  --d0-red-bg: #fdf0f1;
+  --d0-orange: #e09530;
+  --d0-orange-bg: #fdf6ea;
+  --d0-radius-card: 14px;
+  --d0-radius-control: 10px;
+  --d0-radius-sm: 8px;
+  --d0-shadow-card: 0 1px 2px rgb(26 31 38 / 0.04);
+  --d0-shadow-overlay: 0 10px 28px rgb(26 31 38 / 0.1);
+  --d0-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --d0-dur-fast: 140ms;
+  --d0-dur: 220ms;
+  --d0-font:
+    var(--font-sans), 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+  --d0-tracking-body: -0.02em;
+  --d0-tracking-title: -0.028em;
+  --d0-tracking-display: -0.032em;
+  --d0-leading-body: 1.55;
+  --d0-leading-title: 1.22;
+  --d0-leading-display: 1.15;
+  --d0-density-row: 38px;
+  --d0-text-compact: 13px;
+  --d0-meta: 12px;
+  --d0-label: 11px;
+  --d0-label-tracking: 0.02em;
+  --d0-stat-value: 18px;
+  --d0-control-sm: 36px;
+  --d0-control-md: 48px;
+  --d0-control-lg: 56px;
+  --d0-field-height: 52px;
+  --d0-text-control-sm: 14px;
+  --d0-text-control: 15px;
+  --d0-text-control-lg: 17px;
 
-     잉크는 중성 검정이 아니다 — 마크의 글로우가 중성 회색 위에 번지면 때가 탄 것처럼
-     보인다. 액센트와 같은 계열로 중성색 전부를 옅게 물들여야 한 벌이 된다.
-
-     UI 액센트는 청록 하나로 고정한다. 색이 옮겨 가는 것은 마크와 빛이 스치는
-     자리에서만 일어나야 한다. 둘 다 변하면 액센트가 둘이 되어 서로를 깎는다.
-     괄호 안은 캔버스(--color-canvas) 대비. */
-  --color-canvas: #080a12;
-  --color-canvas-2: #0c0f1a;
-  --color-surface: #121724; /* 카드면 */
-  --color-text: #e9eef6; /* 16.97:1 */
-  /* 목록 행 hover에서 제목이 한 단 올라가는 자리. 본문 잉크(#e9eef6)는 오래 보는 색이라
-     한 단 낮춰 두었고, 순간적으로 스치는 상태에는 그 위가 필요하다. 세 목록이 각자
-     #fff를 적어 두고 있었다. */
-  --color-text-strong: #ffffff; /* 18.94:1 */
-  --color-text-secondary: #9aa6bc; /* 8.05:1 */
-  /* 길게 읽는 글자 전용. secondary(8.05:1)를 본문에 쓰면 제목(16.97:1)과 두 단이 벌어져
-     본문만 잠긴 것처럼 보인다. 다크에서 본문 밝기를 낮추는 것은 헐레이션을 막으려는
-     것이지 최대 대비의 절반까지 내리려는 게 아니다 — 읽기 화면 레퍼런스의 본문은 대개
-     최대 대비에 가깝다(overreacted 15.9:1). secondary는 날짜·읽기시간 같은 메타에 남긴다. */
-  --color-text-reading: #c3cddd; /* 12.33:1 · 카드면 11.16:1 */
-  /* 처음 잡은 #67738c는 카드면 대비 3.76:1로 AA 미달이었다. 날짜·읽기시간·요약처럼
-     작은 글자에 쓰이는 색이라 한 단 올렸다. 밝은 팔레트에서 겪은 것과 같은 함정이다. */
-  --color-text-muted: #7d8aa4; /* 5.69:1 · 카드면 5.15:1 */
-  --color-border: #1f2738; /* hairline은 낮아야 정상 */
-  --color-border-strong: #2c3750;
-  /* 진입 인트로의 '채워지기 전' 글자용. 장식이라 AA 대상이 아니다. */
-  --color-ink-ghost: #3a4356;
-  --color-accent: #3ed9c0; /* 청록 · 11.19:1 */
-  --color-accent-hover: #66e6d2;
-  /* 광택이 옮겨 가는 반대쪽 끝. 그라디언트와 빛의 저역에만 쓴다 — 글자에 쓰지 않는다. */
-  --color-accent-deep: #5b3fe0;
-  --color-accent-rgb: 62 217 192;
-  --color-accent-deep-rgb: 91 63 224;
-
-  /* 콜아웃의 종류색. 액센트(청록)와 겹치지 않아야 종류가 구별되므로 팔레트 밖으로
-     나가되, 채도를 낮춰 같은 화면에 앉게 했다. 라벨 글자에 쓰이는 색이라 캔버스와
-     카드면 양쪽에서 AA를 넘긴다. 'note'는 색을 쓰지 않고 보조 잉크를 빌린다 —
-     참고 한 줄이 요구할 무게가 아니다. */
-  --color-callout-important: #a99bf5; /* 8.18:1 · 카드면 7.41:1 */
-  --color-callout-warning: #f0bc63; /* 11.37:1 · 카드면 10.29:1 */
-  --color-callout-caution: #ff8a86; /* 8.69:1 · 카드면 7.87:1 */
-
-  /* 마크의 광원. 한 그라디언트가 모든 면에 걸리고, 초점이 커서를 따라간다. */
-  --lamp-1: #b6fff0;
-  --lamp-2: #3ed9c0;
-  --lamp-3: #5b3fe0;
-  --lamp-4: #221a55;
-
-  /* ── 유리 ─────────────────────────────────────────────────────────────────
-     어두운 바탕에서는 어두운 틴트에 밝은 림이다. 밝은 캔버스와 정확히 반대다. */
-  --glass-tint: rgb(8 10 18 / 0.55);
-  --glass-blur: 14px;
-  --glass-sat: 190%;
-  --glass-rim: rgb(255 255 255 / 0.1);
-  --glass-hi: inset 0 1px 0 rgb(255 255 255 / 0.14);
-  --glass-shadow: 0 12px 34px -14px rgb(0 0 0 / 0.8);
-  /* 베벨 림 — 유리는 정면보다 가장자리에서 더 굴절하고 더 반사한다(프레넬).
-     좌우의 청/적은 색수차다. 눈에 띄면 실패고, 안 보이는데 진짜 같아지면 성공이다. */
-  --glass-rim-bevel:
-    inset 0 1px 1px rgb(255 255 255 / 0.18), inset 0 -1px 1px rgb(255 255 255 / 0.06),
-    inset 3px 0 6px -4px rgb(var(--color-accent-rgb) / 0.5),
-    inset -3px 0 6px -4px rgb(255 150 190 / 0.35);
-
-  /* ── 타이포 ───────────────────────────────────────────────────────────────
-     크게 키우는 대신 작고 촘촘하게 간다. 초대형 조판은 화면을 채우는 게 아니라
-     오히려 비웠다 — 같은 폭에 들어가는 정보가 줄기 때문이다. */
+  /* 전환 기간의 기존 화면용 별칭. 새 UI는 --d0-*를 직접 쓴다. */
+  --color-canvas: #ffffff;
+  --color-canvas-2: var(--d0-grey-50);
+  --color-surface: #ffffff;
+  --color-text: var(--d0-grey-900);
+  --color-text-strong: var(--d0-grey-900);
+  --color-text-reading: var(--d0-grey-800);
+  --color-text-secondary: var(--d0-grey-600);
+  --color-text-muted: var(--d0-grey-600);
+  --color-border: var(--d0-grey-100);
+  --color-border-strong: var(--d0-grey-200);
+  --color-ink-ghost: var(--d0-grey-300);
+  --color-accent: var(--d0-blue-dark);
+  --color-accent-hover: var(--d0-grey-900);
+  --color-accent-deep: var(--d0-blue-dark);
+  --color-accent-rgb: 61 125 229;
+  --color-accent-deep-rgb: 47 102 196;
+  --color-callout-important: var(--d0-blue-dark);
+  --color-callout-warning: var(--d0-orange);
+  --color-callout-caution: var(--d0-red);
+  --lamp-1: var(--d0-blue-light);
+  --lamp-2: var(--d0-blue);
+  --lamp-3: var(--d0-blue-dark);
+  --lamp-4: var(--d0-grey-900);
+  --glass-tint: rgb(255 255 255 / 0.86);
+  --glass-blur: 12px;
+  --glass-sat: 100%;
+  --glass-rim: rgb(26 31 38 / 0.08);
+  --glass-hi: none;
+  --glass-shadow: var(--d0-shadow-overlay);
+  --glass-rim-bevel: none;
   --fs-56: 3.5rem;
   --fs-40: 2.5rem;
   --fs-30: 1.875rem;
@@ -80,32 +92,21 @@
   --fs-14: 0.875rem;
   --fs-13: 0.8125rem;
   --fs-12: 0.75rem;
-
-  /* 한글은 자폭이 커서 음수 자간을 주지 않으면 제목이 성겨 보인다. */
-  --ls-display: -0.032em;
-  --ls-title: -0.028em;
-  --ls-body: -0.02em;
-  --lh-display: 1.15;
-  --lh-title: 1.22;
+  --ls-display: var(--d0-tracking-display);
+  --ls-title: var(--d0-tracking-title);
+  --ls-body: var(--d0-tracking-body);
+  --lh-display: var(--d0-leading-display);
+  --lh-title: var(--d0-leading-title);
   --lh-tight: 1.1;
   --lh-lead: 1.5;
-  --lh-body: 1.7;
+  --lh-body: var(--d0-leading-body);
   --lh-dense: 1.6;
-
-  --font-body-size: var(--fs-18);
-
-  /* 읽기 조판. 글 상세와 About은 같은 것을 하는 화면인데 두 CSS 모듈이 각자 크기를 적어
-     두는 바람에 18px과 16px로 갈려 있었다. 한 곳에서 정하고 양쪽이 참조한다. */
+  --font-body-size: var(--fs-16);
   --reading-size: var(--fs-18);
-  --reading-lh: var(--lh-body);
+  --reading-lh: 1.7;
   --reading-color: var(--color-text-reading);
-  /* 제목 굵기는 한 곳에서 정한다. base.css가 h1~h6에 전역 적용하므로 개별 모듈이
-     선언을 빠뜨려도 UA 기본 700으로 떨어지지 않는다. */
   --fw-title: 700;
-  /* 섹션 레이블(Eyebrow). 대문자 자간이 아니라 자연어 한글용의 좁은 자간이다. */
   --ls-eyebrow: 0.01em;
-
-  /* ── 간격 ─────────────────────────────────────────────────────────────── */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -116,54 +117,33 @@
   --space-8: 64px;
   --space-9: 96px;
   --space-10: 160px;
-
   --section-pt: var(--space-6);
   --section-pb: var(--space-5);
   --section-gap: var(--space-10);
-
-  /* ── 레이아웃 ─────────────────────────────────────────────────────────────
-     1400px에서 1080px로 좁혔다. 헤더 알약이 콘텐츠 가장자리와 정렬되면서도
-     전폭 바가 되지 않아야 하고, 1400px에서는 글 목록 태그가 컨테이너 끝까지
-     밀려 제목과 시선이 끊겼다. */
-  --w-container: 1080px;
-  /* 780px에서 700px로 좁혔다. 읽기 화면 레퍼런스 6곳의 본문 폭은 632~700px에 모여 있고
-     780px은 그 바깥이었다 — 18px 한글로 한 줄 43자라 다음 줄 첫 글자를 찾는 되돌이가 길다.
-     3열을 버리며 확보한 폭이지만 목표는 "600px대로 눌리지 않는 것"이었지 780px 자체가
-     아니었다. 좁히면 목차 기둥이 설 바깥 여백은 오히려 넓어진다. */
+  --w-container: 1200px;
   --w-reading: 700px;
   --outer: var(--space-6);
-
-  --radius: 14px;
-  --radius-control: 10px;
-  --radius-sm: 8px;
+  --radius: var(--d0-radius-card);
+  --radius-control: var(--d0-radius-control);
+  --radius-sm: var(--d0-radius-sm);
   --radius-pill: 999px;
-
   --header-top: var(--space-4);
-
-  /* ── 그림자 ───────────────────────────────────────────────────────────────
-     보더 중심, 그림자는 흔적만. 어두운 바탕에서는 그림자가 잘 보이지 않으므로
-     깊이는 그림자가 아니라 면의 밝기 차로 만든다. */
-  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4);
-  --shadow-float: 0 10px 28px rgb(0 0 0 / 0.55);
-
-  /* ── 모션 ─────────────────────────────────────────────────────────────── */
-  --ease: cubic-bezier(0.22, 1, 0.36, 1);
-  --dur: 220ms;
-  /* 상태 전환의 상한. 300ms를 넘으면 인터페이스가 굼뜨게 느껴진다 —
-     사용자가 기다리는 게 아니라 스크롤에 반응하는 동작이라 더 그렇다. */
-  --dur-slow: 240ms;
+  --shadow-card: var(--d0-shadow-card);
+  --shadow-float: var(--d0-shadow-overlay);
+  --ease: var(--d0-ease);
+  --dur: var(--d0-dur);
+  --dur-slow: var(--d0-dur);
   --dur-skeleton: 1.4s;
 }
-
-@media (max-width: 900px) {
+@media (max-width: 640px) {
   :root {
-    /* 모바일에서는 좌우 여백을 좁혀 콘텐츠 폭을 확보한다. */
     --outer: var(--space-5);
   }
 }
-
 @media (prefers-reduced-motion: reduce) {
   :root {
+    --d0-dur-fast: 0ms;
+    --d0-dur: 0ms;
     --dur: 0ms;
     --dur-slow: 0ms;
   }

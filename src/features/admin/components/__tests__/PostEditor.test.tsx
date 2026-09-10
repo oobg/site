@@ -5,6 +5,9 @@ import { PostEditor } from '@features/admin/components/PostEditor';
 
 const router = { replace: vi.fn() };
 vi.mock('next/navigation', () => ({ useRouter: () => router }));
+vi.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({ invalidateQueries: vi.fn().mockResolvedValue(undefined) }),
+}));
 
 const action = vi.fn(async () => ({ status: 'idle' as const, message: '' }));
 

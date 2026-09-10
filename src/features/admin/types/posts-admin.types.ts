@@ -10,6 +10,14 @@ export interface AdminPost {
   published_at: string | null;
   created_at: string;
   updated_at: string;
+  category_id: string;
+  tags: string[];
+  cover_image_key: string | null;
+  cover_image_url: string | null;
+  cover_position_x: number;
+  cover_position_y: number;
+  cover_alt: string | null;
+  pin_order: number | null;
 }
 
 export interface PostActionState {

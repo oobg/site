@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   requireOwner: vi.fn(),
   createClient: vi.fn(),
   revalidatePath: vi.fn(),
+  invalidatePublicPostCache: vi.fn(),
 }));
 
 vi.mock('next/cache', () => ({ revalidatePath: mocks.revalidatePath }));
@@ -19,6 +20,10 @@ vi.mock('@lib/auth/owner', () => ({
   requireOwner: mocks.requireOwner,
 }));
 vi.mock('@lib/supabase/server', () => ({ createClient: mocks.createClient }));
+vi.mock('@lib/cache/posts', () => ({ invalidatePublicPostCache: mocks.invalidatePublicPostCache }));
+vi.mock('@lib/cache/posts', () => ({
+  invalidatePublicPostCache: mocks.invalidatePublicPostCache,
+}));
 
 import {
   createPostAction,
@@ -66,6 +71,7 @@ describe('post actions', () => {
 
     expect(result).toMatchObject({ status: 'success', postId: 'post-id' });
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({ published_at: null }));
+    expect(mocks.invalidatePublicPostCache).toHaveBeenCalledWith({ newSlug: 'post-slug' });
   });
 
   it('sets a publication timestamp only for a published post', async () => {
@@ -168,6 +174,10 @@ describe('post actions', () => {
       expect(update).toHaveBeenCalledWith(expect.objectContaining({ published_at: expected }));
       expect(mocks.revalidatePath).toHaveBeenCalledWith('/blog/old-slug');
       expect(mocks.revalidatePath).toHaveBeenCalledWith('/blog/new-slug');
+      expect(mocks.invalidatePublicPostCache).toHaveBeenCalledWith({
+        oldSlug: 'old-slug',
+        newSlug: 'new-slug',
+      });
     },
   );
 

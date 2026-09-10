@@ -16,6 +16,15 @@ describe('buildMetadata', () => {
     expect(og.title).toBe('글제목');
     expect(og.url).toBe('/blog/x');
   });
+
+  it('canonical과 설명 fallback을 함께 만든다', () => {
+    const meta = buildMetadata({ title: '제목', path: '/about' });
+    expect(meta.description).toBe('생각을 다듬고 시스템으로 만드는 과정을 기록하는 공간.');
+    expect(meta.alternates).toEqual({ canonical: '/about' });
+    expect((meta.openGraph as Record<string, unknown>).description).toBe(
+      '생각을 다듬고 시스템으로 만드는 과정을 기록하는 공간.',
+    );
+  });
 });
 
 describe('baseMetadata', () => {
