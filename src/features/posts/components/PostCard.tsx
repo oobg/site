@@ -6,9 +6,11 @@ import styles from './PostCard.module.css';
 export function PostCard({
   post,
   reserveCoverSpace = false,
+  showCategory = true,
 }: {
   post: BlogPostSummary;
   reserveCoverSpace?: boolean;
+  showCategory?: boolean;
 }) {
   return (
     <article className={styles.card}>
@@ -30,12 +32,11 @@ export function PostCard({
       )}
       {!post.cover_image_url && reserveCoverSpace ? (
         <div className={`${styles.cover} ${styles.coverFallback}`} aria-hidden="true">
-          <span>{post.category.name}</span>
-          <strong>{post.title}</strong>
+          <span aria-hidden>Raven</span>
         </div>
       ) : null}
       <div className={styles.body}>
-        <span className={styles.category}>{post.category.name}</span>
+        {showCategory ? <span className={styles.category}>{post.category.name}</span> : null}
         <h2>
           <Link href={ROUTES.BLOG.DETAIL(post.slug)}>{post.title}</Link>
         </h2>

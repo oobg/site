@@ -57,17 +57,18 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const related = getRelatedPosts(post, all, 3);
 
   return (
-    // BlogShell이 홈과 같은 sidebar, 콘텐츠 시작선, 모바일 여백을 제공한다.
-    <BlogShell categories={categories} activeCategory={post.category.slug}>
+    <BlogShell
+      categories={categories}
+      activeCategory={post.category.slug}
+      detailNavigation={<TableOfContents toc={toc} />}
+      mobileDetailNavigation={<TableOfContents toc={toc} defaultOpen={false} />}
+    >
       <div className={styles.page}>
         <article className={styles.main}>
-          {/* 목차는 <article> 안에 둔다. 바깥 기둥의 높이가 본문에 묶여야 본문이 끝날 때
-              목차도 함께 멈춘다 — 페이지 전체에 걸면 사이드·내비 구간까지 따라온다. */}
           <ArticleHeader post={post} readingMin={readingMin} />
           <div className={styles.shareRail} aria-label="글 공유">
             <ShareButtons title={post.title} />
           </div>
-          <TableOfContents toc={toc} />
           <ArticleBody html={html} />
         </article>
         <ArticleAside post={post} related={related} readingMin={readingMin} />

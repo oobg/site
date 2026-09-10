@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Dialog } from '@base-ui/react/dialog';
-import { MagnifyingGlass, X } from '@phosphor-icons/react';
+import { CaretDown, X } from '@phosphor-icons/react';
 import { useSearchParams } from 'next/navigation';
 import type { BlogCategoryWithCount } from '@features/posts/types/posts.types';
 import { homeSearchHref, ROUTES } from '@constants/routes';
@@ -13,11 +13,13 @@ function Navigation({
   close = false,
   activeCategory: suppliedCategory,
   onNavigate,
+  compact = false,
 }: {
   categories: BlogCategoryWithCount[];
   close?: boolean;
   activeCategory?: string;
   onNavigate?: (href: string) => void;
+  compact?: boolean;
 }) {
   const searchParams = useSearchParams();
   const activeCategory = suppliedCategory ?? searchParams.get('category');
@@ -28,77 +30,88 @@ function Navigation({
       !searchParams.get('tag') &&
       !searchParams.get('view') &&
       Number(searchParams.get('page') ?? 1) <= 1;
-  const items = [
-    { href: ROUTES.HOME, label: '홈' },
-    ...categories
-      .filter((category) => category.post_count > 0)
-      .map((category) => ({
-        href: homeSearchHref({ category: category.slug }),
-        label: category.name,
-      })),
-  ];
-  return (
-    <nav className={styles.navigation} aria-label="블로그 주제">
-      {items.map((item) => {
-        const itemCategory = item.href.includes('?')
-          ? new URLSearchParams(item.href.split('?')[1]).get('category')
-          : null;
-        const current = item.href === ROUTES.HOME ? homeActive : itemCategory === activeCategory;
-        const onClick = onNavigate
-          ? (event: React.MouseEvent) => {
-              if (
-                event.button !== 0 ||
-                event.metaKey ||
-                event.ctrlKey ||
-                event.shiftKey ||
-                event.altKey
-              )
-                return;
-              event.preventDefault();
-              onNavigate(item.href);
-            }
-          : undefined;
-        return close ? (
-          <Dialog.Close
-            key={item.href}
-            nativeButton={false}
-            render={
-              <Link
-                href={item.href}
-                role="link"
-                aria-current={current ? 'page' : undefined}
-                onClick={onClick}
-              />
-            }
-          >
-            {item.label}
-          </Dialog.Close>
-        ) : (
+  const categoryItems = categories
+    .filter((category) => category.post_count > 0)
+    .map((category) => ({
+      href: homeSearchHref({ category: category.slug }),
+      label: category.name,
+      slug: category.slug,
+    }));
+  const currentItem = categoryItems.find((item) => item.slug === activeCategory);
+  const otherItems = categoryItems.filter((item) => item.slug !== activeCategory);
+  const items = compact
+    ? [{ href: ROUTES.HOME, label: '홈', slug: '' }, ...(currentItem ? [currentItem] : [])]
+    : [{ href: ROUTES.HOME, label: '홈', slug: '' }, ...categoryItems];
+  const renderItem = (item: (typeof items)[number]) => {
+    const current = item.href === ROUTES.HOME ? homeActive : item.slug === activeCategory;
+    const onClick = onNavigate
+      ? (event: React.MouseEvent) => {
+          if (
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+          )
+            return;
+          event.preventDefault();
+          onNavigate(item.href);
+        }
+      : undefined;
+    return close ? (
+      <Dialog.Close
+        key={item.href}
+        nativeButton={false}
+        render={
           <Link
-            key={item.href}
             href={item.href}
+            role="link"
             aria-current={current ? 'page' : undefined}
             onClick={onClick}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
+          />
+        }
+      >
+        {item.label}
+      </Dialog.Close>
+    ) : (
+      <Link
+        key={item.href}
+        href={item.href}
+        aria-current={current ? 'page' : undefined}
+        onClick={onClick}
+      >
+        {item.label}
+      </Link>
+    );
+  };
+  return (
+    <nav className={styles.navigation} aria-label="블로그 주제">
+      {items.map(renderItem)}
+      {compact && otherItems.length > 0 ? (
+        <details className={styles.otherCategories}>
+          <summary>
+            다른 카테고리 <CaretDown aria-hidden size={14} />
+          </summary>
+          <div>{otherItems.map(renderItem)}</div>
+        </details>
+      ) : null}
     </nav>
   );
 }
 
 export function BlogShell({
   categories,
-  search,
   activeCategory,
   onNavigate,
+  detailNavigation,
+  mobileDetailNavigation,
   children,
 }: {
   categories: BlogCategoryWithCount[];
-  search?: React.ReactNode;
   activeCategory?: string;
   onNavigate?: (href: string) => void;
+  detailNavigation?: React.ReactNode;
+  mobileDetailNavigation?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -109,12 +122,11 @@ export function BlogShell({
           categories={categories}
           activeCategory={activeCategory}
           onNavigate={onNavigate}
+          compact={Boolean(detailNavigation)}
         />
-        {search ?? (
-          <Link className={styles.searchLink} href="/?view=all#archive-title">
-            <MagnifyingGlass aria-hidden size={17} /> 검색
-          </Link>
-        )}
+        {detailNavigation ? (
+          <div className={styles.detailNavigation}>{detailNavigation}</div>
+        ) : null}
       </aside>
       <div className={styles.mobileBar}>
         <strong>기술 블로그</strong>
@@ -129,15 +141,8 @@ export function BlogShell({
                 close
                 activeCategory={activeCategory}
                 onNavigate={onNavigate}
+                compact={Boolean(detailNavigation)}
               />
-              <Dialog.Close
-                nativeButton={false}
-                render={
-                  <Link className={styles.searchLink} href="/?view=all#archive-title" role="link" />
-                }
-              >
-                <MagnifyingGlass aria-hidden size={17} /> 검색
-              </Dialog.Close>
               <Dialog.Close className={styles.close} aria-label="메뉴 닫기">
                 <X aria-hidden size={22} />
               </Dialog.Close>
@@ -145,7 +150,9 @@ export function BlogShell({
           </Dialog.Portal>
         </Dialog.Root>
       </div>
-      {search ? <div className={styles.mobileSearch}>{search}</div> : null}
+      {mobileDetailNavigation ? (
+        <div className={styles.mobileDetailNavigation}>{mobileDetailNavigation}</div>
+      ) : null}
       <div className={styles.content}>{children}</div>
     </div>
   );

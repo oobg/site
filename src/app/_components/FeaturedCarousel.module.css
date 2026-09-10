@@ -1,5 +1,5 @@
 .section {
-  padding-block: var(--space-5) var(--space-5);
+  padding-block: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--d0-grey-100);
 }
 .section:not([data-with-cover]) {
@@ -7,9 +7,9 @@
 }
 .slide {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
+  grid-template-columns: minmax(0, 57fr) minmax(260px, 43fr);
   align-items: center;
-  gap: clamp(24px, 3vw, 40px);
+  gap: clamp(20px, 2.5vw, 32px);
   touch-action: pan-y;
 }
 .cover {
@@ -35,8 +35,8 @@
   font-weight: 600;
 }
 .copy h2 {
-  margin-top: var(--space-3);
-  font-size: clamp(28px, 2.7vw, 34px);
+  margin-top: var(--space-2);
+  font-size: clamp(24px, 2.3vw, 30px);
   line-height: var(--d0-leading-display);
   letter-spacing: var(--d0-tracking-display);
 }
@@ -44,9 +44,9 @@
   color: var(--d0-blue-dark);
 }
 .copy p {
-  margin-top: var(--space-4);
+  margin-top: var(--space-3);
   color: var(--d0-grey-600);
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.6;
 }
 .copy time {
@@ -93,7 +93,7 @@
   }
   .copy h2 {
     margin-top: var(--space-3);
-    font-size: 30px;
+    font-size: 26px;
   }
   .copy p {
     margin-top: var(--space-3);

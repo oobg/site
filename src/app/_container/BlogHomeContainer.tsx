@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@components/ui/Button';
@@ -13,47 +13,6 @@ import { homeSearchHref } from '@constants/routes';
 import styles from './BlogHomeContainer.module.css';
 
 type Filters = Required<Pick<BlogPostFilters, 'q' | 'category' | 'tag' | 'page' | 'pageSize'>>;
-
-function SearchInput({
-  initialQuery,
-  onQueryChange,
-}: {
-  initialQuery: string;
-  onQueryChange: (query: string) => void;
-}) {
-  const [input, setInput] = useState({ urlQuery: initialQuery, value: initialQuery });
-  if (input.urlQuery !== initialQuery) {
-    setInput({ urlQuery: initialQuery, value: initialQuery });
-  }
-
-  useEffect(() => {
-    const normalized = input.value.trim();
-    if (normalized === initialQuery) return;
-    const timer = window.setTimeout(() => onQueryChange(normalized), 300);
-    return () => window.clearTimeout(timer);
-  }, [initialQuery, input.value, onQueryChange]);
-
-  return (
-    <label className={styles.search}>
-      <span className={styles.srOnly}>글 검색</span>
-      <input
-        type="search"
-        value={input.value}
-        onChange={(event) => setInput({ urlQuery: initialQuery, value: event.target.value })}
-        placeholder="제목이나 요약 검색"
-      />
-      {input.value && (
-        <button
-          type="button"
-          onClick={() => setInput({ urlQuery: initialQuery, value: '' })}
-          aria-label="검색어 지우기"
-        >
-          ×
-        </button>
-      )}
-    </label>
-  );
-}
 
 export function BlogHomeContainer({
   initialData,
@@ -105,15 +64,9 @@ export function BlogHomeContainer({
     [filters.page, pathname, searchParams],
   );
 
-  const changeQuery = useCallback(
-    (nextQuery: string) => navigate({ ...filters, q: nextQuery, page: 1 }, true),
-    [filters, navigate],
-  );
-
   return (
     <BlogShell
       categories={data?.categories ?? initialData.categories}
-      search={<SearchInput initialQuery={filters.q} onQueryChange={changeQuery} />}
       onNavigate={(href) => window.history.pushState(null, '', href)}
     >
       {overview && data ? (
@@ -185,6 +138,7 @@ export function BlogHomeContainer({
                       <PostCard
                         key={post.slug}
                         post={post}
+                        showCategory={false}
                         reserveCoverSpace={section.posts.some((item) =>
                           Boolean(item.cover_image_url),
                         )}

@@ -1,11 +1,9 @@
-/* 공통 블로그 shell의 오른쪽 열 안에서 본문을 700px 이하로 유지하고,
-   남는 오른쪽 공간에 공유와 목차 rail을 둔다. */
+/* 공통 shell의 오른쪽 열에서 본문 읽기 폭을 고정한다. */
 .page {
   position: relative;
   padding-bottom: var(--space-9);
 }
 
-/* 목차 기둥의 기준면이다. */
 .main {
   position: relative;
   width: 100%;

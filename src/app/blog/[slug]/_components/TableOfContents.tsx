@@ -5,7 +5,13 @@ import type { TocEntry } from '@lib/markdown/toc.types';
 import { Eyebrow } from '@components/ui/Eyebrow';
 import styles from './TableOfContents.module.css';
 
-export function TableOfContents({ toc }: { toc: TocEntry[] }) {
+export function TableOfContents({
+  toc,
+  defaultOpen = true,
+}: {
+  toc: TocEntry[];
+  defaultOpen?: boolean;
+}) {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   /**
@@ -61,9 +67,7 @@ export function TableOfContents({ toc }: { toc: TocEntry[] }) {
   if (toc.length === 0) return null;
 
   return (
-    /* 바깥은 본문 높이만큼의 빈 기둥이고, 안쪽이 sticky로 따라온다.
-       viewport에 fixed로 붙이면 본문이 끝난 뒤에도 목차가 남는다. */
-    <details className={styles.toc} open>
+    <details className={styles.toc} open={defaultOpen}>
       <summary className={styles.summary}>목차</summary>
       <nav className={styles.inner} aria-label="목차">
         <Eyebrow className={styles.label}>목차</Eyebrow>
@@ -72,9 +76,14 @@ export function TableOfContents({ toc }: { toc: TocEntry[] }) {
             <li key={entry.id}>
               <a
                 href={`#${entry.id}`}
-                className={`${styles.item} ${entry.depth === 3 ? styles.depth3 : ''} ${
-                  activeId === entry.id ? styles.active : ''
-                }`}
+                className={`${styles.item} ${entry.depth === 3 ? styles.depth3 : ''}`}
+                aria-current={activeId === entry.id ? 'location' : undefined}
+                onClick={() => {
+                  const heading = document.getElementById(entry.id);
+                  if (!heading) return;
+                  heading.tabIndex = -1;
+                  window.requestAnimationFrame(() => heading.focus({ preventScroll: true }));
+                }}
               >
                 {entry.text}
               </a>

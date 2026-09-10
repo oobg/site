@@ -1,7 +1,7 @@
 .shell {
   display: grid;
-  grid-template-columns: 220px minmax(0, 1fr);
-  gap: 36px;
+  grid-template-columns: minmax(176px, 18%) minmax(0, 1fr);
+  gap: 32px;
   width: min(100% - 40px, 1200px);
   margin-inline: auto;
   padding-block: var(--space-8) var(--space-9);
@@ -11,11 +11,15 @@
   top: 92px;
   align-self: start;
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-4);
+  max-height: calc(100dvh - 112px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 .title {
   color: var(--d0-grey-900);
-  font-size: 26px;
+  font-size: 24px;
   letter-spacing: var(--d0-tracking-title);
 }
 .navigation {
@@ -42,22 +46,40 @@
   color: var(--d0-blue-dark);
 }
 .navigation a:focus-visible,
-.searchLink:focus-visible,
 .menuButton:focus-visible,
 .close:focus-visible {
   outline: 2px solid var(--d0-blue-dark);
   outline-offset: 2px;
 }
-.searchLink {
+.otherCategories {
+  margin-top: var(--space-2);
+  border-top: 1px solid var(--d0-grey-100);
+  padding-top: var(--space-2);
+}
+.otherCategories summary {
   display: flex;
-  min-height: 44px;
+  min-height: 38px;
   align-items: center;
-  gap: var(--space-2);
+  justify-content: space-between;
   padding-inline: var(--space-3);
-  border-radius: var(--d0-radius-sm);
-  background: var(--d0-grey-50);
   color: var(--d0-grey-600);
-  font-size: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.otherCategories summary::-webkit-details-marker {
+  display: none;
+}
+.otherCategories[open] summary svg {
+  transform: rotate(180deg);
+}
+.otherCategories summary svg {
+  transition: transform var(--d0-dur-fast) var(--d0-ease);
+}
+.detailNavigation {
+  border-top: 1px solid var(--d0-grey-100);
+  padding-top: var(--space-4);
 }
 .content {
   min-width: 0;
@@ -65,7 +87,7 @@
 .mobileBar {
   display: none;
 }
-.mobileSearch {
+.mobileDetailNavigation {
   display: none;
 }
 .backdrop {
@@ -79,14 +101,14 @@
   inset: 0 0 0 auto;
   z-index: 71;
   width: min(88vw, 360px);
+  max-height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--space-6);
   background: var(--color-surface);
 }
 .menu .navigation {
   margin-top: var(--space-6);
-}
-.menu .searchLink {
-  margin-top: var(--space-5);
 }
 .close {
   position: absolute;
@@ -128,13 +150,14 @@
     padding-bottom: var(--space-5);
     border-bottom: 1px solid var(--d0-grey-100);
   }
-  .mobileSearch {
+  .mobileDetailNavigation {
     display: block;
     margin-bottom: var(--space-5);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .menu {
+  .menu,
+  .otherCategories summary svg {
     transition: none;
   }
 }

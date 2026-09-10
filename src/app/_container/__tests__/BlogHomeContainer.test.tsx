@@ -96,36 +96,19 @@ describe('BlogHomeContainer', () => {
     );
     expect(screen.getByText('글을 불러오고 있어요.')).toBeInTheDocument();
     expect(screen.queryByText('아직 공개한 글이 없어요.')).not.toBeInTheDocument();
-    expect(screen.getAllByPlaceholderText('제목이나 요약 검색')[0]).toHaveValue('새검색');
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
   });
 
-  it('keeps search focus after debounce and follows browser history changes', () => {
-    mocks.search = new URLSearchParams('view=all');
-    vi.useFakeTimers();
-    const history = vi.spyOn(window.history, 'replaceState');
-    const { rerender } = render(
-      <BlogHomeContainer initialData={empty} initialFilters={{ page: 1, pageSize: 12 }} />,
+  it('keeps URL search results while omitting the retired sidebar search input', () => {
+    mocks.search = new URLSearchParams('q=react');
+    render(
+      <BlogHomeContainer
+        initialData={empty}
+        initialFilters={{ q: 'react', page: 1, pageSize: 12 }}
+      />,
     );
-    const search = screen.getAllByRole('searchbox')[0];
-    search.focus();
-    fireEvent.change(search, { target: { value: 'react' } });
-    vi.advanceTimersByTime(300);
-    expect(history).toHaveBeenLastCalledWith(null, '', '/?view=all&q=react');
-
-    mocks.search = new URLSearchParams('view=all&q=react');
-    rerender(<BlogHomeContainer initialData={empty} initialFilters={{ page: 1, pageSize: 12 }} />);
-    expect(screen.getAllByRole('searchbox')[0]).toBe(search);
-    expect(search).toHaveFocus();
-    fireEvent.change(search, { target: { value: 'react query' } });
-    vi.advanceTimersByTime(300);
-    expect(history).toHaveBeenLastCalledWith(null, '', '/?view=all&q=react+query');
-
-    mocks.search = new URLSearchParams();
-    rerender(<BlogHomeContainer initialData={empty} initialFilters={{ page: 1, pageSize: 12 }} />);
-    expect(screen.getAllByRole('searchbox')[0]).toBe(search);
-    expect(search).toHaveValue('');
-    expect(search).toHaveFocus();
-    vi.useRealTimers();
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
+    expect(screen.getByText('조건에 맞는 글이 없어요.')).toBeInTheDocument();
   });
 
   it('keeps the all-post archive when pagination returns to page one', () => {

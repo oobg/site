@@ -27,8 +27,8 @@ describe('PostCard', () => {
 
     rerender(<PostCard post={post} reserveCoverSpace />);
     const fallback = container.querySelector('[aria-hidden="true"]');
-    expect(fallback).toHaveTextContent('개발');
-    expect(fallback).toHaveTextContent('표지가 없는 글');
+    expect(fallback).toHaveTextContent('Raven');
+    expect(fallback).not.toHaveTextContent('표지가 없는 글');
     expect(screen.getByRole('link', { name: '표지가 없는 글' })).toBeInTheDocument();
   });
 });

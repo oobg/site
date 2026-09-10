@@ -1,5 +1,5 @@
 .toc {
-  margin-bottom: var(--space-6);
+  margin: 0;
 }
 .summary {
   padding-block: var(--space-3);
@@ -39,20 +39,11 @@
 .depth3 {
   padding-left: var(--space-5);
 }
-.active {
+.item[aria-current='location'] {
   border-left-color: var(--d0-blue);
   color: var(--d0-grey-900);
 }
-@media (min-width: 1280px) {
-  .toc {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: calc(100% + var(--space-6));
-    width: 13rem;
-    margin: 0;
-    pointer-events: none;
-  }
+@media (min-width: 901px) {
   .summary {
     display: none;
   }
@@ -60,12 +51,7 @@
     display: block;
   }
   .inner {
-    position: sticky;
-    top: 120px;
-    max-height: calc(100vh - 180px);
-    overflow-y: auto;
-    pointer-events: auto;
-    padding-top: var(--space-8);
+    padding-block: 0;
   }
   .label {
     display: block;
