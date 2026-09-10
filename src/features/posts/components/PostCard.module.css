@@ -3,7 +3,7 @@
 }
 .cover {
   display: block;
-  aspect-ratio: 16/10;
+  aspect-ratio: 1.9;
   overflow: hidden;
   border-radius: var(--d0-radius-control);
   background: var(--d0-grey-50);

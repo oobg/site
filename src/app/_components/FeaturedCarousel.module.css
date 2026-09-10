@@ -1,5 +1,5 @@
 .section {
-  padding-block: var(--space-8) var(--space-7);
+  padding-block: var(--space-5) var(--space-5);
   border-bottom: 1px solid var(--d0-grey-100);
 }
 .section:not([data-with-cover]) {
@@ -7,13 +7,13 @@
 }
 .slide {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+  grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr);
   align-items: center;
-  gap: clamp(32px, 6vw, 80px);
+  gap: clamp(24px, 3vw, 40px);
   touch-action: pan-y;
 }
 .cover {
-  aspect-ratio: 16/10;
+  aspect-ratio: 1.9;
   overflow: hidden;
   border-radius: var(--d0-radius-card);
   background: var(--d0-grey-50);
@@ -34,13 +34,13 @@
   font-size: 13px;
   font-weight: 600;
 }
-.copy h1 {
+.copy h2 {
   margin-top: var(--space-3);
-  font-size: clamp(32px, 4vw, 52px);
+  font-size: clamp(28px, 2.7vw, 34px);
   line-height: var(--d0-leading-display);
   letter-spacing: var(--d0-tracking-display);
 }
-.copy h1 a:hover {
+.copy h2 a:hover {
   color: var(--d0-blue-dark);
 }
 .copy p {
@@ -55,22 +55,12 @@
   color: var(--d0-grey-600);
   font-size: 13px;
 }
-.read {
-  display: inline-flex;
-  min-height: 44px;
-  align-items: center;
-  gap: var(--space-2);
-  margin-top: var(--space-5);
-  color: var(--d0-blue-dark);
-  font-size: 15px;
-  font-weight: 600;
-}
 .controls {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-3);
-  margin-top: var(--space-5);
+  margin-top: var(--space-3);
   color: var(--d0-grey-600);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
@@ -101,29 +91,15 @@
     grid-template-columns: 1fr;
     gap: var(--space-5);
   }
-  .copy {
-    display: contents;
-  }
-  .copy .category {
-    order: 2;
-  }
-  .copy h1 {
-    order: 3;
+  .copy h2 {
+    margin-top: var(--space-3);
     font-size: 30px;
   }
   .copy p {
-    order: 4;
-    margin-top: calc(var(--space-3) * -1);
+    margin-top: var(--space-3);
     font-size: 16px;
   }
   .copy time {
-    order: 5;
-  }
-  .copy .read {
-    order: 6;
-    margin-top: 0;
-  }
-  .cover {
-    order: 1;
+    margin-top: var(--space-4);
   }
 }

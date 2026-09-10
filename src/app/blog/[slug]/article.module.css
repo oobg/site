@@ -1,9 +1,8 @@
-/* 읽기 화면. 본문 폭이 주인공이고 나머지는 그 폭에 맞춘다.
-   3열을 쓰던 구조를 버렸다 — 컨테이너가 1080px이라 3열로 나누면 읽기 열이
-   600px대로 눌리고, 그건 읽기 화면이 가장 먼저 지켜야 할 값이다. */
+/* 공통 블로그 shell의 오른쪽 열 안에서 본문을 700px 이하로 유지하고,
+   남는 오른쪽 공간에 공유와 목차 rail을 둔다. */
 .page {
   position: relative;
-  padding-block: var(--space-8) var(--space-9);
+  padding-bottom: var(--space-9);
 }
 
 /* 목차 기둥의 기준면이다. */
@@ -11,5 +10,22 @@
   position: relative;
   width: 100%;
   max-width: var(--w-reading);
-  margin-inline: auto;
+  margin-inline: 0 auto;
+}
+
+.shareRail {
+  display: block;
+  margin-block: var(--space-5);
+}
+
+@media (min-width: 1280px) {
+  .shareRail {
+    position: absolute;
+    top: 0;
+    left: calc(100% + var(--space-6));
+    z-index: 1;
+    display: block;
+    width: 208px;
+    margin: 0;
+  }
 }

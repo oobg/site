@@ -27,6 +27,22 @@ const empty: BlogHomeData = {
   categories: [
     { id: 'c1', slug: 'dev', name: '개발', sort_order: 0, is_default: false, post_count: 2 },
   ],
+  sections: [],
+};
+const item = {
+  slug: 'one',
+  title: '글',
+  summary: null,
+  tags: [],
+  published_at: '2026-09-10T00:00:00Z',
+  updated_at: '2026-09-10T00:00:00Z',
+  cover_image_url: null,
+  status: 'published' as const,
+  category: empty.categories[0],
+  cover_image_key: null,
+  cover_position: { x: 0.5, y: 0.5 },
+  cover_alt: null,
+  pin_order: null,
 };
 
 describe('BlogHomeContainer', () => {
@@ -37,11 +53,13 @@ describe('BlogHomeContainer', () => {
   });
 
   it('shows the public empty state and keeps category filters in the URL', () => {
+    mocks.search = new URLSearchParams('view=all');
     render(<BlogHomeContainer initialData={empty} initialFilters={{ page: 1, pageSize: 12 }} />);
     expect(screen.getByText('아직 공개한 글이 없어요.')).toBeInTheDocument();
-    const history = vi.spyOn(window.history, 'pushState');
-    fireEvent.click(screen.getByRole('tab', { name: '개발' }));
-    expect(history).toHaveBeenCalledWith(null, '', '/?category=dev');
+    expect(screen.getAllByRole('link', { name: '개발' })[0]).toHaveAttribute(
+      'href',
+      '/?category=dev',
+    );
   });
 
   it('clears an existing legacy tag filter without converting it to a category', () => {
@@ -78,34 +96,82 @@ describe('BlogHomeContainer', () => {
     );
     expect(screen.getByText('글을 불러오고 있어요.')).toBeInTheDocument();
     expect(screen.queryByText('아직 공개한 글이 없어요.')).not.toBeInTheDocument();
-    expect(screen.getByPlaceholderText('제목이나 요약 검색')).toHaveValue('새검색');
+    expect(screen.getAllByPlaceholderText('제목이나 요약 검색')[0]).toHaveValue('새검색');
   });
 
   it('keeps search focus after debounce and follows browser history changes', () => {
+    mocks.search = new URLSearchParams('view=all');
     vi.useFakeTimers();
     const history = vi.spyOn(window.history, 'replaceState');
     const { rerender } = render(
       <BlogHomeContainer initialData={empty} initialFilters={{ page: 1, pageSize: 12 }} />,
     );
-    const search = screen.getByRole('searchbox');
+    const search = screen.getAllByRole('searchbox')[0];
     search.focus();
     fireEvent.change(search, { target: { value: 'react' } });
     vi.advanceTimersByTime(300);
-    expect(history).toHaveBeenLastCalledWith(null, '', '/?q=react');
+    expect(history).toHaveBeenLastCalledWith(null, '', '/?view=all&q=react');
 
-    mocks.search = new URLSearchParams('q=react');
+    mocks.search = new URLSearchParams('view=all&q=react');
     rerender(<BlogHomeContainer initialData={empty} initialFilters={{ page: 1, pageSize: 12 }} />);
-    expect(screen.getByRole('searchbox')).toBe(search);
+    expect(screen.getAllByRole('searchbox')[0]).toBe(search);
     expect(search).toHaveFocus();
     fireEvent.change(search, { target: { value: 'react query' } });
     vi.advanceTimersByTime(300);
-    expect(history).toHaveBeenLastCalledWith(null, '', '/?q=react+query');
+    expect(history).toHaveBeenLastCalledWith(null, '', '/?view=all&q=react+query');
 
     mocks.search = new URLSearchParams();
     rerender(<BlogHomeContainer initialData={empty} initialFilters={{ page: 1, pageSize: 12 }} />);
-    expect(screen.getByRole('searchbox')).toBe(search);
+    expect(screen.getAllByRole('searchbox')[0]).toBe(search);
     expect(search).toHaveValue('');
     expect(search).toHaveFocus();
     vi.useRealTimers();
+  });
+
+  it('keeps the all-post archive when pagination returns to page one', () => {
+    mocks.search = new URLSearchParams('view=all&page=2');
+    const history = vi.spyOn(window.history, 'pushState');
+    render(
+      <BlogHomeContainer
+        initialData={{
+          ...empty,
+          archive: { ...empty.archive, items: [item], page: 2, totalItems: 13, totalPages: 2 },
+        }}
+        initialFilters={{ page: 2, pageSize: 12 }}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: '이전' }));
+    expect(history).toHaveBeenCalledWith(null, '', '/?view=all');
+  });
+
+  it('matches category slugs exactly and preserves modified link clicks', () => {
+    const categories = [
+      { ...empty.categories[0], id: 'ai', slug: 'ai', name: 'AI' },
+      { ...empty.categories[0], id: 'ai-tools', slug: 'ai-tools', name: 'AI 도구' },
+    ];
+    mocks.search = new URLSearchParams('category=ai');
+    const { unmount } = render(
+      <BlogHomeContainer
+        initialData={{ ...empty, categories }}
+        initialFilters={{ category: 'ai', page: 1 }}
+      />,
+    );
+    expect(
+      screen
+        .getAllByRole('link', { name: 'AI' })
+        .every((link) => link.getAttribute('aria-current') === 'page'),
+    ).toBe(true);
+    expect(
+      screen
+        .getAllByRole('link', { name: 'AI 도구' })
+        .every((link) => !link.hasAttribute('aria-current')),
+    ).toBe(true);
+    unmount();
+
+    mocks.search = new URLSearchParams();
+    const history = vi.spyOn(window.history, 'pushState');
+    render(<BlogHomeContainer initialData={empty} initialFilters={{ page: 1 }} />);
+    fireEvent.click(screen.getByRole('link', { name: '전체 글 보기' }), { metaKey: true });
+    expect(history).not.toHaveBeenCalled();
   });
 });

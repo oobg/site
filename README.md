@@ -94,4 +94,5 @@ src/
 - `docs/deployment.md`는 배포 절차를 다룬다.
 - `docs/cms-setup.md`는 Supabase Auth/Postgres와 Cloudflare R2 설정을 다룬다.
 - [Day0 블로그 전면 개편 계획과 상태](docs/superpowers/plans/2026-09-10-day0-blog-redesign.md)는 진행 순서와 완료 증거를 추적한다.
+- [Channel 블로그 레이아웃 교정 계획과 상태](docs/superpowers/plans/2026-09-10-channel-blog-layout-revision.md)는 사용자 시각 반려 후의 홈·상세 재구성과 검증 상태를 추적한다.
 - `docs/superpowers/`에 기능별 설계 스펙과 구현 계획이 쌓여 있다.

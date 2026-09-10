@@ -64,6 +64,12 @@ export interface BlogHomeData {
   featured: BlogPostSummary[];
   archive: PaginatedBlogPosts;
   categories: BlogCategoryWithCount[];
+  sections: BlogHomeSection[];
+}
+
+export interface BlogHomeSection {
+  category: BlogCategoryWithCount;
+  posts: BlogPostSummary[];
 }
 
 export interface PostFrontmatter {

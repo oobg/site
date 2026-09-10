@@ -23,13 +23,14 @@ const post: BlogPost = {
 };
 
 describe('ArticleHeader', () => {
-  it('shows category, author metadata, and a cover fallback', () => {
+  it('shows category and author metadata without reserving empty cover space', () => {
     const { container } = render(<ArticleHeader post={post} readingMin={3} />);
-    expect(screen.getAllByText('개발')).toHaveLength(2);
+    expect(screen.getByText('개발')).toBeInTheDocument();
     expect(screen.getByText('Raven')).toBeInTheDocument();
     expect(screen.getByText(/3분 읽기/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'react' })).toHaveAttribute('href', '/?tag=react');
     expect(container.querySelector('img')).toBeNull();
-    expect(screen.getByText('raven.kr')).toBeInTheDocument();
+    expect(container.querySelector('img')).toBeNull();
   });
 
   it('uses the supplied cover alt and crop position', () => {

@@ -8,6 +8,7 @@ import { GET } from '@/app/api/posts/route';
 const empty = {
   featured: [],
   categories: [],
+  sections: [],
   archive: { items: [], page: 1, pageSize: 12, totalItems: 0, totalPages: 0 },
 };
 

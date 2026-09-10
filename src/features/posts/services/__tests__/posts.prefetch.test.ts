@@ -11,6 +11,7 @@ import { prefetchBlogHome } from '@features/posts/services/posts.prefetch';
 const payload = {
   featured: [],
   categories: [],
+  sections: [],
   archive: { items: [], page: 2, pageSize: 6, totalItems: 0, totalPages: 0 },
 };
 

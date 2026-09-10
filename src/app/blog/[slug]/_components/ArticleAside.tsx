@@ -1,10 +1,9 @@
 import Link from 'next/link';
 import type { BlogPost, PostListItem } from '@features/posts/types/posts.types';
 import { Eyebrow } from '@components/ui/Eyebrow';
-import { homeSearchHref, ROUTES } from '@constants/routes';
+import { ROUTES } from '@constants/routes';
 import { SITE } from '@constants/site';
 import { formatDateKo } from '@utils/date';
-import { ShareButtons } from './ShareButtons';
 import styles from './ArticleAside.module.css';
 
 export function ArticleAside({
@@ -48,17 +47,6 @@ export function ArticleAside({
             <dd>{post.category.name}</dd>
           </div>
         </dl>
-        {post.tags.length > 0 ? (
-          <ul className={styles.tags}>
-            {post.tags.map((tag) => (
-              <li key={tag}>
-                <Link className={styles.tag} href={homeSearchHref({ tag })}>
-                  {tag}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        ) : null}
       </section>
 
       <section className={styles.authorBlock}>
@@ -91,13 +79,6 @@ export function ArticleAside({
           </ul>
         </section>
       ) : null}
-
-      <section className={`${styles.block} ${styles.shareBlock}`}>
-        <Eyebrow as="h2" className={styles.blockTitle}>
-          공유
-        </Eyebrow>
-        <ShareButtons title={post.title} />
-      </section>
     </aside>
   );
 }

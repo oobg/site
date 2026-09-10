@@ -29,7 +29,13 @@ const findings = [];
 /* ── 1. 라우트 좌우 여백 ───────────────────────────────────────────────────
    Container를 직접 쓰거나, Container를 품은 것으로 확인된 컴포넌트에 위임해야 한다.
    이 목록이 곧 "좌우 여백을 책임지는 것들"의 정본이다. 새 래퍼를 만들면 여기 추가한다. */
-const PADDING_PROVIDERS = ['Container', 'StatusScreen', 'ArticleSkeleton', 'BlogHomeContainer'];
+const PADDING_PROVIDERS = [
+  'Container',
+  'StatusScreen',
+  'ArticleSkeleton',
+  'BlogHomeContainer',
+  'BlogShell',
+];
 
 const routeFiles = globSync(`${SRC}/app/**/{page,loading,not-found,error,global-error}.tsx`);
 

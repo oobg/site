@@ -48,18 +48,15 @@ export function FeaturedCarousel({ posts }: { posts: readonly BlogPostSummary[] 
         )}
         <div className={styles.copy} data-with-cover={post.cover_image_url ? '' : undefined}>
           <span className={styles.category}>{post.category.name}</span>
-          <h1>
+          <h2>
             <Link href={ROUTES.BLOG.DETAIL(post.slug)}>{post.title}</Link>
-          </h1>
+          </h2>
           {post.summary && <p>{post.summary}</p>}
           <time dateTime={post.published_at}>
             {new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' }).format(
               new Date(post.published_at),
             )}
           </time>
-          <Link className={styles.read} href={ROUTES.BLOG.DETAIL(post.slug)}>
-            글 읽기 <span aria-hidden="true">→</span>
-          </Link>
         </div>
       </div>
       {posts.length > 1 && (

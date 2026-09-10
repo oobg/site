@@ -13,7 +13,7 @@ describe('SiteHeader', () => {
     expect(screen.getAllByRole('link', { name: '소개' })[0]).toHaveAttribute('href', '/about');
     expect(screen.getAllByRole('link', { name: '검색' })[0]).toHaveAttribute(
       'href',
-      '/#archive-title',
+      '/?view=all#archive-title',
     );
     expect(screen.getByRole('button', { name: '메뉴 열기' })).toBeInTheDocument();
   });

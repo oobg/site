@@ -65,6 +65,7 @@
     max-height: calc(100vh - 180px);
     overflow-y: auto;
     pointer-events: auto;
+    padding-top: var(--space-8);
   }
   .label {
     display: block;

@@ -8,7 +8,7 @@ import styles from './SiteHeader.module.css';
 const links = [
   { href: ROUTES.ABOUT, label: '소개' },
   { href: ROUTES.PROJECTS.LIST, label: '프로젝트' },
-  { href: '/#archive-title', label: '검색' },
+  { href: '/?view=all#archive-title', label: '검색' },
 ];
 export function SiteHeader() {
   const sentinelRef = useRef<HTMLDivElement>(null);
