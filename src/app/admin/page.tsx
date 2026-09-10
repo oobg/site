@@ -20,7 +20,8 @@ export default async function AdminPage({
 }) {
   const [access, query] = await Promise.all([getOwnerAccess(), searchParams]);
   const authError = getAuthMessage(query.error);
-  const view = query.view === 'settings' ? 'settings' : 'posts';
+  const view =
+    query.view === 'settings' ? 'settings' : query.view === 'comments' ? 'comments' : 'posts';
 
   if (!access.configured || !access.authenticated) {
     return (
@@ -55,11 +56,13 @@ export default async function AdminPage({
   return (
     <div className={styles.page}>
       <AdminFrame
-        title={view === 'settings' ? '블로그 설정' : '글 관리'}
+        title={view === 'settings' ? '블로그 설정' : view === 'comments' ? '댓글 관리' : '글 관리'}
         description={
           view === 'settings'
             ? '분류와 대표 글 노출 순서를 관리합니다.'
-            : `${posts.length}개의 글이 있어요.`
+            : view === 'comments'
+              ? '방문자가 남긴 댓글을 관리합니다.'
+              : `${posts.length}개의 글이 있어요.`
         }
         actions={
           <Link className={styles.newLink} href={ROUTES.ADMIN.NEW_POST}>

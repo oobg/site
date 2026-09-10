@@ -21,6 +21,7 @@ import { createPublicClient } from '@lib/supabase/public';
 import { sortContentItems } from '@lib/content/sort';
 import { filterAndPaginatePosts, selectFeaturedPosts } from '@features/posts/utils/blog-posts';
 import { normalizeBlogPostFilters } from '@features/posts/services/posts.query';
+import { toPlainSummary } from '@features/posts/utils/plain-summary';
 
 interface SupabasePostRow {
   title: string;
@@ -46,7 +47,7 @@ function toPostListItem(row: SupabasePostRow): ContentListItem {
   return {
     slug: row.slug,
     title: row.title,
-    summary: row.description || null,
+    summary: toPlainSummary(row.description),
     tags: row.tags ?? [],
     published_at: row.published_at ?? row.created_at,
     updated_at: row.updated_at,
@@ -216,7 +217,7 @@ function toBlogPostSummary(row: SupabaseBlogPostRow): BlogPostSummary {
   return {
     slug: row.slug,
     title: row.title,
-    summary: row.description || null,
+    summary: toPlainSummary(row.description),
     tags: row.tags ?? [],
     published_at: row.published_at ?? row.created_at,
     updated_at: row.updated_at,
@@ -235,6 +236,7 @@ function toBlogPostSummary(row: SupabaseBlogPostRow): BlogPostSummary {
 function legacyToBlogPostSummary(item: ContentListItem): BlogPostSummary {
   return {
     ...item,
+    summary: toPlainSummary(item.summary),
     category: DEFAULT_CATEGORY,
     cover_image_key: null,
     cover_position: { x: 0.5, y: 0.5 },
@@ -428,6 +430,7 @@ export async function getBlogCategories(): Promise<BlogCategoryWithCount[]> {
 function legacyToBlogPost(post: Post): BlogPost {
   return {
     ...post,
+    summary: toPlainSummary(post.summary),
     category: DEFAULT_CATEGORY,
     cover_image_key: null,
     cover_position: { x: 0.5, y: 0.5 },

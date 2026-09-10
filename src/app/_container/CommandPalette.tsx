@@ -20,7 +20,6 @@ type PaletteItem = {
 const pages: PaletteItem[] = [
   { id: 'home', label: '홈', meta: '페이지', href: ROUTES.HOME, kind: 'page' },
   { id: 'about', label: '소개', meta: '페이지', href: ROUTES.ABOUT, kind: 'page' },
-  { id: 'projects', label: '프로젝트', meta: '페이지', href: ROUTES.PROJECTS.LIST, kind: 'page' },
 ];
 
 export function CommandPalette() {

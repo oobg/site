@@ -13,8 +13,21 @@ import card from '@features/posts/components/PostCard.module.css';
 import styles from './BlogLoadingSkeleton.module.css';
 
 const BODY_LINES = ['100%', '96%', '88%', '98%', '92%', '72%'];
-const CARD_TITLES = ['76%', '62%', '84%'];
 const ARCHIVE_TITLES = ['82%', '68%', '76%', '88%', '64%', '72%'];
+
+function PostCardSkeletons({ count = 3 }: { count?: number }) {
+  return Array.from({ length: count }, (_, index) => (
+    <article className={card.card} key={index}>
+      <Skeleton className={card.cover} height="auto" radius="var(--d0-radius-control)" />
+      <div className={card.body}>
+        <Skeleton width="4rem" height="13px" />
+        <Skeleton width={ARCHIVE_TITLES[index % ARCHIVE_TITLES.length]} height="18px" />
+        <Skeleton width="92%" height="14px" />
+        <Skeleton width="5rem" height="13px" />
+      </div>
+    </article>
+  ));
+}
 
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -61,16 +74,19 @@ export function BlogHomeSkeleton() {
           </div>
         </section>
         <div className={home.recentGrid}>
-          {CARD_TITLES.map((width, index) => (
-            <article className={card.card} key={index}>
-              <Skeleton className={card.cover} height="auto" radius="var(--d0-radius-control)" />
-              <div className={card.body}>
-                <Skeleton width="4rem" height="13px" />
-                <Skeleton width={width} height="18px" />
-                <Skeleton width="92%" height="14px" />
-                <Skeleton width="5rem" height="13px" />
+          <PostCardSkeletons />
+        </div>
+        <div className={home.sections}>
+          {[0, 1].map((section) => (
+            <section className={home.topic} key={section}>
+              <div className={home.topicHeading}>
+                <Skeleton width="8rem" height="20px" />
+                <Skeleton width="4rem" height="14px" />
               </div>
-            </article>
+              <div className={home.topicGrid}>
+                <PostCardSkeletons />
+              </div>
+            </section>
           ))}
         </div>
       </div>
@@ -90,17 +106,7 @@ export function BlogArchiveContentSkeleton({ showHeading = true }: { showHeading
         </div>
       ) : null}
       <div className={home.grid}>
-        {ARCHIVE_TITLES.map((width, index) => (
-          <article className={card.card} key={index}>
-            <Skeleton className={card.cover} height="auto" radius="var(--d0-radius-control)" />
-            <div className={card.body}>
-              <Skeleton width="4rem" height="13px" />
-              <Skeleton width={width} height="18px" />
-              <Skeleton width="92%" height="14px" />
-              <Skeleton width="5rem" height="13px" />
-            </div>
-          </article>
-        ))}
+        <PostCardSkeletons count={12} />
       </div>
     </div>
   );
@@ -121,7 +127,9 @@ export function BlogArticleSkeleton() {
     <Shell>
       <div className={article.page}>
         <article className={article.main}>
+          <ArticleHeaderSkeleton />
           <ArticleBodySkeleton />
+          <ArticleFooterSkeleton />
         </article>
       </div>
     </Shell>
@@ -135,6 +143,51 @@ function ArticleBodySkeleton({ compact = false }: { compact?: boolean }) {
       {lines.map((width, index) => (
         <Skeleton key={index} width={width} height="var(--fs-15)" />
       ))}
+    </div>
+  );
+}
+
+function ArticleHeaderSkeleton() {
+  return (
+    <div className={styles.articleHeader} aria-hidden="true">
+      <Skeleton className={styles.articleCover} height="auto" radius="var(--radius)" />
+      <div className={styles.titleLines}>
+        <Skeleton width="100%" height="44px" />
+        <Skeleton width="72%" height="44px" />
+      </div>
+      <div className={styles.summaryLines}>
+        <Skeleton width="100%" height="18px" />
+        <Skeleton width="86%" height="18px" />
+      </div>
+      <div className={styles.byline}>
+        <Skeleton width="34px" height="34px" radius="50%" />
+        <div className={styles.bylineText}>
+          <Skeleton width="5rem" height="14px" />
+          <Skeleton width="9rem" height="13px" />
+        </div>
+      </div>
+      <div className={styles.tagLines}>
+        <Skeleton width="5rem" height="28px" />
+        <Skeleton width="6rem" height="28px" />
+      </div>
+    </div>
+  );
+}
+
+function ArticleFooterSkeleton({ showShare = true }: { showShare?: boolean }) {
+  return (
+    <div className={styles.articleFooter} aria-hidden="true">
+      {showShare ? (
+        <div className={styles.shareLines}>
+          <Skeleton width="38px" height="38px" />
+          <Skeleton width="38px" height="38px" />
+        </div>
+      ) : null}
+      <Skeleton width="5rem" height="20px" />
+      <div className={styles.commentForm}>
+        <Skeleton width="100%" height="44px" />
+        <Skeleton width="100%" height="120px" />
+      </div>
     </div>
   );
 }
@@ -160,10 +213,11 @@ export function BlogArticleDataSkeleton({
       <div className={article.page} aria-busy="true" aria-label="글 본문을 불러오는 중">
         <article className={article.main}>
           <ArticleHeader post={post} readingMin={readingMin} />
+          <ArticleBodySkeleton compact />
           <div className={article.shareRail} aria-label="글 공유">
             <ShareButtons title={post.title} />
           </div>
-          <ArticleBodySkeleton compact />
+          <ArticleFooterSkeleton showShare={false} />
         </article>
       </div>
     </BlogShell>

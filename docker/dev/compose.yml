@@ -52,8 +52,12 @@ services:
         max-file: "3"
     networks:
       - tunnel
+      - database
 
 networks:
   tunnel:
     external: true
     name: nginx-proxy-manager_default
+  database:
+    external: true
+    name: raven-supabase-api

@@ -83,8 +83,10 @@ mode="$(stat -c '%a' "$ENV_FILE" 2>/dev/null || stat -f '%Lp' "$ENV_FILE" 2>/dev
   || die "asset public URL must target cdn-dev.raven.kr"
 [ "$(env_value NEXT_PUBLIC_SUPABASE_URL)" = "https://supabase-dev.raven.kr" ] \
   || die "Supabase URL must target supabase-dev.raven.kr"
+[ "$(env_value SUPABASE_INTERNAL_URL)" = "http://raven-supabase-dev-rest:3000" ] \
+  || die "Supabase internal URL must target the Raven dev REST container"
 
-required=(NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY NEXT_PUBLIC_GOOGLE_CLIENT_ID CMS_OWNER_EMAILS)
+required=(NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY SUPABASE_INTERNAL_URL SUPABASE_SERVICE_ROLE_KEY NEXT_PUBLIC_GOOGLE_CLIENT_ID CMS_OWNER_EMAILS)
 missing=()
 for key in "${required[@]}"; do
   [ -n "$(env_value "$key")" ] || missing+=("$key")
@@ -100,6 +102,8 @@ command -v docker >/dev/null || die "docker is required"
 docker compose version >/dev/null 2>&1 || die "Docker Compose v2 is required"
 docker network inspect nginx-proxy-manager_default >/dev/null 2>&1 \
   || die "existing tunnel network is missing"
+docker network inspect raven-supabase-api >/dev/null 2>&1 \
+  || die "existing Raven Supabase API network is missing"
 [ -d /srv/docker/raven-cdn-dev/assets ] \
   && [ ! -L /srv/docker/raven-cdn-dev/assets ] \
   || die "CDN asset directory guard failed"

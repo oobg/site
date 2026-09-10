@@ -18,7 +18,16 @@ export function AdminListLoading() {
         </div>
         <div className={styles.rows} aria-hidden>
           {Array.from({ length: 8 }, (_, index) => (
-            <span key={index} />
+            <div className={styles.row} key={index}>
+              <div className={styles.titleCell}>
+                <span />
+                <span />
+              </div>
+              <span className={styles.status} />
+              <span className={styles.category} />
+              <span className={styles.date} />
+              <span className={styles.action} />
+            </div>
           ))}
         </div>
       </AdminFrame>

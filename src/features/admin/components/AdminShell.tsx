@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { FileText, Gear, ArrowSquareOut } from '@phosphor-icons/react';
+import { FileText, Gear, ArrowSquareOut, ChatCircle } from '@phosphor-icons/react';
 import { ROUTES } from '@constants/routes';
 import styles from './AdminShell.module.css';
 
@@ -23,6 +23,7 @@ export function AdminShell({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const settings = pathname === ROUTES.ADMIN.HOME && searchParams.get('view') === 'settings';
+  const comments = pathname === ROUTES.ADMIN.HOME && searchParams.get('view') === 'comments';
   const initial = userEmail?.trim().charAt(0).toUpperCase() || 'R';
   return (
     <div className={styles.shell}>
@@ -50,10 +51,20 @@ export function AdminShell({
           <nav className={styles.nav} aria-label="관리자 메뉴">
             <Link
               href={ROUTES.ADMIN.HOME}
-              aria-current={!settings && pathname.startsWith('/admin') ? 'page' : undefined}
-              data-active={(!settings && pathname.startsWith('/admin')) || undefined}
+              aria-current={
+                !settings && !comments && pathname.startsWith('/admin') ? 'page' : undefined
+              }
+              data-active={(!settings && !comments && pathname.startsWith('/admin')) || undefined}
             >
               <FileText aria-hidden size={19} />글
+            </Link>
+            <Link
+              href={`${ROUTES.ADMIN.HOME}?view=comments`}
+              aria-current={comments ? 'page' : undefined}
+              data-active={comments || undefined}
+            >
+              <ChatCircle aria-hidden size={19} />
+              댓글
             </Link>
             <Link
               href={`${ROUTES.ADMIN.HOME}?view=settings`}

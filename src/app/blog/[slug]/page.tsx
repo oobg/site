@@ -17,6 +17,7 @@ import { PostNav } from '@/app/blog/[slug]/_components/PostNav';
 import { ShareButtons } from '@/app/blog/[slug]/_components/ShareButtons';
 import { BlogShell } from '@/app/_components/BlogShell';
 import { BlogArticleDataSkeleton } from '@/app/_components/BlogLoadingSkeleton';
+import { CommentsSection } from '@features/comments/components/CommentsSection';
 import type { BlogCategoryWithCount, BlogPost } from '@features/posts/types/posts.types';
 import styles from './article.module.css';
 
@@ -71,12 +72,13 @@ async function BlogPostContent({
       <div className={styles.page}>
         <article className={styles.main}>
           <ArticleHeader post={post} readingMin={readingMin} />
+          <ArticleBody html={html} />
           <div className={styles.shareRail} aria-label="글 공유">
             <ShareButtons title={post.title} />
           </div>
-          <ArticleBody html={html} />
         </article>
-        <ArticleAside post={post} related={related} readingMin={readingMin} />
+        <CommentsSection key={post.slug} slug={post.slug} />
+        <ArticleAside related={related} />
         <PostNav prev={prev} next={next} />
       </div>
     </BlogShell>

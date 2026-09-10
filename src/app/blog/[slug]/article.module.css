@@ -1,7 +1,7 @@
 /* 공통 shell의 오른쪽 열에서 본문 읽기 폭을 고정한다. */
 .page {
   position: relative;
-  padding-bottom: var(--space-9);
+  padding-bottom: var(--space-7);
 }
 
 .main {
@@ -12,18 +12,7 @@
 }
 
 .shareRail {
-  display: block;
-  margin-block: var(--space-5);
-}
-
-@media (min-width: 1280px) {
-  .shareRail {
-    position: absolute;
-    top: 0;
-    left: calc(100% + var(--space-6));
-    z-index: 1;
-    display: block;
-    width: 208px;
-    margin: 0;
-  }
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-7);
 }

@@ -84,6 +84,14 @@ local mode에서 R2 account, access key, secret, bucket 또는 `R2_PUBLIC_URL`�
 
 앱 root filesystem은 read-only다. Next.js runtime cache만 `/app/.next/cache` tmpfs에 둔다. 실제 홈서버 smoke test에서 write 오류와 cache 동작을 확인해야 하며, 재시작하면 이 cache는 비워진다.
 
+### Tunnel connector 운영 계약
+
+Raven tunnel은 Docker network에 연결된 connector 하나만 운영한다. 호스트의 `cloudflared.service`와 자동 업데이트 timer는 비활성 상태로 유지하고, tunnel origin은 동적 container IP가 아닌 `raven-web-dev`, `raven-cdn-dev`, `supabase-kong` 서비스 이름을 사용한다.
+
+2026-09-11에는 자정 자동 업데이트 timer가 호스트 cloudflared를 재시작해 중복 connector가 생겼다. 호스트 connector는 Docker DNS 이름을 해석하지 못해 dev 앱, Supabase, CDN 요청 일부가 502를 반환했다. 호스트 서비스와 timer를 중지·비활성화하고 Docker connector만 남긴 뒤 서비스 이름 기반 ingress를 복원했다.
+
+검증할 때 Access의 302만으로 앱 정상 여부를 판정하지 않는다. 로그인 세션에서 앱 API가 공개 글 16편을 반환하고 홈 화면이 실제 목록을 렌더링하는지 확인하며, 새 CDN URL도 cache-bust 요청으로 200과 올바른 이미지 content type을 확인한다.
+
 ## 공개 전 확인
 
 외부 hostname을 추가하기 전에 홈서버 내부에서 다음을 확인한다.

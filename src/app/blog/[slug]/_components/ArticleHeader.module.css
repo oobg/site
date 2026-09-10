@@ -7,14 +7,14 @@
 }
 
 .title {
-  max-width: 19ch;
+  width: 100%;
   font-size: clamp(var(--fs-30), 5vw, 44px);
   line-height: var(--lh-display);
   letter-spacing: var(--ls-display);
 }
 
 .summary {
-  max-width: 48ch;
+  width: 100%;
   margin-top: var(--space-4);
   font-size: var(--fs-18);
   line-height: var(--lh-body);

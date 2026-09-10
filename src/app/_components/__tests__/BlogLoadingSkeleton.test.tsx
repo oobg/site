@@ -37,7 +37,7 @@ describe('BlogLoadingSkeleton', () => {
     const { container } = render(<BlogHomeSkeleton />);
     expect(container.querySelector('[aria-busy]')).toHaveAttribute('aria-label', '불러오는 중');
     expect(container.querySelector('aside')).not.toBeNull();
-    expect(container.querySelectorAll('article')).toHaveLength(3);
+    expect(container.querySelectorAll('article')).toHaveLength(9);
   });
 
   it('상세 글의 shell과 article 읽기 열 자리를 함께 유지한다', () => {
@@ -52,7 +52,7 @@ describe('BlogLoadingSkeleton', () => {
       'aria-busy',
       'true',
     );
-    expect(container.querySelectorAll('article')).toHaveLength(6);
+    expect(container.querySelectorAll('article')).toHaveLength(12);
   });
 
   it('글 데이터 확보 뒤 실제 no-cover header를 본문 skeleton과 함께 유지한다', () => {

@@ -20,13 +20,13 @@ export function SiteFooter() {
             <nav className={styles.column} aria-label="사이트 내비게이션">
               <Eyebrow className={styles.colLabel}>둘러보기</Eyebrow>
               <Link href={ROUTES.HOME}>글</Link>
-              <Link href={ROUTES.PROJECTS.LIST}>프로젝트</Link>
               <Link href={ROUTES.ABOUT}>소개</Link>
             </nav>
           </div>
         </div>
         <div className={styles.bottom}>
           <span>© 2026 raven.kr</span>
+          <a href="mailto:dev@raven.kr">문의 · dev@raven.kr</a>
         </div>
       </footer>
     </Container>

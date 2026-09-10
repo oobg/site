@@ -43,7 +43,7 @@
 
 .column {
   display: grid;
-  grid-template-columns: auto repeat(3, auto);
+  grid-template-columns: auto repeat(2, auto);
   align-items: center;
   gap: 0 var(--space-4);
   font-size: var(--fs-15);
@@ -80,6 +80,9 @@
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
 }
+.bottom a:hover {
+  color: var(--color-accent);
+}
 
 @media (max-width: 640px) {
   .top {
@@ -93,7 +96,7 @@
   }
 
   .column {
-    grid-template-columns: repeat(3, auto);
+    grid-template-columns: repeat(2, auto);
     justify-content: start;
     gap: 0 var(--space-4);
   }

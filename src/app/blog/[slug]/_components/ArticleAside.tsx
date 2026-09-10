@@ -1,64 +1,13 @@
 import Link from 'next/link';
-import type { BlogPost, PostListItem } from '@features/posts/types/posts.types';
+import type { PostListItem } from '@features/posts/types/posts.types';
 import { Eyebrow } from '@components/ui/Eyebrow';
 import { ROUTES } from '@constants/routes';
-import { SITE } from '@constants/site';
 import { formatDateKo } from '@utils/date';
 import styles from './ArticleAside.module.css';
 
-export function ArticleAside({
-  post,
-  related,
-  readingMin,
-}: {
-  post: BlogPost;
-  related: PostListItem[];
-  readingMin: number;
-}) {
-  const showUpdated = post.updated_at !== post.published_at;
-
+export function ArticleAside({ related }: { related: PostListItem[] }) {
   return (
     <aside className={styles.aside}>
-      <section className={styles.block}>
-        <Eyebrow as="h2" className={styles.blockTitle}>
-          글 정보
-        </Eyebrow>
-        <dl className={styles.info}>
-          <div className={styles.row}>
-            <dt>발행</dt>
-            <dd>
-              <time dateTime={post.published_at}>{formatDateKo(post.published_at)}</time>
-            </dd>
-          </div>
-          {showUpdated ? (
-            <div className={styles.row}>
-              <dt>수정</dt>
-              <dd>
-                <time dateTime={post.updated_at}>{formatDateKo(post.updated_at)}</time>
-              </dd>
-            </div>
-          ) : null}
-          <div className={styles.row}>
-            <dt>읽기 시간</dt>
-            <dd>{readingMin}분</dd>
-          </div>
-          <div className={styles.row}>
-            <dt>카테고리</dt>
-            <dd>{post.category.name}</dd>
-          </div>
-        </dl>
-      </section>
-
-      <section className={styles.authorBlock}>
-        <Eyebrow as="h2" className={styles.blockTitle}>
-          쓴 사람
-        </Eyebrow>
-        <p>
-          <strong>{SITE.author.name}</strong>
-        </p>
-        <p className={styles.authorDescription}>제품과 소프트웨어를 만들며 배운 것을 기록해요.</p>
-      </section>
-
       {related.length > 0 ? (
         <section className={styles.block}>
           <Eyebrow as="h2" className={styles.blockTitle}>
