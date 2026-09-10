@@ -1,5 +1,5 @@
 .frame {
-  padding-block: var(--space-8) var(--space-9);
+  padding-block: var(--space-4) var(--space-8);
 }
 
 .frame[data-compact] {
@@ -8,9 +8,11 @@
 }
 
 .frame[data-compact] .header {
-  align-items: center;
-  min-height: var(--d0-control-lg);
-  padding: 0 140px var(--space-2) 0;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
 }
 
 .frame[data-compact] .kicker {
@@ -55,7 +57,7 @@
 
 .title {
   max-width: var(--w-reading);
-  font-size: var(--fs-40);
+  font-size: var(--fs-30);
   line-height: var(--lh-title);
   letter-spacing: var(--ls-title);
 }
@@ -129,10 +131,11 @@
   }
 
   .frame[data-compact] .header {
-    align-items: center;
-    flex-direction: row;
-    min-height: var(--d0-control-md);
-    padding: 0 104px var(--space-2) 0;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
   }
 
   .frame[data-compact] .title {

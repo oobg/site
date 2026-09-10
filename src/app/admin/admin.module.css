@@ -13,6 +13,15 @@
   font-weight: 700;
   white-space: nowrap;
 }
+.page {
+  width: 100%;
+  padding: var(--space-5) var(--space-6);
+}
+@media (max-width: 640px) {
+  .page {
+    padding: var(--space-4) var(--space-3);
+  }
+}
 
 .newLink:hover {
   color: var(--color-canvas);

@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, FilePlus } from '@phosphor-icons/react/dist/ssr';
 import { ROUTES } from '@constants/routes';
 import styles from './PostList.module.css';
 
@@ -12,6 +11,7 @@ export type AdminPostListItem = {
   title: string;
   status: 'draft' | 'published';
   updatedAt: string;
+  categoryName?: string;
 };
 
 function formatDate(value: string) {
@@ -80,34 +80,27 @@ export function PostList({
     }
   };
 
-  if (posts.length === 0) {
-    return (
-      <div className={styles.empty}>
-        <FilePlus aria-hidden size={28} weight="regular" />
-        <h2>아직 작성한 글이 없어요</h2>
-        <p>첫 초안을 만들면 이곳에서 상태와 수정일을 확인할 수 있어요.</p>
-        <Link className={styles.primary} href={ROUTES.ADMIN.NEW_POST}>
-          새 글 작성
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <div className={styles.listArea}>
+    <div className={styles.listArea} data-compact={compact || undefined}>
       <div className={styles.filters}>
-        <label>
-          <span className={styles.visuallyHidden}>상태</span>
-          <select
-            aria-label="글 상태"
-            value={status}
-            onChange={(event) => setStatus(event.target.value as typeof status)}
-          >
-            <option value="all">전체</option>
-            <option value="draft">초안</option>
-            <option value="published">공개</option>
-          </select>
-        </label>
+        <div className={styles.segmented} aria-label="글 상태">
+          {(
+            [
+              ['all', '전체'],
+              ['draft', '초안'],
+              ['published', '공개'],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              type="button"
+              key={value}
+              data-active={status === value || undefined}
+              onClick={() => setStatus(value)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
         <label>
           <span className={styles.visuallyHidden}>제목 검색</span>
           <input
@@ -119,6 +112,15 @@ export function PostList({
           />
         </label>
       </div>
+      {!compact ? (
+        <div className={styles.tableHeader} aria-hidden>
+          <span>제목</span>
+          <span>상태</span>
+          <span>카테고리</span>
+          <span>최종 수정일 ↓</span>
+          <span />
+        </div>
+      ) : null}
       <ul
         ref={listRef}
         className={styles.list}
@@ -146,11 +148,28 @@ export function PostList({
               <span className={post.status === 'published' ? styles.published : styles.draft}>
                 {post.status === 'published' ? '공개' : '초안'}
               </span>
+              <span className={styles.category}>{post.categoryName ?? '미분류'}</span>
               <time dateTime={post.updatedAt}>{formatDate(post.updatedAt)}</time>
-              <ArrowRight aria-hidden size={18} />
+              <Link
+                className={styles.more}
+                href={ROUTES.ADMIN.POST(post.id)}
+                aria-label={`${post.title} 편집`}
+              >
+                •••
+              </Link>
             </div>
           </li>
         ))}
+        {visiblePosts.length === 0 ? (
+          <li className={styles.empty}>
+            <h2>{posts.length ? '조건에 맞는 글이 없어요' : '아직 작성한 글이 없어요'}</h2>
+            <p>
+              {posts.length
+                ? '검색어나 상태를 바꿔 보세요.'
+                : '상단의 새 글 버튼으로 첫 초안을 작성해 보세요.'}
+            </p>
+          </li>
+        ) : null}
       </ul>
     </div>
   );

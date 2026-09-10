@@ -72,7 +72,7 @@
 | INTRO    | 중앙 wordmark→현재 header intro 복구   | 완료 | HANDOFF                        |
 | ADMIN    | responsive 목록·편집 통합 workspace    | 완료 | HANDOFF                        |
 | QA       | 실제 화면·접근성·데이터 경계·회귀 검증 | 완료 | FOOTER, SKELETON, INTRO, ADMIN |
-| RELEASE  | commit·push·deploy                     | 완료 | 사용자 승인 범위 완료          |
+| RELEASE  | commit·push·deploy                     | 보류 | 사용자 승인                    |
 
 ## 작업 항목
 
@@ -116,6 +116,9 @@
 - **상태:** 완료
 - **완료 기준:** 실제 열 최소 폭이 확보되는 1900px 이상에서 목록·editor·settings를 함께 보여주고 1600px 이하에서는 route별 목록/편집을 유지한다. Markdown/preview, category, tags, slug, cover/crop/alt, 명시적 save/publish와 dirty guard가 keyboard·URL·back/forward와 함께 동작한다.
 - **증거:** wide workspace와 narrow route 화면 구현 뒤 부모가 production 1920·390 기존 글·새 글 화면을 직접 확인했다. 본문 pane은 1920에서 top=466.25px/width=804px, 390에서 top=578.25px/width=342px이었고 overflow나 save action 겹침이 없었다. same-URL navigation guard 보완 뒤 새 글 생성→canonical detail URL replace→두 번째 저장→publish→dirty browser back에서 cancel 1회로 URL·입력 보존→accept 뒤 목록 복귀 lifecycle가 실제 production에서 통과했다. `/private/tmp/raven-reading-qa-artifacts/admin-new-lifecycle-persistence.log`에서 API HTTP 200, published 상태, 두 번째 저장 본문 영속화와 저장하지 않은 dirty title 미영속화를 확인했다. `admin-context-loading.log`에서는 non-empty `Lifecycle QA` 검색 결과 10개, 목록 scroll 420px→detail 0px→Back 뒤 query 유지와 목록 420px 복원을 확인했다. 1920·1600·1440·1280·390 final 화면, focus, keyboard preview 전환과 overflow 0도 통과했다(2026-09-10).
+- **추가 시안 일치 작업:** 승인된 `raven-admin-direction-v2.png`를 기준으로 공통 관리자 header·검색·avatar, 960px 이상 168px sidebar, 모바일 가로 navigation, URL 기반 글·블로그 설정, 상태 segmented control과 title/category/status/최종 수정일/action table을 구현했다. empty owner 목록도 같은 filter·table 골격을 유지한다. 편집 화면은 중복 header를 제거하고 breadcrumb·save/publish를 한 행으로 합쳐 본문 시작점을 1920 `443.39px`, 1280 `439.66px`, 390 `562.56px`로 낮췄다. dev fixture 5개 폭에서 overflow 0과 sidebar·mobile navigation을 확인했고 `/admin?view=settings`와 Back도 통과했다. 증거는 `/private/tmp/raven-reading-qa-artifacts/admin-v2-final-visual.log`, `admin-v2-shell.log`, `admin-v2-{list,edit}-{1920,1600,1440,1280,390}.png`다.
+- **최종 production 검증:** 3503 clean production에서 owner·signed-out·denied gate, 5개 폭 shell·목록·편집, 1920 compact 목록 filter containment와 overflow 0을 확인했다. row action은 canonical detail로 이동했고, dirty 상태에서 shell의 설정 link는 cancel dialog 1회로 URL·입력을 보존한 뒤 accept에서 `/admin?view=settings`로 이동했다. CommandPalette는 click과 `⌘K` 모두 열렸고 390 가로 navigation의 설정 link는 keyboard focus를 받았다. 증거는 `admin-v2-production-visual.log`, `admin-v2-interaction.log`, `admin-v2-access-states.log`와 최신 5개 폭 PNG다.
+- **편집 lifecycle 검증:** 격리 production fixture에서 새 글의 Markdown 작성·미리보기가 서로 숨겨지고, 초안 생성 시 공개 API 404, 두 번째 본문 저장, 명시적 공개 후 API 200·UI `published`, 다시 저장한 뒤에도 `published`와 두 번째 본문이 유지됨을 확인했다. 대표 이미지 key·대체 텍스트와 crop 좌표 x=0.23/y=0.71도 저장 뒤 유지됐다. dirty Back은 cancel에서 URL·입력을 보존하고 accept에서 목록으로 이동했으며 fixture 글 삭제 뒤 공개 API는 다시 404였다. 증거는 `/private/tmp/raven-reading-qa-artifacts/admin-v2-lifecycle-production.log`다.
 - **보류 사유/재개 조건:** 해당 없음.
 
 ### QA — 실제 화면·접근성·데이터 경계·회귀
@@ -123,14 +126,17 @@
 - **상태:** 완료
 - **완료 기준:** fresh 첫 진입·느린 네트워크·cached navigation·direct detail에서 intro와 skeleton의 연결, logo 착지 좌표, CLS, reduced motion, focus를 검증한다. 관리자 wide/narrow, URL/back, dirty guard, Markdown preview, 저장·공개·설정과 public cache/privacy를 격리 fixture로 검증한다.
 - **증거:** 새 격리 앱 `3503`과 Supabase API `54521` fixture에서 최신 전체 67개 파일 326개 테스트, typecheck, lint 오류 0·기존 경고 4, CSS 65개, design 21개를 통과했고 repo↔QA source content diff는 0이었다. webpack production build는 compile·typecheck·page data·13개 static page 생성을 포함해 clean 성공했고 production intro browser 67/67 및 공개 footer·loading·home density·project smoke를 통과했다. 관리자 production 5개 폭 final·loading geometry, focus, keyboard preview, overflow 0, 새 글 create/save/publish·same-URL dirty back cancel/accept lifecycle, API persistence와 non-empty 검색·scroll 복원도 통과했다. 공개·관리자 증거는 `/private/tmp/raven-reading-qa-artifacts`에 보존했다. 모든 브라우저 QA는 격리 서비스 `3503`·`54521`에서 수행했으며 기존 `3500`과 `54321` 서비스는 변경하거나 종료하지 않았다(2026-09-10).
+- **추가 검증:** 새 shell 기준 production interaction과 auth gate, 검색 palette click·단축키, mobile navigation focus, row action, dirty cancel·accept, settings URL·Back을 격리 3503/54521에서 통과했다. 이번 시안 교정 범위 관리자 18개 파일 79개 테스트, typecheck, target ESLint, CSS 69개, design 21개를 통과했다.
+- **최종 통합 게이트:** 최신 source diff 0인 clean production build에서 전체 73개 파일 339개 테스트, typecheck, lint 오류 0·기존 경고 4, CSS 69개, design 21개가 통과했다. public chrome 1280·390 분리와 intro production 67개 시나리오도 재검증했다.
+- **최종 editor loading:** 1920·1600·1440·1280에서 loading과 final 본문 x/y/width/height가 모두 정확히 일치했다. 390은 x/width/height가 일치하고 y 차이는 14.28125px였으며 모든 폭에서 overflow는 0이었다. reduced motion production context에서 5개 폭을 측정하고 1920·390 캡처를 직접 확인했다. 증거는 `/private/tmp/raven-reading-qa-artifacts/admin-v2-loading-5width-production.log`, `admin-loading-{1920,1600,1440,1280,390}-final.png`, `admin-v2-loading-production-build.log`다.
 - **보류 사유/재개 조건:** 해당 없음.
 
 ### RELEASE — commit·push·deploy
 
-- **상태:** 완료
+- **상태:** 보류
 - **완료 기준:** 구현과 QA가 끝난 뒤 사용자가 각각 승인한 commit·push만 실행한다. manual production deploy는 이 계획 범위에 없다.
 - **증거:** 사용자가 2026-09-10 이번 신규 변경의 commit·push를 명시적으로 승인했다. 통합 구현 commit `23ed39728c01473f9de96a2bf81309b71fde759e`을 `origin/dev`에 push하고 local/remote HEAD 일치를 확인했다.
-- **배포:** manual production deploy는 실행하지 않았다. 자동 workflow의 성공 여부는 별도로 확인하지 않았다.
+- **배포:** 이번 관리자 시안 교정 변경은 최종 QA 완료를 기다리는 중이다. 기존 세션의 commit·push 승인 범위는 유지되며, QA 완료 전에는 실행하지 않는다. manual production deploy는 실행하지 않는다.
 
 ## Handoff 메모
 

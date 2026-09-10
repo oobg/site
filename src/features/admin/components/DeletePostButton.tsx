@@ -8,6 +8,7 @@ import {
   initialPostActionState,
   type PostActionState,
 } from '@features/admin/types/posts-admin.types';
+import styles from './DeletePostButton.module.css';
 
 export function DeletePostButton({ id }: { id: string }) {
   const router = useRouter();
@@ -26,6 +27,7 @@ export function DeletePostButton({ id }: { id: string }) {
   );
   return (
     <form
+      className={styles.form}
       action={action}
       onSubmit={(event) => {
         if (!window.confirm('이 글을 삭제할까요? 삭제한 글은 복구할 수 없어요.'))
@@ -33,7 +35,7 @@ export function DeletePostButton({ id }: { id: string }) {
       }}
     >
       <input type="hidden" name="id" value={id} />
-      <button type="submit" disabled={pending}>
+      <button className={styles.button} type="submit" disabled={pending}>
         {pending ? '삭제 중...' : '글 삭제'}
       </button>
       {state.message ? (

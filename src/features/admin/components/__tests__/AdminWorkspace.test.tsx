@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { AdminWorkspace } from '@features/admin/components/AdminWorkspace';
 import { AdminEditorWorkspace } from '@features/admin/components/AdminEditorWorkspace';
@@ -29,16 +29,10 @@ const posts = [
 const categories = [{ id: 'c1', slug: 'dev', name: '개발', sort_order: 0, is_default: false }];
 
 describe('AdminWorkspace', () => {
-  it('글 목록과 설정을 연결된 탭 패널로 전환한다', () => {
-    render(<AdminWorkspace posts={posts} categories={categories} />);
-
-    const postsTab = screen.getByRole('tab', { name: '글' });
-    const settingsTab = screen.getByRole('tab', { name: '블로그 설정' });
-    expect(postsTab).toHaveAttribute('aria-selected', 'true');
+  it('URL이 선택한 관리 화면만 렌더한다', () => {
+    const { rerender } = render(<AdminWorkspace posts={posts} categories={categories} />);
     expect(screen.getByText(/목록: 첫 글/)).toBeVisible();
-
-    fireEvent.click(settingsTab);
-    expect(settingsTab).toHaveAttribute('aria-selected', 'true');
+    rerender(<AdminWorkspace posts={posts} categories={categories} view="settings" />);
     expect(screen.getByText('설정: 개발')).toBeVisible();
   });
 });

@@ -1,8 +1,9 @@
 'use client';
 
 import { useActionState, useEffect, useRef, useState } from 'react';
-import { ImageSquare, UploadSimple } from '@phosphor-icons/react';
+import { Code, ImageSquare, LinkSimple, Quotes, TextB, UploadSimple } from '@phosphor-icons/react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import { ROUTES } from '@constants/routes';
 import articleStyles from '@components/content/ArticleBody.module.css';
@@ -70,6 +71,7 @@ export function PostEditor({
   const [description, setDescription] = useState(post?.description ?? '');
   const [body, setBody] = useState(post?.body ?? '');
   const [status, setStatus] = useState<PostStatus>(post?.status ?? 'draft');
+  const [persistedStatus, setPersistedStatus] = useState<PostStatus>(post?.status ?? 'draft');
   const [categoryId, setCategoryId] = useState(
     post?.category_id ?? categories.find((category) => category.is_default)?.id ?? '',
   );
@@ -89,6 +91,7 @@ export function PostEditor({
   const [editorTab, setEditorTab] = useState<'write' | 'preview'>('write');
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
+  const statusInputRef = useRef<HTMLInputElement>(null);
   const bodyValueRef = useRef(body);
   const previewSequenceRef = useRef(0);
   const editRevisionRef = useRef(0);
@@ -109,6 +112,11 @@ export function PostEditor({
         return failed;
       }
       if (nextState.status === 'success') {
+        const submittedStatus = formData.get('status');
+        if (submittedStatus === 'draft' || submittedStatus === 'published') {
+          setStatus(submittedStatus);
+          setPersistedStatus(submittedStatus);
+        }
         setDirty(editRevisionRef.current !== savedRevision);
         try {
           await Promise.all([
@@ -274,6 +282,16 @@ export function PostEditor({
   const visiblePreviewMessage = body.trim()
     ? previewMessage
     : '본문을 입력하면 여기에 미리보기가 표시돼요.';
+  const secondaryStatus: PostStatus =
+    persistedStatus === 'published' && status === 'published' ? 'published' : 'draft';
+  const secondaryLabel =
+    persistedStatus === 'published'
+      ? secondaryStatus === 'published'
+        ? '저장'
+        : '초안으로 전환'
+      : post
+        ? '초안 저장'
+        : '초안 만들기';
 
   return (
     <form
@@ -287,9 +305,47 @@ export function PostEditor({
       }}
       onSubmit={(event) => {
         if (uploading) event.preventDefault();
+        const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+        const submittedStatus = submitter?.dataset.status as PostStatus | undefined;
+        if (submittedStatus && statusInputRef.current) {
+          statusInputRef.current.value = submittedStatus;
+        }
       }}
     >
       {post?.id ? <input type="hidden" name="id" value={post.id} /> : null}
+      <input ref={statusInputRef} type="hidden" name="status" value={status} />
+      <footer className={styles.footer}>
+        <span className={styles.breadcrumb}>
+          <Link href={ROUTES.ADMIN.HOME}>글 관리</Link>
+          <span aria-hidden>/</span>
+          <span>{post ? '글 수정' : '새 글'}</span>
+        </span>
+        <span className={styles.saveState} aria-live="polite">
+          {uploading
+            ? '이미지를 올리는 중이에요.'
+            : state.message || (dirty ? '저장하지 않은 변경이 있어요.' : '저장 전')}
+        </span>
+        <div className={styles.submitArea}>
+          <button
+            className={styles.save}
+            type="submit"
+            data-status={secondaryStatus}
+            disabled={busy}
+            onClick={() => setEditorTab('write')}
+          >
+            {pending ? '저장 중...' : secondaryLabel}
+          </button>
+          <button
+            className={styles.submit}
+            type="submit"
+            data-status="published"
+            disabled={busy}
+            onClick={() => setEditorTab('write')}
+          >
+            공개하기
+          </button>
+        </div>
+      </footer>
       <div className={styles.mainFields}>
         <h2 className={styles.groupHeading}>기본 정보</h2>
         <label className={`${styles.field} ${styles.titleField}`}>
@@ -313,7 +369,7 @@ export function PostEditor({
           ) : null}
         </label>
 
-        <label className={`${styles.field} ${styles.wide}`}>
+        <label className={styles.field}>
           <span>설명</span>
           <textarea
             aria-describedby={fieldError(state, 'description') ? 'description-error' : undefined}
@@ -321,7 +377,7 @@ export function PostEditor({
             name="description"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            rows={3}
+            rows={2}
             required
           />
           {fieldError(state, 'description') ? (
@@ -331,59 +387,6 @@ export function PostEditor({
       </div>
 
       <div className={styles.editorBlock}>
-        <div className={styles.editorHeading}>
-          <div>
-            <label htmlFor="post-body">본문</label>
-            <p>Markdown으로 작성해요.</p>
-          </div>
-          <label className={styles.uploadButton} aria-disabled={busy}>
-            <UploadSimple aria-hidden size={17} weight="bold" />
-            이미지 선택
-            <input
-              accept="image/jpeg,image/png,image/gif,image/webp"
-              disabled={busy}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void upload(file);
-                event.target.value = '';
-              }}
-              type="file"
-            />
-          </label>
-        </div>
-        <div className={styles.toolbar} role="toolbar" aria-label="Markdown 서식">
-          <button
-            type="button"
-            onClick={() => wrapSelection('## ', '', '소제목')}
-            aria-label="소제목"
-          >
-            H2
-          </button>
-          <button type="button" onClick={() => wrapSelection('**', '**')} aria-label="굵게">
-            B
-          </button>
-          <button
-            type="button"
-            onClick={() => wrapSelection('[', '](https://)', '링크 텍스트')}
-            aria-label="링크"
-          >
-            링크
-          </button>
-          <button
-            type="button"
-            onClick={() => wrapSelection('> ', '', '인용문')}
-            aria-label="인용문"
-          >
-            인용
-          </button>
-          <button
-            type="button"
-            onClick={() => wrapSelection('`', '`', '코드')}
-            aria-label="인라인 코드"
-          >
-            코드
-          </button>
-        </div>
         <div
           className={styles.editorTabs}
           role="tablist"
@@ -426,6 +429,53 @@ export function PostEditor({
           >
             미리보기
           </button>
+        </div>
+        <div className={styles.toolbar} role="toolbar" aria-label="Markdown 서식">
+          <button
+            type="button"
+            onClick={() => wrapSelection('## ', '', '소제목')}
+            aria-label="소제목"
+          >
+            H2
+          </button>
+          <button type="button" onClick={() => wrapSelection('**', '**')} aria-label="굵게">
+            <TextB aria-hidden size={18} weight="bold" />
+          </button>
+          <button
+            type="button"
+            onClick={() => wrapSelection('[', '](https://)', '링크 텍스트')}
+            aria-label="링크"
+          >
+            <LinkSimple aria-hidden size={18} weight="bold" />
+          </button>
+          <button
+            type="button"
+            onClick={() => wrapSelection('> ', '', '인용문')}
+            aria-label="인용문"
+          >
+            <Quotes aria-hidden size={18} weight="fill" />
+          </button>
+          <button
+            type="button"
+            onClick={() => wrapSelection('`', '`', '코드')}
+            aria-label="인라인 코드"
+          >
+            <Code aria-hidden size={18} weight="bold" />
+          </button>
+          <label className={styles.toolbarUpload} aria-disabled={busy}>
+            <ImageSquare aria-hidden size={19} />
+            <span className={styles.visuallyHidden}>본문 이미지 선택</span>
+            <input
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              disabled={busy}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void upload(file);
+                event.target.value = '';
+              }}
+              type="file"
+            />
+          </label>
         </div>
         <div className={styles.editorColumns}>
           <div
@@ -511,7 +561,6 @@ export function PostEditor({
           <span>상태</span>
           <select
             value={status}
-            name="status"
             disabled={busy}
             onChange={(event) => setStatus(event.target.value as PostStatus)}
           >
@@ -519,8 +568,34 @@ export function PostEditor({
             <option value="published">공개</option>
           </select>
         </label>
+        <label className={styles.field}>
+          <span>카테고리</span>
+          <select
+            name="category_id"
+            value={categoryId}
+            onChange={(event) => setCategoryId(event.target.value)}
+            required
+          >
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className={styles.field}>
+          <span>태그</span>
+          <input
+            name="tags"
+            value={tags}
+            onChange={(event) => setTags(event.target.value)}
+            placeholder="설계, 협업"
+          />
+          <small>쉼표로 구분하며 저장할 때 중복을 정리해요.</small>
+        </label>
+
         <div className={styles.field}>
-          <label htmlFor="post-slug">슬러그</label>
+          <label htmlFor="post-slug">URL</label>
           <span className={styles.slugControl}>
             <input
               id="post-slug"
@@ -547,42 +622,14 @@ export function PostEditor({
                 setDirty(true);
               }}
             >
-              제목으로 생성
+              재생성
             </button>
           </span>
           <small id="slug-help">
             {fieldError(state, 'slug') ??
-              (post
-                ? '기존 주소를 유지해요. 바꾸려면 제목으로 생성하거나 직접 수정하세요.'
-                : '제목으로 자동 생성돼요. 필요하면 직접 수정할 수 있어요.')}
+              (post ? '기존 주소를 유지해요.' : '제목으로 자동 생성돼요.')}
           </small>
         </div>
-        <h2 className={styles.groupHeading}>분류</h2>
-        <label className={styles.field}>
-          <span>카테고리</span>
-          <select
-            name="category_id"
-            value={categoryId}
-            onChange={(event) => setCategoryId(event.target.value)}
-            required
-          >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={styles.field}>
-          <span>태그</span>
-          <input
-            name="tags"
-            value={tags}
-            onChange={(event) => setTags(event.target.value)}
-            placeholder="react, nextjs"
-          />
-          <small>쉼표로 나눠 입력해요. 저장할 때 소문자와 중복을 정리합니다.</small>
-        </label>
         <h2 className={styles.groupHeading} id="cover-heading">
           대표 이미지
         </h2>
@@ -594,16 +641,19 @@ export function PostEditor({
               alt={coverAlt || ''}
               style={{
                 objectPosition: `${coverX * 100}% ${coverY * 100}%`,
-                maxWidth: '320px',
                 aspectRatio: '16 / 9',
                 objectFit: 'cover',
               }}
             />
-          ) : null}
+          ) : (
+            <div className={styles.coverPlaceholder} aria-hidden>
+              <ImageSquare size={24} />
+            </div>
+          )}
           <input type="hidden" name="cover_image_key" value={coverKey} />
           <input type="hidden" name="cover_image_url" value={coverUrl} />
           <label>
-            가로 위치
+            <span>가로 위치</span>
             <input
               type="range"
               name="cover_position_x"
@@ -615,7 +665,7 @@ export function PostEditor({
             />
           </label>
           <label>
-            세로 위치
+            <span>세로 위치</span>
             <input
               type="range"
               name="cover_position_y"
@@ -627,7 +677,7 @@ export function PostEditor({
             />
           </label>
           <label>
-            대체 텍스트
+            <span>대체 텍스트</span>
             <input
               name="cover_alt"
               value={coverAlt}
@@ -636,7 +686,8 @@ export function PostEditor({
             />
           </label>
           <label className={styles.uploadButton} aria-disabled={busy}>
-            대표 이미지 선택
+            <UploadSimple aria-hidden size={17} />
+            이미지 변경
             <input
               type="file"
               accept="image/jpeg,image/png,image/gif,image/webp"
@@ -649,31 +700,14 @@ export function PostEditor({
             />
           </label>
         </section>
-      </aside>
 
-      <footer className={styles.footer}>
-        <div className={styles.submitArea}>
-          <span className={styles.saveState} aria-live="polite">
-            {uploading
-              ? '이미지를 올리는 중이에요.'
-              : state.message || (dirty ? '저장하지 않은 변경이 있어요.' : '')}
-          </span>
-          <button
-            className={styles.submit}
-            type="submit"
-            disabled={busy}
-            onClick={() => setEditorTab('write')}
-          >
-            {pending
-              ? '저장 중...'
-              : status === 'published'
-                ? '저장하고 공개'
-                : post
-                  ? '초안 저장'
-                  : '초안 만들기'}
-          </button>
-        </div>
-      </footer>
+        <details className={styles.settingsDetails}>
+          <summary>주소와 검색 정보</summary>
+          <div className={styles.detailsContent}>
+            <p>공개 주소는 URL 값으로 만들고 검색 설명은 상단 설명을 사용해요.</p>
+          </div>
+        </details>
+      </aside>
     </form>
   );
 }

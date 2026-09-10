@@ -1,6 +1,5 @@
 import { Container } from '@components/layout/Container';
 import { AccessPanel } from '@features/admin/components/AccessPanel';
-import { AdminBackLink } from '@features/admin/components/AdminBackLink';
 import { AdminFrame } from '@features/admin/components/AdminFrame';
 import { AdminEditorWorkspace } from '@features/admin/components/AdminEditorWorkspace';
 import { LoginPanel } from '@features/admin/components/LoginPanel';
@@ -42,18 +41,17 @@ export default async function NewPostPage() {
 
   const [categories, posts] = await Promise.all([listAdminCategories(), listAdminPosts()]);
   return (
-    <AdminEditorWorkspace posts={posts}>
-      <Container>
+    <AdminEditorWorkspace posts={posts} categories={categories}>
+      <div>
         <AdminFrame
           compact
           title="새 글 작성"
           description="내용을 다듬는 동안 초안으로 저장하고, 준비되면 공개할 수 있어요."
           userEmail={access.email ?? undefined}
-          actions={<AdminBackLink />}
         >
           <PostEditor action={createPostAction} categories={categories} />
         </AdminFrame>
-      </Container>
+      </div>
     </AdminEditorWorkspace>
   );
 }

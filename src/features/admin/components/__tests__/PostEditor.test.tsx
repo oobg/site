@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PostEditor } from '@features/admin/components/PostEditor';
@@ -40,12 +40,12 @@ describe('PostEditor slug editing', () => {
     fireEvent.change(screen.getByRole('textbox', { name: '제목' }), {
       target: { value: '나의 첫 글' },
     });
-    expect(screen.getByRole('textbox', { name: '슬러그' })).toHaveValue('나의-첫-글');
+    expect(screen.getByRole('textbox', { name: 'URL' })).toHaveValue('나의-첫-글');
   });
 
   it('keeps IME composition text until composition ends', () => {
     render(<PostEditor action={action} />);
-    const slug = screen.getByRole('textbox', { name: '슬러그' });
+    const slug = screen.getByRole('textbox', { name: 'URL' });
 
     fireEvent.compositionStart(slug);
     fireEvent.change(slug, { target: { value: '나의 첫 글' } });
@@ -73,7 +73,7 @@ describe('PostEditor slug editing', () => {
     fireEvent.change(screen.getByRole('textbox', { name: '제목' }), {
       target: { value: '바뀐 제목' },
     });
-    expect(screen.getByRole('textbox', { name: '슬러그' })).toHaveValue('existing-slug');
+    expect(screen.getByRole('textbox', { name: 'URL' })).toHaveValue('existing-slug');
   });
 
   it('replaces the slug from the title only when requested', () => {
@@ -91,8 +91,8 @@ describe('PostEditor slug editing', () => {
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '제목으로 생성' }));
-    expect(screen.getByRole('textbox', { name: '슬러그' })).toHaveValue('나의-첫-글');
+    fireEvent.click(screen.getByRole('button', { name: '재생성' }));
+    expect(screen.getByRole('textbox', { name: 'URL' })).toHaveValue('나의-첫-글');
     expect(screen.getByText('저장하지 않은 변경이 있어요.')).toBeInTheDocument();
   });
 
@@ -241,5 +241,69 @@ describe('PostEditor slug editing', () => {
     const settings = screen.getByRole('complementary', { name: '글 설정' });
 
     expect(body.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+  });
+
+  it('keeps the secondary action as a draft save even when a draft status select shows public', async () => {
+    const save = vi.fn(async (previous: unknown, formData: FormData) => {
+      void previous;
+      void formData;
+      return { status: 'success' as const, message: '저장했습니다.' };
+    });
+    render(
+      <PostEditor
+        action={save}
+        categories={[{ id: 'c1', slug: 'dev', name: '개발', sort_order: 0, is_default: true }]}
+        post={{
+          id: 'p1',
+          title: '초안',
+          slug: 'draft-post',
+          description: '설명',
+          body: '본문',
+          status: 'draft',
+          category_id: 'c1',
+        }}
+      />,
+    );
+
+    fireEvent.change(screen.getByRole('combobox', { name: '상태' }), {
+      target: { value: 'published' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '초안 저장' }));
+
+    await waitFor(() => expect(save).toHaveBeenCalledOnce());
+    expect(save.mock.calls[0]?.[1].get('status')).toBe('draft');
+  });
+
+  it('submits the primary action with published status', async () => {
+    const save = vi.fn(async (previous: unknown, formData: FormData) => {
+      void previous;
+      void formData;
+      return { status: 'success' as const, message: '공개했습니다.' };
+    });
+    render(
+      <PostEditor
+        action={save}
+        categories={[{ id: 'c1', slug: 'dev', name: '개발', sort_order: 0, is_default: true }]}
+        post={{
+          id: 'p1',
+          title: '초안',
+          slug: 'draft-post',
+          description: '설명',
+          body: '본문',
+          status: 'draft',
+          category_id: 'c1',
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '공개하기' }));
+
+    await waitFor(() => expect(save).toHaveBeenCalledOnce());
+    expect(save.mock.calls[0]?.[1].get('status')).toBe('published');
+    expect(screen.getByRole('combobox', { name: '상태' })).toHaveValue('published');
+    expect(await screen.findByRole('button', { name: '저장' })).toHaveAttribute(
+      'data-status',
+      'published',
+    );
   });
 });

@@ -7,13 +7,13 @@ import type { BlogCategory } from '@features/posts/types/posts.types';
 import { requireOwner } from '@lib/auth/owner';
 import { createClient } from '@lib/supabase/server';
 
-const listColumns = 'id,title,slug,status,updated_at,pin_order';
+const listColumns = 'id,title,slug,status,updated_at,pin_order,category_id';
 const detailColumns =
   'id,title,slug,description,body,status,published_at,created_at,updated_at,category_id,tags,cover_image_key,cover_image_url,cover_position_x,cover_position_y,cover_alt,pin_order';
 export type AdminPostSummary = Pick<
   AdminPost,
   'id' | 'title' | 'slug' | 'status' | 'updated_at' | 'pin_order'
->;
+> & { category_id?: string | null };
 
 export async function listAdminPosts(): Promise<AdminPostSummary[]> {
   noStore();

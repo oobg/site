@@ -3,25 +3,23 @@ import type { ReactNode } from 'react';
 import { Plus } from '@phosphor-icons/react/dist/ssr';
 import { ROUTES } from '@constants/routes';
 import type { AdminPostSummary } from '@features/admin/services/posts.admin';
+import type { BlogCategory } from '@features/posts/types/posts.types';
 import { PostList } from './PostList';
 import styles from './AdminEditorWorkspace.module.css';
 
 export function AdminEditorWorkspace({
   posts,
   selectedId,
+  categories = [],
   children,
 }: {
   posts: AdminPostSummary[];
   selectedId?: string;
+  categories?: BlogCategory[];
   children: ReactNode;
 }) {
   return (
     <div className={styles.workspace}>
-      <nav className={styles.navigation} aria-label="관리자 메뉴">
-        <strong>raven</strong>
-        <Link href={ROUTES.ADMIN.HOME}>글 관리</Link>
-        <Link href={ROUTES.HOME}>사이트 보기</Link>
-      </nav>
       <aside className={styles.listPane} aria-label="글 선택">
         <div className={styles.listHeader}>
           <div>
@@ -45,6 +43,7 @@ export function AdminEditorWorkspace({
             slug: post.slug,
             status: post.status,
             updatedAt: post.updated_at,
+            categoryName: categories.find((category) => category.id === post.category_id)?.name,
           }))}
         />
       </aside>

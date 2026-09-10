@@ -1,43 +1,36 @@
-import { UploadSimple } from '@phosphor-icons/react/dist/ssr';
 import styles from './PostEditor.module.css';
 import skeleton from './PostEditorSkeleton.module.css';
 
 export function PostEditorSkeleton() {
   return (
     <div className={`${styles.form} ${skeleton.skeleton}`} aria-hidden>
+      <footer className={styles.footer}>
+        <span className={`${styles.breadcrumb} ${skeleton.line}`} />
+        <span className={`${styles.saveState} ${skeleton.line}`} />
+        <div className={styles.submitArea}>
+          <span className={`${styles.save} ${skeleton.button}`} />
+          <span className={`${styles.submit} ${skeleton.button}`} />
+        </div>
+      </footer>
       <div className={styles.mainFields}>
-        <h2 className={styles.groupHeading}>기본 정보</h2>
         <label className={`${styles.field} ${styles.titleField}`}>
           <span>제목</span>
           <input disabled />
         </label>
-        <label className={`${styles.field} ${styles.wide}`}>
+        <label className={styles.field}>
           <span>설명</span>
-          <textarea disabled rows={3} />
+          <textarea disabled rows={2} />
         </label>
       </div>
       <div className={styles.editorBlock}>
-        <div className={styles.editorHeading}>
-          <div>
-            <label>본문</label>
-            <p>Markdown으로 작성해요.</p>
-          </div>
-          <label className={styles.uploadButton}>
-            <UploadSimple aria-hidden size={17} weight="bold" />
-            이미지 선택
-            <input type="file" disabled />
-          </label>
+        <div className={styles.editorTabs}>
+          <span className={skeleton.tab} />
+          <span className={skeleton.tab} />
         </div>
         <div className={styles.toolbar}>
-          <button disabled>H2</button>
-          <button disabled>B</button>
-          <button disabled>링크</button>
-          <button disabled>인용</button>
-          <button disabled>코드</button>
-        </div>
-        <div className={styles.editorTabs}>
-          <button disabled>작성</button>
-          <button disabled>미리보기</button>
+          {Array.from({ length: 6 }, (_, index) => (
+            <span className={skeleton.tool} key={index} />
+          ))}
         </div>
         <div className={styles.editorColumns}>
           <section className={styles.dropzone}>
@@ -47,17 +40,16 @@ export function PostEditorSkeleton() {
         <p className={styles.helper} />
       </div>
       <aside className={styles.settings}>
-        <h2 className={styles.groupHeading}>발행 설정</h2>
-        <div className={skeleton.rail} />
+        <span className={`${skeleton.line} ${skeleton.heading}`} />
+        {Array.from({ length: 3 }, (_, index) => (
+          <span className={skeleton.settingRow} key={index} />
+        ))}
+        <span className={`${skeleton.line} ${skeleton.heading}`} />
+        <span className={skeleton.cover} />
+        <span className={skeleton.settingRow} />
+        <span className={skeleton.settingRow} />
+        <span className={`${skeleton.line} ${skeleton.details}`} />
       </aside>
-      <footer className={styles.footer}>
-        <div className={styles.submitArea}>
-          <span className={styles.saveState} />
-          <button className={styles.submit} disabled>
-            저장
-          </button>
-        </div>
-      </footer>
     </div>
   );
 }

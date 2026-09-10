@@ -39,6 +39,7 @@ const PADDING_PROVIDERS = [
   'BlogHomeSkeleton',
   'BlogShell',
   'AdminEditorLoading',
+  'AdminListLoading',
 ];
 
 const routeFiles = globSync(`${SRC}/app/**/{page,loading,not-found,error,global-error}.tsx`);

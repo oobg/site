@@ -16,10 +16,11 @@ export const metadata = { title: '글 관리' };
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; view?: string }>;
 }) {
   const [access, query] = await Promise.all([getOwnerAccess(), searchParams]);
   const authError = getAuthMessage(query.error);
+  const view = query.view === 'settings' ? 'settings' : 'posts';
 
   if (!access.configured || !access.authenticated) {
     return (
@@ -52,19 +53,22 @@ export default async function AdminPage({
 
   const [posts, categories] = await Promise.all([listAdminPosts(), listAdminCategories()]);
   return (
-    <Container>
+    <div className={styles.page}>
       <AdminFrame
-        title="글 관리"
-        description={`${posts.length}개의 글이 있어요. 최근 수정한 순서로 표시합니다.`}
-        userEmail={access.email ?? undefined}
+        title={view === 'settings' ? '블로그 설정' : '글 관리'}
+        description={
+          view === 'settings'
+            ? '분류와 대표 글 노출 순서를 관리합니다.'
+            : `${posts.length}개의 글이 있어요.`
+        }
         actions={
           <Link className={styles.newLink} href={ROUTES.ADMIN.NEW_POST}>
             <Plus aria-hidden size={18} weight="bold" />새 글
           </Link>
         }
       >
-        <AdminWorkspace posts={posts} categories={categories} />
+        <AdminWorkspace posts={posts} categories={categories} view={view} />
       </AdminFrame>
-    </Container>
+    </div>
   );
 }

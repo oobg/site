@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation';
 import { Container } from '@components/layout/Container';
 import { AccessPanel } from '@features/admin/components/AccessPanel';
-import { AdminBackLink } from '@features/admin/components/AdminBackLink';
 import { AdminFrame } from '@features/admin/components/AdminFrame';
 import { AdminEditorWorkspace } from '@features/admin/components/AdminEditorWorkspace';
 import { LoginPanel } from '@features/admin/components/LoginPanel';
@@ -51,14 +50,13 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
   if (!post) notFound();
 
   return (
-    <AdminEditorWorkspace posts={posts} selectedId={post.id}>
-      <Container>
+    <AdminEditorWorkspace posts={posts} categories={categories} selectedId={post.id}>
+      <div>
         <AdminFrame
           compact
           title="글 수정"
           description={`마지막 수정 ${new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(post.updated_at))}`}
           userEmail={access.email ?? undefined}
-          actions={<AdminBackLink />}
         >
           <PostEditor
             key={post.id}
@@ -82,7 +80,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
           />
           <DeletePostButton id={post.id} />
         </AdminFrame>
-      </Container>
+      </div>
     </AdminEditorWorkspace>
   );
 }
