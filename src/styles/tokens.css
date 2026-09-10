@@ -70,6 +70,9 @@
   --color-callout-important: var(--d0-blue-dark);
   --color-callout-warning: var(--d0-orange);
   --color-callout-caution: var(--d0-red);
+  --color-window-close: #ff5f57;
+  --color-window-minimize: #febc2e;
+  --color-window-expand: #28c840;
   --lamp-1: var(--d0-blue-light);
   --lamp-2: var(--d0-blue);
   --lamp-3: var(--d0-blue-dark);

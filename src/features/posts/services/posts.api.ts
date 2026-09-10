@@ -327,9 +327,7 @@ async function getSupabaseBlogHomeData(filters: BlogPostFilters): Promise<BlogHo
   let archiveQuery = supabase
     .from('posts')
     .select(PUBLIC_BLOG_POST_COLUMNS, { count: 'exact' })
-    .eq('status', 'published')
-    .order('published_at', { ascending: false, nullsFirst: false })
-    .order('slug', { ascending: true });
+    .eq('status', 'published');
   if (normalized.category) archiveQuery = archiveQuery.eq('category.slug', normalized.category);
   if (normalized.tag) archiveQuery = archiveQuery.contains('tags', [normalized.tag]);
   if (normalized.q) {
@@ -339,6 +337,11 @@ async function getSupabaseBlogHomeData(filters: BlogPostFilters): Promise<BlogHo
       `title.ilike."%${literalPattern}%",description.ilike."%${literalPattern}%"`,
     );
   }
+  archiveQuery = normalized.category
+    ? archiveQuery.order('slug', { ascending: true })
+    : archiveQuery
+        .order('published_at', { ascending: false, nullsFirst: false })
+        .order('slug', { ascending: true });
   const from = (normalized.page - 1) * normalized.pageSize;
   const sourceIdentity = `supabase:${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''}`;
   const [archiveResult, shell] = await Promise.all([

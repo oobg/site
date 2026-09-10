@@ -43,7 +43,7 @@ describe('getBlogHomeDataUncached supabase', () => {
     vi.unstubAllEnvs();
   });
 
-  it('archive는 DB pagination/count를 쓰고 shell은 bounded 공개 query를 쓴다', async () => {
+  it('카테고리 archive는 slug 편 번호순으로 DB pagination하고 shell은 bounded query를 쓴다', async () => {
     vi.stubEnv('CONTENT_SOURCE', 'supabase');
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://example.supabase.co');
     const category = {
@@ -101,6 +101,7 @@ describe('getBlogHomeDataUncached supabase', () => {
     expect(archive.or).toHaveBeenCalledWith(
       'title.ilike."%기호\\\\_\\\\%\\\\\\\\%",description.ilike."%기호\\\\_\\\\%\\\\\\\\%"',
     );
+    expect(archive.order).toHaveBeenCalledWith('slug', { ascending: true });
     expect(archive.range).toHaveBeenCalledWith(6, 11);
     expect(pinned.not).toHaveBeenCalledWith('pin_order', 'is', null);
     expect(pinned.limit).toHaveBeenCalledWith(5);

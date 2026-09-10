@@ -154,11 +154,18 @@ describe('renderMarkdown', () => {
     });
   });
 
-  /* 창틀의 점 세 개는 정보를 나르지 않는다. 언어 라벨과 복사 버튼이 창틀의 일을
-     이미 하고 있어서, 점은 "코드처럼 보이게" 하는 장식만 남는다. */
-  it('코드블럭 창틀에 장식용 점을 두지 않는다', async () => {
+  it('코드블럭 창틀에 macOS traffic light와 접근성 제외 처리를 둔다', async () => {
     const { html } = await renderMarkdown('```ts\nconst x = 1;\n```');
-    expect(html).not.toContain('data-code-dots');
+    expect(html).toContain('data-code-dots="" aria-hidden="true"');
+    expect(html.match(/<i><\/i>/g)).toHaveLength(3);
+  });
+
+  it('지원 언어는 토큰별 색을 만들고 코드 문자를 안전하게 escape한다', async () => {
+    const { html } = await renderMarkdown('```js\nconst value = "<script>"; // note\n```');
+    expect(html).toContain('class="line"');
+    expect(html).toMatch(/<span style="color:[^"]+">const<\/span>/);
+    expect(html).toContain('&#x3C;script>');
+    expect(html).not.toContain('<script>');
   });
 
   describe('콜아웃', () => {

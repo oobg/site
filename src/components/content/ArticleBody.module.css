@@ -2,7 +2,7 @@
    base.css가 전역에서 리스트를 죽였으므로 읽기 화면에서 되살리는 것도 여기 일이다. */
 /* 크기·행간·색은 읽기 조판 토큰이 정한다. 여기서 직접 적으면 About과 또 갈린다. */
 .prose {
-  padding-top: var(--space-4);
+  padding-top: var(--space-5);
   font-size: var(--reading-size);
   line-height: var(--reading-lh);
   color: var(--reading-color);
@@ -10,7 +10,7 @@
 
 /* 문단 사이는 행간이 아니라 문단 간격으로 끊는다. */
 .prose p {
-  margin-block: var(--space-5);
+  margin-block: var(--space-4);
 }
 
 .prose > :first-child {
@@ -25,8 +25,8 @@
 .prose h2,
 .prose h3,
 .prose h4 {
-  margin-top: var(--space-8);
-  margin-bottom: var(--space-4);
+  margin-top: calc(var(--space-8) + var(--space-2));
+  margin-bottom: var(--space-3);
   color: var(--color-text);
   letter-spacing: var(--ls-title);
   line-height: var(--lh-title);
@@ -40,20 +40,7 @@
 }
 
 .prose h2::before {
-  content: '';
-  position: absolute;
-  top: 0.15em;
-  bottom: 0.15em;
-  left: calc(-1 * var(--space-5));
-  width: 2px;
-  border-radius: 2px;
-  background: var(--color-accent);
-}
-
-@media (max-width: 640px) {
-  .prose h2::before {
-    left: calc(-1 * var(--space-3));
-  }
+  content: none;
 }
 
 .prose h3 {
@@ -116,8 +103,8 @@
 .prose blockquote {
   margin-block: var(--space-6);
   padding-left: var(--space-5);
-  border-left: 2px solid var(--color-accent-deep);
-  color: var(--color-text-muted);
+  border-left: 3px solid var(--color-text-muted);
+  color: var(--reading-color);
 }
 
 .prose blockquote p {
@@ -210,15 +197,34 @@
   overflow: hidden;
 }
 
-/* 창틀 머리에는 언어와 복사 버튼만 있다. macOS 창 버튼을 흉내 낸 점 세 개를 두었다가
-   뺐다 — 정보를 나르지 않고 "코드처럼 보이게" 하는 일만 했다. */
+/* macOS 창 문법은 헤더의 위치를 빠르게 알려 주고, 언어와 복사 버튼은 기능을 맡는다. */
 .prose figure[data-code] figcaption {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: var(--space-4);
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
   border-bottom: 1px solid var(--color-border);
+}
+
+.prose figure[data-code] span[data-code-dots] {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.prose figure[data-code] span[data-code-dots] i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-window-close);
+}
+
+.prose figure[data-code] span[data-code-dots] i:nth-child(2) {
+  background: var(--color-window-minimize);
+}
+
+.prose figure[data-code] span[data-code-dots] i:nth-child(3) {
+  background: var(--color-window-expand);
 }
 
 .prose figure[data-code] figcaption span[data-code-lang] {
@@ -229,6 +235,7 @@
 }
 
 .prose figure[data-code] button[data-code-copy] {
+  margin-left: auto;
   display: grid;
   place-items: center;
   width: 28px;
@@ -302,7 +309,10 @@
   width: 100%;
   margin-block: var(--space-6);
   overflow-x: auto;
-  border-collapse: collapse;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: var(--fs-15);
 }
 
@@ -315,6 +325,7 @@
 }
 
 .prose th {
+  background: var(--color-surface);
   color: var(--color-text);
   font-weight: 600;
   white-space: nowrap;

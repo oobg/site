@@ -143,4 +143,20 @@ describe('filterAndPaginatePosts', () => {
       pageSize: 12,
     });
   });
+
+  it('카테고리 전체 글은 slug에 명시된 편 번호 0부터 오름차순으로 정렬한다', () => {
+    const result = filterAndPaginatePosts(
+      [
+        post('design-system-02-color', '2026-09-10T00:00:00Z'),
+        post('design-system-00-prologue', '2026-09-08T00:00:00Z'),
+        post('design-system-01-token', '2026-09-09T00:00:00Z'),
+      ],
+      { category: 'engineering' },
+    );
+    expect(result.items.map(({ slug }) => slug)).toEqual([
+      'design-system-00-prologue',
+      'design-system-01-token',
+      'design-system-02-color',
+    ]);
+  });
 });

@@ -51,4 +51,24 @@ describe('getRelatedPosts', () => {
     expect(result).toHaveLength(3);
     expect(result.map((p) => p.slug)).not.toContain('lonely');
   });
+
+  it('같은 시리즈는 편 번호 거리가 가까운 순서이며 동거리면 이전 편이 먼저다', () => {
+    const episode = post('design-system-05-spacing', ['design'], '2026-09-05T00:00:00Z');
+    const result = getRelatedPosts(
+      episode,
+      [
+        episode,
+        post('design-system-07-motion', [], '2026-09-10T00:00:00Z'),
+        post('design-system-04-color', [], '2026-01-01T00:00:00Z'),
+        post('design-system-06-type', [], '2026-01-02T00:00:00Z'),
+        post('ai-memory-05-context', ['design'], '2026-12-01T00:00:00Z'),
+      ],
+      3,
+    );
+    expect(result.map((p) => p.slug)).toEqual([
+      'design-system-04-color',
+      'design-system-06-type',
+      'design-system-07-motion',
+    ]);
+  });
 });

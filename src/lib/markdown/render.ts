@@ -236,9 +236,7 @@ function removeUnsafeResourceUrls() {
 /**
  * 코드블럭을 창틀로 감싼다.
  *
- * macOS 창 버튼을 흉내 낸 점 세 개를 두었다가 뺐다. 창틀이 해야 할 일은 언어 라벨과
- * 복사 버튼이 이미 하고 있어서, 점에는 "코드처럼 보이게" 하는 것 말고 남는 역할이
- * 없었다. 정보를 나르지 않는 관습은 관습이라는 이유만으로는 자리를 못 얻는다.
+ * macOS 코드 창의 익숙한 시각 문법을 제공하되 언어 라벨과 복사 기능은 그대로 둔다.
  *
  * 클래스가 아니라 data 속성을 쓰는 이유는 이 HTML이 CSS 모듈 밖에서 만들어져
  * 클래스 이름이 해시되지 않기 때문이다.
@@ -255,6 +253,16 @@ function frameCodeBlocks(langs: string[]) {
         tagName: 'figcaption',
         properties: { 'data-code-head': '' },
         children: [
+          {
+            type: 'element',
+            tagName: 'span',
+            properties: { 'data-code-dots': '', 'aria-hidden': 'true' },
+            children: [
+              { type: 'element', tagName: 'i', properties: {}, children: [] },
+              { type: 'element', tagName: 'i', properties: {}, children: [] },
+              { type: 'element', tagName: 'i', properties: {}, children: [] },
+            ],
+          },
           {
             type: 'element',
             tagName: 'span',

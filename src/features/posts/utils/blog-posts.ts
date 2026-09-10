@@ -4,6 +4,7 @@ import type {
   BlogPostSummary,
   PaginatedBlogPosts,
 } from '@features/posts/types/posts.types';
+import { comparePostSeriesOrder } from '@features/posts/utils/series';
 
 const MAX_FEATURED_POSTS = 5;
 
@@ -75,7 +76,7 @@ export function filterAndPaginatePosts(
       if (!q) return true;
       return [post.title, post.summary ?? ''].join('\n').toLocaleLowerCase('ko-KR').includes(q);
     })
-    .sort(compareNewest);
+    .sort(category ? comparePostSeriesOrder : compareNewest);
 
   const totalItems = filtered.length;
   const totalPages = totalItems === 0 ? 0 : Math.ceil(totalItems / pageSize);
