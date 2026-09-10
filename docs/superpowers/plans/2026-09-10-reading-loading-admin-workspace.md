@@ -63,16 +63,16 @@
 
 ## 상태판
 
-| ID       | 작업                                   | 상태    | 선행 작업                      |
-| -------- | -------------------------------------- | ------- | ------------------------------ |
-| PLAN     | 피드백·관리자 방향·검증 SSOT           | 완료    | 없음                           |
-| HANDOFF  | 새 primary Codex에 전체 맥락 전달      | 완료    | PLAN                           |
-| FOOTER   | 공개 footer 높이와 간격 압축           | 완료    | HANDOFF                        |
-| SKELETON | route별 최종 레이아웃 대응 skeleton    | 완료    | HANDOFF                        |
-| INTRO    | 중앙 wordmark→현재 header intro 복구   | 완료    | HANDOFF                        |
-| ADMIN    | responsive 목록·편집 통합 workspace    | 완료    | HANDOFF                        |
-| QA       | 실제 화면·접근성·데이터 경계·회귀 검증 | 완료    | FOOTER, SKELETON, INTRO, ADMIN |
-| RELEASE  | commit·push·deploy                     | 진행 중 | 사용자 승인에 따른 commit·push |
+| ID       | 작업                                   | 상태 | 선행 작업                      |
+| -------- | -------------------------------------- | ---- | ------------------------------ |
+| PLAN     | 피드백·관리자 방향·검증 SSOT           | 완료 | 없음                           |
+| HANDOFF  | 새 primary Codex에 전체 맥락 전달      | 완료 | PLAN                           |
+| FOOTER   | 공개 footer 높이와 간격 압축           | 완료 | HANDOFF                        |
+| SKELETON | route별 최종 레이아웃 대응 skeleton    | 완료 | HANDOFF                        |
+| INTRO    | 중앙 wordmark→현재 header intro 복구   | 완료 | HANDOFF                        |
+| ADMIN    | responsive 목록·편집 통합 workspace    | 완료 | HANDOFF                        |
+| QA       | 실제 화면·접근성·데이터 경계·회귀 검증 | 완료 | FOOTER, SKELETON, INTRO, ADMIN |
+| RELEASE  | commit·push·deploy                     | 완료 | 사용자 승인 범위 완료          |
 
 ## 작업 항목
 
@@ -127,10 +127,10 @@
 
 ### RELEASE — commit·push·deploy
 
-- **상태:** 진행 중
+- **상태:** 완료
 - **완료 기준:** 구현과 QA가 끝난 뒤 사용자가 각각 승인한 commit·push만 실행한다. manual production deploy는 이 계획 범위에 없다.
-- **증거:** 사용자가 2026-09-10 이번 신규 변경의 commit·push를 명시적으로 승인했다. 원격 `dev` 관계와 전체 diff를 확인한 뒤 commit·push를 진행한다.
-- **배포:** manual production deploy는 실행하지 않는다.
+- **증거:** 사용자가 2026-09-10 이번 신규 변경의 commit·push를 명시적으로 승인했다. 통합 구현 commit `23ed39728c01473f9de96a2bf81309b71fde759e`을 `origin/dev`에 push하고 local/remote HEAD 일치를 확인했다.
+- **배포:** manual production deploy는 실행하지 않았다. 자동 workflow의 성공 여부는 별도로 확인하지 않았다.
 
 ## Handoff 메모
 
