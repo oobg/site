@@ -1,9 +1,23 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { updatePostStatusAction } = vi.hoisted(() => ({ updatePostStatusAction: vi.fn() }));
 vi.mock('@features/admin/services/posts.actions', () => ({ updatePostStatusAction }));
 import { PostList, type AdminPostListItem } from '@features/admin/components/PostList';
+
+// jsdom은 요소 스크롤 API를 구현하지 않으므로 복원 콜백의 호출을 직접 관찰한다.
+const elementScrollTo = vi.fn();
+Object.defineProperty(Element.prototype, 'scrollTo', {
+  configurable: true,
+  value: elementScrollTo,
+});
+const windowScrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+
+beforeEach(() => {
+  sessionStorage.clear();
+  elementScrollTo.mockClear();
+  windowScrollTo.mockClear();
+});
 
 const posts: AdminPostListItem[] = Array.from({ length: 11 }, (_, index) => ({
   id: `post-${index}`,
@@ -16,6 +30,18 @@ const posts: AdminPostListItem[] = Array.from({ length: 11 }, (_, index) => ({
 }));
 
 describe('PostList table', () => {
+  it('restores saved table and window scroll after animation frames', async () => {
+    sessionStorage.setItem(
+      'raven:admin-list-context',
+      JSON.stringify({ scrollTop: 120, windowScrollY: 240 }),
+    );
+    render(<PostList posts={posts} />);
+    await waitFor(() => {
+      expect(elementScrollTo).toHaveBeenCalledWith({ top: 120 });
+      expect(windowScrollTo).toHaveBeenCalledWith({ top: 240 });
+    });
+  });
+
   it('renders a semantic table with cover fallback and pagination', () => {
     render(<PostList posts={posts} />);
     expect(screen.getByRole('table')).toBeInTheDocument();
