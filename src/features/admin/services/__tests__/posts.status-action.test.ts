@@ -50,6 +50,8 @@ describe('updatePostStatusAction', () => {
       expect.objectContaining({ status: 'published', published_at: '2026-09-01T00:00:00Z' }),
     );
     expect(update.mock.calls[0][0]).not.toHaveProperty('body');
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/blog/[category]/[slug]', 'page');
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/blog/slug');
   });
   it('allows moving an incomplete legacy post back to draft', async () => {
     const update = database({

@@ -17,7 +17,7 @@ export function PostCard({
       {post.cover_image_url && (
         <Link
           className={styles.cover}
-          href={ROUTES.BLOG.DETAIL(post.slug)}
+          href={ROUTES.BLOG.DETAIL(post.category.slug, post.slug)}
           tabIndex={-1}
           aria-hidden="true"
         >
@@ -38,7 +38,7 @@ export function PostCard({
       <div className={styles.body}>
         {showCategory ? <span className={styles.category}>{post.category.name}</span> : null}
         <h2>
-          <Link href={ROUTES.BLOG.DETAIL(post.slug)}>{post.title}</Link>
+          <Link href={ROUTES.BLOG.DETAIL(post.category.slug, post.slug)}>{post.title}</Link>
         </h2>
         {post.summary && <p>{post.summary}</p>}
         <time dateTime={post.published_at}>

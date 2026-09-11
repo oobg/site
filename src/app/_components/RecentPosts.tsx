@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { PostListItem } from '@features/posts/types/posts.types';
+import { DEFAULT_POST_CATEGORY_SLUG } from '@features/posts/types/posts.types';
 import { ROUTES } from '@constants/routes';
 import styles from './RecentPosts.module.css';
 
@@ -138,7 +139,10 @@ export function RecentPosts({ posts }: { posts: PostListItem[] }) {
             </time>
             <a
               className={styles.what}
-              href={ROUTES.BLOG.DETAIL(post.slug)}
+              href={ROUTES.BLOG.DETAIL(
+                post.category?.slug ?? DEFAULT_POST_CATEGORY_SLUG,
+                post.slug,
+              )}
               onClick={() => persistRead(post.slug)}
             >
               {post.title}

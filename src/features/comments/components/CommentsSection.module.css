@@ -205,3 +205,68 @@
     animation: none;
   }
 }
+
+.thread {
+  min-width: 0;
+}
+.replies {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+  margin-left: var(--space-5);
+  list-style: none;
+}
+.replyCue {
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+.authorBadge {
+  color: var(--d0-blue);
+  font-size: var(--fs-12);
+  white-space: nowrap;
+}
+.nicknameLabel {
+  position: relative;
+  isolation: isolate;
+}
+.nicknameRipple {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--d0-blue);
+  border-radius: var(--d0-radius-sm);
+  pointer-events: none;
+  animation: nickname-ripple 480ms ease-out both;
+}
+.avatar[data-randomized='true'] {
+  animation: avatar-pop 360ms var(--d0-ease) both;
+}
+@keyframes avatar-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes nickname-ripple {
+  0% {
+    transform: scale(0.98);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1.04, 1.2);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .avatar[data-randomized='true'],
+  .nicknameRipple {
+    animation: none;
+  }
+  .nicknameRipple {
+    display: none;
+  }
+}

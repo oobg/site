@@ -34,8 +34,13 @@ describe('RecentPosts', () => {
 
   it('글 목록과 상세 링크를 렌더한다', () => {
     render(<RecentPosts posts={[makePost('a', '첫 글'), makePost('b', '둘째 글')]} />);
-    expect(screen.getByText('첫 글')).toHaveAttribute('href', '/blog/a');
-    expect(screen.getByText('둘째 글')).toHaveAttribute('href', '/blog/b');
+    expect(screen.getByText('첫 글')).toHaveAttribute('href', '/blog/uncategorized/a');
+    expect(screen.getByText('둘째 글')).toHaveAttribute('href', '/blog/uncategorized/b');
+  });
+
+  it('uses the supplied category without falling back for modern posts', () => {
+    render(<RecentPosts posts={[{ ...makePost('my-post', '글'), category: { slug: 'dev' } }]} />);
+    expect(screen.getByRole('link', { name: '글' })).toHaveAttribute('href', '/blog/dev/my-post');
   });
 
   it('글이 없으면 섹션 자체를 렌더하지 않는다', () => {

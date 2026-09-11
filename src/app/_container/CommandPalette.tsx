@@ -80,7 +80,7 @@ export function CommandPalette() {
         id: `post-${post.slug}`,
         label: post.title,
         meta: post.category.name,
-        href: ROUTES.BLOG.DETAIL(post.slug),
+        href: ROUTES.BLOG.DETAIL(post.category.slug, post.slug),
         kind: 'post' as const,
       }),
     );

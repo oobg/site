@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { renderMarkdown } from '@lib/markdown/render';
 import { env } from '@configs/env';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 describe('renderMarkdown', () => {
   it('헤딩에 id를 부여하고 toc를 추출한다', async () => {
@@ -166,6 +168,94 @@ describe('renderMarkdown', () => {
     expect(html).toMatch(/<span style="color:[^"]+">const<\/span>/);
     expect(html).toContain('&#x3C;script>');
     expect(html).not.toContain('<script>');
+  });
+
+  describe('파일 트리', () => {
+    it.each(['filetree', 'tree', 'folder'])('%s 펜스를 전용 계층으로 렌더한다', async (lang) => {
+      const { html } = await renderMarkdown(
+        `\`\`\`${lang}\nproject/\n├── src/\n│   ├── index.ts\n│   └── ui/\n│       └── Button.tsx\n└── package.json\n\`\`\``,
+      );
+
+      expect(html).toContain('<figure data-filetree="">');
+      expect(html).toContain('role="tree" aria-label="파일 트리"');
+      expect(html).toContain('data-kind="folder"');
+      expect(html).toContain('data-kind="file"');
+      expect(html).toContain('aria-label="Button.tsx, 파일"');
+      expect(html).toMatch(/src\/[\s\S]*index\.ts[\s\S]*ui\/[\s\S]*Button\.tsx/);
+      expect(html).not.toContain('data-code-copy');
+      expect(html).not.toContain('class="shiki');
+      expect(html).not.toContain('<pre');
+    });
+
+    it.each(['filetree', 'tree', 'folder'])(
+      '%s 펜스의 단일 named root도 전용 계층으로 렌더한다',
+      async (lang) => {
+        const { html } = await renderMarkdown(`\`\`\`${lang}\nproject/\n\`\`\``);
+
+        expect(html).toContain('<figure data-filetree="">');
+        expect(html).toContain('aria-label="project/, 폴더"');
+        expect(html).not.toContain('data-code-copy');
+        expect(html).not.toContain('<pre');
+      },
+    );
+
+    it('파일명은 HAST stringify가 escape한다', async () => {
+      const { html } = await renderMarkdown('```tree\nroot/\n└── <script>.ts\n```');
+      expect(html).toContain('&#x3C;script>.ts');
+      expect(html).not.toContain('<span data-filetree-name=""><script>');
+    });
+
+    it.each(['text', 'text/plain', ''])(
+      '%s 펜스의 실제 폴더 트리는 자동으로 전용 계층으로 렌더한다',
+      async (lang) => {
+        const { html } = await renderMarkdown(
+          `\`\`\`${lang}\nproject/\n├── src/\n│   └── index.ts\n└── package.json\n\`\`\``,
+        );
+
+        expect(html).toContain('<figure data-filetree="">');
+        expect(html).toContain('aria-label="index.ts, 파일"');
+        expect(html).not.toContain('data-code-copy');
+        expect(html).not.toContain('<pre');
+      },
+    );
+
+    it.each([
+      ['text', '이 블록은 폴더 트리가 아닌 일반 문장입니다.'],
+      ['text/plain', 'root 디렉터리에서 파일을 확인하세요.'],
+      ['', 'plain code without a language'],
+    ])('%s 펜스의 일반 문장은 기존 코드 창으로 남긴다', async (lang, content) => {
+      const { html } = await renderMarkdown(
+        `\`\`\`js\nconst highlighted = true;\n\`\`\`\n\n\`\`\`${lang}\n${content}\n\`\`\``,
+      );
+
+      expect(html).toContain('<figure data-code');
+      expect(html).toContain('data-code-copy');
+      expect(html).not.toContain('data-filetree');
+      expect(html).toContain(content);
+      expect(html.match(/<figure data-code/g)).toHaveLength(2);
+    });
+
+    it.each([
+      '',
+      'root/\n\n└── file.ts',
+      'root/\n│ └── file.ts',
+      'root/\n        └── lost.ts',
+      'root\n└── file.ts',
+      'root/\n└── src\n    └── index.ts',
+    ])('비었거나 잘못된 트리는 오류 없이 원래 코드블럭으로 남긴다', async (tree) => {
+      const { html } = await renderMarkdown(`\`\`\`filetree\n${tree}\n\`\`\``);
+      expect(html).toContain('<figure data-code');
+      expect(html).toContain('data-code-copy');
+      expect(html).not.toContain('data-filetree');
+    });
+  });
+
+  it('ArticleBody 코드와 파일 트리는 사이트 고정폭 글꼴을 우선한다', () => {
+    const css = readFileSync(resolve('src/components/content/ArticleBody.module.css'), 'utf8');
+    expect(css).toMatch(/\.prose pre \{[\s\S]*?font-family: var\(--font-mono\)/);
+    expect(css).toMatch(
+      /\.prose figure\[data-filetree\] \{[\s\S]*?font-family: var\(--font-mono\)/,
+    );
   });
 
   describe('콜아웃', () => {

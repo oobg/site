@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
 import { getBlogCategories, getBlogPost, getPosts } from '@features/posts/services/posts.api';
 import { getRelatedPosts } from '@features/posts/utils/related';
@@ -19,30 +20,44 @@ import { BlogShell } from '@/app/_components/BlogShell';
 import { BlogArticleDataSkeleton } from '@/app/_components/BlogLoadingSkeleton';
 import { CommentsSection } from '@features/comments/components/CommentsSection';
 import { getCommentAvatarBaseUrl } from '@features/comments/utils/comment-avatar';
-import type { BlogCategoryWithCount, BlogPost } from '@features/posts/types/posts.types';
-import styles from './article.module.css';
+import {
+  DEFAULT_POST_CATEGORY_SLUG,
+  type BlogCategoryWithCount,
+  type BlogPost,
+} from '@features/posts/types/posts.types';
+import styles from '@/app/blog/[slug]/article.module.css';
 
 export const dynamicParams = true;
 export const dynamic = 'force-dynamic';
 
-export async function generateStaticParams(): Promise<{ slug: string }[]> {
+export async function generateStaticParams(): Promise<{ category: string; slug: string }[]> {
   if (env.CONTENT_SOURCE === 'supabase') return [];
   const posts = await getPosts();
-  return posts.map((post) => ({ slug: post.slug }));
+  return posts.map((post) => ({
+    category: post.category?.slug ?? DEFAULT_POST_CATEGORY_SLUG,
+    slug: post.slug,
+  }));
+}
+
+async function getCanonicalPost(params: Promise<{ category: string; slug: string }>) {
+  const { category, slug } = await params;
+  const categoryKey = normalizeRouteSlug(category);
+  const key = normalizeRouteSlug(slug);
+  const post = await getBlogPost(key);
+  if (post.category.slug !== categoryKey) notFound();
+  return post;
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ category: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
-  const key = normalizeRouteSlug(slug);
-  const post = await getBlogPost(key);
+  const post = await getCanonicalPost(params);
   return buildMetadata({
     title: post.title,
     description: post.summary ?? undefined,
-    path: ROUTES.BLOG.DETAIL(post.slug),
+    path: ROUTES.BLOG.DETAIL(post.category.slug, post.slug),
   });
 }
 
@@ -88,10 +103,13 @@ async function BlogPostContent({
   );
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const key = normalizeRouteSlug(slug);
-  const [post, categories] = await Promise.all([getBlogPost(key), getBlogCategories()]);
+export default async function BlogPostPage({
+  params,
+}: {
+  params: Promise<{ category: string; slug: string }>;
+}) {
+  const post = await getCanonicalPost(params);
+  const categories = await getBlogCategories();
   const { html, toc } = await renderMarkdown(post.body_markdown);
   const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);
   const avatarBaseUrl = getCommentAvatarBaseUrl(env);

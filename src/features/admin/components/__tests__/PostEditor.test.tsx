@@ -99,16 +99,19 @@ describe('PostEditor slug editing', () => {
   it('keeps the Markdown body while switching editor tabs', () => {
     render(<PostEditor action={action} />);
     const body = screen.getByRole('textbox', { name: '본문' }) as HTMLTextAreaElement;
-    const writePanel = screen.getByRole('tabpanel', { name: '작성' });
+    const writePanel = screen.getByRole('tabpanel', { name: '마크다운' });
 
     fireEvent.change(body, { target: { value: '## 작성 중인 본문' } });
-    fireEvent.click(screen.getByRole('tab', { name: '미리보기' }));
-    expect(screen.getByRole('tab', { name: '미리보기' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    expect(screen.getByRole('tab', { name: '텍스트 편집' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
     expect(writePanel).toHaveAttribute('hidden');
-    expect(screen.getByRole('tabpanel', { name: '미리보기' })).not.toHaveAttribute('hidden');
+    expect(screen.getByRole('tabpanel', { name: '텍스트 편집' })).not.toHaveAttribute('hidden');
     fireEvent.keyDown(screen.getByRole('tablist'), { key: 'ArrowLeft' });
 
-    expect(screen.getByRole('tab', { name: '작성' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: '마크다운' })).toHaveAttribute('aria-selected', 'true');
     expect(body).toHaveValue('## 작성 중인 본문');
   });
 
@@ -123,7 +126,7 @@ describe('PostEditor slug editing', () => {
     act(() => vi.advanceTimersByTime(400));
     expect(fetchMock).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole('tab', { name: '미리보기' }));
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
     act(() => vi.advanceTimersByTime(349));
     expect(fetchMock).not.toHaveBeenCalled();
     act(() => vi.advanceTimersByTime(1));
@@ -137,7 +140,7 @@ describe('PostEditor slug editing', () => {
   it('shows the empty-body guidance when opening preview initially', () => {
     render(<PostEditor action={action} />);
 
-    fireEvent.click(screen.getByRole('tab', { name: '미리보기' }));
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
     expect(screen.getByRole('status')).toHaveTextContent(
       '본문을 입력하면 여기에 미리보기가 표시돼요.',
     );
@@ -154,10 +157,135 @@ describe('PostEditor slug editing', () => {
     fireEvent.change(screen.getByRole('textbox', { name: '본문' }), {
       target: { value: '본문' },
     });
-    fireEvent.click(screen.getByRole('tab', { name: '미리보기' }));
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
     await act(async () => vi.advanceTimersByTimeAsync(350));
 
     expect(screen.getByRole('status')).toHaveTextContent('미리보기를 만들지 못했습니다.');
+  });
+
+  it('syncs visual text edits back to the Markdown body and save payload', async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ html: '<h2>제목</h2><p>기존 <strong>본문</strong></p>' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    const save = vi.fn(async (previous: unknown, formData: FormData) => {
+      void previous;
+      void formData;
+      return { status: 'success' as const, message: '저장했습니다.' };
+    });
+    render(
+      <PostEditor
+        action={save}
+        categories={[{ id: 'c1', slug: 'dev', name: '개발', sort_order: 0, is_default: true }]}
+        post={{
+          id: 'p1',
+          title: '제목',
+          slug: 'title',
+          description: '설명',
+          body: '## 제목\n\n기존 **본문**',
+          status: 'draft',
+          category_id: 'c1',
+        }}
+      />,
+    );
+
+    const markdownBody = screen.getByRole('textbox', { name: '본문' });
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    await act(async () => vi.advanceTimersByTimeAsync(350));
+    const visualEditor = screen.getByRole('textbox', { name: '본문 텍스트 편집' });
+    const renderedLink = document.createElement('a');
+    renderedLink.href = '#same-page';
+    renderedLink.textContent = '이동하지 않는 링크';
+    visualEditor.append(renderedLink);
+    expect(
+      renderedLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })),
+    ).toBe(false);
+    visualEditor.innerHTML = '<h2>바뀐 제목</h2><p>수정한 <strong>본문</strong></p>';
+    fireEvent.input(visualEditor);
+
+    expect(markdownBody).toHaveValue('## 바뀐 제목\n\n수정한 **본문**');
+    vi.useRealTimers();
+    fireEvent.click(screen.getByRole('button', { name: '초안 저장' }));
+    await waitFor(() => expect(save).toHaveBeenCalledOnce());
+    expect(save.mock.calls[0]?.[1].get('body')).toBe('## 바뀐 제목\n\n수정한 **본문**');
+  });
+
+  it('keeps edited filetree structure in the Markdown save payload', async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          html: `
+            <figure data-filetree>
+              <figcaption>파일 구조</figcaption>
+              <ul role="tree">
+                <li data-kind="folder"><span data-filetree-name>project/</span>
+                  <ul role="group">
+                    <li data-kind="folder"><span data-filetree-name>src/</span>
+                      <ul role="group">
+                        <li data-kind="file"><span data-filetree-name>index.ts</span></li>
+                      </ul>
+                    </li>
+                    <li data-kind="file"><span data-filetree-name>README.md</span></li>
+                  </ul>
+                </li>
+              </ul>
+            </figure>
+          `,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+    const save = vi.fn(async (previous: unknown, formData: FormData) => {
+      void previous;
+      void formData;
+      return { status: 'success' as const, message: '저장했습니다.' };
+    });
+    render(
+      <PostEditor
+        action={save}
+        categories={[{ id: 'c1', slug: 'dev', name: '개발', sort_order: 0, is_default: true }]}
+        post={{
+          id: 'p1',
+          title: '파일 구조',
+          slug: 'file-tree',
+          description: '설명',
+          body: '```filetree\nproject/\n└── README.md\n```',
+          status: 'draft',
+          category_id: 'c1',
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    await act(async () => vi.advanceTimersByTimeAsync(350));
+    const visualEditor = screen.getByRole('textbox', { name: '본문 텍스트 편집' });
+    const rootName = visualEditor.querySelector('[data-filetree-name]');
+    expect(rootName).not.toBeNull();
+    rootName!.textContent = 'workspace/';
+    fireEvent.input(visualEditor);
+
+    expect(document.querySelector<HTMLTextAreaElement>('textarea[name="body"]')).toHaveValue(
+      '```filetree\nworkspace/\n├── src/\n│   └── index.ts\n└── README.md\n```',
+    );
+    vi.useRealTimers();
+    fireEvent.click(screen.getByRole('button', { name: '초안 저장' }));
+    await waitFor(() => expect(save).toHaveBeenCalledOnce());
+    expect(save.mock.calls[0]?.[1].get('body')).toBe(
+      '```filetree\nworkspace/\n├── src/\n│   └── index.ts\n└── README.md\n```',
+    );
+  });
+
+  it('disables Markdown tools while editing rendered text', () => {
+    render(<PostEditor action={action} />);
+
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+
+    expect(screen.getByRole('button', { name: '굵게' })).toBeDisabled();
+    expect(screen.getByText('서식 도구는 마크다운 모드에서 사용할 수 있어요.')).toBeVisible();
   });
 
   it('keeps save success distinct when browser query invalidation fails', async () => {

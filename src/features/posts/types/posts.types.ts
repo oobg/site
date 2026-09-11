@@ -1,6 +1,6 @@
 import type { ContentDetail, ContentListItem } from '@lib/api/contract.types';
 
-export type PostListItem = ContentListItem;
+export type PostListItem = ContentListItem & { category?: Pick<BlogCategory, 'slug'> };
 export type Post = ContentDetail;
 
 export const DEFAULT_POST_CATEGORY_ID = '00000000-0000-4000-8000-000000000001';

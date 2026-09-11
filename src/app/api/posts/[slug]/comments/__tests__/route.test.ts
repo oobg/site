@@ -101,4 +101,35 @@ describe('/api/posts/[slug]/comments', () => {
     );
     expect(text.status).toBe(415);
   });
+  it.each([{ parent_id: crypto.randomUUID() }, { parent_id: null }, { is_author: true }])(
+    'rejects public reply/author spoofing %j',
+    async (extra) => {
+      const response = await POST(
+        postRequest({ nickname: '익명', avatar_id: 'clay-01', body: '댓글', ...extra }),
+        context(),
+      );
+      expect(response.status).toBe(400);
+      expect(mocks.createComment).not.toHaveBeenCalled();
+    },
+  );
+  it('returns thread metadata and chronological replies without altering pagination', async () => {
+    const parent = {
+      id: crypto.randomUUID(),
+      parent_id: null,
+      is_author: false,
+      nickname: '독자',
+      created_at: '2026-09-11T00:00:00Z',
+    };
+    const reply = {
+      id: crypto.randomUUID(),
+      parent_id: parent.id,
+      is_author: true,
+      nickname: 'raven',
+      created_at: '2026-09-11T01:00:00Z',
+    };
+    const page = { items: [parent, reply], total: 1, nextCursor: null };
+    mocks.listComments.mockResolvedValue(page);
+    const response = await GET(new Request('https://raven.kr/api/posts/x/comments'), context());
+    await expect(response.json()).resolves.toEqual(page);
+  });
 });

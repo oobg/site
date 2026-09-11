@@ -108,6 +108,14 @@
   font-size: 12px;
   font-weight: 600;
 }
+
+@media (min-width: 961px) {
+  .table thead th {
+    font-size: 14px;
+    font-weight: 700;
+  }
+}
+
 .sortButton {
   display: inline-flex;
   align-items: center;

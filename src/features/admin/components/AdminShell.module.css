@@ -1,5 +1,9 @@
 .shell {
-  min-height: 100vh;
+  display: flex;
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+  flex-direction: column;
   --color-accent: var(--d0-blue);
   --color-accent-hover: var(--d0-blue-dark);
   background: var(--color-canvas);
@@ -28,6 +32,7 @@
   padding: 0 var(--space-5);
   border-bottom: 1px solid var(--d0-grey-200);
   background: var(--color-canvas);
+  flex: none;
 }
 .wordmark {
   color: var(--d0-grey-900);
@@ -50,22 +55,16 @@
   align-items: center;
   justify-content: flex-end;
 }
-.avatar {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--d0-grey-100);
-  font-weight: 650;
-}
 .layout {
   display: grid;
+  overflow: hidden;
   grid-template-columns: 168px minmax(0, 1fr);
-  min-height: calc(100vh - 60px);
+  min-height: 0;
+  flex: 1;
 }
 .nav {
   display: flex;
+  overflow-y: auto;
   flex-direction: column;
   gap: var(--space-2);
   padding: var(--space-4) var(--space-3);
@@ -90,7 +89,9 @@
   margin-top: var(--space-2);
 }
 .main {
+  overflow: auto;
   min-width: 0;
+  min-height: 0;
 }
 @media (max-width: 959px) {
   .topbar {
@@ -98,14 +99,17 @@
     padding-inline: var(--space-3);
   }
   .layout {
-    display: block;
+    display: flex;
+    flex-direction: column;
   }
   .nav {
     position: sticky;
     z-index: 10;
-    top: 60px;
+    top: 0;
     display: flex;
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex: none;
     flex-direction: row;
     padding: var(--space-2) var(--space-3);
     border-right: 0;
@@ -136,13 +140,6 @@
     width: min(100%, 160px);
   }
   .search span {
-    display: none;
-  }
-  .avatar {
-    width: 32px;
-    height: 32px;
-  }
-  .account form {
     display: none;
   }
 }

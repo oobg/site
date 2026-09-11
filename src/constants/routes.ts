@@ -1,7 +1,13 @@
+import { encodeRouteSlug } from '@lib/navigation/route-segment';
+
 export const ROUTES = {
   HOME: '/',
   ABOUT: '/about',
-  BLOG: { LIST: '/blog', DETAIL: (slug: string) => `/blog/${slug}` },
+  BLOG: {
+    LIST: '/blog',
+    DETAIL: (category: string, slug: string) =>
+      `/blog/${encodeRouteSlug(category)}/${encodeRouteSlug(slug)}`,
+  },
   PROJECTS: {
     LIST: '/projects',
     DETAIL: (slug: string) => `/projects/${slug}`,

@@ -72,6 +72,7 @@ describe('post actions', () => {
     expect(result).toMatchObject({ status: 'success', postId: 'post-id' });
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({ published_at: null }));
     expect(mocks.invalidatePublicPostCache).toHaveBeenCalledWith({ newSlug: 'post-slug' });
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/blog/[category]/[slug]', 'page');
   });
 
   it('sets a publication timestamp only for a published post', async () => {
@@ -103,6 +104,7 @@ describe('post actions', () => {
       '/',
       '/blog',
       '/admin',
+      '/blog/[category]/[slug]',
       '/blog/post-slug',
     ]);
     expect(log).toHaveBeenCalledWith('Post cache revalidation failed', {
@@ -174,6 +176,7 @@ describe('post actions', () => {
       expect(update).toHaveBeenCalledWith(expect.objectContaining({ published_at: expected }));
       expect(mocks.revalidatePath).toHaveBeenCalledWith('/blog/old-slug');
       expect(mocks.revalidatePath).toHaveBeenCalledWith('/blog/new-slug');
+      expect(mocks.revalidatePath).toHaveBeenCalledWith('/blog/[category]/[slug]', 'page');
       expect(mocks.invalidatePublicPostCache).toHaveBeenCalledWith({
         oldSlug: 'old-slug',
         newSlug: 'new-slug',
@@ -190,6 +193,7 @@ describe('post actions', () => {
 
     await expect(deletePostAction(previous, data)).resolves.toMatchObject({ status: 'success' });
     expect(mocks.revalidatePath).toHaveBeenCalledWith('/blog/deleted-post');
+    expect(mocks.revalidatePath).toHaveBeenCalledWith('/blog/[category]/[slug]', 'page');
   });
 
   it('deduplicates update paths and keeps success when cache revalidation fails', async () => {
@@ -215,6 +219,7 @@ describe('post actions', () => {
       '/',
       '/blog',
       '/admin',
+      '/blog/[category]/[slug]',
       '/blog/post-slug',
     ]);
     log.mockRestore();
@@ -232,7 +237,7 @@ describe('post actions', () => {
     data.set('id', '8e10a748-fd28-41a0-9f3d-8b81fc40c753');
 
     await expect(deletePostAction(previous, data)).resolves.toMatchObject({ status: 'success' });
-    expect(mocks.revalidatePath).toHaveBeenCalledTimes(4);
+    expect(mocks.revalidatePath).toHaveBeenCalledTimes(5);
     log.mockRestore();
   });
 

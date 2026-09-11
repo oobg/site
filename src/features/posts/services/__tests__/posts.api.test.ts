@@ -116,43 +116,62 @@ describe('posts.api', () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it('supabase 목록은 published 조건을 직접 걸고 Post 목록 타입으로 변환한다', async () => {
-    vi.stubEnv('CONTENT_SOURCE', 'supabase');
-    const range = vi.fn().mockResolvedValue({
-      data: [
-        {
-          title: '공개 글',
+  it.each([{ category: { slug: 'dev' } }, { category: [{ slug: 'dev' }] }])(
+    'supabase 목록은 published 조건과 실제 category %j를 보존한다',
+    async ({ category }) => {
+      vi.stubEnv('CONTENT_SOURCE', 'supabase');
+      const range = vi.fn().mockResolvedValue({
+        data: [
+          {
+            title: '공개 글',
+            slug: 'public-post',
+            category,
+            description: '요약',
+            body: '# 본문',
+            status: 'published',
+            published_at: '2026-09-01T00:00:00.000Z',
+            created_at: '2026-08-01T00:00:00.000Z',
+            updated_at: '2026-09-02T00:00:00.000Z',
+          },
+        ],
+        error: null,
+      });
+      const order = vi.fn(() => ({ range }));
+      const statusEq = vi.fn(() => ({ order }));
+      const select = vi.fn(() => ({ eq: statusEq }));
+      const from = vi.fn(() => ({ select }));
+      vi.doMock('@lib/supabase/public', () => ({ createPublicClient: () => ({ from }) }));
+
+      const { getPosts } = await import('@features/posts/services/posts.api');
+      const posts = await getPosts({ page: 2, limit: 10 });
+
+      expect(statusEq).toHaveBeenCalledWith('status', 'published');
+      expect(select).toHaveBeenCalledWith(
+        expect.stringContaining('category:post_categories!inner(slug)'),
+      );
+      expect(range).toHaveBeenCalledWith(10, 19);
+      expect(posts).toEqual([
+        expect.objectContaining({
           slug: 'public-post',
-          description: '요약',
-          body: '# 본문',
+          category: { slug: 'dev' },
+          summary: '요약',
+          tags: [],
+          cover_image_url: null,
           status: 'published',
-          published_at: '2026-09-01T00:00:00.000Z',
-          created_at: '2026-08-01T00:00:00.000Z',
-          updated_at: '2026-09-02T00:00:00.000Z',
-        },
-      ],
-      error: null,
-    });
-    const order = vi.fn(() => ({ range }));
-    const statusEq = vi.fn(() => ({ order }));
-    const select = vi.fn(() => ({ eq: statusEq }));
-    const from = vi.fn(() => ({ select }));
+        }),
+      ]);
+    },
+  );
+
+  it('does not guess a category when a Supabase join is missing', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'supabase');
+    const order = vi
+      .fn()
+      .mockResolvedValue({ data: [{ slug: 'my-post', category: [] }], error: null });
+    const from = vi.fn(() => ({ select: () => ({ eq: () => ({ order }) }) }));
     vi.doMock('@lib/supabase/public', () => ({ createPublicClient: () => ({ from }) }));
-
     const { getPosts } = await import('@features/posts/services/posts.api');
-    const posts = await getPosts({ page: 2, limit: 10 });
-
-    expect(statusEq).toHaveBeenCalledWith('status', 'published');
-    expect(range).toHaveBeenCalledWith(10, 19);
-    expect(posts).toEqual([
-      expect.objectContaining({
-        slug: 'public-post',
-        summary: '요약',
-        tags: [],
-        cover_image_url: null,
-        status: 'published',
-      }),
-    ]);
+    await expect(getPosts()).rejects.toThrow('공개 글의 카테고리가 없습니다.');
   });
 
   it('supabase 상세도 published와 slug를 함께 제한해 draft를 노출하지 않는다', async () => {

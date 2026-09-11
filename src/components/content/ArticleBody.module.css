@@ -295,6 +295,7 @@
 .prose pre {
   margin: 0;
   padding: var(--space-5);
+  font-family: var(--font-mono), ui-monospace, monospace;
   /* 긴 줄은 페이지를 밀지 않고 블록 안에서만 넘긴다. */
   overflow-x: auto;
   font-size: var(--fs-14);
@@ -305,6 +306,82 @@
 .prose pre code {
   display: block;
   min-width: fit-content;
+}
+
+/* 명시적 filetree/tree/folder 펜스. 코드 창과 같은 토큰을 쓰되 복사할 코드가
+   아니므로 헤더 장식과 버튼 없이 계층 자체를 읽게 한다. */
+.prose figure[data-filetree] {
+  margin-block: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-canvas-2);
+  overflow: hidden;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--fs-14);
+  line-height: var(--lh-dense);
+}
+
+.prose figure[data-filetree] figcaption {
+  padding: var(--space-3) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--fs-12);
+  letter-spacing: 0.08em;
+}
+
+.prose figure[data-filetree] ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.prose figure[data-filetree] > ul {
+  padding: var(--space-4) var(--space-5);
+  overflow-x: auto;
+}
+
+.prose figure[data-filetree] li {
+  position: relative;
+  margin: 0;
+  padding: 0 0 0 var(--space-5);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.prose figure[data-filetree] li::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--space-2) - 1px);
+  border-left: 1px solid var(--color-border);
+}
+
+.prose figure[data-filetree] li:last-child::before {
+  bottom: 50%;
+}
+
+.prose figure[data-filetree] span[data-filetree-name]::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(var(--space-2) - 1px);
+  width: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.prose figure[data-filetree] li[data-kind='folder'] > span[data-filetree-name] {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+.prose figure[data-filetree] > ul > li {
+  padding-left: 0;
+}
+
+.prose figure[data-filetree] > ul > li::before,
+.prose figure[data-filetree] > ul > li > span[data-filetree-name]::before {
+  content: none;
 }
 
 /* 표도 자기 안에서만 넘친다. */

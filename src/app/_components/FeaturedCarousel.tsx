@@ -49,7 +49,7 @@ export function FeaturedCarousel({ posts }: { posts: readonly BlogPostSummary[] 
         <div className={styles.copy} data-with-cover={post.cover_image_url ? '' : undefined}>
           <span className={styles.category}>{post.category.name}</span>
           <h2>
-            <Link href={ROUTES.BLOG.DETAIL(post.slug)}>{post.title}</Link>
+            <Link href={ROUTES.BLOG.DETAIL(post.category.slug, post.slug)}>{post.title}</Link>
           </h2>
           {post.summary && <p>{post.summary}</p>}
           <time dateTime={post.published_at}>

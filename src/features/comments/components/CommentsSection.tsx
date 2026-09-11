@@ -1,18 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { getCommentAvatarUrl } from '@features/comments/utils/comment-avatar';
 import styles from './CommentsSection.module.css';
 
-type Comment = {
-  id: string;
-  nickname: string;
-  avatar_id: string;
-  body: string;
-  created_at: string;
-};
-
-type CommentPage = { items: Comment[]; total: number; nextCursor: string | null };
+import type { Comment, CommentPage } from '@features/comments/types/comments.types';
 
 const ADJECTIVES = [
   '고요한',
@@ -225,6 +217,14 @@ function randomIdentity() {
   };
 }
 
+const NICKNAME_STEP_MS = 40;
+
+function prefersReducedMotion() {
+  return (
+    typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+}
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat('ko-KR', {
     year: 'numeric',
@@ -238,6 +238,7 @@ function formatDate(value: string) {
 
 export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarBaseUrl?: string }) {
   const [identity, setIdentity] = useState({ nickname: '', avatarId: 'clay-01' });
+  const [identityRevision, setIdentityRevision] = useState(0);
   const [body, setBody] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [total, setTotal] = useState(0);
@@ -247,7 +248,16 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [loadError, setLoadError] = useState(false);
+  const nicknameTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const endpoint = `/api/posts/${encodeURIComponent(slug)}/comments`;
+
+  const cancelNicknameAnimation = useCallback(() => {
+    if (nicknameTimerRef.current === null) return;
+    clearInterval(nicknameTimerRef.current);
+    nicknameTimerRef.current = null;
+  }, []);
+
+  useEffect(() => cancelNicknameAnimation, [cancelNicknameAnimation]);
 
   const load = useCallback(
     async (cursor?: string, signal?: AbortSignal) => {
@@ -355,6 +365,31 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
     }
   };
 
+  const randomizeIdentity = () => {
+    cancelNicknameAnimation();
+    const nextIdentity = randomIdentity();
+    setIdentityRevision((current) => current + 1);
+
+    if (prefersReducedMotion()) {
+      setIdentity(nextIdentity);
+      return;
+    }
+
+    setIdentity({ ...nextIdentity, nickname: '' });
+    let visibleLength = 0;
+    nicknameTimerRef.current = setInterval(() => {
+      visibleLength += 1;
+      setIdentity((current) => ({
+        ...current,
+        nickname: nextIdentity.nickname.slice(0, visibleLength),
+      }));
+
+      if (visibleLength >= nextIdentity.nickname.length) {
+        cancelNicknameAnimation();
+      }
+    }, NICKNAME_STEP_MS);
+  };
+
   return (
     <section className={styles.section} aria-labelledby="comments-title">
       <div className={styles.heading}>
@@ -366,24 +401,26 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
           <img
             src={getCommentAvatarUrl(identity.avatarId, avatarBaseUrl)}
             alt=""
+            key={identityRevision}
             className={styles.avatar}
+            data-randomized={identityRevision > 0}
           />
           <label className={styles.nicknameLabel}>
+            {identityRevision > 0 ? (
+              <span key={identityRevision} className={styles.nicknameRipple} aria-hidden="true" />
+            ) : null}
             <span className={styles.visuallyHidden}>닉네임</span>
             <input
               value={identity.nickname}
               maxLength={20}
-              onChange={(event) =>
-                setIdentity((current) => ({ ...current, nickname: event.target.value }))
-              }
+              onChange={(event) => {
+                cancelNicknameAnimation();
+                setIdentity((current) => ({ ...current, nickname: event.target.value }));
+              }}
               required
             />
           </label>
-          <button
-            type="button"
-            className={styles.randomButton}
-            onClick={() => setIdentity(randomIdentity())}
-          >
+          <button type="button" className={styles.randomButton} onClick={randomizeIdentity}>
             랜덤 변경
           </button>
         </div>
@@ -424,21 +461,24 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
         </div>
       ) : loadError ? null : comments.length ? (
         <ul className={styles.list}>
-          {comments.map((comment) => (
-            <li key={comment.id} className={styles.comment}>
-              <div className={styles.commentMeta}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={getCommentAvatarUrl(comment.avatar_id, avatarBaseUrl)}
-                  alt=""
-                  className={styles.commentAvatar}
-                />
-                <strong>{comment.nickname}</strong>
-                <time dateTime={comment.created_at}>{formatDate(comment.created_at)}</time>
-              </div>
-              <p>{comment.body}</p>
-            </li>
-          ))}
+          {comments
+            .filter((comment) => !comment.parent_id)
+            .map((comment) => (
+              <li key={comment.id} className={styles.thread}>
+                <CommentContent comment={comment} avatarBaseUrl={avatarBaseUrl} />
+                {comments.some((reply) => reply.parent_id === comment.id) ? (
+                  <ul className={styles.replies} aria-label={`${comment.nickname}님 댓글의 답글`}>
+                    {comments
+                      .filter((reply) => reply.parent_id === comment.id)
+                      .map((reply) => (
+                        <li key={reply.id}>
+                          <CommentContent comment={reply} avatarBaseUrl={avatarBaseUrl} />
+                        </li>
+                      ))}
+                  </ul>
+                ) : null}
+              </li>
+            ))}
         </ul>
       ) : (
         <p className={styles.empty}>첫 댓글을 남겨 보세요.</p>
@@ -449,5 +489,29 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
         </button>
       ) : null}
     </section>
+  );
+}
+
+function CommentContent({ comment, avatarBaseUrl }: { comment: Comment; avatarBaseUrl?: string }) {
+  return (
+    <div className={styles.comment} data-reply={Boolean(comment.parent_id)}>
+      <div className={styles.commentMeta}>
+        {comment.parent_id ? (
+          <span className={styles.replyCue} aria-hidden="true">
+            ㄴ&gt;
+          </span>
+        ) : null}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={getCommentAvatarUrl(comment.avatar_id, avatarBaseUrl)}
+          alt=""
+          className={styles.commentAvatar}
+        />
+        <strong>{comment.nickname}</strong>
+        {comment.is_author ? <span className={styles.authorBadge}>작성자</span> : null}
+        <time dateTime={comment.created_at}>{formatDate(comment.created_at)}</time>
+      </div>
+      <p>{comment.body}</p>
+    </div>
   );
 }

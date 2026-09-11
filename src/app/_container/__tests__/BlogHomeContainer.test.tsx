@@ -46,6 +46,21 @@ const item = {
 };
 
 describe('BlogHomeContainer', () => {
+  it('links home featured and category section posts to their canonical URL', () => {
+    render(
+      <BlogHomeContainer
+        initialData={{
+          ...empty,
+          featured: [item],
+          sections: [{ category: empty.categories[0], posts: [item] }],
+        }}
+        initialFilters={{ page: 1, pageSize: 12 }}
+      />,
+    );
+    const links = screen.getAllByRole('link', { name: item.title });
+    expect(links.length).toBeGreaterThanOrEqual(2);
+    for (const link of links) expect(link).toHaveAttribute('href', '/blog/dev/one');
+  });
   beforeEach(() => {
     mocks.search = new URLSearchParams();
     mocks.isFetching = false;

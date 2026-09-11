@@ -15,6 +15,7 @@ import {
   type BlogPostFilters,
   type BlogPostSummary,
   type Post,
+  type PostListItem,
 } from '@features/posts/types/posts.types';
 import { mockPostDetails, mockPostList } from '@features/posts/fixtures/posts.mock';
 import { createPublicClient } from '@lib/supabase/public';
@@ -60,7 +61,7 @@ function toPostListItem(row: SupabasePostRow): ContentListItem {
   };
 }
 
-async function fetchPosts(params: ListParams): Promise<ContentListItem[]> {
+async function fetchPosts(params: ListParams): Promise<PostListItem[]> {
   if (env.CONTENT_SOURCE === 'mock') {
     const filtered = params.tag
       ? mockPostList.filter((p) => p.tags.includes(params.tag!))
@@ -75,7 +76,7 @@ async function fetchPosts(params: ListParams): Promise<ContentListItem[]> {
     const column = descending ? sort.slice(1) : sort;
     let query = supabase
       .from('posts')
-      .select(PUBLIC_POST_LIST_COLUMNS)
+      .select(`${PUBLIC_POST_LIST_COLUMNS},category:post_categories!inner(slug)`)
       .eq('status', 'published')
       .order(column, { ascending: !descending, nullsFirst: false });
     if (params.tag) query = query.contains('tags', [params.tag.toLocaleLowerCase('ko-KR')]);
@@ -86,7 +87,15 @@ async function fetchPosts(params: ListParams): Promise<ContentListItem[]> {
     const { data, error } = await query;
 
     if (error) throw new Error(`공개 글 목록을 불러오지 못했습니다: ${error.message}`);
-    return ((data ?? []) as SupabasePostRow[]).map(toPostListItem);
+    return (
+      (data ?? []) as (SupabasePostRow & {
+        category: Pick<BlogCategory, 'slug'> | Pick<BlogCategory, 'slug'>[];
+      })[]
+    ).map((row) => {
+      const category = Array.isArray(row.category) ? row.category[0] : row.category;
+      if (!category?.slug) throw new Error('공개 글의 카테고리가 없습니다.');
+      return { ...toPostListItem(row), category };
+    });
   }
   return apiGet<ContentListItem[]>('/content/posts', {
     tags: ['posts'],
@@ -110,7 +119,7 @@ const getPostsFromServerCache = unstable_cache(
     void sourceIdentity;
     return fetchPosts({ tag, page, limit, sort });
   },
-  ['legacy-public-post-list-v1'],
+  ['public-post-list-with-category-v2'],
   { revalidate: 60, tags: ['posts'] },
 );
 
@@ -125,7 +134,7 @@ const getPostsCached = cache(
 );
 
 /** 같은 서버 렌더 안의 동일한 목록 요청을 하나로 합친다. */
-export function getPosts(params: ListParams = {}): Promise<ContentListItem[]> {
+export function getPosts(params: ListParams = {}): Promise<PostListItem[]> {
   const sourceIdentity =
     env.CONTENT_SOURCE === 'api'
       ? `api:${env.CONTENT_API_BASE}`
@@ -218,6 +227,7 @@ const PUBLIC_BLOG_POST_COLUMNS = [
 
 function toBlogPostSummary(row: SupabaseBlogPostRow): BlogPostSummary {
   const category = Array.isArray(row.category) ? row.category[0] : row.category;
+  if (!category?.slug) throw new Error('공개 글의 카테고리가 없습니다.');
   return {
     slug: row.slug,
     title: row.title,
@@ -229,7 +239,7 @@ function toBlogPostSummary(row: SupabaseBlogPostRow): BlogPostSummary {
       row.cover_image_url ??
       (row.cover_image_key ? `/${row.cover_image_key.replace(/^\/+/, '')}` : null),
     status: 'published',
-    category: category ?? DEFAULT_CATEGORY,
+    category,
     cover_image_key: row.cover_image_key,
     cover_position: { x: row.cover_position_x, y: row.cover_position_y },
     cover_alt: row.cover_alt,

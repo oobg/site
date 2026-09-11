@@ -41,12 +41,16 @@ function refreshPostPaths(...slugs: (string | undefined)[]) {
     ROUTES.HOME,
     ROUTES.BLOG.LIST,
     ROUTES.ADMIN.HOME,
-    ...slugs.filter((slug): slug is string => Boolean(slug)).map(ROUTES.BLOG.DETAIL),
+    '/blog/[category]/[slug]',
+    ...slugs
+      .filter((slug): slug is string => Boolean(slug))
+      .map((slug) => `/blog/${encodeURIComponent(slug)}`),
   ]);
 
   for (const path of paths) {
     try {
-      revalidatePath(path);
+      if (path === '/blog/[category]/[slug]') revalidatePath(path, 'page');
+      else revalidatePath(path);
     } catch (error) {
       console.error('Post cache revalidation failed', {
         kind: error instanceof Error ? error.name : 'UnknownError',

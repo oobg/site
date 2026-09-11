@@ -111,3 +111,37 @@
     animation: none;
   }
 }
+
+.item[data-reply='true'] {
+  margin-left: var(--space-6);
+  border-left: 1px solid var(--color-border);
+}
+.meta .authorBadge {
+  color: var(--d0-blue);
+  font-family: inherit;
+  font-size: var(--fs-12);
+}
+.replyForm {
+  grid-column: 2 / -1;
+  display: grid;
+  gap: var(--space-3);
+  font-size: var(--fs-14);
+}
+.replyForm textarea {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--d0-radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  resize: vertical;
+}
+.replyForm textarea:focus-visible,
+.item button:focus-visible {
+  outline: 2px solid var(--d0-blue);
+  outline-offset: 2px;
+}
+.actions {
+  flex-wrap: wrap;
+}

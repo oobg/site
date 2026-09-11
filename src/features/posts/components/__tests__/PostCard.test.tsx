@@ -21,6 +21,13 @@ const post: BlogPostSummary = {
 };
 
 describe('PostCard', () => {
+  it('links both cover and title to the canonical category URL', () => {
+    render(<PostCard post={{ ...post, cover_image_url: '/cover.jpg', slug: 'my-post' }} />);
+    expect(screen.getAllByRole('link', { hidden: true })).toHaveLength(2);
+    for (const link of screen.getAllByRole('link', { hidden: true })) {
+      expect(link).toHaveAttribute('href', '/blog/dev/my-post');
+    }
+  });
   it('혼합 목록에서만 표지 없는 글의 텍스트 자리를 맞춘다', () => {
     const { container, rerender } = render(<PostCard post={post} />);
     expect(container.querySelector('[aria-hidden="true"]')).toBeNull();

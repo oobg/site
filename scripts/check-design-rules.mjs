@@ -46,7 +46,7 @@ const routeFiles = globSync(`${SRC}/app/**/{page,loading,not-found,error,global-
 
 for (const file of routeFiles) {
   const source = readFileSync(file, 'utf8');
-  const redirects = /\bredirect\s*\(/.test(source);
+  const redirects = /\b(?:redirect|permanentRedirect)\s*\(/.test(source);
   const ok =
     redirects ||
     PADDING_PROVIDERS.some((name) => new RegExp(String.raw`<${name}[\s/>]`).test(source));

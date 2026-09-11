@@ -25,6 +25,10 @@ describe('FeaturedCarousel', () => {
   it('does not show controls for one featured post', () => {
     render(<FeaturedCarousel posts={[post(1)]} />);
     expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '추천 글 1' })).toHaveAttribute(
+      'href',
+      '/blog/notes/post-1',
+    );
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
@@ -33,6 +37,10 @@ describe('FeaturedCarousel', () => {
     const { rerender } = render(<FeaturedCarousel posts={five} />);
     fireEvent.click(screen.getByRole('button', { name: '이전 추천 글' }));
     expect(screen.getByRole('heading', { name: '추천 글 5' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '추천 글 5' })).toHaveAttribute(
+      'href',
+      '/blog/notes/post-5',
+    );
     rerender(<FeaturedCarousel posts={five.slice(0, 2)} />);
     expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
     expect(screen.getByText('2 / 2')).toBeInTheDocument();

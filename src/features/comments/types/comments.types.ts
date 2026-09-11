@@ -1,5 +1,7 @@
 export interface Comment {
   id: string;
+  parent_id: string | null;
+  is_author: boolean;
   nickname: string;
   avatar_id: string;
   body: string;

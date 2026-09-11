@@ -10,7 +10,7 @@ describe('ShareButtons', () => {
     writeText.mockReset().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
     Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
-    window.history.replaceState({}, '', '/blog/test');
+    window.history.replaceState({}, '', '/blog/dev/my-post');
   });
 
   afterEach(() => vi.useRealTimers());
@@ -18,7 +18,7 @@ describe('ShareButtons', () => {
   it('현재 주소를 복사하고 2초 뒤 기본 상태로 돌아온다', async () => {
     render(<ShareButtons title="테스트 글" />);
     await act(async () => fireEvent.click(screen.getByRole('button', { name: '링크 복사' })));
-    expect(writeText).toHaveBeenCalledWith('http://localhost:3000/blog/test');
+    expect(writeText).toHaveBeenCalledWith('http://localhost:3000/blog/dev/my-post');
     expect(screen.getByRole('button', { name: '링크가 복사됨' })).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(2000));
     expect(screen.getByRole('button', { name: '링크 복사' })).toBeInTheDocument();
@@ -38,7 +38,7 @@ describe('ShareButtons', () => {
     await act(async () => fireEvent.click(screen.getByRole('button', { name: '공유하기' })));
     expect(share).toHaveBeenCalledWith({
       title: '테스트 글',
-      url: 'http://localhost:3000/blog/test',
+      url: 'http://localhost:3000/blog/dev/my-post',
     });
   });
 

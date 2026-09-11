@@ -55,6 +55,140 @@ function collectCodeLangs(langs: string[]) {
   };
 }
 
+const FILE_TREE_LANGS = new Set(['filetree', 'tree', 'folder']);
+const AUTO_FILE_TREE_LANGS = new Set(['', 'text', 'text/plain']);
+
+type FileTreeEntry = {
+  name: string;
+  kind: 'file' | 'folder';
+  children: FileTreeEntry[];
+};
+
+/**
+ * 터미널의 tree 출력처럼 생긴 코드펜스만 구조로 바꾼다.
+ *
+ * 들여쓰기는 `tree` 명령의 네 칸 단위(`│   ` 또는 공백 네 칸)만 받는다. 일부만
+ * 해석해 잘못된 계층을 만들기보다, 빈 줄·깊이 점프·낯선 선 문자가 있으면 원래
+ * 코드블럭으로 남기는 쪽이 안전하다.
+ */
+function parseFileTree(value: string, { requireBranch = false } = {}): FileTreeEntry[] | null {
+  const lines = value.replace(/\r\n?/g, '\n').split('\n');
+  // fenced code가 만드는 마지막 개행 하나만 제거한다. 그 밖의 빈 줄은 입력 오류다.
+  if (lines.at(-1) === '') lines.pop();
+  if (lines.length === 0 || lines.some((line) => line.trim() === '')) return null;
+
+  const branchPattern = /^((?:(?:│   )|(?: {4}))*)(?:├── |└── )(.+)$/;
+  const firstBranch = branchPattern.exec(lines[0]);
+  const hasNamedRoot = firstBranch === null;
+  const roots: FileTreeEntry[] = [];
+  const stack: FileTreeEntry[] = [];
+  let hasBranch = false;
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const branch = branchPattern.exec(line);
+    let depth: number;
+    let name: string;
+
+    if (index === 0 && hasNamedRoot) {
+      depth = 0;
+      name = line.trim();
+    } else if (branch) {
+      hasBranch = true;
+      depth = branch[1].length / 4 + (hasNamedRoot ? 1 : 0);
+      name = branch[2].trim();
+    } else {
+      return null;
+    }
+
+    if (!name || depth > stack.length) return null;
+
+    const entry: FileTreeEntry = {
+      name,
+      kind: name.endsWith('/') ? 'folder' : 'file',
+      children: [],
+    };
+
+    if (depth === 0) {
+      roots.push(entry);
+    } else {
+      const parent = stack[depth - 1];
+      if (!parent) return null;
+      if (parent.kind !== 'folder') return null;
+      parent.children.push(entry);
+    }
+
+    stack.length = depth;
+    stack[depth] = entry;
+  }
+
+  return roots.length > 0 && (!requireBranch || hasBranch) ? roots : null;
+}
+
+function fileTreeList(entries: FileTreeEntry[], root = false): Element {
+  return {
+    type: 'element',
+    tagName: 'ul',
+    properties: root ? { role: 'tree', 'aria-label': '파일 트리' } : { role: 'group' },
+    children: entries.map((entry) => ({
+      type: 'element',
+      tagName: 'li',
+      properties: {
+        role: 'treeitem',
+        'data-kind': entry.kind,
+        'aria-label': `${entry.name}, ${entry.kind === 'folder' ? '폴더' : '파일'}`,
+      },
+      children: [
+        {
+          type: 'element',
+          tagName: 'span',
+          properties: { 'data-filetree-name': '' },
+          children: [{ type: 'text', value: entry.name }],
+        },
+        ...(entry.children.length > 0 ? [fileTreeList(entry.children)] : []),
+      ],
+    })),
+  };
+}
+
+/** 명시적 alias와 엄격히 파싱되는 일반 텍스트 트리를 shiki 전에 HAST로 바꾼다. */
+function fileTreeBlocks() {
+  return (tree: Root) => {
+    visit(tree, 'element', (node: Element, index, parent) => {
+      if (node.tagName !== 'pre' || !parent || index === null || index === undefined) return;
+      const code = node.children[0];
+      if (!code || code.type !== 'element' || code.tagName !== 'code') return;
+      const classes = Array.isArray(code.properties?.className)
+        ? code.properties.className.map(String)
+        : [];
+      const languageClass = classes.find((name) => name.startsWith('language-'));
+      const language = languageClass?.slice('language-'.length).toLowerCase() ?? '';
+      if (!FILE_TREE_LANGS.has(language) && !AUTO_FILE_TREE_LANGS.has(language)) return;
+
+      const entries = parseFileTree(nodeText(code as unknown as TextishNode), {
+        requireBranch: AUTO_FILE_TREE_LANGS.has(language),
+      });
+      if (!entries) return;
+
+      parent.children[index] = {
+        type: 'element',
+        tagName: 'figure',
+        properties: { 'data-filetree': '' },
+        children: [
+          {
+            type: 'element',
+            tagName: 'figcaption',
+            properties: {},
+            children: [{ type: 'text', value: '파일 구조' }],
+          },
+          fileTreeList(entries, true),
+        ],
+      };
+      return 'skip';
+    });
+  };
+}
+
 /** 글에 실제로 쓰인 지원 언어 문법만 shiki에 초기화한다. */
 function highlightCodeBlocks(this: Processor, langs: string[]) {
   return async (tree: Root) => {
@@ -301,6 +435,7 @@ export async function renderMarkdown(
     .use(removeUnsafeResourceUrls)
     .use(rehypeSlug)
     .use(collectToc, toc)
+    .use(fileTreeBlocks)
     .use(collectCodeLangs, langs)
     .use(calloutBlocks)
     /* 어두운 화면이라 어두운 테마를 쓴다. shiki는 pre에 배경색을 인라인으로 박기

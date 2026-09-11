@@ -9,12 +9,12 @@ afterEach(() => {
 
 describe('buildMetadata', () => {
   it('base openGraph(siteName·type)를 병합한다', () => {
-    const meta = buildMetadata({ title: '글제목', description: '요약', path: '/blog/x' });
+    const meta = buildMetadata({ title: '글제목', description: '요약', path: '/blog/dev/my-post' });
     const og = meta.openGraph as Record<string, unknown>;
     expect(og.siteName).toBe('raven.kr');
     expect(og.type).toBe('website');
     expect(og.title).toBe('글제목');
-    expect(og.url).toBe('/blog/x');
+    expect(og.url).toBe('/blog/dev/my-post');
   });
 
   it('canonical과 설명 fallback을 함께 만든다', () => {
