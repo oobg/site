@@ -50,6 +50,24 @@ describe('PostList table', () => {
     expect(screen.getByText('2 / 2')).toBeInTheDocument();
   });
 
+  it('centers cover thumbnails regardless of the saved cover position', () => {
+    render(
+      <PostList
+        posts={[
+          {
+            ...posts[0],
+            coverPositionX: 12,
+            coverPositionY: 88,
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getByRole('table').querySelector('img')).toHaveStyle({
+      objectPosition: '50% 50%',
+    });
+  });
+
   it('resets pagination when filtering and shows the search empty state', () => {
     render(<PostList posts={posts} />);
     fireEvent.click(screen.getByRole('button', { name: '다음' }));

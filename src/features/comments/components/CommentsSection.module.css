@@ -20,6 +20,9 @@
   align-items: center;
   gap: var(--space-3);
 }
+.nicknameLabel {
+  min-width: 0;
+}
 .avatar,
 .commentAvatar {
   width: 44px;
@@ -58,7 +61,7 @@
 }
 .randomButton,
 .more {
-  min-height: 40px;
+  min-height: 44px;
   padding-inline: var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--d0-radius-sm);
@@ -68,6 +71,9 @@
   font-size: var(--fs-13);
   font-weight: 650;
   cursor: pointer;
+}
+.randomButton {
+  white-space: nowrap;
 }
 .formFooter {
   display: flex;
@@ -176,15 +182,12 @@
 }
 @media (max-width: 640px) {
   .identityRow {
-    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: var(--space-2);
   }
   .avatar {
     width: 40px;
     height: 40px;
-  }
-  .randomButton {
-    grid-column: 2;
-    justify-self: start;
   }
   .comment {
     padding: var(--space-4);

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { getCommentAvatarUrl } from '@features/comments/utils/comment-avatar';
 import styles from './AdminComments.module.css';
 
 type AdminComment = {
@@ -13,7 +14,7 @@ type AdminComment = {
   moderation_status: 'visible' | 'hidden';
 };
 
-export function AdminComments() {
+export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
   const [items, setItems] = useState<AdminComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -115,7 +116,7 @@ export function AdminComments() {
           {items.map((item) => (
             <li key={item.id} className={styles.item}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/images/comment-avatars/${item.avatar_id}.webp`} alt="" />
+              <img src={getCommentAvatarUrl(item.avatar_id, avatarBaseUrl)} alt="" />
               <div>
                 <div className={styles.meta}>
                   <strong>{item.nickname}</strong>

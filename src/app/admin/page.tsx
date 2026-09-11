@@ -9,6 +9,8 @@ import { AdminWorkspace } from '@features/admin/components/AdminWorkspace';
 import { listAdminCategories, listAdminPosts } from '@features/admin/services/posts.admin';
 import { getOwnerAccess } from '@lib/auth/owner';
 import { getAuthMessage } from './authMessages';
+import { env } from '@configs/env';
+import { getCommentAvatarBaseUrl } from '@features/comments/utils/comment-avatar';
 import styles from './admin.module.css';
 
 export const metadata = { title: '글 관리' };
@@ -53,6 +55,7 @@ export default async function AdminPage({
   }
 
   const [posts, categories] = await Promise.all([listAdminPosts(), listAdminCategories()]);
+  const avatarBaseUrl = getCommentAvatarBaseUrl(env);
   return (
     <div className={styles.page}>
       <AdminFrame
@@ -70,7 +73,12 @@ export default async function AdminPage({
           </Link>
         }
       >
-        <AdminWorkspace posts={posts} categories={categories} view={view} />
+        <AdminWorkspace
+          posts={posts}
+          categories={categories}
+          view={view}
+          avatarBaseUrl={avatarBaseUrl}
+        />
       </AdminFrame>
     </div>
   );

@@ -386,6 +386,110 @@
   object-fit: cover;
 }
 
+.coverZoomButton {
+  grid-column: 1 / -1;
+  justify-self: end;
+  min-height: var(--d0-control-sm);
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--fs-13);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.coverZoomButton:hover {
+  background: var(--d0-grey-50);
+}
+
+.coverZoomButton:focus-visible,
+.coverLightboxClose:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.coverLightboxBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  background: rgb(26 31 38 / 0.72);
+  transition: opacity var(--d0-dur) var(--d0-ease);
+}
+
+.coverLightboxViewport {
+  position: fixed;
+  inset: 0;
+  z-index: 71;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+}
+
+.coverLightbox {
+  position: relative;
+  display: grid;
+  width: min(1100px, 100%);
+  max-height: calc(100dvh - (var(--space-4) * 2));
+  gap: var(--space-3);
+  padding: var(--space-4);
+  overflow: auto;
+  border: 1px solid var(--d0-grey-200);
+  border-radius: var(--d0-radius-card);
+  background: var(--color-surface);
+  transition:
+    opacity var(--d0-dur) var(--d0-ease),
+    transform var(--d0-dur) var(--d0-ease);
+}
+
+.coverLightboxTitle {
+  margin: 0;
+  padding-right: var(--space-7);
+  color: var(--color-text);
+  font-size: var(--fs-18);
+  line-height: var(--lh-title);
+}
+
+.coverLightboxClose {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: grid;
+  width: var(--d0-control-sm);
+  height: var(--d0-control-sm);
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--d0-radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.coverLightboxClose:hover {
+  background: var(--d0-grey-100);
+}
+
+.coverLightboxImage {
+  width: 100%;
+  max-height: calc(100dvh - 120px);
+  border-radius: var(--radius-control);
+  object-fit: contain;
+}
+
+.coverLightboxBackdrop[data-starting-style],
+.coverLightboxBackdrop[data-ending-style] {
+  opacity: 0;
+}
+
+.coverLightbox[data-starting-style],
+.coverLightbox[data-ending-style] {
+  opacity: 0;
+  transform: translateY(8px) scale(0.98);
+}
+
 .coverPlaceholder {
   display: grid;
   place-items: center;
@@ -578,5 +682,12 @@
   .settings > .field:not(.coverField),
   .detailsContent .field {
     grid-template-columns: 68px minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coverLightboxBackdrop,
+  .coverLightbox {
+    transition-duration: 0ms;
   }
 }

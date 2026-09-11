@@ -261,9 +261,6 @@ export function PostList({
                         <img
                           src={post.coverImageUrl}
                           alt=""
-                          style={{
-                            objectPosition: `${post.coverPositionX ?? 50}% ${post.coverPositionY ?? 50}%`,
-                          }}
                           onError={(event) => {
                             event.currentTarget.hidden = true;
                             event.currentTarget.parentElement?.setAttribute('data-error', '');

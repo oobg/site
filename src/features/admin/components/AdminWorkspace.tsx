@@ -11,13 +11,15 @@ export function AdminWorkspace({
   posts,
   categories,
   view = 'posts',
+  avatarBaseUrl,
 }: {
   posts: AdminPostSummary[];
   categories: BlogCategory[];
   view?: 'posts' | 'settings' | 'comments';
+  avatarBaseUrl?: string;
 }) {
   if (view === 'settings') return <BlogSettings categories={categories} posts={posts} />;
-  if (view === 'comments') return <AdminComments />;
+  if (view === 'comments') return <AdminComments avatarBaseUrl={avatarBaseUrl} />;
   return (
     <div className={styles.workspace}>
       <PostList

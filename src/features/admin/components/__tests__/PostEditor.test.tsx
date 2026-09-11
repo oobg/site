@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PostEditor } from '@features/admin/components/PostEditor';
@@ -241,6 +241,48 @@ describe('PostEditor slug editing', () => {
     const settings = screen.getByRole('complementary', { name: '글 설정' });
 
     expect(body.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+  });
+
+  it('shows the current cover in an accessible lightbox and restores trigger focus', async () => {
+    render(
+      <PostEditor
+        action={action}
+        post={{
+          id: 'p1',
+          title: '대표 이미지가 있는 글',
+          slug: 'post-with-cover',
+          description: '설명',
+          body: '본문',
+          status: 'draft',
+          cover_image_url: 'https://cdn.raven.kr/cover.png',
+          cover_alt: '절벽 위의 등대',
+        }}
+      />,
+    );
+
+    const trigger = screen.getByRole('button', { name: '크게 보기' });
+    expect(trigger).toHaveAttribute('type', 'button');
+    fireEvent.click(trigger);
+
+    const dialog = await screen.findByRole('dialog', { name: '대표 이미지 크게 보기' });
+    expect(within(dialog).getByRole('img', { name: '절벽 위의 등대' })).toHaveAttribute(
+      'src',
+      'https://cdn.raven.kr/cover.png',
+    );
+    const closeButton = within(dialog).getByRole('button', {
+      name: '대표 이미지 크게 보기 닫기',
+    });
+    await waitFor(() => expect(closeButton).toHaveFocus());
+
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(trigger).toHaveFocus();
+  });
+
+  it('does not show the cover lightbox trigger without a cover image', () => {
+    render(<PostEditor action={action} />);
+
+    expect(screen.queryByRole('button', { name: '크게 보기' })).not.toBeInTheDocument();
   });
 
   it('keeps the secondary action as a draft save even when a draft status select shows public', async () => {

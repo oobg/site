@@ -18,6 +18,7 @@ import { ShareButtons } from '@/app/blog/[slug]/_components/ShareButtons';
 import { BlogShell } from '@/app/_components/BlogShell';
 import { BlogArticleDataSkeleton } from '@/app/_components/BlogLoadingSkeleton';
 import { CommentsSection } from '@features/comments/components/CommentsSection';
+import { getCommentAvatarBaseUrl } from '@features/comments/utils/comment-avatar';
 import type { BlogCategoryWithCount, BlogPost } from '@features/posts/types/posts.types';
 import styles from './article.module.css';
 
@@ -50,11 +51,13 @@ async function BlogPostContent({
   categories,
   html,
   toc,
+  avatarBaseUrl,
 }: {
   post: BlogPost;
   categories: BlogCategoryWithCount[];
   html: string;
   toc: Awaited<ReturnType<typeof renderMarkdown>>['toc'];
+  avatarBaseUrl?: string;
 }) {
   const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);
 
@@ -77,7 +80,7 @@ async function BlogPostContent({
             <ShareButtons title={post.title} />
           </div>
         </article>
-        <CommentsSection key={post.slug} slug={post.slug} />
+        <CommentsSection key={post.slug} slug={post.slug} avatarBaseUrl={avatarBaseUrl} />
         <ArticleAside related={related} />
         <PostNav prev={prev} next={next} />
       </div>
@@ -91,6 +94,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const [post, categories] = await Promise.all([getBlogPost(key), getBlogCategories()]);
   const { html, toc } = await renderMarkdown(post.body_markdown);
   const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);
+  const avatarBaseUrl = getCommentAvatarBaseUrl(env);
 
   return (
     <Suspense
@@ -103,7 +107,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         />
       }
     >
-      <BlogPostContent post={post} categories={categories} html={html} toc={toc} />
+      <BlogPostContent
+        post={post}
+        categories={categories}
+        html={html}
+        toc={toc}
+        avatarBaseUrl={avatarBaseUrl}
+      />
     </Suspense>
   );
 }

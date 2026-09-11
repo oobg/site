@@ -72,6 +72,18 @@ SQL Editor에서 검토해 수동 적용한다. 이 rollback은 데이터 손실
 
 dev에서는 R2 대신 local backend를 사용한다. 동일한 Markdown 경로를 유지하되 `ASSET_PUBLIC_URL=https://cdn-dev.raven.kr`로 공개 URL을 만든다. CDN nginx가 `/assets/` prefix를 제거해 `/srv/assets` alias를 조회하므로 앱은 mount root 아래 `posts/...`에 기록한다. local backend에는 production R2 credentials를 설정하지 않는다.
 
+댓글 아바타는 CDN-only 자산이다. Cloudflare R2 custom domain `https://cdn.raven.kr`의
+`assets/comment-avatars/clay-01.webp`부터 `clay-64.webp`까지 64개 object를 사용하며,
+각 object는 `image/webp`로 제공되고, 캐시는 Cloudflare custom-domain의 활성 cache
+policy(`Cache-Control: max-age=14400`)를 따른다. 이 저장소와 dev local asset volume에는
+댓글 아바타 사본을 두지 않는다.
+
+공개·관리자 댓글 UI는 production `R2_PUBLIC_URL`을 기준으로
+`${R2_PUBLIC_URL}/assets/comment-avatars`를 사용한다. 기존 선택적 avatar base prop이
+없거나 `R2_PUBLIC_URL`이 비어 있으면 런타임은 안전한 production CDN 주소
+`https://cdn.raven.kr/assets/comment-avatars`를 사용한다. `ASSET_PUBLIC_URL`은 dev의
+게시물 이미지 backend 공개 주소이며 댓글 아바타 URL에는 사용하지 않는다.
+
 ## 4. 환경변수
 
 `.env.example`을 `.env.local`로 복사해 채운다.

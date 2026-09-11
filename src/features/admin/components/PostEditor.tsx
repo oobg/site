@@ -1,7 +1,16 @@
 'use client';
 
-import { useActionState, useEffect, useRef, useState } from 'react';
-import { Code, ImageSquare, LinkSimple, Quotes, TextB, UploadSimple } from '@phosphor-icons/react';
+import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
+import { Dialog } from '@base-ui/react/dialog';
+import {
+  Code,
+  ImageSquare,
+  LinkSimple,
+  Quotes,
+  TextB,
+  UploadSimple,
+  X,
+} from '@phosphor-icons/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
@@ -145,6 +154,15 @@ export function PostEditor({
   useEffect(() => {
     titleRef.current?.focus();
   }, [post?.id]);
+
+  const focusCoverLightboxClose = useCallback((element: HTMLButtonElement | null) => {
+    if (!element) return;
+    queueMicrotask(() => {
+      if (element.isConnected) {
+        element.focus({ preventScroll: true });
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const sequence = ++previewSequenceRef.current;
@@ -635,16 +653,47 @@ export function PostEditor({
         </h2>
         <section className={`${styles.field} ${styles.coverField}`} aria-labelledby="cover-heading">
           {coverUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- owner-selected CDN URL is not a configured image host
-            <img
-              src={coverUrl}
-              alt={coverAlt || ''}
-              style={{
-                objectPosition: `${coverX * 100}% ${coverY * 100}%`,
-                aspectRatio: '16 / 9',
-                objectFit: 'cover',
-              }}
-            />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element -- owner-selected CDN URL is not a configured image host */}
+              <img
+                src={coverUrl}
+                alt={coverAlt || ''}
+                style={{
+                  objectPosition: `${coverX * 100}% ${coverY * 100}%`,
+                  aspectRatio: '16 / 9',
+                  objectFit: 'cover',
+                }}
+              />
+              <Dialog.Root>
+                <Dialog.Trigger className={styles.coverZoomButton} type="button">
+                  크게 보기
+                </Dialog.Trigger>
+                <Dialog.Portal>
+                  <Dialog.Backdrop className={styles.coverLightboxBackdrop} />
+                  <Dialog.Viewport className={styles.coverLightboxViewport}>
+                    <Dialog.Popup className={styles.coverLightbox} initialFocus={false}>
+                      <Dialog.Title className={styles.coverLightboxTitle}>
+                        대표 이미지 크게 보기
+                      </Dialog.Title>
+                      <Dialog.Close
+                        ref={focusCoverLightboxClose}
+                        className={styles.coverLightboxClose}
+                        type="button"
+                        aria-label="대표 이미지 크게 보기 닫기"
+                      >
+                        <X aria-hidden size={22} />
+                      </Dialog.Close>
+                      {/* eslint-disable-next-line @next/next/no-img-element -- owner-selected CDN URL is not a configured image host */}
+                      <img
+                        className={styles.coverLightboxImage}
+                        src={coverUrl}
+                        alt={coverAlt || ''}
+                      />
+                    </Dialog.Popup>
+                  </Dialog.Viewport>
+                </Dialog.Portal>
+              </Dialog.Root>
+            </>
           ) : (
             <div className={styles.coverPlaceholder} aria-hidden>
               <ImageSquare size={24} />
