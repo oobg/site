@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { BlogCategory, BlogPostSelectionCandidate } from '@features/posts/types/posts.types';
-import { filterAndPaginatePosts, selectFeaturedPosts } from '@features/posts/utils/blog-posts';
+import {
+  filterAndPaginatePosts,
+  selectCategorySectionPosts,
+  selectFeaturedPosts,
+} from '@features/posts/utils/blog-posts';
 
 const categories: Record<string, BlogCategory> = {
   engineering: {
@@ -87,6 +91,33 @@ describe('selectFeaturedPosts', () => {
         ),
       ),
     ).toHaveLength(5);
+  });
+});
+
+describe('selectCategorySectionPosts', () => {
+  it('연재 slug 편 번호 오름차순으로 최초 공개 글부터 최대 3개를 고른다', () => {
+    const posts = [
+      post('design-system-02-color', '2026-09-01T00:00:00Z'),
+      post('design-system-00-prologue', '2026-09-10T00:00:00Z'),
+      post('design-system-01-token', '2026-09-05T00:00:00Z'),
+      post('design-system-03-layout', '2026-08-01T00:00:00Z'),
+      post('draft-oldest', '2026-01-01T00:00:00Z', categories.engineering, {
+        status: 'draft',
+      }),
+    ];
+
+    expect(selectCategorySectionPosts(posts).map(({ slug }) => slug)).toEqual([
+      'design-system-00-prologue',
+      'design-system-01-token',
+      'design-system-02-color',
+    ]);
+    expect(posts.map(({ slug }) => slug)).toEqual([
+      'design-system-02-color',
+      'design-system-00-prologue',
+      'design-system-01-token',
+      'design-system-03-layout',
+      'draft-oldest',
+    ]);
   });
 });
 

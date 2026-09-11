@@ -107,6 +107,7 @@ describe('getBlogHomeDataUncached supabase', () => {
     expect(pinned.limit).toHaveBeenCalledWith(5);
     expect(section.eq).toHaveBeenCalledWith('status', 'published');
     expect(section.eq).toHaveBeenCalledWith('category_id', category.id);
+    expect(section.order).toHaveBeenCalledWith('slug', { ascending: true });
     expect(section.limit).toHaveBeenCalledWith(3);
     expect(result.archive).toMatchObject({ page: 2, pageSize: 6, totalItems: 13, totalPages: 3 });
     expect(result.featured.map(({ slug }) => slug)).toEqual(['public-post']);
@@ -120,7 +121,7 @@ describe('getBlogHomeDataUncached supabase', () => {
     ]);
   });
 
-  it('pin이 없으면 section별 최신 글을 대표 후보로 재사용한다', async () => {
+  it('section은 카테고리별 최초 글을 반환하고 pin이 없을 때 대표 후보는 최신 글을 유지한다', async () => {
     vi.stubEnv('CONTENT_SOURCE', 'supabase');
     const categories = [
       {
@@ -162,16 +163,25 @@ describe('getBlogHomeDataUncached supabase', () => {
     const pinned = query({ data: [], error: null });
     const backend = query({
       data: [
-        makeRow('backend-new', categories[0], '2026-09-09T00:00:00Z'),
-        makeRow('backend-old', categories[0], '2026-09-01T00:00:00Z'),
+        makeRow('design-system-00-prologue', categories[0], '2026-09-10T00:00:00Z'),
+        makeRow('design-system-01-token', categories[0], '2026-09-05T00:00:00Z'),
+        makeRow('design-system-02-color', categories[0], '2026-09-01T00:00:00Z'),
       ],
       error: null,
     });
     const design = query({
+      data: [makeRow('ai-memory-00-prologue', categories[1], '2026-09-02T00:00:00Z')],
+      error: null,
+    });
+    const backendFeatured = query({
+      data: [makeRow('backend-new', categories[0], '2026-09-09T00:00:00Z')],
+      error: null,
+    });
+    const designFeatured = query({
       data: [makeRow('design-new', categories[1], '2026-09-10T00:00:00Z')],
       error: null,
     });
-    const postQueries = [archive, pinned, backend, design];
+    const postQueries = [archive, pinned, backend, design, backendFeatured, designFeatured];
     vi.doMock('next/cache', () => ({
       unstable_cache:
         <TArgs extends unknown[], TResult>(fn: (...args: TArgs) => TResult) =>
@@ -189,11 +199,51 @@ describe('getBlogHomeDataUncached supabase', () => {
     const result = await getBlogHomeDataUncached();
 
     expect(result.sections.map(({ posts }) => posts.map(({ slug }) => slug))).toEqual([
-      ['backend-new', 'backend-old'],
-      ['design-new'],
+      ['design-system-00-prologue', 'design-system-01-token', 'design-system-02-color'],
+      ['ai-memory-00-prologue'],
     ]);
     expect(result.featured.map(({ slug }) => slug)).toEqual(['design-new', 'backend-new']);
+    expect(backend.order).toHaveBeenCalledWith('slug', { ascending: true });
+    expect(design.order).toHaveBeenCalledWith('slug', { ascending: true });
     expect(backend.limit).toHaveBeenCalledWith(3);
     expect(design.limit).toHaveBeenCalledWith(3);
+    expect(backendFeatured.order).toHaveBeenNthCalledWith(1, 'published_at', {
+      ascending: false,
+      nullsFirst: false,
+    });
+    expect(designFeatured.order).toHaveBeenNthCalledWith(2, 'slug', { ascending: true });
+    expect(backendFeatured.limit).toHaveBeenCalledWith(1);
+    expect(designFeatured.limit).toHaveBeenCalledWith(1);
+  });
+});
+
+describe('getBlogHomeDataUncached mock', () => {
+  afterEach(() => {
+    vi.doUnmock('next/cache');
+    vi.resetModules();
+    vi.unstubAllEnvs();
+  });
+
+  it('section은 최초 글부터, 전역 archive와 자동 featured는 최신 글부터 반환한다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'mock');
+    vi.doMock('next/cache', () => ({
+      unstable_cache:
+        <TArgs extends unknown[], TResult>(fn: (...args: TArgs) => TResult) =>
+        (...args: TArgs) =>
+          fn(...args),
+    }));
+
+    const { getBlogHomeDataUncached } = await import('@features/posts/services/posts.api');
+    const result = await getBlogHomeDataUncached();
+
+    expect(result.sections[0].posts.map(({ slug }) => slug)).toEqual([
+      '가벼운-헥사고날로-nestjs-나누기',
+      'rsc-우선-데이터-패칭',
+    ]);
+    expect(result.archive.items.map(({ slug }) => slug)).toEqual([
+      'rsc-우선-데이터-패칭',
+      '가벼운-헥사고날로-nestjs-나누기',
+    ]);
+    expect(result.featured.map(({ slug }) => slug)).toEqual(['rsc-우선-데이터-패칭']);
   });
 });
