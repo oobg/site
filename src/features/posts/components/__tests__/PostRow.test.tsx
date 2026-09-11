@@ -25,7 +25,10 @@ describe('PostRow', () => {
     // 링크의 이름이 제목이어야 한다. 'Read article' 같은 별도 CTA를 두면 스크린리더가
     // 목록에서 같은 이름의 링크를 여러 개 읽게 되고, 제목은 눌러도 아무 일이 없다.
     const link = screen.getByRole('link', { name: base.title });
-    expect(link).toHaveAttribute('href', `/blog/uncategorized/${encodeURIComponent(base.slug)}`);
+    expect(link).toHaveAttribute(
+      'href',
+      `/blog/${encodeURIComponent('미분류')}/${encodeURIComponent(base.slug)}`,
+    );
   });
 
   it('행에 링크는 하나뿐이다', () => {

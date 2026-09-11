@@ -6,26 +6,52 @@ import type { BlogPostSummary } from '@features/posts/types/posts.types';
 import { ROUTES } from '@constants/routes';
 import styles from './FeaturedCarousel.module.css';
 
+const AUTOPLAY_MS = 4000;
+const PROGRESS_TICK_MS = 50;
+
 export function FeaturedCarousel({ posts }: { posts: readonly BlogPostSummary[] }) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [progress, setProgress] = useState(0);
   const start = useRef<{ x: number; y: number } | null>(null);
+  const elapsedRef = useRef(0);
+  const activeIndex = posts.length ? Math.min(index, posts.length - 1) : 0;
+
   useEffect(() => {
-    if (posts.length <= 1 || paused) return;
+    if (posts.length <= 1) {
+      elapsedRef.current = 0;
+      return;
+    }
+    if (paused) return;
+
+    const startedAt = Date.now() - elapsedRef.current;
     const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1) % posts.length);
-    }, 4000);
+      const elapsed = Math.min(Date.now() - startedAt, AUTOPLAY_MS);
+      elapsedRef.current = elapsed;
+      setProgress(elapsed / AUTOPLAY_MS);
+      if (elapsed >= AUTOPLAY_MS) {
+        elapsedRef.current = 0;
+        setProgress(0);
+        setIndex((current) => (current + 1) % posts.length);
+      }
+    }, PROGRESS_TICK_MS);
     return () => window.clearInterval(timer);
-  }, [paused, posts.length]);
+  }, [activeIndex, paused, posts.length]);
+
   if (posts.length === 0) return null;
-  const activeIndex = Math.min(index, posts.length - 1);
   const post = posts[activeIndex];
-  const move = (step: number) => setIndex((activeIndex + step + posts.length) % posts.length);
+  const move = (step: number) => {
+    elapsedRef.current = 0;
+    setProgress(0);
+    setIndex((current) => (current + step + posts.length) % posts.length);
+  };
+  const remainingSeconds = Math.max(1, Math.ceil((AUTOPLAY_MS * (1 - progress)) / 1000));
   return (
     <section
       className={styles.section}
       aria-label="추천 글"
       data-with-cover={post.cover_image_url ? '' : undefined}
+      data-paused={paused || undefined}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
@@ -74,6 +100,24 @@ export function FeaturedCarousel({ posts }: { posts: readonly BlogPostSummary[] 
           </time>
         </div>
       </div>
+      {posts.length > 1 ? (
+        <div className={styles.progressRow}>
+          <div
+            className={styles.progressTrack}
+            role="progressbar"
+            aria-label="다음 추천 글 전환까지"
+            aria-valuemin={0}
+            aria-valuemax={AUTOPLAY_MS}
+            aria-valuenow={Math.round(progress * AUTOPLAY_MS)}
+            aria-valuetext={paused ? '일시정지' : `${remainingSeconds}초 후 전환`}
+          >
+            <span className={styles.progressBar} style={{ width: `${progress * 100}%` }} />
+          </div>
+          <span className={styles.progressTime} aria-hidden="true">
+            {paused ? '일시정지' : `${remainingSeconds}초 후`}
+          </span>
+        </div>
+      ) : null}
       {posts.length > 1 && (
         <div className={styles.controls}>
           <button type="button" onClick={() => move(-1)} aria-label="이전 추천 글">

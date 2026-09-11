@@ -12,10 +12,12 @@
    supabase db push
    ```
 
-   적용할 SQL은 순서대로 `supabase/migrations/20260907000000_create_posts.sql`과
-   `supabase/migrations/20260910000000_add_blog_taxonomy_and_featured_posts.sql`이다.
+   적용할 SQL은 순서대로 `supabase/migrations/20260907000000_create_posts.sql`,
+   `supabase/migrations/20260910000000_add_blog_taxonomy_and_featured_posts.sql`,
+   `supabase/migrations/20260911100000_use_korean_category_slugs.sql`이다.
    첫 마이그레이션은 `posts`, `cms_owners`, RLS 정책과 `updated_at` 트리거를 만들고,
-   두 번째는 카테고리·태그·커버 메타데이터·대표 글 순서를 추가한다.
+   두 번째는 카테고리·태그·커버 메타데이터·대표 글 순서를 추가한다. 세 번째는 카테고리
+   이름에서 한국어 canonical slug를 만들고, 기존 영문 slug를 이전 URL용 alias로 보존한다.
 
 3. SQL Editor에서 로그인할 Google 계정을 소문자로 등록한다.
 
@@ -35,7 +37,9 @@ SQL Editor에서 검토해 수동 적용한다. 이 rollback은 데이터 손실
 카테고리는 관리자에서 만들고 순서를 정한다. 글에는 하나의 카테고리를 지정하며,
 카테고리를 삭제하면 연결된 글은 기본 카테고리 `미분류`로 이동한다. 기본 카테고리
 자체는 삭제하거나 이름·slug를 바꿀 수 없다. 태그는 글별 자유 입력값이며 저장 시
-소문자로 정규화한다.
+소문자로 정규화한다. 카테고리 URL에는 카테고리 slug가 사용되며, 새 canonical slug는
+`디자인-시스템`처럼 한글·소문자·숫자와 하이픈으로 구성한다. taxonomy migration 전의
+영문 slug는 `legacy_slug`로 남아 기존 게시글 URL이 새 주소로 308 redirect 되도록 한다.
 
 대표 글은 공개 상태인 글만 최대 5개까지 선택하고 순서를 저장한다. 고정된 글이
 있으면 그 순서를 사용하며, 없을 때 공개 화면은 카테고리별 최신 글을 자동으로

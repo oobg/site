@@ -5,7 +5,10 @@ export const categorySlugSchema = z
   .trim()
   .min(1, '카테고리 slug를 입력해 주세요.')
   .max(80, '카테고리 slug는 80자 이하여야 합니다.')
-  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, '카테고리 slug 형식이 올바르지 않습니다.');
+  .regex(
+    /^[a-z0-9가-힣]+(?:-[a-z0-9가-힣]+)*$/u,
+    '카테고리 slug는 한글·영문 소문자·숫자와 하이픈만 사용할 수 있습니다.',
+  );
 
 export const blogCategoryInputSchema = z.object({
   slug: categorySlugSchema,

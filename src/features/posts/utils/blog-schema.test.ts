@@ -6,10 +6,12 @@ import {
 } from '@features/posts/utils/blog-schema';
 
 describe('blog schema', () => {
-  it('카테고리 slug를 비어 있지 않은 소문자 kebab-case로 제한한다', () => {
+  it('카테고리 slug를 한글 또는 소문자 kebab-case로 제한한다', () => {
     expect(categorySlugSchema.safeParse('engineering-notes').success).toBe(true);
+    expect(categorySlugSchema.safeParse('디자인-시스템').success).toBe(true);
     expect(categorySlugSchema.safeParse('').success).toBe(false);
     expect(categorySlugSchema.safeParse('Engineering').success).toBe(false);
+    expect(categorySlugSchema.safeParse('디자인 시스템').success).toBe(false);
   });
 
   it('cover 위치 범위와 빈 alt를 거절한다', () => {

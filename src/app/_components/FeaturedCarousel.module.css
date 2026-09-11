@@ -56,6 +56,38 @@
   color: var(--d0-grey-600);
   font-size: 13px;
 }
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.progressTrack {
+  flex: 1;
+  height: 3px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--d0-grey-100);
+}
+.progressBar {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--d0-blue);
+  transition: width 80ms linear;
+}
+.section[data-paused] .progressBar {
+  background: var(--d0-grey-500);
+}
+.progressTime {
+  min-width: 4.5em;
+  color: var(--d0-grey-600);
+  font-family: var(--font-mono), monospace;
+  font-size: 11px;
+  text-align: right;
+  white-space: nowrap;
+}
 .controls {
   display: flex;
   align-items: center;
@@ -119,5 +151,8 @@
 @media (prefers-reduced-motion: reduce) {
   .slide {
     animation: none;
+  }
+  .progressBar {
+    transition-duration: 0ms;
   }
 }

@@ -182,6 +182,7 @@ export function getPost(slug: string): Promise<Post> {
 interface SupabaseCategoryRow {
   id: string;
   slug: string;
+  legacy_slug: string | null;
   name: string;
   sort_order: number;
   is_default: boolean;
@@ -202,6 +203,7 @@ interface SupabaseBlogPostRow extends SupabasePostRow {
 const DEFAULT_CATEGORY: BlogCategory = {
   id: DEFAULT_POST_CATEGORY_ID,
   slug: DEFAULT_POST_CATEGORY_SLUG,
+  legacy_slug: 'uncategorized',
   name: '미분류',
   sort_order: 2147483647,
   is_default: true,
@@ -222,7 +224,7 @@ const PUBLIC_BLOG_POST_COLUMNS = [
   'cover_position_y',
   'cover_alt',
   'pin_order',
-  'category:post_categories!inner(id,slug,name,sort_order,is_default)',
+  'category:post_categories!inner(id,slug,legacy_slug,name,sort_order,is_default)',
 ].join(',');
 
 function toBlogPostSummary(row: SupabaseBlogPostRow): BlogPostSummary {
@@ -265,7 +267,7 @@ async function getSupabaseBlogShellUncached(): Promise<
   const supabase = createPublicClient();
   const categoriesPromise = supabase
     .from('post_categories')
-    .select('id,slug,name,sort_order,is_default,posts(count)')
+    .select('id,slug,legacy_slug,name,sort_order,is_default,posts(count)')
     .order('sort_order', { ascending: true })
     .order('slug', { ascending: true });
 
@@ -289,6 +291,7 @@ async function getSupabaseBlogShellUncached(): Promise<
     .map((category): BlogCategoryWithCount => ({
       id: category.id,
       slug: category.slug,
+      legacy_slug: category.legacy_slug ?? null,
       name: category.name,
       sort_order: category.sort_order,
       is_default: category.is_default,
@@ -350,7 +353,7 @@ const getSupabaseBlogShell = unstable_cache(
     void sourceIdentity;
     return getSupabaseBlogShellUncached();
   },
-  ['public-blog-shell-v3'],
+  ['public-blog-shell-v4'],
   { revalidate: 60, tags: ['posts', 'post-categories'] },
 );
 
@@ -421,7 +424,7 @@ export async function getBlogHomeDataUncached(
 
 const getBlogHomeDataFromServerCache = unstable_cache(
   (_source: string, filters: BlogPostFilters) => getBlogHomeDataUncached(filters),
-  ['public-blog-home-v3'],
+  ['public-blog-home-v4'],
   { revalidate: 60, tags: ['posts', 'post-categories'] },
 );
 
@@ -496,7 +499,7 @@ async function getBlogPostUncached(slug: string): Promise<BlogPost> {
 }
 
 const getBlogPostForRender = cache((source: string, slug: string) =>
-  unstable_cache(() => getBlogPostUncached(slug), ['public-blog-post-v1', source, slug], {
+  unstable_cache(() => getBlogPostUncached(slug), ['public-blog-post-v2', source, slug], {
     revalidate: 60,
     tags: ['posts', `post:${slug}`],
   })(),

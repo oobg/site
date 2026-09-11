@@ -4,11 +4,13 @@ export type PostListItem = ContentListItem & { category?: Pick<BlogCategory, 'sl
 export type Post = ContentDetail;
 
 export const DEFAULT_POST_CATEGORY_ID = '00000000-0000-4000-8000-000000000001';
-export const DEFAULT_POST_CATEGORY_SLUG = 'uncategorized';
+export const DEFAULT_POST_CATEGORY_SLUG = '미분류';
 
 export interface BlogCategory {
   id: string;
   slug: string;
+  /** 이전 URL에서만 사용하는 값. 새 링크는 항상 slug를 사용한다. */
+  legacy_slug?: string | null;
   name: string;
   sort_order: number;
   is_default: boolean;

@@ -34,8 +34,14 @@ describe('RecentPosts', () => {
 
   it('글 목록과 상세 링크를 렌더한다', () => {
     render(<RecentPosts posts={[makePost('a', '첫 글'), makePost('b', '둘째 글')]} />);
-    expect(screen.getByText('첫 글')).toHaveAttribute('href', '/blog/uncategorized/a');
-    expect(screen.getByText('둘째 글')).toHaveAttribute('href', '/blog/uncategorized/b');
+    expect(screen.getByText('첫 글')).toHaveAttribute(
+      'href',
+      `/blog/${encodeURIComponent('미분류')}/a`,
+    );
+    expect(screen.getByText('둘째 글')).toHaveAttribute(
+      'href',
+      `/blog/${encodeURIComponent('미분류')}/b`,
+    );
   });
 
   it('uses the supplied category without falling back for modern posts', () => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Check, LinkSimple, ShareNetwork } from '@phosphor-icons/react';
+import { createBlogShareUrl } from '@lib/analytics/share-url';
 import styles from './ShareButtons.module.css';
 
 const noopSubscribe = () => () => {};
@@ -27,7 +28,7 @@ export function ShareButtons({ title }: { title: string }) {
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(createBlogShareUrl(window.location.href, 'copy'));
       if (!mounted.current) return;
       setCopied(true);
       window.clearTimeout(resetTimer.current);
@@ -39,7 +40,10 @@ export function ShareButtons({ title }: { title: string }) {
 
   async function shareNative() {
     try {
-      await navigator.share({ title, url: window.location.href });
+      await navigator.share({
+        title,
+        url: createBlogShareUrl(window.location.href, 'native_share'),
+      });
     } catch {
       /* 사용자가 공유 시트를 닫은 경우 */
     }

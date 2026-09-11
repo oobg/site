@@ -29,7 +29,7 @@ describe('article post links', () => {
     );
     expect(screen.getByRole('link', { name: /구형 글/ })).toHaveAttribute(
       'href',
-      '/blog/uncategorized/legacy',
+      `/blog/${encodeURIComponent('미분류')}/legacy`,
     );
   });
 
@@ -51,7 +51,7 @@ describe('article post links', () => {
     render(<PostNav prev={{ ...post, category: undefined }} next={null} />);
     expect(screen.getByRole('link', { name: /이전 글/ })).toHaveAttribute(
       'href',
-      '/blog/uncategorized/my-post',
+      `/blog/${encodeURIComponent('미분류')}/my-post`,
     );
   });
 });

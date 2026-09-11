@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import { Suspense } from 'react';
 import { getBlogCategories, getBlogPost, getPosts } from '@features/posts/services/posts.api';
 import { getRelatedPosts } from '@features/posts/utils/related';
@@ -44,8 +44,8 @@ async function getCanonicalPost(params: Promise<{ category: string; slug: string
   const categoryKey = normalizeRouteSlug(category);
   const key = normalizeRouteSlug(slug);
   const post = await getBlogPost(key);
-  if (post.category.slug !== categoryKey) notFound();
-  return post;
+  if (post.category.slug !== categoryKey && post.category.legacy_slug !== categoryKey) notFound();
+  return { post, categoryKey };
 }
 
 export async function generateMetadata({
@@ -53,7 +53,7 @@ export async function generateMetadata({
 }: {
   params: Promise<{ category: string; slug: string }>;
 }): Promise<Metadata> {
-  const post = await getCanonicalPost(params);
+  const { post } = await getCanonicalPost(params);
   return buildMetadata({
     title: post.title,
     description: post.summary ?? undefined,
@@ -108,7 +108,10 @@ export default async function BlogPostPage({
 }: {
   params: Promise<{ category: string; slug: string }>;
 }) {
-  const post = await getCanonicalPost(params);
+  const { post, categoryKey } = await getCanonicalPost(params);
+  if (post.category.slug !== categoryKey) {
+    permanentRedirect(ROUTES.BLOG.DETAIL(post.category.slug, post.slug));
+  }
   const categories = await getBlogCategories();
   const { html, toc } = await renderMarkdown(post.body_markdown);
   const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);

@@ -70,6 +70,21 @@ describe('canonical blog page', () => {
     expect(metadata.alternates?.canonical).toBe(`/blog/dev/${encodeURIComponent('공개-글')}`);
   });
 
+  it('uses the previous category slug only to redirect to the Korean canonical URL', async () => {
+    mocks.post.mockResolvedValue({
+      ...post,
+      category: { ...post.category, slug: '디자인-시스템', legacy_slug: 'design-system' },
+    });
+
+    const metadata = await generateMetadata({ params: params('design-system') });
+    expect(metadata.alternates?.canonical).toBe(
+      `/blog/${encodeURIComponent('디자인-시스템')}/my-post`,
+    );
+    await expect(Page({ params: params('design-system') })).rejects.toMatchObject({
+      digest: `NEXT_REDIRECT;replace;/blog/${encodeURIComponent('디자인-시스템')}/my-post;308;`,
+    });
+  });
+
   it.each(['%', '%2f', '%5c', '..', '%252e%252e', '%00'])(
     'rejects unsafe category or slug %s before lookup',
     async (value) => {
@@ -96,7 +111,7 @@ describe('canonical blog page', () => {
     mocks.posts.mockResolvedValue([post, { slug: 'legacy' }]);
     expect(await generateStaticParams()).toEqual([
       { category: 'dev', slug: 'my-post' },
-      { category: 'uncategorized', slug: 'legacy' },
+      { category: '미분류', slug: 'legacy' },
     ]);
     mocks.env.CONTENT_SOURCE = 'supabase';
     expect(await generateStaticParams()).toEqual([]);

@@ -108,37 +108,59 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
   const daily = data.daily.map((item) => ({ ...item, label: shortDate(item.date) }));
   const pages = data.pages.filter((page) => !isAdminAnalyticsPath(page.path));
   return (
-    <section className={styles.dashboard} aria-labelledby="analytics-title">
+    <section className={styles.dashboard} aria-labelledby="analytics-title" data-matrix>
       <div className={styles.heading}>
-        <div>
+        <div className={styles.headingCopy}>
+          <span className={styles.pageLabel}>
+            <span className={styles.signalDot} aria-hidden />
+            사이트 신호
+          </span>
           <h2 id="analytics-title">방문 통계</h2>
           <p>raven.kr · GA4</p>
         </div>
-        <span>최근 {data.range.days}일</span>
+        <div className={styles.headingMeta}>
+          <span className={styles.statusBadge}>
+            <span className={styles.statusDot} aria-hidden />
+            정상 집계
+          </span>
+          <span className={styles.range}>
+            <small>조회 범위</small>
+            <strong>최근 {data.range.days}일</strong>
+          </span>
+        </div>
       </div>
       <dl className={styles.metrics}>
-        <div>
+        <div data-tone="accent">
+          <span className={styles.metricIndex}>01</span>
           <dt>활성 사용자</dt>
           <dd>{number.format(data.summary.activeUsers)}</dd>
         </div>
         <div>
+          <span className={styles.metricIndex}>02</span>
           <dt>세션</dt>
           <dd>{number.format(data.summary.sessions)}</dd>
         </div>
         <div>
+          <span className={styles.metricIndex}>03</span>
           <dt>조회수</dt>
           <dd>{number.format(data.summary.screenPageViews)}</dd>
         </div>
         <div>
+          <span className={styles.metricIndex}>04</span>
           <dt>참여율</dt>
           <dd>{percent.format(data.summary.engagementRate)}</dd>
         </div>
       </dl>
       <div className={styles.grid}>
         <article className={`${styles.panel} ${styles.wide}`}>
-          <h3>일별 추이</h3>
-          <p>활성 사용자와 세션</p>
-          <div className={styles.chart} aria-label="날짜별 활성 사용자와 세션 선 그래프">
+          <div className={styles.panelHeading}>
+            <div>
+              <span className={styles.panelIndex}>01 / 추이</span>
+              <h3>일별 추이</h3>
+              <p>활성 사용자와 세션</p>
+            </div>
+          </div>
+          <div className={styles.chart} role="img" aria-label="날짜별 활성 사용자와 세션 선 그래프">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart
                 data={daily}
@@ -187,9 +209,14 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
           </div>
         </article>
         <article className={styles.panel}>
-          <h3>유입 채널</h3>
-          <p>채널별 세션</p>
-          <div className={styles.chart} aria-label="유입 채널별 세션 막대 그래프">
+          <div className={styles.panelHeading}>
+            <div>
+              <span className={styles.panelIndex}>02 / 유입</span>
+              <h3>유입 채널</h3>
+              <p>채널별 세션</p>
+            </div>
+          </div>
+          <div className={styles.chart} role="img" aria-label="유입 채널별 세션 막대 그래프">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={data.channels.map((x) => ({ ...x, label: channelNames[x.name] ?? x.name }))}
@@ -226,8 +253,13 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
           </div>
         </article>
         <article className={styles.panel}>
-          <h3>기기</h3>
-          <p>기기별 활성 사용자</p>
+          <div className={styles.panelHeading}>
+            <div>
+              <span className={styles.panelIndex}>03 / 기기</span>
+              <h3>기기</h3>
+              <p>기기별 활성 사용자</p>
+            </div>
+          </div>
           <ul className={styles.deviceList}>
             {data.devices.map((item) => (
               <li key={item.name}>
@@ -240,6 +272,7 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
         <article className={`${styles.panel} ${styles.wide}`}>
           <div className={styles.panelHeading}>
             <div>
+              <span className={styles.panelIndex}>04 / 위치</span>
               <h3>접속 위치</h3>
               <p>국가·지역·도시별 활성 사용자</p>
             </div>
@@ -252,8 +285,13 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
           </div>
         </article>
         <article className={`${styles.panel} ${styles.wide}`}>
-          <h3>인기 페이지</h3>
-          <p>조회수 순 · 관리자 경로 제외</p>
+          <div className={styles.panelHeading}>
+            <div>
+              <span className={styles.panelIndex}>05 / 페이지</span>
+              <h3>인기 페이지</h3>
+              <p>조회수 순 · 관리자 경로 제외</p>
+            </div>
+          </div>
           <div className={styles.tableWrap}>
             <table>
               <thead>
