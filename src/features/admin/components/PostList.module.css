@@ -154,8 +154,8 @@
   position: relative;
   display: grid;
   place-items: center;
-  width: 72px;
-  height: 44px;
+  width: 96px;
+  height: 64px;
   overflow: hidden;
   border-radius: var(--d0-radius-sm);
   background: var(--d0-grey-100);
@@ -467,7 +467,7 @@
   .table tbody tr {
     position: relative;
     display: grid;
-    grid-template-columns: 84px minmax(0, 1fr);
+    grid-template-columns: 104px minmax(0, 1fr);
     column-gap: var(--space-3);
     padding: var(--space-3);
     border: 1px solid var(--color-border);
@@ -518,8 +518,8 @@
   }
 
   .thumbnail {
-    width: 84px;
-    height: 64px;
+    width: 104px;
+    height: 80px;
   }
 
   .statusSelect {

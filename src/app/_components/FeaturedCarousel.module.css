@@ -11,6 +11,7 @@
   align-items: center;
   gap: clamp(20px, 2.5vw, 32px);
   touch-action: pan-y;
+  animation: featured-slide-in 360ms var(--d0-ease);
 }
 .cover {
   aspect-ratio: 1.9;
@@ -101,5 +102,22 @@
   }
   .copy time {
     margin-top: var(--space-4);
+  }
+}
+
+@keyframes featured-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide {
+    animation: none;
   }
 }

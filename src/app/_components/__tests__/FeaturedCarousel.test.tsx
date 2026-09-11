@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { act, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FeaturedCarousel } from '@/app/_components/FeaturedCarousel';
 import type { BlogPostSummary } from '@features/posts/types/posts.types';
 
@@ -22,6 +22,10 @@ function post(index: number): BlogPostSummary {
 }
 
 describe('FeaturedCarousel', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('does not show controls for one featured post', () => {
     render(<FeaturedCarousel posts={[post(1)]} />);
     expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
@@ -44,6 +48,24 @@ describe('FeaturedCarousel', () => {
     rerender(<FeaturedCarousel posts={five.slice(0, 2)} />);
     expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
     expect(screen.getByText('2 / 2')).toBeInTheDocument();
+  });
+
+  it('moves to the next post every four seconds and pauses while it is being read', () => {
+    vi.useFakeTimers();
+    render(<FeaturedCarousel posts={[1, 2, 3].map(post)} />);
+    const section = screen.getByRole('region', { name: '추천 글' });
+
+    act(() => vi.advanceTimersByTime(3999));
+    expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
+
+    fireEvent.mouseEnter(section);
+    act(() => vi.advanceTimersByTime(4000));
+    expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
+    fireEvent.mouseLeave(section);
+    act(() => vi.advanceTimersByTime(4000));
+    expect(screen.getByRole('heading', { name: '추천 글 3' })).toBeInTheDocument();
   });
 
   it('does not render a broken image when a cover is missing', () => {

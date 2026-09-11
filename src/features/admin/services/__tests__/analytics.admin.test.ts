@@ -74,6 +74,84 @@ describe('GA4 analytics service', () => {
     expect((await getAnalyticsDashboard()).status).toBe('ready');
   });
 
+  it('loads cached country, region, and city reports while excluding admin pages', async () => {
+    mocks.batchRunReports
+      .mockResolvedValueOnce([
+        {
+          reports: [
+            { rows: [{ metricValues: [metric('3'), metric('8'), metric('14'), metric('0.5')] }] },
+            { metadata: { timeZone: 'Asia/Seoul' }, rows: [] },
+            { rows: [] },
+            {
+              rows: [
+                {
+                  dimensionValues: [dimension('/admin'), dimension('관리자')],
+                  metricValues: [metric('100'), metric('50')],
+                },
+                {
+                  dimensionValues: [dimension('/blog/notes/post-1'), dimension('공개 글')],
+                  metricValues: [metric('20'), metric('10')],
+                },
+              ],
+            },
+            { rows: [] },
+          ],
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          reports: [
+            {
+              rows: [
+                {
+                  dimensionValues: [dimension('대한민국')],
+                  metricValues: [metric('10'), metric('12'), metric('30')],
+                },
+              ],
+            },
+            {
+              rows: [
+                {
+                  dimensionValues: [dimension('대한민국'), dimension('서울특별시')],
+                  metricValues: [metric('9'), metric('10'), metric('22')],
+                },
+              ],
+            },
+            {
+              rows: [
+                {
+                  dimensionValues: [
+                    dimension('대한민국'),
+                    dimension('서울특별시'),
+                    dimension('서울'),
+                  ],
+                  metricValues: [metric('8'), metric('9'), metric('18')],
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+
+    const result = await getAnalyticsDashboard();
+
+    expect(result.status).toBe('ready');
+    if (result.status === 'ready') {
+      expect(result.data.pages).toEqual([
+        { path: '/blog/notes/post-1', title: '공개 글', views: 20, activeUsers: 10 },
+      ]);
+      expect(result.data.locations).toEqual({
+        countries: [{ name: '대한민국', activeUsers: 10, sessions: 12, views: 30 }],
+        regions: [{ name: '서울특별시 · 대한민국', activeUsers: 9, sessions: 10, views: 22 }],
+        cities: [{ name: '서울 · 서울특별시 · 대한민국', activeUsers: 8, sessions: 9, views: 18 }],
+      });
+    }
+    expect(mocks.batchRunReports).toHaveBeenCalledTimes(2);
+    const pageRequest = mocks.batchRunReports.mock.calls[0][0].requests[3];
+    expect(pageRequest.dimensionFilter.andGroup.expressions).toHaveLength(2);
+    expect(mocks.batchRunReports.mock.calls[1][0].requests).toHaveLength(3);
+  });
+
   it('returns a safe error state when the API rejects', async () => {
     mocks.batchRunReports.mockRejectedValue(Object.assign(new Error('secret detail'), { code: 7 }));
     expect(await getAnalyticsDashboard()).toEqual({

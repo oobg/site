@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
+import { useActionState, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Dialog } from '@base-ui/react/dialog';
 import {
   Code,
@@ -23,6 +23,7 @@ import type { BlogCategory } from '@features/posts/types/posts.types';
 import { initialPostActionState } from '@features/admin/types/posts-admin.types';
 import styles from './PostEditor.module.css';
 import { useAdminNavigationGuard } from './AdminNavigationProvider';
+import { DeletePostButton } from './DeletePostButton';
 
 type PostDraft = {
   id?: string;
@@ -152,6 +153,13 @@ export function PostEditor({
   useEffect(() => {
     bodyValueRef.current = body;
   }, [body]);
+
+  useLayoutEffect(() => {
+    const textarea = bodyRef.current;
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [body, editorTab]);
 
   useEffect(() => {
     titleRef.current?.focus();
@@ -814,6 +822,7 @@ export function PostEditor({
             <p>공개 주소는 URL 값으로 만들고 검색 설명은 상단 설명을 사용해요.</p>
           </div>
         </details>
+        {post?.id ? <DeletePostButton id={post.id} /> : null}
       </aside>
     </form>
   );

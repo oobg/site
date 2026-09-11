@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import type { BlogPostSummary } from '@features/posts/types/posts.types';
 import { ROUTES } from '@constants/routes';
@@ -8,7 +8,15 @@ import styles from './FeaturedCarousel.module.css';
 
 export function FeaturedCarousel({ posts }: { posts: readonly BlogPostSummary[] }) {
   const [index, setIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
   const start = useRef<{ x: number; y: number } | null>(null);
+  useEffect(() => {
+    if (posts.length <= 1 || paused) return;
+    const timer = window.setInterval(() => {
+      setIndex((current) => (current + 1) % posts.length);
+    }, 4000);
+    return () => window.clearInterval(timer);
+  }, [paused, posts.length]);
   if (posts.length === 0) return null;
   const activeIndex = Math.min(index, posts.length - 1);
   const post = posts[activeIndex];
@@ -18,8 +26,15 @@ export function FeaturedCarousel({ posts }: { posts: readonly BlogPostSummary[] 
       className={styles.section}
       aria-label="추천 글"
       data-with-cover={post.cover_image_url ? '' : undefined}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocus={() => setPaused(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setPaused(false);
+      }}
     >
       <div
+        key={post.slug}
         className={styles.slide}
         onTouchStart={(event) => {
           const touch = event.touches[0];

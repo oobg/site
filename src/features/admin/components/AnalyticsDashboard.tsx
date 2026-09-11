@@ -12,7 +12,10 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import type { AnalyticsDashboardResult } from '@features/admin/types/analytics.types';
+import type {
+  AnalyticsDashboardResult,
+  AnalyticsLocation,
+} from '@features/admin/types/analytics.types';
 import styles from './AnalyticsDashboard.module.css';
 
 const number = new Intl.NumberFormat('ko-KR');
@@ -35,6 +38,41 @@ const deviceNames: Record<string, string> = {
 
 function shortDate(date: string) {
   return date.length === 8 ? `${Number(date.slice(4, 6))}/${Number(date.slice(6))}` : date;
+}
+
+function isAdminAnalyticsPath(path: string) {
+  return path === '/admin' || path.startsWith('/admin/');
+}
+
+function LocationList({ title, items }: { title: string; items: AnalyticsLocation[] }) {
+  return (
+    <section className={styles.locationSection} aria-labelledby={`location-${title}`}>
+      <div className={styles.locationHeading}>
+        <h4 id={`location-${title}`}>{title}</h4>
+        <span>활성 사용자</span>
+      </div>
+      {items.length ? (
+        <ol className={styles.locationList}>
+          {items.map((item, index) => (
+            <li key={`${item.name}-${index}`}>
+              <span className={styles.locationRank} aria-hidden>
+                {index + 1}
+              </span>
+              <span className={styles.locationName}>{item.name}</span>
+              <span className={styles.locationStats}>
+                <strong>{number.format(item.activeUsers)}</strong>
+                <small>
+                  {number.format(item.sessions)}세션 · {number.format(item.views)}회
+                </small>
+              </span>
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className={styles.locationEmpty}>집계된 위치 정보가 없어요.</p>
+      )}
+    </section>
+  );
 }
 
 export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResult }) {
@@ -68,6 +106,7 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
 
   const { data } = result;
   const daily = data.daily.map((item) => ({ ...item, label: shortDate(item.date) }));
+  const pages = data.pages.filter((page) => !isAdminAnalyticsPath(page.path));
   return (
     <section className={styles.dashboard} aria-labelledby="analytics-title">
       <div className={styles.heading}>
@@ -199,8 +238,22 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
           </ul>
         </article>
         <article className={`${styles.panel} ${styles.wide}`}>
+          <div className={styles.panelHeading}>
+            <div>
+              <h3>접속 위치</h3>
+              <p>국가·지역·도시별 활성 사용자</p>
+            </div>
+            <span className={styles.cacheNote}>최대 1시간 지연</span>
+          </div>
+          <div className={styles.locationGrid}>
+            <LocationList title="국가" items={data.locations.countries} />
+            <LocationList title="지역" items={data.locations.regions} />
+            <LocationList title="도시" items={data.locations.cities} />
+          </div>
+        </article>
+        <article className={`${styles.panel} ${styles.wide}`}>
           <h3>인기 페이지</h3>
-          <p>조회수 순</p>
+          <p>조회수 순 · 관리자 경로 제외</p>
           <div className={styles.tableWrap}>
             <table>
               <thead>
@@ -211,14 +264,14 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
                 </tr>
               </thead>
               <tbody>
-                {data.pages.map((page) => (
+                {pages.map((page) => (
                   <tr key={`${page.path}-${page.title}`}>
-                    <td>
+                    <td data-label="페이지">
                       <strong>{page.title}</strong>
                       <span>{page.path}</span>
                     </td>
-                    <td>{number.format(page.activeUsers)}</td>
-                    <td>{number.format(page.views)}</td>
+                    <td data-label="활성 사용자">{number.format(page.activeUsers)}</td>
+                    <td data-label="조회수">{number.format(page.views)}</td>
                   </tr>
                 ))}
               </tbody>

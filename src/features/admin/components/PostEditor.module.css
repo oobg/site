@@ -294,7 +294,7 @@
   width: 100%;
   min-height: 44rem;
   padding: var(--space-5);
-  overflow: auto;
+  overflow: visible;
   border: 0;
   border-radius: 0 0 var(--radius-control) var(--radius-control);
   background: var(--color-surface);
@@ -304,7 +304,8 @@
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--fs-15);
   line-height: var(--lh-body);
-  resize: vertical;
+  overflow: hidden;
+  resize: none;
   tab-size: 2;
 }
 

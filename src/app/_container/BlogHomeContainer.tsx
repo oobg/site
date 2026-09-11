@@ -68,6 +68,7 @@ export function BlogHomeContainer({
   return (
     <BlogShell
       categories={data?.categories ?? initialData.categories}
+      activeCategory={category || undefined}
       onNavigate={(href) => window.history.pushState(null, '', href)}
     >
       {overview && data ? (
@@ -106,7 +107,7 @@ export function BlogHomeContainer({
           <FeaturedCarousel posts={data.featured} />
           <div className={styles.recentGrid}>
             {data.archive.items.slice(0, 3).map((post) => (
-              <PostCard key={post.slug} post={post} />
+              <PostCard key={post.slug} post={post} variant="compact" />
             ))}
           </div>
           <div className={styles.sections}>
@@ -135,11 +136,12 @@ export function BlogHomeContainer({
                     </Link>
                   </div>
                   <div className={styles.topicGrid}>
-                    {section.posts.map((post) => (
+                    {section.posts.map((post, index) => (
                       <PostCard
                         key={post.slug}
                         post={post}
                         showCategory={false}
+                        variant={index === 0 ? 'default' : 'compact'}
                         reserveCoverSpace={section.posts.some((item) =>
                           Boolean(item.cover_image_url),
                         )}

@@ -106,9 +106,20 @@
   overscroll-behavior: contain;
   padding: var(--space-6);
   background: var(--color-surface);
+  animation: menu-enter var(--d0-dur) var(--d0-ease);
 }
 .menu .navigation {
   margin-top: var(--space-6);
+}
+.menu > h2 {
+  margin: 0;
+  padding-right: 40px;
+  color: var(--d0-grey-900);
+  font-size: 20px;
+  letter-spacing: var(--d0-tracking-title);
+}
+.menu .navigation a {
+  min-height: 48px;
 }
 .close {
   position: absolute;
@@ -124,15 +135,27 @@
   color: var(--d0-grey-800);
 }
 .menuButton {
-  min-height: 40px;
-  padding-inline: var(--space-3);
-  border: 1px solid var(--d0-grey-200);
-  border-radius: var(--d0-radius-sm);
-  background: var(--color-surface);
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--d0-grey-800);
   font: inherit;
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 17px;
+  text-align: left;
+}
+.menuButton strong {
+  font-weight: 700;
+}
+.menuButton svg {
+  color: var(--d0-grey-600);
+  transition: transform var(--d0-dur-fast) var(--d0-ease);
+}
+.menuButton:hover {
+  color: var(--d0-blue-dark);
 }
 @media (max-width: 900px) {
   .shell {
@@ -146,8 +169,8 @@
   .mobileBar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding-bottom: var(--space-5);
+    justify-content: flex-start;
+    padding-block: var(--space-2);
     border-bottom: 1px solid var(--d0-grey-100);
   }
   .mobileDetailNavigation {
@@ -155,9 +178,64 @@
     margin-bottom: var(--space-5);
   }
 }
+@media (max-width: 640px) {
+  .shell {
+    width: min(100% - 40px, 780px);
+    padding-top: 0;
+  }
+  .mobileBar {
+    margin-inline: -20px;
+    padding-inline: 20px;
+  }
+  .menu {
+    inset: auto 0 0;
+    width: 100%;
+    max-height: min(78dvh, 640px);
+    border-radius: var(--d0-radius-card) var(--d0-radius-card) 0 0;
+    padding: var(--space-6) var(--space-5) max(var(--space-6), env(safe-area-inset-bottom));
+    animation-name: menu-sheet-enter;
+  }
+  .menu .navigation {
+    margin-top: var(--space-5);
+  }
+  .menu .navigation a {
+    min-height: 50px;
+    padding-inline: var(--space-2);
+  }
+  .menu .close {
+    top: var(--space-5);
+    right: var(--space-5);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .menu,
-  .otherCategories summary svg {
+  .otherCategories summary svg,
+  .menuButton svg {
     transition: none;
+  }
+  .menu {
+    animation: none;
+  }
+}
+
+@keyframes menu-enter {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes menu-sheet-enter {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

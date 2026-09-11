@@ -1,39 +1,60 @@
 .sentinel {
-  height: 1px;
+  height: var(--header-top);
 }
 .header {
   position: sticky;
-  top: 0;
+  top: var(--header-top);
   z-index: 50;
-  height: 64px;
-  border-bottom: 1px solid transparent;
-  background: rgb(255 255 255 / 0.92);
+}
+.inner {
+  width: min(100% - 40px, var(--w-container));
+  margin-inline: auto;
+}
+.pill {
+  position: relative;
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
+  border: 1px solid var(--d0-grey-200);
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 0.96);
+  box-shadow: var(--d0-shadow-card);
   transition:
+    background var(--d0-dur) var(--d0-ease),
     border-color var(--d0-dur) var(--d0-ease),
+    box-shadow var(--d0-dur) var(--d0-ease),
+    -webkit-backdrop-filter var(--d0-dur) var(--d0-ease),
     backdrop-filter var(--d0-dur) var(--d0-ease);
 }
-.header[data-stuck] {
-  border-bottom-color: var(--d0-grey-200);
+.header[data-stuck] .pill {
+  border-color: var(--d0-grey-300);
+  background: rgb(255 255 255 / 0.9);
+  box-shadow: var(--d0-shadow-overlay);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
 }
-.inner {
-  width: min(100% - 40px, 1200px);
-  margin-inline: auto;
-}
-.nav {
-  display: flex;
-  height: 64px;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-6);
-}
 .wordmark {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   color: var(--d0-grey-900);
-  font-size: 20px;
-  font-weight: 700;
+  font-size: var(--fs-16);
+  font-weight: 650;
   line-height: var(--lh-body);
-  letter-spacing: var(--d0-tracking-title);
+  letter-spacing: var(--ls-body);
+  white-space: nowrap;
+  transition:
+    color var(--d0-dur-fast) var(--d0-ease),
+    transform var(--d0-dur-fast) var(--d0-ease);
+}
+.wordmark:hover {
+  color: var(--d0-blue-dark);
+}
+.wordmark:active {
+  transform: scale(0.96);
 }
 .wordmark:focus-visible {
   border-radius: var(--d0-radius-sm);
@@ -44,8 +65,14 @@
     width: min(100% - 32px, 780px);
   }
 }
+@media (max-width: 640px) {
+  .pill {
+    padding-left: var(--space-4);
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .header {
+  .pill,
+  .wordmark {
     transition-duration: 0ms;
   }
 }

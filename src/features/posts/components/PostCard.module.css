@@ -1,6 +1,9 @@
 .card {
   min-width: 0;
 }
+.compact {
+  min-width: 0;
+}
 .cover {
   display: block;
   aspect-ratio: 1.9;
@@ -68,5 +71,43 @@
 @media (prefers-reduced-motion: reduce) {
   .cover img {
     transition-duration: 0ms;
+  }
+}
+
+@media (max-width: 640px) {
+  .compact[data-has-cover] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 104px;
+    gap: var(--space-4);
+    align-items: center;
+  }
+  .compact[data-has-cover] .cover {
+    grid-column: 2;
+    grid-row: 1;
+    aspect-ratio: 1.2;
+    border-radius: var(--d0-radius-sm);
+  }
+  .compact[data-has-cover] .body {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    padding-top: 0;
+  }
+  .compact .category {
+    font-size: 12px;
+  }
+  .compact .body h2 {
+    margin-top: var(--space-1);
+    font-size: 16px;
+    line-height: var(--d0-leading-title);
+  }
+  .compact .body p {
+    margin-top: var(--space-1);
+    font-size: 13px;
+    -webkit-line-clamp: 2;
+  }
+  .compact .body time {
+    margin-top: var(--space-1);
+    font-size: 12px;
   }
 }

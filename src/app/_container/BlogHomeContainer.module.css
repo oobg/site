@@ -78,7 +78,12 @@
   .recentGrid,
   .topicGrid {
     grid-template-columns: 1fr;
-    gap: var(--space-7);
+    gap: 0;
+  }
+  .recentGrid > article,
+  .topicGrid > article {
+    padding-block: var(--space-5);
+    border-bottom: 1px solid var(--d0-grey-100);
   }
   .archive {
     padding-block: var(--space-7);
@@ -156,6 +161,6 @@
   .recentGrid,
   .topicGrid {
     grid-template-columns: 1fr;
-    gap: var(--space-7);
+    gap: 0;
   }
 }

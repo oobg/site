@@ -7,13 +7,19 @@ export function PostCard({
   post,
   reserveCoverSpace = false,
   showCategory = true,
+  variant = 'default',
 }: {
   post: BlogPostSummary;
   reserveCoverSpace?: boolean;
   showCategory?: boolean;
+  variant?: 'default' | 'compact';
 }) {
+  const hasCover = Boolean(post.cover_image_url || reserveCoverSpace);
   return (
-    <article className={styles.card}>
+    <article
+      className={variant === 'compact' ? `${styles.card} ${styles.compact}` : styles.card}
+      data-has-cover={hasCover || undefined}
+    >
       {post.cover_image_url && (
         <Link
           className={styles.cover}
