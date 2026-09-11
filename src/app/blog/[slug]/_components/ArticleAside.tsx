@@ -1,66 +1,13 @@
 import Link from 'next/link';
-import type { Post, PostListItem } from '@features/posts/types/posts.types';
+import type { PostListItem } from '@features/posts/types/posts.types';
 import { Eyebrow } from '@components/ui/Eyebrow';
 import { ROUTES } from '@constants/routes';
 import { formatDateKo } from '@utils/date';
-import { ShareButtons } from './ShareButtons';
 import styles from './ArticleAside.module.css';
 
-export function ArticleAside({
-  post,
-  related,
-  readingMin,
-}: {
-  post: Post;
-  related: PostListItem[];
-  readingMin: number;
-}) {
-  const category = post.tags[0] ?? null;
-  const showUpdated = post.updated_at !== post.published_at;
-
+export function ArticleAside({ related }: { related: PostListItem[] }) {
   return (
     <aside className={styles.aside}>
-      <section className={styles.block}>
-        <Eyebrow as="h2" className={styles.blockTitle}>
-          글 정보
-        </Eyebrow>
-        <dl className={styles.info}>
-          <div className={styles.row}>
-            <dt>발행</dt>
-            <dd>
-              <time dateTime={post.published_at}>{formatDateKo(post.published_at)}</time>
-            </dd>
-          </div>
-          {showUpdated ? (
-            <div className={styles.row}>
-              <dt>수정</dt>
-              <dd>
-                <time dateTime={post.updated_at}>{formatDateKo(post.updated_at)}</time>
-              </dd>
-            </div>
-          ) : null}
-          <div className={styles.row}>
-            <dt>읽기 시간</dt>
-            <dd>{readingMin}분</dd>
-          </div>
-          {category ? (
-            <div className={styles.row}>
-              <dt>카테고리</dt>
-              <dd>{category}</dd>
-            </div>
-          ) : null}
-        </dl>
-        {post.tags.length > 0 ? (
-          <ul className={styles.tags}>
-            {post.tags.map((tag) => (
-              <li key={tag} className={styles.tag}>
-                {tag}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </section>
-
       {related.length > 0 ? (
         <section className={styles.block}>
           <Eyebrow as="h2" className={styles.blockTitle}>
@@ -81,13 +28,6 @@ export function ArticleAside({
           </ul>
         </section>
       ) : null}
-
-      <section className={`${styles.block} ${styles.shareBlock}`}>
-        <Eyebrow as="h2" className={styles.blockTitle}>
-          공유
-        </Eyebrow>
-        <ShareButtons title={post.title} />
-      </section>
     </aside>
   );
 }

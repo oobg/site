@@ -1,0 +1,45 @@
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
+import { FeaturedCarousel } from '@/app/_components/FeaturedCarousel';
+import type { BlogPostSummary } from '@features/posts/types/posts.types';
+
+function post(index: number): BlogPostSummary {
+  return {
+    slug: `post-${index}`,
+    title: `추천 글 ${index}`,
+    summary: `요약 ${index}`,
+    tags: [],
+    published_at: '2026-09-10T00:00:00.000Z',
+    updated_at: '2026-09-10T00:00:00.000Z',
+    cover_image_url: index % 2 ? `/cover-${index}.jpg` : null,
+    status: 'published',
+    category: { id: 'category', slug: 'notes', name: '노트', sort_order: 0, is_default: false },
+    cover_image_key: null,
+    cover_position: { x: 0.5, y: 0.5 },
+    cover_alt: `추천 글 ${index} 표지`,
+    pin_order: index,
+  };
+}
+
+describe('FeaturedCarousel', () => {
+  it('does not show controls for one featured post', () => {
+    render(<FeaturedCarousel posts={[post(1)]} />);
+    expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('supports manual navigation and clamps the current slide when results shrink', () => {
+    const five = [1, 2, 3, 4, 5].map(post);
+    const { rerender } = render(<FeaturedCarousel posts={five} />);
+    fireEvent.click(screen.getByRole('button', { name: '이전 추천 글' }));
+    expect(screen.getByRole('heading', { name: '추천 글 5' })).toBeInTheDocument();
+    rerender(<FeaturedCarousel posts={five.slice(0, 2)} />);
+    expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
+    expect(screen.getByText('2 / 2')).toBeInTheDocument();
+  });
+
+  it('does not render a broken image when a cover is missing', () => {
+    const { container } = render(<FeaturedCarousel posts={[post(2)]} />);
+    expect(container.querySelector('img')).toBeNull();
+  });
+});

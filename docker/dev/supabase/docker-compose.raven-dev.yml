@@ -1,0 +1,44 @@
+name: raven-supabase-dev
+
+services:
+  studio:
+    container_name: raven-supabase-dev-studio
+  api-gw:
+    container_name: raven-supabase-dev-gateway
+    ports: !override []
+    networks:
+      default:
+      tunnel:
+  auth:
+    container_name: raven-supabase-dev-auth
+    environment:
+      GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${GOOGLE_ENABLED:?GOOGLE_ENABLED is required}
+      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?GOOGLE_CLIENT_ID is required}
+      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_SECRET:?GOOGLE_SECRET is required}
+      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${API_EXTERNAL_URL:?API_EXTERNAL_URL is required}/callback
+  rest:
+    container_name: raven-supabase-dev-rest
+  realtime:
+    # The upstream Realtime image parses the `realtime-dev.` tenant prefix.
+    container_name: realtime-dev.raven-supabase-dev-realtime
+    networks:
+      default:
+        aliases:
+          - realtime
+  storage:
+    container_name: raven-supabase-dev-storage
+  imgproxy:
+    container_name: raven-supabase-dev-imgproxy
+  meta:
+    container_name: raven-supabase-dev-meta
+  functions:
+    container_name: raven-supabase-dev-functions
+  db:
+    container_name: raven-supabase-dev-db
+  supavisor:
+    container_name: raven-supabase-dev-pooler
+    ports: !override []
+networks:
+  tunnel:
+    external: true
+    name: nginx-proxy-manager_default

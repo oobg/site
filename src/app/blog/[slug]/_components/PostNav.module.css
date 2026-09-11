@@ -4,8 +4,8 @@
 .nav {
   width: 100%;
   max-width: var(--w-reading);
-  margin-inline: auto;
-  margin-top: var(--space-9);
+  margin-inline: 0 auto;
+  margin-top: var(--space-8);
 }
 
 .top {

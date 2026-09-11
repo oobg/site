@@ -1,20 +1,20 @@
 .header {
-  padding-block: var(--space-8) var(--space-6);
+  padding-block: var(--space-7) var(--space-6);
 }
 
 .title {
-  font-size: clamp(2rem, 4.4vw, 2.5rem);
+  font-size: var(--fs-30);
   line-height: var(--lh-title);
-  letter-spacing: -0.036em;
+  letter-spacing: var(--ls-title);
 }
 
 /* 프로젝트는 편수가 적어 격자를 좁게 나누면 빈 칸이 눈에 띈다.
    auto-fill 대신 auto-fit으로 두어 항목이 하나뿐일 때 한 칸이 전폭을 쓴다. */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
-  gap: var(--space-5);
-  padding-bottom: var(--space-9);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: 0 var(--space-6);
+  padding-bottom: var(--space-10);
 }
 
 .empty {

@@ -1,15 +1,18 @@
-/* 읽기 화면. 본문 폭이 주인공이고 나머지는 그 폭에 맞춘다.
-   3열을 쓰던 구조를 버렸다 — 컨테이너가 1080px이라 3열로 나누면 읽기 열이
-   600px대로 눌리고, 그건 읽기 화면이 가장 먼저 지켜야 할 값이다. */
+/* 공통 shell의 오른쪽 열에서 본문 읽기 폭을 고정한다. */
 .page {
   position: relative;
-  padding-block: var(--space-8) var(--space-9);
+  padding-bottom: var(--space-7);
 }
 
-/* 목차 기둥의 기준면이다. */
 .main {
   position: relative;
   width: 100%;
   max-width: var(--w-reading);
-  margin-inline: auto;
+  margin-inline: 0 auto;
+}
+
+.shareRail {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--space-7);
 }

@@ -1,0 +1,122 @@
+.page {
+  width: 100%;
+  padding: var(--space-5) var(--space-6);
+}
+
+.filters {
+  display: grid;
+  grid-template-columns: 180px 170px minmax(220px, 1fr);
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.filters span {
+  height: var(--d0-control-sm);
+  border-radius: var(--d0-radius-sm);
+  background: var(--d0-grey-50);
+}
+
+.tableHeader {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 100px 130px 130px 150px 32px;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--d0-grey-600);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rows {
+  display: grid;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) 100px 130px 130px 150px 32px;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 64px;
+  padding: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+.row span {
+  display: block;
+  height: 13px;
+  border-radius: var(--d0-radius-sm);
+  background: var(--d0-grey-50);
+  animation: pulse var(--dur-skeleton) var(--d0-ease) infinite alternate;
+}
+.titleCell {
+  display: grid;
+  gap: var(--space-2);
+}
+.titleCell span:first-child {
+  width: min(72%, 420px);
+  height: 18px;
+}
+.titleCell span:last-child {
+  display: none;
+  width: 55%;
+}
+.status {
+  width: 40px;
+  min-height: 24px;
+  border-radius: 999px !important;
+}
+.category {
+  width: 76px;
+}
+.date {
+  width: 92px;
+}
+.createdDate {
+  width: 92px;
+}
+.action {
+  width: 24px;
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 960px) {
+  .page {
+    padding: var(--space-4) var(--space-3);
+  }
+
+  .filters {
+    grid-template-columns: 1fr;
+  }
+
+  .tableHeader {
+    display: none;
+  }
+  .row {
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+    padding-block: var(--space-5);
+  }
+  .titleCell span:last-child {
+    display: block;
+  }
+  .status,
+  .category,
+  .date,
+  .createdDate,
+  .action {
+    display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .row span {
+    animation: none;
+  }
+}

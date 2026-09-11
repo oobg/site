@@ -1,20 +1,35 @@
 import Link from 'next/link';
-import type { Post } from '@features/posts/types/posts.types';
-import { Eyebrow } from '@components/ui/Eyebrow';
-import { ROUTES } from '@constants/routes';
+import type { BlogPost } from '@features/posts/types/posts.types';
+import { homeSearchHref } from '@constants/routes';
 import { SITE } from '@constants/site';
 import { formatDateKo } from '@utils/date';
 import styles from './ArticleHeader.module.css';
 
-export function ArticleHeader({ post, readingMin }: { post: Post; readingMin: number }) {
-  const category = post.tags[0] ?? null;
+export function ArticleHeader({ post, readingMin }: { post: BlogPost; readingMin: number }) {
   const { author } = SITE;
+  const normalizeTag = (value: string) =>
+    value.normalize('NFKC').replace(/\s+/g, '').toLocaleLowerCase('ko-KR');
+  const categoryKey = normalizeTag(post.category.name);
+  const seenTags = new Set<string>();
+  const visibleTags = post.tags.filter((tag) => {
+    const key = normalizeTag(tag);
+    if (!key || key === categoryKey || seenTags.has(key)) return false;
+    seenTags.add(key);
+    return true;
+  });
   return (
     <header className={styles.header}>
-      <Link href={ROUTES.BLOG.LIST} className={styles.back}>
-        ← 글 목록
-      </Link>
-      {category ? <Eyebrow className={styles.eyebrow}>{category}</Eyebrow> : null}
+      {post.cover_image_url ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={post.cover_image_url}
+          alt={post.cover_alt ?? ''}
+          className={styles.cover}
+          style={{
+            objectPosition: `${post.cover_position.x * 100}% ${post.cover_position.y * 100}%`,
+          }}
+        />
+      ) : null}
       <h1 className={styles.title}>{post.title}</h1>
       {post.summary ? <p className={styles.summary}>{post.summary}</p> : null}
       <div className={styles.byline}>
@@ -34,10 +49,16 @@ export function ArticleHeader({ post, readingMin }: { post: Post; readingMin: nu
           </span>
         </span>
       </div>
-      {post.cover_image_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={post.cover_image_url} alt="" className={styles.cover} />
-      ) : null}
+      <ul className={styles.tags}>
+        <li>
+          <Link href={homeSearchHref({ category: post.category.slug })}>{post.category.name}</Link>
+        </li>
+        {visibleTags.map((tag) => (
+          <li key={tag}>
+            <Link href={homeSearchHref({ tag })}>{tag}</Link>
+          </li>
+        ))}
+      </ul>
     </header>
   );
 }

@@ -1,5 +1,5 @@
-import { ArticleSkeleton } from '@components/ui/ArticleSkeleton';
+import { BlogArticleSkeleton } from '@/app/_components/BlogLoadingSkeleton';
 
 export default function BlogPostLoading() {
-  return <ArticleSkeleton />;
+  return <BlogArticleSkeleton />;
 }

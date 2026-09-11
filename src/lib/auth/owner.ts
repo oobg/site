@@ -31,10 +31,7 @@ export async function getOwnerAccess(): Promise<OwnerAccess> {
     const { data, error } = await supabase.auth.getUser();
     const email = data.user?.email?.trim().toLowerCase() ?? null;
     const isVerifiedGoogleUser =
-      Boolean(data.user?.email_confirmed_at) &&
-      (data.user?.app_metadata.provider === 'google' ||
-        (Array.isArray(data.user?.app_metadata.providers) &&
-          data.user.app_metadata.providers.includes('google')));
+      Boolean(data.user?.email_confirmed_at) && data.user?.app_metadata.provider === 'google';
 
     if (error || !email || !isVerifiedGoogleUser) {
       return { configured: true, authenticated: false, authorized: false, email: null };
@@ -57,7 +54,10 @@ export async function getOwnerAccess(): Promise<OwnerAccess> {
     if (error instanceof CmsConfigurationError) {
       return { configured: false, authenticated: false, authorized: false, email: null };
     }
-    throw error;
+    console.error('Owner access check failed', {
+      kind: error instanceof Error ? error.name : 'UnknownError',
+    });
+    return { configured: true, authenticated: false, authorized: false, email: null };
   }
 }
 

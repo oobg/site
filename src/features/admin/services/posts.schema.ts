@@ -15,6 +15,35 @@ export const postInputSchema = z.object({
   description: z.string().trim().min(1, '설명을 입력해 주세요.').max(500),
   body: z.string().min(1, '본문을 입력해 주세요.'),
   status: z.enum(['draft', 'published']),
+  category_id: z
+    .string()
+    .uuid('카테고리를 선택해 주세요.')
+    .default('00000000-0000-4000-8000-000000000001'),
+  tags: z.preprocess(
+    (value) =>
+      typeof value === 'string'
+        ? value
+            .split(',')
+            .map((tag) => tag.trim().toLocaleLowerCase('ko-KR'))
+            .filter(Boolean)
+        : value,
+    z
+      .array(z.string().min(1).max(80))
+      .max(30)
+      .transform((tags) => [...new Set(tags)])
+      .default([]),
+  ),
+  cover_image_key: z.string().trim().max(1024).nullable().default(null),
+  cover_image_url: z.preprocess(
+    (value) => (value === '' || value === undefined ? null : value),
+    z.string().url().nullable(),
+  ),
+  cover_position_x: z.coerce.number().min(0).max(1).default(0.5),
+  cover_position_y: z.coerce.number().min(0).max(1).default(0.5),
+  cover_alt: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? null : (value ?? null)),
+    z.string().trim().min(1).max(300).nullable(),
+  ),
 });
 
 export const postIdSchema = z.string().uuid('올바르지 않은 글 ID입니다.');

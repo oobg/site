@@ -1,11 +1,13 @@
 import 'server-only';
-import { unified } from 'unified';
+import { unified, type Processor } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkGfm from 'remark-gfm';
 import remarkRehype from 'remark-rehype';
 import rehypeSlug from 'rehype-slug';
 import rehypeStringify from 'rehype-stringify';
 import rehypeShiki from '@shikijs/rehype';
+import { bundledLanguages, type BuiltinLanguage } from 'shiki';
+import { isSpecialLang } from 'shiki/core';
 import { visit } from 'unist-util-visit';
 import type { Root, Element } from 'hast';
 import type { TocEntry } from '@lib/markdown/toc.types';
@@ -50,6 +52,25 @@ function collectCodeLangs(langs: string[]) {
       const found = list.find((name) => name.startsWith('language-'));
       langs.push(found ? found.slice('language-'.length) : '');
     });
+  };
+}
+
+/** 글에 실제로 쓰인 지원 언어 문법만 shiki에 초기화한다. */
+function highlightCodeBlocks(this: Processor, langs: string[]) {
+  return async (tree: Root) => {
+    const supportedLangs = Array.from(
+      new Set(
+        langs.filter((lang): lang is BuiltinLanguage => Object.hasOwn(bundledLanguages, lang)),
+      ),
+    );
+    if (supportedLangs.length === 0 && !langs.some(isSpecialLang)) return;
+
+    const highlight = rehypeShiki.call(this, {
+      theme: 'github-light',
+      langs: supportedLangs,
+      colorReplacements: { '#fff': 'var(--color-canvas-2)' },
+    }) as (tree: Root) => Root | undefined | Promise<Root | undefined>;
+    await highlight(tree);
   };
 }
 
@@ -215,9 +236,7 @@ function removeUnsafeResourceUrls() {
 /**
  * 코드블럭을 창틀로 감싼다.
  *
- * macOS 창 버튼을 흉내 낸 점 세 개를 두었다가 뺐다. 창틀이 해야 할 일은 언어 라벨과
- * 복사 버튼이 이미 하고 있어서, 점에는 "코드처럼 보이게" 하는 것 말고 남는 역할이
- * 없었다. 정보를 나르지 않는 관습은 관습이라는 이유만으로는 자리를 못 얻는다.
+ * macOS 코드 창의 익숙한 시각 문법을 제공하되 언어 라벨과 복사 기능은 그대로 둔다.
  *
  * 클래스가 아니라 data 속성을 쓰는 이유는 이 HTML이 CSS 모듈 밖에서 만들어져
  * 클래스 이름이 해시되지 않기 때문이다.
@@ -234,6 +253,16 @@ function frameCodeBlocks(langs: string[]) {
         tagName: 'figcaption',
         properties: { 'data-code-head': '' },
         children: [
+          {
+            type: 'element',
+            tagName: 'span',
+            properties: { 'data-code-dots': '', 'aria-hidden': 'true' },
+            children: [
+              { type: 'element', tagName: 'i', properties: {}, children: [] },
+              { type: 'element', tagName: 'i', properties: {}, children: [] },
+              { type: 'element', tagName: 'i', properties: {}, children: [] },
+            ],
+          },
           {
             type: 'element',
             tagName: 'span',
@@ -264,7 +293,11 @@ export async function renderMarkdown(
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkRehype)
-    .use(resolveAssetPaths, options.assetPublicUrl ?? env.R2_PUBLIC_URL)
+    .use(
+      resolveAssetPaths,
+      options.assetPublicUrl ??
+        (env.ASSET_STORAGE_BACKEND === 'local' ? env.ASSET_PUBLIC_URL : env.R2_PUBLIC_URL),
+    )
     .use(removeUnsafeResourceUrls)
     .use(rehypeSlug)
     .use(collectToc, toc)
@@ -273,10 +306,7 @@ export async function renderMarkdown(
     /* 어두운 화면이라 어두운 테마를 쓴다. shiki는 pre에 배경색을 인라인으로 박기
        때문에 CSS로는 덮을 수 없다 — colorReplacements로 테마의 면 색만 우리 토큰에
        넘겨 코드블럭이 페이지와 같은 계조에 앉게 한다. */
-    .use(rehypeShiki, {
-      theme: 'poimandres',
-      colorReplacements: { '#1b1e28': 'var(--color-canvas-2)' },
-    })
+    .use(highlightCodeBlocks, langs)
     .use(frameCodeBlocks, langs)
     .use(rehypeStringify)
     .process(md);

@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
-import { Container } from '@components/layout/Container';
-import { getPost, getPosts } from '@features/posts/services/posts.api';
+import { Suspense } from 'react';
+import { getBlogCategories, getBlogPost, getPosts } from '@features/posts/services/posts.api';
 import { getRelatedPosts } from '@features/posts/utils/related';
+import { getAdjacentPosts } from '@features/posts/utils/series';
 import { renderMarkdown } from '@lib/markdown/render';
 import { computeReadingTime } from '@lib/markdown/reading-time';
 import { buildMetadata } from '@lib/metadata/metadata';
+import { normalizeRouteSlug } from '@lib/navigation/slug';
 import { env } from '@configs/env';
 import { ROUTES } from '@constants/routes';
 import { ArticleHeader } from '@/app/blog/[slug]/_components/ArticleHeader';
@@ -12,6 +14,11 @@ import { ArticleBody } from '@components/content/ArticleBody';
 import { TableOfContents } from '@/app/blog/[slug]/_components/TableOfContents';
 import { ArticleAside } from '@/app/blog/[slug]/_components/ArticleAside';
 import { PostNav } from '@/app/blog/[slug]/_components/PostNav';
+import { ShareButtons } from '@/app/blog/[slug]/_components/ShareButtons';
+import { BlogShell } from '@/app/_components/BlogShell';
+import { BlogArticleDataSkeleton } from '@/app/_components/BlogLoadingSkeleton';
+import { CommentsSection } from '@features/comments/components/CommentsSection';
+import type { BlogCategoryWithCount, BlogPost } from '@features/posts/types/posts.types';
 import styles from './article.module.css';
 
 export const dynamicParams = true;
@@ -29,8 +36,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const key = decodeURIComponent(slug).normalize('NFC');
-  const post = await getPost(key);
+  const key = normalizeRouteSlug(slug);
+  const post = await getBlogPost(key);
   return buildMetadata({
     title: post.title,
     description: post.summary ?? undefined,
@@ -38,39 +45,65 @@ export async function generateMetadata({
   });
 }
 
-export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
-  const key = decodeURIComponent(slug).normalize('NFC');
-  const post = await getPost(key);
-  const { html, toc } = await renderMarkdown(post.body_markdown);
+async function BlogPostContent({
+  post,
+  categories,
+  html,
+  toc,
+}: {
+  post: BlogPost;
+  categories: BlogCategoryWithCount[];
+  html: string;
+  toc: Awaited<ReturnType<typeof renderMarkdown>>['toc'];
+}) {
   const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);
 
   const all = await getPosts({ sort: '-published_at' });
-  const index = all.findIndex((p) => p.slug === post.slug);
-  const next = index > 0 ? all[index - 1] : null;
-  const prev = index >= 0 && index < all.length - 1 ? all[index + 1] : null;
+  const { prev, next } = getAdjacentPosts(post, all);
   const related = getRelatedPosts(post, all, 3);
 
   return (
-    // 읽기 화면은 본문 폭을 온전히 쓴다. 목차는 흐름에서 빼 컨테이너 밖 여백에 띄우고,
-    // 사이드바에 있던 태그·공유·관련 글은 본문 끝으로 내렸다 — 읽는 중에 옆에서 부를
-    // 이유가 없고, 다 읽은 뒤가 그것들이 필요한 순간이다.
-    //
-    // Container를 반드시 거친다. 읽기 열은 max-width로 자기 폭을 정하지만 좌우 여백은
-    // 갖지 못해서, 뷰포트가 읽기 폭보다 좁아지는 순간 글자가 화면 끝에 붙는다.
-    // 데스크톱 기하는 바뀌지 않는다 — 컨테이너가 뷰포트보다 좁아 중앙 정렬 결과가 같다.
-    <Container>
+    <BlogShell
+      categories={categories}
+      activeCategory={post.category.slug}
+      detailNavigation={<TableOfContents toc={toc} />}
+      mobileDetailNavigation={<TableOfContents toc={toc} defaultOpen={false} />}
+    >
       <div className={styles.page}>
         <article className={styles.main}>
-          {/* 목차는 <article> 안에 둔다. 바깥 기둥의 높이가 본문에 묶여야 본문이 끝날 때
-              목차도 함께 멈춘다 — 페이지 전체에 걸면 사이드·내비 구간까지 따라온다. */}
-          <TableOfContents toc={toc} />
           <ArticleHeader post={post} readingMin={readingMin} />
           <ArticleBody html={html} />
+          <div className={styles.shareRail} aria-label="글 공유">
+            <ShareButtons title={post.title} />
+          </div>
         </article>
-        <ArticleAside post={post} related={related} readingMin={readingMin} />
+        <CommentsSection key={post.slug} slug={post.slug} />
+        <ArticleAside related={related} />
         <PostNav prev={prev} next={next} />
       </div>
-    </Container>
+    </BlogShell>
+  );
+}
+
+export default async function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const key = normalizeRouteSlug(slug);
+  const [post, categories] = await Promise.all([getBlogPost(key), getBlogCategories()]);
+  const { html, toc } = await renderMarkdown(post.body_markdown);
+  const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);
+
+  return (
+    <Suspense
+      fallback={
+        <BlogArticleDataSkeleton
+          post={post}
+          categories={categories}
+          readingMin={readingMin}
+          toc={toc}
+        />
+      }
+    >
+      <BlogPostContent post={post} categories={categories} html={html} toc={toc} />
+    </Suspense>
   );
 }

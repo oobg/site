@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { render, screen, waitFor, cleanup } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react';
 import { TableOfContents } from '@/app/blog/[slug]/_components/TableOfContents';
 import type { TocEntry } from '@lib/markdown/toc.types';
 
@@ -23,7 +23,7 @@ function placeHeadings(tops: number[]) {
 const activeNames = () =>
   screen
     .getAllByRole('link')
-    .filter((el) => /active/.test(el.className))
+    .filter((el) => el.getAttribute('aria-current') === 'location')
     .map((el) => el.textContent);
 
 afterEach(() => {
@@ -33,7 +33,9 @@ afterEach(() => {
 
 describe('TableOfContents', () => {
   it('toc 항목을 앵커 링크로 렌더한다', () => {
-    render(<TableOfContents toc={TOC} />);
+    const { container } = render(<TableOfContents toc={TOC} />);
+    expect(container.querySelector('details')).toHaveAttribute('open');
+    expect(screen.getByText('목차', { selector: 'summary' })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '왜 헥사고날인가' })).toHaveAttribute(
       'href',
       '#왜-헥사고날인가',
@@ -47,6 +49,20 @@ describe('TableOfContents', () => {
   it('toc가 비면 아무것도 렌더하지 않는다', () => {
     const { container } = render(<TableOfContents toc={[]} />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('모바일 variant는 목차를 기본으로 접는다', () => {
+    const { container } = render(<TableOfContents toc={TOC} defaultOpen={false} />);
+    expect(container.querySelector('details')).not.toHaveAttribute('open');
+  });
+
+  it('목차 링크로 이동하면 해당 제목에 키보드 초점을 둔다', async () => {
+    const host = placeHeadings([200, 500]);
+    render(<TableOfContents toc={TOC} />);
+    fireEvent.click(screen.getByRole('link', { name: '포트와 어댑터' }));
+    await waitFor(() => expect(document.getElementById('포트와-어댑터')).toHaveFocus());
+    expect(document.getElementById('포트와-어댑터')).toHaveAttribute('tabindex', '-1');
+    host.remove();
   });
 
   it('첫 제목에 닿기 전에는 아무것도 표시하지 않는다', async () => {

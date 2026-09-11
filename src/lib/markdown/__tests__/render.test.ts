@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { renderMarkdown } from '@lib/markdown/render';
+import { env } from '@configs/env';
 
 describe('renderMarkdown', () => {
   it('헤딩에 id를 부여하고 toc를 추출한다', async () => {
@@ -47,6 +48,38 @@ describe('renderMarkdown', () => {
     const { html } = await renderMarkdown('```\nplain\n```');
     expect(html).toContain('<figure data-code');
     expect(html).toMatch(/data-code-lang=""[^>]*><\/span>/);
+    expect(html).toContain('<pre><code>plain');
+    expect(html).not.toContain('class="shiki');
+  });
+
+  it('언어 별칭과 모르는 언어의 기존 출력을 유지한다', async () => {
+    const alias = await renderMarkdown('```js\nconst x = 1;\n```');
+    const text = await renderMarkdown('```text\nplain\n```');
+    const unknown = await renderMarkdown('```not-a-language\nplain\n```');
+    const inheritedKey = await renderMarkdown('```constructor\nplain\n```');
+
+    expect(alias.html).toContain('class="shiki');
+    expect(alias.html).toContain('data-code-lang="">js</span>');
+    expect(text.html).toContain('class="shiki');
+    expect(text.html).toContain('data-code-lang="">text</span>');
+    expect(unknown.html).toContain('<pre><code class="language-not-a-language">plain');
+    expect(unknown.html).not.toContain('class="shiki');
+    expect(inheritedKey.html).toContain('<pre><code class="language-constructor">plain');
+    expect(inheritedKey.html).not.toContain('class="shiki');
+  });
+
+  it('동시 렌더의 toc와 코드 언어를 서로 섞지 않는다', async () => {
+    const [first, second] = await Promise.all([
+      renderMarkdown('## 첫 번째\n\n```ts\nconst first = 1;\n```'),
+      renderMarkdown('## 두 번째\n\n```js\nconst second = 2;\n```'),
+    ]);
+
+    expect(first.toc).toEqual([{ id: '첫-번째', text: '첫 번째', depth: 2 }]);
+    expect(second.toc).toEqual([{ id: '두-번째', text: '두 번째', depth: 2 }]);
+    expect(first.html).toContain('data-code-lang="">ts</span>');
+    expect(first.html).not.toContain('data-code-lang="">js</span>');
+    expect(second.html).toContain('data-code-lang="">js</span>');
+    expect(second.html).not.toContain('data-code-lang="">ts</span>');
   });
 
   it('h1/h4는 toc에 넣지 않는다', async () => {
@@ -76,6 +109,33 @@ describe('renderMarkdown', () => {
       );
     });
 
+    it('dev asset origin으로 같은 root-relative 경로를 연결한다', async () => {
+      const { html } = await renderMarkdown('![사진](/assets/posts/2026-09-07/example.webp)', {
+        assetPublicUrl: 'https://cdn-dev.raven.kr',
+      });
+      expect(html).toContain('src="https://cdn-dev.raven.kr/assets/posts/2026-09-07/example.webp"');
+    });
+
+    it('R2 backend에서는 잘못 섞인 dev 공개 주소를 무시한다', async () => {
+      const original = {
+        backend: env.ASSET_STORAGE_BACKEND,
+        assetPublicUrl: env.ASSET_PUBLIC_URL,
+        r2PublicUrl: env.R2_PUBLIC_URL,
+      };
+      env.ASSET_STORAGE_BACKEND = 'r2';
+      env.ASSET_PUBLIC_URL = 'https://cdn-dev.raven.kr';
+      env.R2_PUBLIC_URL = 'https://cdn.raven.kr';
+      try {
+        const { html } = await renderMarkdown('![사진](/assets/posts/example.png)');
+        expect(html).toContain('src="https://cdn.raven.kr/assets/posts/example.png"');
+        expect(html).not.toContain('cdn-dev.raven.kr');
+      } finally {
+        env.ASSET_STORAGE_BACKEND = original.backend;
+        env.ASSET_PUBLIC_URL = original.assetPublicUrl;
+        env.R2_PUBLIC_URL = original.r2PublicUrl;
+      }
+    });
+
     it('외부 URL과 일반 내부 경로는 그대로 둔다', async () => {
       const { html } = await renderMarkdown(
         '[외부](https://example.com/assets/a.png)\n\n![내부](/images/a.png)',
@@ -94,11 +154,18 @@ describe('renderMarkdown', () => {
     });
   });
 
-  /* 창틀의 점 세 개는 정보를 나르지 않는다. 언어 라벨과 복사 버튼이 창틀의 일을
-     이미 하고 있어서, 점은 "코드처럼 보이게" 하는 장식만 남는다. */
-  it('코드블럭 창틀에 장식용 점을 두지 않는다', async () => {
+  it('코드블럭 창틀에 macOS traffic light와 접근성 제외 처리를 둔다', async () => {
     const { html } = await renderMarkdown('```ts\nconst x = 1;\n```');
-    expect(html).not.toContain('data-code-dots');
+    expect(html).toContain('data-code-dots="" aria-hidden="true"');
+    expect(html.match(/<i><\/i>/g)).toHaveLength(3);
+  });
+
+  it('지원 언어는 토큰별 색을 만들고 코드 문자를 안전하게 escape한다', async () => {
+    const { html } = await renderMarkdown('```js\nconst value = "<script>"; // note\n```');
+    expect(html).toContain('class="line"');
+    expect(html).toMatch(/<span style="color:[^"]+">const<\/span>/);
+    expect(html).toContain('&#x3C;script>');
+    expect(html).not.toContain('<script>');
   });
 
   describe('콜아웃', () => {

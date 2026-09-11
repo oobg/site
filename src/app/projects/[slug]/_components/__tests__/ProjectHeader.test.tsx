@@ -45,4 +45,41 @@ describe('ProjectHeader', () => {
     expect(screen.queryByRole('link')).toBeNull();
     expect(screen.queryByText('백엔드 개발')).toBeNull();
   });
+
+  it('잘못된 frontmatter 값은 안전하게 생략하고 유효한 stack 문자열만 남긴다', () => {
+    render(
+      <ProjectHeader
+        project={{
+          ...base,
+          frontmatter: {
+            role: { unexpected: true },
+            period: null,
+            stack: ['TypeScript', null, 42, 'NestJS'],
+            links: { repo: 'javascript:alert(1)', live: '/projects/raven-api' },
+          },
+        }}
+      />,
+    );
+
+    expect(screen.queryByText('Role')).toBeNull();
+    expect(screen.queryByText('Period')).toBeNull();
+    expect(screen.getByText('TypeScript')).toBeInTheDocument();
+    expect(screen.getByText('NestJS')).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Repo' })).toBeNull();
+    expect(screen.getByRole('link', { name: 'Live' })).toHaveAttribute(
+      'href',
+      '/projects/raven-api',
+    );
+  });
+
+  it('frontmatter가 null 또는 배열이어도 기본 메타만 렌더한다', () => {
+    const { rerender } = render(
+      <ProjectHeader project={{ ...base, frontmatter: null as never }} />,
+    );
+    expect(screen.queryByText('Role')).toBeNull();
+
+    rerender(<ProjectHeader project={{ ...base, frontmatter: [] as never }} />);
+    expect(screen.queryByText('Stack')).toBeNull();
+    expect(screen.queryByRole('link')).toBeNull();
+  });
 });

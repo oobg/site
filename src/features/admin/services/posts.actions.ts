@@ -7,6 +7,7 @@ import { postIdSchema, postInputSchema } from '@/features/admin/services/posts.s
 import { ROUTES } from '@constants/routes';
 import { OwnerAuthorizationError, requireOwner } from '@lib/auth/owner';
 import { createClient } from '@lib/supabase/server';
+import { invalidatePublicPostCache } from '@lib/cache/posts';
 
 const valuesFrom = (formData: FormData) => ({
   title: formData.get('title'),
@@ -14,6 +15,13 @@ const valuesFrom = (formData: FormData) => ({
   description: formData.get('description'),
   body: formData.get('body'),
   status: formData.get('status'),
+  category_id: formData.get('category_id') ?? undefined,
+  tags: formData.get('tags') ?? undefined,
+  cover_image_key: formData.get('cover_image_key') || null,
+  cover_image_url: formData.get('cover_image_url') ?? '',
+  cover_position_x: formData.get('cover_position_x') ?? undefined,
+  cover_position_y: formData.get('cover_position_y') ?? undefined,
+  cover_alt: formData.get('cover_alt') ?? '',
 });
 
 const failure = (error: unknown): PostActionState => ({
@@ -21,11 +29,41 @@ const failure = (error: unknown): PostActionState => ({
   message: error instanceof OwnerAuthorizationError ? error.message : '요청을 처리하지 못했습니다.',
 });
 
-function refreshPostPaths(slug?: string) {
-  revalidatePath(ROUTES.HOME);
-  revalidatePath(ROUTES.BLOG.LIST);
-  revalidatePath(ROUTES.ADMIN.HOME);
-  if (slug) revalidatePath(ROUTES.BLOG.DETAIL(slug));
+const logFailure = (operation: string, error: unknown) => {
+  if (error instanceof OwnerAuthorizationError) return;
+  console.error(`${operation} post failed`, {
+    kind: error instanceof Error ? error.name : 'UnknownError',
+  });
+};
+
+function refreshPostPaths(...slugs: (string | undefined)[]) {
+  const paths = new Set([
+    ROUTES.HOME,
+    ROUTES.BLOG.LIST,
+    ROUTES.ADMIN.HOME,
+    ...slugs.filter((slug): slug is string => Boolean(slug)).map(ROUTES.BLOG.DETAIL),
+  ]);
+
+  for (const path of paths) {
+    try {
+      revalidatePath(path);
+    } catch (error) {
+      console.error('Post cache revalidation failed', {
+        kind: error instanceof Error ? error.name : 'UnknownError',
+        path,
+      });
+    }
+  }
+}
+
+function refreshPublicPostCache(oldSlug?: string, newSlug?: string) {
+  try {
+    invalidatePublicPostCache({ oldSlug, newSlug });
+  } catch (error) {
+    console.error('Post data cache invalidation failed', {
+      kind: error instanceof Error ? error.name : 'UnknownError',
+    });
+  }
 }
 
 export async function createPostAction(
@@ -58,10 +96,15 @@ export async function createPostAction(
       };
     }
     if (error) throw error;
+    refreshPublicPostCache(undefined, parsed.data.slug);
     refreshPostPaths(parsed.data.slug);
-    return { status: 'success', message: '글을 저장했습니다.', postId: data.id };
+    return {
+      status: 'success',
+      message: '글을 저장했습니다.',
+      postId: data.id,
+    };
   } catch (error) {
-    if (!(error instanceof OwnerAuthorizationError)) console.error('Create post failed', error);
+    logFailure('Create', error);
     return failure(error);
   }
 }
@@ -105,11 +148,11 @@ export async function updatePostAction(
       };
     }
     if (error) throw error;
-    refreshPostPaths(current.slug);
-    refreshPostPaths(parsed.data.slug);
+    refreshPublicPostCache(current.slug, parsed.data.slug);
+    refreshPostPaths(current.slug, parsed.data.slug);
     return { status: 'success', message: '글을 수정했습니다.' };
   } catch (error) {
-    if (!(error instanceof OwnerAuthorizationError)) console.error('Update post failed', error);
+    logFailure('Update', error);
     return failure(error);
   }
 }
@@ -120,32 +163,45 @@ export async function updatePostStatusAction(
 ): Promise<PostActionState> {
   const id = postIdSchema.safeParse(idValue);
   const status = postInputSchema.shape.status.safeParse(statusValue);
-  if (!id.success || !status.success)
-    return { status: 'error', message: '올바르지 않은 상태입니다.' };
+  if (!id.success || !status.success) {
+    return { status: 'error', message: '올바르지 않은 글 상태입니다.' };
+  }
+
   try {
     await requireOwner();
     const supabase = await createClient();
     const { data: current, error: readError } = await supabase
       .from('posts')
-      .select('title,slug,description,body,status,published_at')
+      .select(
+        'title,slug,description,body,status,published_at,category_id,tags,cover_image_key,cover_image_url,cover_position_x,cover_position_y,cover_alt',
+      )
       .eq('id', id.data)
       .single();
     if (readError) throw readError;
-    const validated = postInputSchema.safeParse({ ...current, status: status.data });
-    if (status.data === 'published' && !validated.success)
+    const parsed = postInputSchema.safeParse({
+      ...current,
+      status: status.data,
+    });
+    if (status.data === 'published' && !parsed.success) {
       return {
         status: 'error',
         message: '필수 내용을 채운 뒤 공개해 주세요.',
-        fieldErrors: validated.error.flatten().fieldErrors,
+        fieldErrors: parsed.error.flatten().fieldErrors,
       };
+    }
     const publishedAt =
       status.data === 'published' ? (current.published_at ?? new Date().toISOString()) : null;
     const updatedAt = new Date().toISOString();
     const { error } = await supabase
       .from('posts')
-      .update({ status: status.data, published_at: publishedAt, updated_at: updatedAt })
+      .update({
+        status: status.data,
+        published_at: publishedAt,
+        updated_at: updatedAt,
+      })
       .eq('id', id.data);
     if (error) throw error;
+    refreshPublicPostCache(current.slug, current.slug);
     refreshPostPaths(current.slug);
     return {
       status: 'success',
@@ -153,7 +209,7 @@ export async function updatePostStatusAction(
       updatedAt,
     };
   } catch (error) {
-    if (!(error instanceof OwnerAuthorizationError)) console.error('Update post status failed');
+    logFailure('Update status', error);
     return failure(error);
   }
 }
@@ -175,10 +231,11 @@ export async function deletePostAction(
       .select('slug')
       .single();
     if (error) throw error;
+    refreshPublicPostCache(data.slug);
     refreshPostPaths(data.slug);
     return { status: 'success', message: '글을 삭제했습니다.' };
   } catch (error) {
-    if (!(error instanceof OwnerAuthorizationError)) console.error('Delete post failed', error);
+    logFailure('Delete', error);
     return failure(error);
   }
 }

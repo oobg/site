@@ -1,12 +1,17 @@
 import { notFound } from 'next/navigation';
 import { Container } from '@components/layout/Container';
 import { AccessPanel } from '@features/admin/components/AccessPanel';
-import { AdminBackLink } from '@features/admin/components/AdminBackLink';
 import { AdminFrame } from '@features/admin/components/AdminFrame';
+import { AdminEditorWorkspace } from '@features/admin/components/AdminEditorWorkspace';
 import { LoginPanel } from '@features/admin/components/LoginPanel';
 import { PostEditor } from '@features/admin/components/PostEditor';
+import { DeletePostButton } from '@features/admin/components/DeletePostButton';
 import { updatePostAction } from '@features/admin/services/posts.actions';
-import { getAdminPost } from '@features/admin/services/posts.admin';
+import {
+  getAdminPost,
+  listAdminCategories,
+  listAdminPosts,
+} from '@features/admin/services/posts.admin';
 import { getOwnerAccess } from '@lib/auth/owner';
 
 export const metadata = { title: '글 수정' };
@@ -37,29 +42,45 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
   }
 
   const { id } = await params;
-  const post = await getAdminPost(id);
+  const [post, categories, posts] = await Promise.all([
+    getAdminPost(id),
+    listAdminCategories(),
+    listAdminPosts(),
+  ]);
   if (!post) notFound();
 
   return (
-    <Container>
-      <AdminFrame
-        title="글 수정"
-        description={`마지막 수정 ${new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(post.updated_at))}`}
-        userEmail={access.email ?? undefined}
-        actions={<AdminBackLink />}
-      >
-        <PostEditor
-          action={updatePostAction}
-          post={{
-            id: post.id,
-            title: post.title,
-            slug: post.slug,
-            description: post.description,
-            body: post.body,
-            status: post.status,
-          }}
-        />
-      </AdminFrame>
-    </Container>
+    <AdminEditorWorkspace posts={posts} categories={categories} selectedId={post.id}>
+      <div>
+        <AdminFrame
+          compact
+          title="글 수정"
+          description={`마지막 수정 ${new Intl.DateTimeFormat('ko-KR', { dateStyle: 'long', timeStyle: 'short' }).format(new Date(post.updated_at))}`}
+          userEmail={access.email ?? undefined}
+        >
+          <PostEditor
+            key={post.id}
+            action={updatePostAction}
+            post={{
+              id: post.id,
+              title: post.title,
+              slug: post.slug,
+              description: post.description,
+              body: post.body,
+              status: post.status,
+              category_id: post.category_id,
+              tags: post.tags,
+              cover_image_key: post.cover_image_key,
+              cover_image_url: post.cover_image_url,
+              cover_position_x: post.cover_position_x,
+              cover_position_y: post.cover_position_y,
+              cover_alt: post.cover_alt,
+            }}
+            categories={categories}
+          />
+          <DeletePostButton id={post.id} />
+        </AdminFrame>
+      </div>
+    </AdminEditorWorkspace>
   );
 }

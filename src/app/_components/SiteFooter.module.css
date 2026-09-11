@@ -1,8 +1,7 @@
-/* 사이트의 명제는 홈 히어로가 정본이다. 푸터는 "여기가 어디이고 어디로 갈 수 있나"만 맡는다.
-   면을 깔지 않고 hairline 하나로 끊는다 — 푸터에 배경을 주면 페이지가 거기서 잘린다. */
+/* 면을 깔지 않고 hairline 하나로 본문과 구분한다. */
 .footer {
-  margin-top: var(--space-8);
-  padding-block: var(--space-7) var(--space-6);
+  margin-top: var(--space-6);
+  padding-block: var(--space-4) var(--space-3);
   border-top: 1px solid var(--color-border);
 }
 
@@ -10,18 +9,27 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-  gap: var(--space-7) var(--space-8);
+  gap: var(--space-3) var(--space-7);
 }
 
-/* 진입 인트로가 이 글자를 헤더로 넘기는 안무와 짝을 맞춘다. */
 .wordmark {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
   font-size: var(--fs-20);
   font-weight: var(--fw-title);
   letter-spacing: var(--ls-title);
+  transition:
+    color var(--dur) linear,
+    transform var(--dur) var(--ease);
+}
+
+.wordmark:active {
+  transform: scale(0.96);
 }
 
 .tagline {
-  margin-top: var(--space-2);
+  margin-top: 0;
   font-size: var(--fs-15);
   line-height: var(--lh-lead);
   color: var(--color-text-muted);
@@ -29,18 +37,22 @@
 
 .columns {
   display: flex;
-  gap: var(--space-8);
+  align-items: center;
+  gap: var(--space-6);
 }
 
 .column {
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  gap: var(--space-2);
+  display: grid;
+  grid-template-columns: auto repeat(2, auto);
+  align-items: center;
+  gap: 0 var(--space-4);
   font-size: var(--fs-15);
 }
 
 .column a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   color: var(--color-text-secondary);
   transition: color var(--dur) var(--ease);
 }
@@ -50,7 +62,7 @@
 }
 
 .colLabel {
-  margin-bottom: var(--space-2);
+  margin-right: var(--space-1);
 }
 
 /* 하단 줄은 편집기 하단의 상태줄에 가깝게 둔다 — 형태를 베끼는 게 아니라
@@ -60,17 +72,40 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: var(--space-3) var(--space-5);
-  margin-top: var(--space-8);
-  padding-top: var(--space-4);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
   font-family: var(--font-mono), monospace;
   font-size: var(--fs-12);
   letter-spacing: 0.05em;
   color: var(--color-text-muted);
 }
+.bottom a:hover {
+  color: var(--color-accent);
+}
 
 @media (max-width: 640px) {
+  .top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+  }
+
   .columns {
-    gap: var(--space-7);
+    gap: var(--space-4);
+  }
+
+  .column {
+    grid-template-columns: repeat(2, auto);
+    justify-content: start;
+    gap: 0 var(--space-4);
+  }
+
+  .colLabel {
+    grid-column: 1 / -1;
+    min-height: 28px;
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
   }
 }

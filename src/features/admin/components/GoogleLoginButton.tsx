@@ -14,7 +14,7 @@ import styles from './GoogleLoginButton.module.css';
 
 type Status = 'loading' | 'ready' | 'signing-in' | 'error' | 'not-configured';
 
-export function GoogleLoginButton() {
+export function GoogleLoginButton({ onSuccess }: { onSuccess?: () => void } = {}) {
   const router = useRouter();
   const hostRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<Status>('loading');
@@ -68,7 +68,10 @@ export function GoogleLoginButton() {
                 nonce,
               });
               if (error) throw error;
-              if (active) router.refresh();
+              if (active) {
+                onSuccess?.();
+                router.refresh();
+              }
             } catch {
               if (!active) return;
               setStatus('error');
@@ -101,7 +104,7 @@ export function GoogleLoginButton() {
     return () => {
       active = false;
     };
-  }, [attempt, router]);
+  }, [attempt, onSuccess, router]);
 
   if (status === 'not-configured') {
     return (

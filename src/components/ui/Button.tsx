@@ -1,19 +1,23 @@
-import type { ReactNode } from 'react';
+import { forwardRef, type ButtonHTMLAttributes } from 'react';
 import styles from './Button.module.css';
 
-/** 상태를 바꾸는 동작용 버튼. 이동은 ArrowLink가 맡는다. */
-export function Button({
-  type = 'button',
-  onClick,
-  children,
-}: {
-  type?: 'button' | 'submit';
-  onClick?: () => void;
-  children: ReactNode;
-}) {
+export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
+  size?: 'sm' | 'md' | 'lg';
+};
+
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { type = 'button', variant = 'secondary', size = 'md', className, ...props },
+  ref,
+) {
   return (
-    <button type={type} className={styles.button} onClick={onClick}>
-      {children}
-    </button>
+    <button
+      ref={ref}
+      type={type}
+      data-variant={variant}
+      data-size={size}
+      className={[styles.button, className].filter(Boolean).join(' ')}
+      {...props}
+    />
   );
-}
+});

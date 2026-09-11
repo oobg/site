@@ -1,0 +1,113 @@
+.wrap {
+  min-width: 0;
+}
+.list {
+  border-top: 1px solid var(--color-border);
+  list-style: none;
+}
+.item {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+.item img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.item p {
+  margin-top: var(--space-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--color-text-secondary);
+  font-size: var(--fs-14);
+  line-height: var(--lh-body);
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+  font-size: var(--fs-13);
+}
+.meta span {
+  color: var(--color-text-muted);
+  font-family: var(--font-mono), monospace;
+}
+.meta em {
+  color: var(--color-callout-caution);
+  font-style: normal;
+}
+.item button,
+.error button {
+  min-height: 36px;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--d0-radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--fs-13);
+  cursor: pointer;
+}
+.actions {
+  display: flex;
+  gap: var(--space-2);
+}
+.actions button:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}
+.empty {
+  padding: var(--space-8);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+.error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  color: var(--color-callout-caution);
+}
+.loading {
+  display: grid;
+  gap: var(--space-3);
+}
+.loading span {
+  height: 72px;
+  border-radius: var(--d0-radius-sm);
+  background: var(--d0-grey-50);
+  animation: pulse var(--dur-skeleton) var(--d0-ease) infinite alternate;
+}
+@keyframes pulse {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@media (max-width: 640px) {
+  .item {
+    grid-template-columns: 36px minmax(0, 1fr);
+  }
+  .item img {
+    width: 36px;
+    height: 36px;
+  }
+  .actions {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading span {
+    animation: none;
+  }
+}

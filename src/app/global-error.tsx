@@ -2,11 +2,22 @@
 
 // 루트 레이아웃까지 무너진 경우라 html·body와 전역 스타일을 여기서 직접 세운다.
 import './globals.css';
+import { useEffect } from 'react';
 import { sans, mono } from '@styles/fonts';
 import { Button } from '@components/ui/Button';
 import { StatusScreen } from '@/app/_components/StatusScreen';
 
-export default function GlobalError({ reset }: { error: Error; reset: () => void }) {
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    console.error('Root rendering failed', { digest: error.digest });
+  }, [error]);
+
   return (
     <html lang="ko" className={`${sans.variable} ${mono.variable}`}>
       <body>

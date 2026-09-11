@@ -22,5 +22,8 @@ export async function apiGet<T>(path: string, options: ApiGetOptions = {}): Prom
   if (res.status === 404) notFound();
   if (!res.ok) throw new Error(`content api ${res.status} for ${path}`);
   const json = (await res.json()) as Envelope<T>;
+  if (!json || typeof json !== 'object' || !Object.prototype.hasOwnProperty.call(json, 'data')) {
+    throw new Error(`invalid content api response for ${path}`);
+  }
   return json.data;
 }

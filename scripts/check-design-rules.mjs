@@ -29,17 +29,27 @@ const findings = [];
 /* ── 1. 라우트 좌우 여백 ───────────────────────────────────────────────────
    Container를 직접 쓰거나, Container를 품은 것으로 확인된 컴포넌트에 위임해야 한다.
    이 목록이 곧 "좌우 여백을 책임지는 것들"의 정본이다. 새 래퍼를 만들면 여기 추가한다. */
-const PADDING_PROVIDERS = ['Container', 'StatusScreen', 'ArticleSkeleton'];
+const PADDING_PROVIDERS = [
+  'Container',
+  'StatusScreen',
+  'ArticleSkeleton',
+  'BlogArticleSkeleton',
+  'BlogArchiveSkeleton',
+  'BlogHomeContainer',
+  'BlogHomeSkeleton',
+  'BlogShell',
+  'AdminEditorLoading',
+  'AdminListLoading',
+];
 
-const routeFiles = globSync(
-  `${SRC}/app/**/{page,loading,not-found,error,global-error}.tsx`,
-);
+const routeFiles = globSync(`${SRC}/app/**/{page,loading,not-found,error,global-error}.tsx`);
 
 for (const file of routeFiles) {
   const source = readFileSync(file, 'utf8');
-  const ok = PADDING_PROVIDERS.some((name) =>
-    new RegExp(String.raw`<${name}[\s/>]`).test(source),
-  );
+  const redirects = /\bredirect\s*\(/.test(source);
+  const ok =
+    redirects ||
+    PADDING_PROVIDERS.some((name) => new RegExp(String.raw`<${name}[\s/>]`).test(source));
   if (!ok) {
     findings.push({
       file,
@@ -93,9 +103,7 @@ const tokensCss = readFileSync(`${SRC}/styles/tokens.css`, 'utf8');
 
 /* 기본 :root 블록만 읽는다. 뒤따르는 @media 오버라이드(reduced-motion의 --dur: 0ms 등)까지
    읽으면 마지막 값이 이겨 정상적인 재정의를 표류로 오인한다. */
-const baseRoot = tokensCss
-  .replace(/\/\*[\s\S]*?\*\//g, '')
-  .match(/:root\s*\{([\s\S]*?)\n\}/)?.[1];
+const baseRoot = tokensCss.replace(/\/\*[\s\S]*?\*\//g, '').match(/:root\s*\{([\s\S]*?)\n\}/)?.[1];
 
 if (!baseRoot) {
   findings.push({ file: `${SRC}/styles/tokens.css`, message: ':root 블록을 찾지 못했다' });
@@ -105,10 +113,7 @@ if (!baseRoot) {
   );
   const doc = readFileSync(DOC, 'utf8');
 
-  // 표의 `--토큰` | `값` 행만 본다.
-  for (const [, name, written] of doc.matchAll(
-    /^\|\s*`(--[\w-]+)`\s*\|\s*`([^`]+)`\s*\|/gm,
-  )) {
+  for (const [, name, written] of doc.matchAll(/^\|\s*`(--[\w-]+)`\s*\|\s*`([^`]+)`\s*\|/gm)) {
     const real = actual.get(name);
     if (real === undefined) {
       findings.push({ file: DOC, message: `${name} — tokens.css에 없는 토큰을 적고 있다` });
@@ -119,6 +124,27 @@ if (!baseRoot) {
       });
     }
   }
+
+  for (const [name, expected] of [
+    ['--d0-blue', '#3d7de5'],
+    ['--d0-radius-card', '14px'],
+    ['--d0-radius-control', '10px'],
+    ['--d0-radius-sm', '8px'],
+  ]) {
+    if (actual.get(name) !== expected) {
+      findings.push({
+        file: `${SRC}/styles/tokens.css`,
+        message: `${name}은 ${expected}여야 한다`,
+      });
+    }
+  }
+}
+
+/* 이전 Day0 초안의 블루가 다시 들어오지 않게 한다. 전환 중인 기존 화면도 대상이다. */
+for (const file of globSync(`${SRC}/**/*.{css,tsx}`)) {
+  if (/#3182f6|#1b64da/i.test(readFileSync(file, 'utf8'))) {
+    findings.push({ file, message: '폐기된 블루 대신 --d0-blue 계열 토큰을 쓴다' });
+  }
 }
 
 /* ── 보고 ─────────────────────────────────────────────────────────────── */
@@ -128,6 +154,4 @@ if (findings.length > 0) {
   process.exit(1);
 }
 
-console.log(
-  `디자인 규칙 위반 없음 (라우트 ${routeFiles.length}개 · 레이블 · 색 · SSOT 대조)`,
-);
+console.log(`디자인 규칙 위반 없음 (라우트 ${routeFiles.length}개 · 레이블 · 색 · SSOT 대조)`);

@@ -41,7 +41,8 @@ describe('GoogleLoginButton', () => {
   });
 
   it('Google에는 hashed nonce를 설정하고 Supabase에는 credential과 raw nonce를 전달한다', async () => {
-    render(<GoogleLoginButton />);
+    const onSuccess = vi.fn();
+    render(<GoogleLoginButton onSuccess={onSuccess} />);
 
     await waitFor(() => expect(initialize).toHaveBeenCalledOnce());
     const config = initialize.mock.calls[0]?.[0];
@@ -62,6 +63,7 @@ describe('GoogleLoginButton', () => {
       token: 'google-id-token',
       nonce: 'raw-nonce',
     });
+    expect(onSuccess).toHaveBeenCalledOnce();
     expect(refresh).toHaveBeenCalledOnce();
   });
 
@@ -81,8 +83,9 @@ describe('GoogleLoginButton', () => {
   });
 
   it('스크립트가 차단되면 오류와 접근 가능한 재시도 동작을 제공한다', async () => {
+    const onSuccess = vi.fn();
     loadGoogleIdentityScript.mockRejectedValueOnce(new Error('blocked'));
-    render(<GoogleLoginButton />);
+    render(<GoogleLoginButton onSuccess={onSuccess} />);
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Google 로그인을 불러오지 못했습니다.',
@@ -91,5 +94,7 @@ describe('GoogleLoginButton', () => {
 
     await waitFor(() => expect(loadGoogleIdentityScript).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(renderButton).toHaveBeenCalledOnce());
+    expect(onSuccess).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
   });
 });

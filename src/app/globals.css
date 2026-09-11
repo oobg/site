@@ -5,5 +5,6 @@
 @import '../styles/base.css';
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
+  scrollbar-gutter: stable;
 }

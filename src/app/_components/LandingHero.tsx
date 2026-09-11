@@ -86,10 +86,7 @@ export function LandingHero() {
     >
       <span className={styles.bloom} ref={bloomRef} aria-hidden />
       <div className={styles.copy}>
-        <p className={styles.eyebrow}>
-          <i aria-hidden />
-          raven.kr
-        </p>
+        <p className={styles.eyebrow}>raven.kr</p>
         {/* JSX가 줄바꿈 앞뒤 공백을 지워서 <br /> 양쪽 글자가 붙는다. 눈으로는 두 줄로
             보여도 접근성 이름은 "…화면까지혼자…"가 되어 한 덩어리로 읽힌다. */}
         <h1 className={styles.title}>
@@ -98,10 +95,12 @@ export function LandingHero() {
         </h1>
         <p className={styles.subtitle}>만들면서 남은 기록을 여기 둡니다.</p>
         <Link className={styles.enter} href={ROUTES.BLOG.LIST}>
-          쓴 글 보기 <span aria-hidden>→</span>
+          쓴 글 보기
         </Link>
       </div>
-      <RavenMark />
+      <div className={styles.visual}>
+        <RavenMark />
+      </div>
     </motion.section>
   );
 }

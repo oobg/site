@@ -5,26 +5,23 @@ import { ROUTES } from '@constants/routes';
 import { AccessPanel } from '@features/admin/components/AccessPanel';
 import { AdminFrame } from '@features/admin/components/AdminFrame';
 import { LoginPanel } from '@features/admin/components/LoginPanel';
-import { PostList } from '@features/admin/components/PostList';
-import { listAdminPosts } from '@features/admin/services/posts.admin';
+import { AdminWorkspace } from '@features/admin/components/AdminWorkspace';
+import { listAdminCategories, listAdminPosts } from '@features/admin/services/posts.admin';
 import { getOwnerAccess } from '@lib/auth/owner';
+import { getAuthMessage } from './authMessages';
 import styles from './admin.module.css';
 
 export const metadata = { title: '글 관리' };
 
-const authMessages: Record<string, string> = {
-  oauth: 'Google 로그인을 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-  'invalid-origin': '로그인 콜백 주소를 확인할 수 없습니다. SITE_URL 설정을 확인해 주세요.',
-  'not-configured': '관리자 로그인 환경 변수가 아직 설정되지 않았습니다.',
-};
-
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; view?: string }>;
 }) {
   const [access, query] = await Promise.all([getOwnerAccess(), searchParams]);
-  const authError = query.error ? authMessages[query.error] : undefined;
+  const authError = getAuthMessage(query.error);
+  const view =
+    query.view === 'settings' ? 'settings' : query.view === 'comments' ? 'comments' : 'posts';
 
   if (!access.configured || !access.authenticated) {
     return (
@@ -55,31 +52,26 @@ export default async function AdminPage({
     );
   }
 
-  const posts = await listAdminPosts();
+  const [posts, categories] = await Promise.all([listAdminPosts(), listAdminCategories()]);
   return (
-    <Container>
+    <div className={styles.page}>
       <AdminFrame
-        title="글 관리"
-        description={`${posts.length}개의 글이 있어요. 최근 수정한 순서로 표시합니다.`}
-        userEmail={access.email ?? undefined}
+        title={view === 'settings' ? '블로그 설정' : view === 'comments' ? '댓글 관리' : '글 관리'}
+        description={
+          view === 'settings'
+            ? '분류와 대표 글 노출 순서를 관리합니다.'
+            : view === 'comments'
+              ? '방문자가 남긴 댓글을 관리합니다.'
+              : `${posts.length}개의 글이 있어요.`
+        }
         actions={
           <Link className={styles.newLink} href={ROUTES.ADMIN.NEW_POST}>
             <Plus aria-hidden size={18} weight="bold" />새 글
           </Link>
         }
       >
-        <PostList
-          posts={posts.map((post) => ({
-            id: post.id,
-            title: post.title,
-            slug: post.slug,
-            status: post.status,
-            updatedAt: post.updated_at,
-            body: post.body,
-            coverImageUrl: post.cover_image_url,
-          }))}
-        />
+        <AdminWorkspace posts={posts} categories={categories} view={view} />
       </AdminFrame>
-    </Container>
+    </div>
   );
 }

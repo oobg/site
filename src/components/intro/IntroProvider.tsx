@@ -1,6 +1,13 @@
 'use client';
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useState,
+  type ReactNode,
+} from 'react';
 import { INTRO_ATTR, shouldPlayIntro } from './introState';
 
 export interface IntroContextValue {
@@ -33,7 +40,23 @@ function resolveInitial(): { playing: boolean; revealed: boolean } {
 
 export function IntroProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState(resolveInitial);
-  const finish = useCallback(() => setState({ playing: false, revealed: true }), []);
+  const finish = useCallback(() => {
+    document.documentElement.dataset[INTRO_ATTR] = 'shown';
+    setState({ playing: false, revealed: true });
+  }, []);
+
+  useLayoutEffect(() => {
+    const background = document.querySelector<HTMLElement>('[data-intro-background]');
+    if (!state.playing) {
+      document.documentElement.dataset[INTRO_ATTR] = 'shown';
+      if (background) background.inert = false;
+      return;
+    }
+    if (background) background.inert = true;
+    return () => {
+      if (background) background.inert = false;
+    };
+  }, [state.playing]);
   return (
     <IntroContext.Provider value={{ playing: state.playing, revealed: state.revealed, finish }}>
       {children}

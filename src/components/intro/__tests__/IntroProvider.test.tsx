@@ -57,6 +57,24 @@ describe('IntroProvider / useIntro', () => {
     });
     expect(screen.getByTestId('playing')).toHaveTextContent('false');
     expect(screen.getByTestId('revealed')).toHaveTextContent('true');
+    expect(document.documentElement.dataset.intro).toBe('shown');
+  });
+
+  it('재생 중에는 배경을 inert 처리하고 finish 뒤 해제한다', () => {
+    document.documentElement.dataset.intro = 'pending';
+    mockReducedMotion(false);
+    render(
+      <IntroProvider>
+        <div data-intro-background>
+          <button>background action</button>
+        </div>
+        <Probe />
+      </IntroProvider>,
+    );
+    const background = document.querySelector<HTMLElement>('[data-intro-background]');
+    expect(background?.inert).toBe(true);
+    act(() => screen.getByRole('button', { name: 'finish' }).click());
+    expect(background?.inert).toBe(false);
   });
 
   it('shown 상태면 재생하지 않고 즉시 공개한다', () => {
@@ -69,6 +87,19 @@ describe('IntroProvider / useIntro', () => {
     );
     expect(screen.getByTestId('playing')).toHaveTextContent('false');
     expect(screen.getByTestId('revealed')).toHaveTextContent('true');
+  });
+
+  it('reduced motion의 pending 상태는 즉시 shown으로 정리한다', () => {
+    document.documentElement.dataset.intro = 'pending';
+    mockReducedMotion(true);
+    render(
+      <IntroProvider>
+        <Probe />
+      </IntroProvider>,
+    );
+    expect(screen.getByTestId('playing')).toHaveTextContent('false');
+    expect(screen.getByTestId('revealed')).toHaveTextContent('true');
+    expect(document.documentElement.dataset.intro).toBe('shown');
   });
 
   it('provider 없이 useIntro는 revealed=true 기본값을 준다', () => {

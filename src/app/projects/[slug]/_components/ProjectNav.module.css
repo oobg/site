@@ -5,23 +5,23 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: var(--space-5);
-  margin-top: var(--section-gap);
+  margin-top: var(--space-9);
   padding-top: var(--space-5);
-  border-top: 1px solid var(--color-border);
-  font-size: var(--fs-16);
-  letter-spacing: var(--ls-body);
+  border-top: 1px solid var(--d0-grey-100);
+  font-size: var(--d0-text-control);
+  letter-spacing: var(--d0-tracking-body);
 }
 
 .nav a {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  color: var(--color-text-secondary);
-  transition: color var(--dur) linear;
+  color: var(--d0-grey-600);
+  transition: color var(--d0-dur-fast) var(--d0-ease);
 }
 
 .nav a:hover {
-  color: var(--color-text);
+  color: var(--d0-grey-900);
 }
 
 .next {
@@ -32,12 +32,12 @@
 
 .label {
   font-family: var(--font-mono), monospace;
-  font-size: var(--fs-12);
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
-  transition: color var(--dur) linear;
+  font-size: var(--d0-label);
+  letter-spacing: var(--d0-label-tracking);
+  color: var(--d0-grey-600);
+  transition: color var(--d0-dur-fast) var(--d0-ease);
 }
 
 .nav a:hover .label {
-  color: var(--color-accent);
+  color: var(--d0-blue-dark);
 }

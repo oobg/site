@@ -1,0 +1,128 @@
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.copy {
+  min-width: 0;
+}
+
+.eyebrow {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.eyebrow h2 {
+  margin: 0;
+  font-size: var(--fs-16);
+  line-height: var(--lh-dense);
+  white-space: nowrap;
+}
+
+.copy p {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--fs-13);
+  line-height: var(--lh-dense);
+}
+
+.banner[data-state='denied'] .eyebrow {
+  color: var(--color-callout-caution);
+}
+
+.actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.signOut {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font: inherit;
+  font-size: var(--fs-13);
+  cursor: pointer;
+}
+
+.signOut:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .banner {
+    align-items: stretch;
+    flex-direction: column;
+    padding: var(--space-4);
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .signOut {
+    justify-content: center;
+    width: 100%;
+  }
+}
+
+.banner[data-state='authorized'] {
+  min-height: 48px;
+  align-items: center;
+  flex-direction: row;
+  padding: var(--space-1) var(--space-5);
+}
+
+.banner[data-state='authorized'] .copy {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+}
+
+.banner[data-state='authorized'] .copy p {
+  margin: 0;
+}
+
+.banner[data-state='authorized'] .signOut {
+  width: 40px;
+  min-height: 40px;
+  justify-content: center;
+  padding: 0;
+}
+
+.banner[data-state='authorized'] .signOutLabel {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .banner[data-state='authorized'] {
+    padding-inline: var(--space-4);
+  }
+
+  .banner[data-state='authorized'] .copy {
+    min-width: 0;
+    gap: var(--space-2);
+  }
+
+  .banner[data-state='authorized'] .copy p {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

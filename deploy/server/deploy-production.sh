@@ -59,7 +59,7 @@ done
 [ "$(env_value SITE_URL "$ENV_FILE")" = "https://raven.kr" ] || die "SITE_URL=https://raven.kr가 필요합니다."
 [ "$(env_value R2_PUBLIC_URL "$ENV_FILE")" = "https://cdn.raven.kr" ] || die "R2_PUBLIC_URL=https://cdn.raven.kr가 필요합니다."
 
-required=(NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY NEXT_PUBLIC_GOOGLE_CLIENT_ID CMS_OWNER_EMAILS R2_ACCOUNT_ID R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET)
+required=(NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY SUPABASE_SERVICE_ROLE_KEY NEXT_PUBLIC_GOOGLE_CLIENT_ID CMS_OWNER_EMAILS R2_ACCOUNT_ID R2_ACCESS_KEY_ID R2_SECRET_ACCESS_KEY R2_BUCKET)
 missing=()
 for key in "${required[@]}"; do
   [ -n "$(env_value "$key" "$ENV_FILE")" ] || missing+=("$key")

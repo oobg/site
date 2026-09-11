@@ -2,9 +2,11 @@
    요약과 태그를 다 보여준다. */
 .row {
   position: relative;
-  padding: var(--space-5) var(--space-4);
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: var(--space-2) var(--space-6);
+  padding: var(--space-7) var(--space-4);
   border-bottom: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
 }
 
 /* hover는 광원이 그 행을 스치는 것이다 — 랜딩 목록과 같다. */
@@ -26,7 +28,9 @@
 }
 
 .title {
-  font-size: var(--fs-20);
+  grid-column: 2;
+  max-width: 25ch;
+  font-size: clamp(var(--fs-20), 3.2vw, var(--fs-30));
   letter-spacing: var(--ls-title);
   line-height: var(--lh-title);
   transition: color var(--dur) linear;
@@ -63,20 +67,48 @@
 }
 
 .summary {
-  max-width: 62ch;
-  margin-top: var(--space-2);
-  font-size: var(--fs-15);
+  grid-column: 2;
+  max-width: 58ch;
+  font-size: var(--fs-16);
   line-height: var(--lh-lead);
   color: var(--color-text-muted);
 }
 
 .meta {
+  grid-column: 1;
+  grid-row: 1 / span 2;
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2) var(--space-4);
-  margin-top: var(--space-3);
+  flex-direction: column;
+  gap: var(--space-3);
   font-family: var(--font-mono), monospace;
   font-size: var(--fs-13);
   font-variant-numeric: tabular-nums;
   color: var(--color-text-muted);
+}
+
+.tags {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+@media (max-width: 640px) {
+  .row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-3);
+    padding: var(--space-6) var(--space-3);
+  }
+
+  .title,
+  .summary,
+  .meta {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .meta,
+  .tags {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
 }

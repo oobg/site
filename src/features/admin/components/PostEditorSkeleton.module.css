@@ -1,0 +1,88 @@
+.skeleton input,
+.skeleton textarea,
+.line,
+.button,
+.tab,
+.tool,
+.settingRow,
+.cover {
+  color: transparent;
+  background: var(--d0-grey-50);
+  animation: pulse var(--dur-skeleton) var(--d0-ease) infinite alternate;
+}
+
+.skeleton textarea {
+  resize: none;
+}
+
+.line,
+.button,
+.tab,
+.tool,
+.settingRow,
+.cover {
+  display: block;
+  border-radius: var(--d0-radius-sm);
+}
+
+.line {
+  width: 8rem;
+  height: var(--d0-text-compact);
+}
+
+.button {
+  width: 5.5rem;
+  height: var(--d0-control-md);
+}
+
+.tab {
+  width: 3.5rem;
+  height: var(--d0-text-compact);
+  margin-bottom: var(--space-3);
+}
+
+.tool {
+  width: var(--d0-control-sm);
+  height: var(--d0-control-sm);
+}
+
+.heading {
+  width: 5rem;
+}
+
+.settingRow {
+  width: 100%;
+  height: var(--d0-control-md);
+}
+
+.cover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.details {
+  width: 8rem;
+  margin-top: var(--space-3);
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton input,
+  .skeleton textarea,
+  .line,
+  .button,
+  .tab,
+  .tool,
+  .settingRow,
+  .cover {
+    animation: none;
+  }
+}

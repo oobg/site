@@ -2,11 +2,12 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
-  padding-bottom: var(--space-6);
+  padding-block: var(--space-4) var(--space-6);
   border-bottom: 1px solid var(--color-border);
 }
 
 .chip {
+  min-height: 44px;
   padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -14,12 +15,17 @@
   color: var(--color-text-secondary);
   transition:
     border-color var(--dur) linear,
-    color var(--dur) linear;
+    color var(--dur) linear,
+    transform var(--dur) var(--ease);
 }
 
 .chip:hover {
   border-color: var(--color-border-strong);
   color: var(--color-text);
+}
+
+.chip:active {
+  transform: scale(0.96);
 }
 
 /* 고른 태그. 면을 칠하지 않고 액센트 보더와 글자색으로만 표시한다 —

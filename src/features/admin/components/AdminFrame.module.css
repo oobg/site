@@ -1,5 +1,41 @@
 .frame {
-  padding-block: var(--space-8) var(--space-9);
+  padding-block: var(--space-4) var(--space-8);
+}
+
+.frame[data-compact] {
+  position: relative;
+  padding-block: var(--space-4) var(--space-7);
+}
+
+.frame[data-compact] .header {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.frame[data-compact] .kicker {
+  display: none;
+}
+
+.frame[data-compact] .title {
+  font-size: 24px;
+}
+
+.frame[data-compact] .description {
+  display: none;
+}
+
+.frame[data-compact] .session {
+  position: absolute;
+  top: var(--space-4);
+  right: 0;
+  min-height: var(--d0-control-sm);
+}
+
+.frame[data-compact] .session > span {
+  display: none;
 }
 
 .header {
@@ -21,7 +57,7 @@
 
 .title {
   max-width: var(--w-reading);
-  font-size: var(--fs-40);
+  font-size: var(--fs-30);
   line-height: var(--lh-title);
   letter-spacing: var(--ls-title);
 }
@@ -62,13 +98,6 @@
   cursor: pointer;
 }
 
-.analyticsLink {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--color-text-secondary);
-}
-
 .signOut:hover {
   color: var(--color-text);
   background: var(--color-surface);
@@ -95,5 +124,30 @@
 
   .session {
     justify-content: space-between;
+  }
+
+  .frame[data-compact] {
+    padding-block: var(--space-3) var(--space-6);
+  }
+
+  .frame[data-compact] .header {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .frame[data-compact] .title {
+    font-size: 20px;
+  }
+
+  .frame[data-compact] .headerActions,
+  .frame[data-compact] .headerActions > * {
+    width: auto;
+  }
+
+  .frame[data-compact] .session {
+    top: var(--space-3);
   }
 }
