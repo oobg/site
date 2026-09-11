@@ -6,7 +6,8 @@ import { getRelatedPosts } from '@features/posts/utils/related';
 import { getAdjacentPosts } from '@features/posts/utils/series';
 import { renderMarkdown } from '@lib/markdown/render';
 import { computeReadingTime } from '@lib/markdown/reading-time';
-import { buildMetadata } from '@lib/metadata/metadata';
+import { buildArticleMetadata } from '@lib/metadata/metadata';
+import { buildBlogPostingStructuredData, serializeJsonLd } from '@lib/metadata/structured-data';
 import { normalizeRouteSlug } from '@lib/navigation/slug';
 import { env } from '@configs/env';
 import { ROUTES } from '@constants/routes';
@@ -17,14 +18,10 @@ import { ArticleAside } from '@/app/blog/[slug]/_components/ArticleAside';
 import { PostNav } from '@/app/blog/[slug]/_components/PostNav';
 import { ShareButtons } from '@/app/blog/[slug]/_components/ShareButtons';
 import { BlogShell } from '@/app/_components/BlogShell';
-import { BlogArticleDataSkeleton } from '@/app/_components/BlogLoadingSkeleton';
+import { BlogArticleLinksSkeleton } from '@/app/_components/BlogLoadingSkeleton';
 import { CommentsSection } from '@features/comments/components/CommentsSection';
 import { getCommentAvatarBaseUrl } from '@features/comments/utils/comment-avatar';
-import {
-  DEFAULT_POST_CATEGORY_SLUG,
-  type BlogCategoryWithCount,
-  type BlogPost,
-} from '@features/posts/types/posts.types';
+import { DEFAULT_POST_CATEGORY_SLUG, type BlogPost } from '@features/posts/types/posts.types';
 import styles from '@/app/blog/[slug]/article.module.css';
 
 export const dynamicParams = true;
@@ -54,52 +51,25 @@ export async function generateMetadata({
   params: Promise<{ category: string; slug: string }>;
 }): Promise<Metadata> {
   const { post } = await getCanonicalPost(params);
-  return buildMetadata({
+  return buildArticleMetadata({
     title: post.title,
     description: post.summary ?? undefined,
     path: ROUTES.BLOG.DETAIL(post.category.slug, post.slug),
+    publishedTime: post.published_at,
+    modifiedTime: post.updated_at,
   });
 }
 
-async function BlogPostContent({
-  post,
-  categories,
-  html,
-  toc,
-  avatarBaseUrl,
-}: {
-  post: BlogPost;
-  categories: BlogCategoryWithCount[];
-  html: string;
-  toc: Awaited<ReturnType<typeof renderMarkdown>>['toc'];
-  avatarBaseUrl?: string;
-}) {
-  const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);
-
+async function BlogPostLinks({ post }: { post: BlogPost }) {
   const all = await getPosts({ sort: '-published_at' });
   const { prev, next } = getAdjacentPosts(post, all);
   const related = getRelatedPosts(post, all, 3);
 
   return (
-    <BlogShell
-      categories={categories}
-      activeCategory={post.category.slug}
-      detailNavigation={<TableOfContents toc={toc} />}
-      mobileDetailNavigation={<TableOfContents toc={toc} defaultOpen={false} />}
-    >
-      <div className={styles.page}>
-        <article className={styles.main}>
-          <ArticleHeader post={post} readingMin={readingMin} />
-          <ArticleBody html={html} />
-          <div className={styles.shareRail} aria-label="글 공유">
-            <ShareButtons title={post.title} />
-          </div>
-        </article>
-        <CommentsSection key={post.slug} slug={post.slug} avatarBaseUrl={avatarBaseUrl} />
-        <ArticleAside related={related} />
-        <PostNav prev={prev} next={next} />
-      </div>
-    </BlogShell>
+    <>
+      <ArticleAside related={related} />
+      <PostNav prev={prev} next={next} />
+    </>
   );
 }
 
@@ -112,29 +82,40 @@ export default async function BlogPostPage({
   if (post.category.slug !== categoryKey) {
     permanentRedirect(ROUTES.BLOG.DETAIL(post.category.slug, post.slug));
   }
-  const categories = await getBlogCategories();
-  const { html, toc } = await renderMarkdown(post.body_markdown);
+  const [categories, { html, toc }] = await Promise.all([
+    getBlogCategories(),
+    renderMarkdown(post.body_markdown),
+  ]);
   const readingMin = post.reading_time_min ?? computeReadingTime(post.body_markdown);
   const avatarBaseUrl = getCommentAvatarBaseUrl(env);
+  const path = ROUTES.BLOG.DETAIL(post.category.slug, post.slug);
 
   return (
-    <Suspense
-      fallback={
-        <BlogArticleDataSkeleton
-          post={post}
-          categories={categories}
-          readingMin={readingMin}
-          toc={toc}
-        />
-      }
+    <BlogShell
+      categories={categories}
+      activeCategory={post.category.slug}
+      detailNavigation={<TableOfContents toc={toc} />}
+      mobileDetailNavigation={<TableOfContents toc={toc} defaultOpen={false} />}
     >
-      <BlogPostContent
-        post={post}
-        categories={categories}
-        html={html}
-        toc={toc}
-        avatarBaseUrl={avatarBaseUrl}
-      />
-    </Suspense>
+      <div className={styles.page}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: serializeJsonLd(buildBlogPostingStructuredData(post, path)),
+          }}
+        />
+        <article className={styles.main}>
+          <ArticleHeader post={post} readingMin={readingMin} />
+          <ArticleBody html={html} />
+          <div className={styles.shareRail} aria-label="글 공유">
+            <ShareButtons title={post.title} />
+          </div>
+        </article>
+        <CommentsSection key={post.slug} slug={post.slug} avatarBaseUrl={avatarBaseUrl} />
+        <Suspense fallback={<BlogArticleLinksSkeleton />}>
+          <BlogPostLinks post={post} />
+        </Suspense>
+      </div>
+    </BlogShell>
   );
 }

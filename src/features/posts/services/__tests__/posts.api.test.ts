@@ -40,6 +40,18 @@ describe('posts.api', () => {
     expect(posts[0].slug).toBe('rsc-우선-데이터-패칭');
   });
 
+  it('mock RSS 조회는 최신 공개 글의 상세 본문을 반환한다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'mock');
+    const { getPublishedBlogPostsForFeed } = await import('@features/posts/services/posts.api');
+    const posts = await getPublishedBlogPostsForFeed();
+
+    expect(posts.map((post) => post.slug)).toEqual([
+      'rsc-우선-데이터-패칭',
+      '가벼운-헥사고날로-nestjs-나누기',
+    ]);
+    expect(posts.every((post) => post.status === 'published' && post.body_markdown)).toBe(true);
+  });
+
   it('mock 상세 조회는 객체 프로토타입 이름을 글로 취급하지 않는다', async () => {
     vi.stubEnv('CONTENT_SOURCE', 'mock');
     const { getPost } = await import('@features/posts/services/posts.api');
@@ -260,6 +272,61 @@ describe('posts.api', () => {
       cover_alt: '대표 이미지',
       category: { slug: 'engineering' },
       body_markdown: '본문',
+    });
+  });
+
+  it('supabase RSS 조회는 published 상태와 최신순·20개 제한을 DB에 적용한다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'supabase');
+    const limit = vi.fn().mockResolvedValue({
+      data: [
+        {
+          title: '공개 글',
+          slug: 'public-post',
+          description: '요약',
+          body: '본문',
+          status: 'published',
+          published_at: '2026-09-01T00:00:00Z',
+          created_at: '2026-08-01T00:00:00Z',
+          updated_at: '2026-09-02T00:00:00Z',
+          tags: [],
+          cover_image_key: null,
+          cover_image_url: null,
+          cover_position_x: 0.5,
+          cover_position_y: 0.5,
+          cover_alt: null,
+          pin_order: null,
+          category: {
+            id: 'category',
+            slug: 'dev',
+            name: '개발',
+            sort_order: 1,
+            is_default: false,
+          },
+        },
+      ],
+      error: null,
+    });
+    const order = vi.fn(() => ({ order, limit }));
+    const statusEq = vi.fn(() => ({ order }));
+    const select = vi.fn(() => ({ eq: statusEq }));
+    const from = vi.fn(() => ({ select }));
+    vi.doMock('@lib/supabase/public', () => ({ createPublicClient: () => ({ from }) }));
+
+    const { getPublishedBlogPostsForFeed } = await import('@features/posts/services/posts.api');
+    const posts = await getPublishedBlogPostsForFeed();
+
+    expect(statusEq).toHaveBeenCalledWith('status', 'published');
+    expect(order).toHaveBeenNthCalledWith(1, 'published_at', {
+      ascending: false,
+      nullsFirst: false,
+    });
+    expect(order).toHaveBeenNthCalledWith(2, 'slug', { ascending: true });
+    expect(limit).toHaveBeenCalledWith(20);
+    expect(posts[0]).toMatchObject({
+      slug: 'public-post',
+      status: 'published',
+      body_markdown: '본문',
+      category: { slug: 'dev' },
     });
   });
 

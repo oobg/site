@@ -515,6 +515,54 @@ export function getBlogPost(slug: string): Promise<BlogPost> {
   return getBlogPostForRender(sourceIdentity, slug.normalize('NFC'));
 }
 
+const RSS_POST_LIMIT = 20;
+
+async function getPublishedBlogPostsForFeedUncached(): Promise<BlogPost[]> {
+  if (env.CONTENT_SOURCE === 'supabase') {
+    const supabase = createPublicClient();
+    const { data, error } = await supabase
+      .from('posts')
+      .select(`${PUBLIC_BLOG_POST_COLUMNS},body`)
+      .eq('status', 'published')
+      .order('published_at', { ascending: false, nullsFirst: false })
+      .order('slug', { ascending: true })
+      .limit(RSS_POST_LIMIT);
+    if (error) throw new Error(`RSS 공개 글을 불러오지 못했습니다: ${error.message}`);
+    return ((data ?? []) as unknown as (SupabaseBlogPostRow & { body: string })[]).map((row) => ({
+      ...toBlogPostSummary(row),
+      body_markdown: row.body,
+      frontmatter: {},
+    }));
+  }
+
+  const summaries = await fetchPosts({ sort: '-published_at', limit: RSS_POST_LIMIT });
+  return Promise.all(summaries.map((post) => getBlogPostUncached(post.slug)));
+}
+
+const getPublishedBlogPostsForFeedFromServerCache = unstable_cache(
+  (sourceIdentity: string) => {
+    void sourceIdentity;
+    return getPublishedBlogPostsForFeedUncached();
+  },
+  ['public-blog-rss-v1'],
+  { revalidate: 60, tags: ['posts'] },
+);
+
+const getPublishedBlogPostsForFeedCached = cache((sourceIdentity: string) =>
+  getPublishedBlogPostsForFeedFromServerCache(sourceIdentity),
+);
+
+/** 최신 공개 글의 본문까지 RSS용으로 읽는다. 목록과 같은 공개 상태·캐시 규칙을 쓴다. */
+export function getPublishedBlogPostsForFeed(): Promise<BlogPost[]> {
+  const sourceIdentity =
+    env.CONTENT_SOURCE === 'api'
+      ? `api:${env.CONTENT_API_BASE}`
+      : env.CONTENT_SOURCE === 'supabase'
+        ? `supabase:${process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''}`
+        : 'mock';
+  return getPublishedBlogPostsForFeedCached(sourceIdentity);
+}
+
 export async function findBlogPost(slug: string): Promise<BlogPost | null> {
   try {
     return await getBlogPost(slug);

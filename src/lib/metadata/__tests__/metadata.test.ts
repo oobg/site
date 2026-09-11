@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { buildMetadata } from '@lib/metadata/metadata';
+import { buildArticleMetadata, buildMetadata } from '@lib/metadata/metadata';
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -20,10 +20,28 @@ describe('buildMetadata', () => {
   it('canonical과 설명 fallback을 함께 만든다', () => {
     const meta = buildMetadata({ title: '제목', path: '/about' });
     expect(meta.description).toBe('생각을 다듬고 시스템으로 만드는 과정을 기록하는 공간.');
-    expect(meta.alternates).toEqual({ canonical: '/about' });
+    expect(meta.alternates).toMatchObject({
+      canonical: '/about',
+      types: { 'application/rss+xml': [{ url: '/rss.xml', title: 'raven.kr RSS' }] },
+    });
     expect((meta.openGraph as Record<string, unknown>).description).toBe(
       '생각을 다듬고 시스템으로 만드는 과정을 기록하는 공간.',
     );
+  });
+
+  it('게시글 OG를 article로 표시하고 발행·수정 시간을 유지한다', () => {
+    const meta = buildArticleMetadata({
+      title: '글제목',
+      description: '요약',
+      path: '/blog/dev/my-post',
+      publishedTime: '2026-09-01T00:00:00.000Z',
+      modifiedTime: '2026-09-02T00:00:00.000Z',
+    });
+    expect(meta.openGraph).toMatchObject({
+      type: 'article',
+      publishedTime: '2026-09-01T00:00:00.000Z',
+      modifiedTime: '2026-09-02T00:00:00.000Z',
+    });
   });
 });
 

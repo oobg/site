@@ -69,6 +69,28 @@
   gap: var(--space-2);
 }
 
+.articleLinks {
+  display: grid;
+  gap: var(--space-5);
+  width: 100%;
+  max-width: var(--w-reading);
+  margin: var(--space-8) auto 0;
+  padding-top: var(--space-7);
+  border-top: 1px solid var(--color-border);
+}
+
+.linkRows {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.navRows {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+}
+
 @media (max-width: 640px) {
   .featuredCopy {
     gap: var(--space-3);

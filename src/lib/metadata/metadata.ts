@@ -1,9 +1,5 @@
 import type { Metadata } from 'next';
-
-const SITE = {
-  name: 'raven.kr',
-  description: '생각을 다듬고 시스템으로 만드는 과정을 기록하는 공간.',
-};
+import { SITE } from '@constants/site';
 
 const DEFAULT_SITE_URL = 'https://raven.kr';
 
@@ -35,6 +31,11 @@ export const baseMetadata: Metadata = {
   metadataBase: siteUrl,
   title: { default: SITE.name, template: `%s · ${SITE.name}` },
   description: SITE.description,
+  alternates: {
+    types: {
+      'application/rss+xml': [{ url: '/rss.xml', title: `${SITE.name} RSS` }],
+    },
+  },
   openGraph: {
     type: 'website',
     siteName: SITE.name,
@@ -53,12 +54,34 @@ export function buildMetadata(input: {
   return {
     title: input.title,
     description: input.description ?? SITE.description,
-    alternates: input.path ? { canonical: input.path } : undefined,
+    alternates: {
+      ...baseMetadata.alternates,
+      canonical: input.path,
+    },
     openGraph: {
       ...baseOg,
       title: input.title,
       description: input.description ?? SITE.description,
       url: input.path,
+    },
+  };
+}
+
+export function buildArticleMetadata(input: {
+  title: string;
+  description?: string;
+  path: string;
+  publishedTime: string;
+  modifiedTime: string;
+}): Metadata {
+  const metadata = buildMetadata(input);
+  return {
+    ...metadata,
+    openGraph: {
+      ...(metadata.openGraph as Record<string, unknown>),
+      type: 'article',
+      publishedTime: input.publishedTime,
+      modifiedTime: input.modifiedTime,
     },
   };
 }
