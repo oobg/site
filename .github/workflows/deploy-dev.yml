@@ -120,7 +120,7 @@ jobs:
           trap cleanup EXIT
 
           test "$(tr -d '\r\n' < "$root/config/DEPLOY_TARGET")" = raven-dev
-          rm -f -- "$GITHUB_WORKSPACE/tsconfig.tsbuildinfo"
+          rm -f -- "$GITHUB_WORKSPACE/tsconfig.tsbuildinfo" "$GITHUB_WORKSPACE/next-env.d.ts"
           release_dir=$(mktemp -d "$root/bootstrap/workflow-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}-XXXXXX")
           chmod 700 "$release_dir"
           python3 deploy/server/dev-source.py prepare "$GITHUB_WORKSPACE" "$release_dir/app"
