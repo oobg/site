@@ -187,6 +187,54 @@ describe('renderMarkdown', () => {
       expect(html).not.toContain('<pre');
     });
 
+    it('파일명에서 안전한 아이콘 키를 고르고 장식 접근성을 보장한다', async () => {
+      const { html } = await renderMarkdown(
+        '```filetree\n' +
+          'project/\n' +
+          '├── Component.tsx\n' +
+          '├── view.jsx\n' +
+          '├── types.ts\n' +
+          '├── script.mjs\n' +
+          '├── guide.mdx\n' +
+          '├── theme.scss\n' +
+          '├── data.jsonc\n' +
+          '├── index.html\n' +
+          '├── icon.svg\n' +
+          '├── photo.webp\n' +
+          '├── Dockerfile\n' +
+          '├── vite.config.ts\n' +
+          '└── unknown.bin\n' +
+          '```',
+      );
+
+      for (const key of [
+        'folder',
+        'react',
+        'ts',
+        'js',
+        'md',
+        'css',
+        'json',
+        'html',
+        'svg',
+        'image',
+        'config',
+        'file',
+      ]) {
+        expect(html).toContain(`data-filetree-icon="${key}"`);
+        expect(html).toContain(`src="/assets/filetree-icons/${key}.png"`);
+      }
+
+      expect(html.match(/data-filetree-icon="/g)).toHaveLength(14);
+      expect(html).toMatch(
+        /<img data-filetree-icon="folder" src="\/assets\/filetree-icons\/folder\.png" alt="" aria-hidden="true">/,
+      );
+      expect(html).toContain(
+        '<figcaption data-code-head=""><span data-code-dots="" aria-hidden="true"><i></i><i></i><i></i></span><span data-code-lang="">파일 구조</span></figcaption>',
+      );
+      expect(html).not.toContain('data-code-copy');
+    });
+
     it.each(['filetree', 'tree', 'folder'])(
       '%s 펜스의 단일 named root도 전용 계층으로 렌더한다',
       async (lang) => {
@@ -255,6 +303,12 @@ describe('renderMarkdown', () => {
     expect(css).toMatch(/\.prose pre \{[\s\S]*?font-family: var\(--font-mono\)/);
     expect(css).toMatch(
       /\.prose figure\[data-filetree\] \{[\s\S]*?font-family: var\(--font-mono\)/,
+    );
+    expect(css).toMatch(
+      /\.prose figure\[data-code\] figcaption,[\s\S]*?\.prose figure\[data-filetree\] figcaption/,
+    );
+    expect(css).toMatch(
+      /\.prose figure\[data-filetree\] img\[data-filetree-icon\] \{[\s\S]*?width: var\(--space-4\)[\s\S]*?height: var\(--space-4\)/,
     );
   });
 

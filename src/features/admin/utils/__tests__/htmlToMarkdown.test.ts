@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { htmlToMarkdown } from '@features/admin/utils/htmlToMarkdown';
+import { renderMarkdown } from '@lib/markdown/render';
 
 const root = (html: string) => {
   const element = document.createElement('div');
@@ -120,6 +121,19 @@ describe('htmlToMarkdown', () => {
     expect(markdown).toContain('└── name & notes.md');
     expect(markdown).not.toContain('폴더');
     expect(markdown).not.toContain('파일 구조');
+  });
+
+  it('round-trips rendered filetree decorations without serializing them', async () => {
+    const source = ['```filetree', 'project/', '└── src/', '    └── index.ts', '```'].join('\n');
+    const { html } = await renderMarkdown(source);
+
+    expect(html).toContain('data-filetree-icon="folder"');
+    expect(html).toContain('data-filetree-icon="ts"');
+    expect(html).toContain('alt="" aria-hidden="true"');
+    expect(html).toContain('data-code-dots="" aria-hidden="true"');
+    expect(html).toContain('data-code-lang="">파일 구조</span>');
+    expect(htmlToMarkdown(root(html))).toBe(source);
+    expect(htmlToMarkdown(root(html))).not.toContain('filetree-icons');
   });
 
   it('preserves unsupported pasted element text and rejects unsafe URLs', () => {

@@ -50,6 +50,18 @@ describe('PostList table', () => {
     expect(screen.getByText('2 / 2')).toBeInTheDocument();
   });
 
+  it('places the category chip above the title and slug', () => {
+    render(<PostList posts={[{ ...posts[0], categoryName: '디자인 시스템' }]} />);
+
+    const title = screen.getByRole('link', { name: '글 00' });
+    const content = title.closest('div');
+    expect(content?.children).toHaveLength(3);
+    expect(content?.children[0]).toHaveTextContent('디자인 시스템');
+    expect(content?.children[1]).toHaveTextContent('글 00');
+    expect(content?.children[2]).toHaveTextContent('/post-0');
+    expect(screen.queryByRole('columnheader', { name: '카테고리' })).not.toBeInTheDocument();
+  });
+
   it('sorts from the column headers in both directions and removes the sort select', () => {
     render(
       <PostList

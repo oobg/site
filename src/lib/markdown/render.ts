@@ -64,6 +64,129 @@ type FileTreeEntry = {
   children: FileTreeEntry[];
 };
 
+type FileTreeIconKey =
+  | 'folder'
+  | 'react'
+  | 'ts'
+  | 'js'
+  | 'md'
+  | 'css'
+  | 'json'
+  | 'html'
+  | 'svg'
+  | 'image'
+  | 'config'
+  | 'file';
+
+const CSS_FILE_EXTENSIONS = new Set([
+  '.css',
+  '.less',
+  '.pcss',
+  '.postcss',
+  '.sass',
+  '.scss',
+  '.styl',
+  '.stylus',
+]);
+const JSON_FILE_EXTENSIONS = new Set(['.json', '.json5', '.jsonc', '.jsonl', '.ndjson']);
+const HTML_FILE_EXTENSIONS = new Set(['.astro', '.htm', '.html', '.shtml', '.xht', '.xhtml']);
+const IMAGE_FILE_EXTENSIONS = new Set([
+  '.avif',
+  '.bmp',
+  '.gif',
+  '.heic',
+  '.heif',
+  '.ico',
+  '.jpeg',
+  '.jpg',
+  '.png',
+  '.tif',
+  '.tiff',
+  '.webp',
+]);
+const CONFIGURATION_FILE_EXTENSIONS = new Set([
+  '.cfg',
+  '.conf',
+  '.config',
+  '.env',
+  '.hcl',
+  '.ini',
+  '.plist',
+  '.properties',
+  '.toml',
+  '.xml',
+  '.yaml',
+  '.yml',
+]);
+const CONFIGURATION_FILE_NAMES = new Set([
+  '.dockerignore',
+  '.editorconfig',
+  '.eslintignore',
+  '.gitattributes',
+  '.gitconfig',
+  '.gitignore',
+  '.gitmodules',
+  '.npmignore',
+  '.npmrc',
+  '.nvmrc',
+  '.prettierignore',
+  '.prettierrc',
+  '.stylelintignore',
+  '.stylelintrc',
+  '.yarnrc',
+  'dockerfile',
+  'gemfile',
+  'makefile',
+  'procfile',
+  'rakefile',
+  'vagrantfile',
+]);
+
+function fileTreeIconKey(name: string, kind: FileTreeEntry['kind']): FileTreeIconKey {
+  if (kind === 'folder') return 'folder';
+
+  // Only the derived key is used in the URL. The literal entry name never becomes a path.
+  const filename = name.endsWith('/') ? name.slice(0, -1) : name;
+  const basename = filename.split('/').at(-1)?.toLowerCase() ?? '';
+  if (
+    CONFIGURATION_FILE_NAMES.has(basename) ||
+    basename.startsWith('dockerfile.') ||
+    /^\.env(?:[._-]|$)/.test(basename) ||
+    /(?:^|[._-])(?:config|rc)(?:[._-]|$)/.test(basename)
+  ) {
+    return 'config';
+  }
+
+  const extensionAt = basename.lastIndexOf('.');
+  const extension = extensionAt === -1 ? '' : basename.slice(extensionAt);
+  if (extension === '.tsx' || extension === '.jsx') return 'react';
+  if (extension === '.ts') return 'ts';
+  if (extension === '.js' || extension === '.mjs' || extension === '.cjs') return 'js';
+  if (extension === '.md' || extension === '.mdx') return 'md';
+  if (CSS_FILE_EXTENSIONS.has(extension)) return 'css';
+  if (JSON_FILE_EXTENSIONS.has(extension)) return 'json';
+  if (HTML_FILE_EXTENSIONS.has(extension)) return 'html';
+  if (extension === '.svg' || extension === '.svgz') return 'svg';
+  if (IMAGE_FILE_EXTENSIONS.has(extension)) return 'image';
+  if (CONFIGURATION_FILE_EXTENSIONS.has(extension)) return 'config';
+  return 'file';
+}
+
+function fileTreeIcon(entry: FileTreeEntry): Element {
+  const key = fileTreeIconKey(entry.name, entry.kind);
+  return {
+    type: 'element',
+    tagName: 'img',
+    properties: {
+      'data-filetree-icon': key,
+      src: `/assets/filetree-icons/${key}.png`,
+      alt: '',
+      'aria-hidden': 'true',
+    },
+    children: [],
+  };
+}
+
 /**
  * 터미널의 tree 출력처럼 생긴 코드펜스만 구조로 바꾼다.
  *
@@ -139,6 +262,7 @@ function fileTreeList(entries: FileTreeEntry[], root = false): Element {
         'aria-label': `${entry.name}, ${entry.kind === 'folder' ? '폴더' : '파일'}`,
       },
       children: [
+        fileTreeIcon(entry),
         {
           type: 'element',
           tagName: 'span',
@@ -174,15 +298,7 @@ function fileTreeBlocks() {
         type: 'element',
         tagName: 'figure',
         properties: { 'data-filetree': '' },
-        children: [
-          {
-            type: 'element',
-            tagName: 'figcaption',
-            properties: {},
-            children: [{ type: 'text', value: '파일 구조' }],
-          },
-          fileTreeList(entries, true),
-        ],
+        children: [appleWindowHeader('파일 구조'), fileTreeList(entries, true)],
       };
       return 'skip';
     });
@@ -255,6 +371,37 @@ function copyButton(): Element {
         properties: { 'data-code-copy-status': '', 'aria-live': 'polite' },
         children: [{ type: 'text', value: '코드 복사' }],
       },
+    ],
+  };
+}
+
+function windowDots(): Element {
+  return {
+    type: 'element',
+    tagName: 'span',
+    properties: { 'data-code-dots': '', 'aria-hidden': 'true' },
+    children: [
+      { type: 'element', tagName: 'i', properties: {}, children: [] },
+      { type: 'element', tagName: 'i', properties: {}, children: [] },
+      { type: 'element', tagName: 'i', properties: {}, children: [] },
+    ],
+  };
+}
+
+function appleWindowHeader(label: string, withCopyButton = false): Element {
+  return {
+    type: 'element',
+    tagName: 'figcaption',
+    properties: { 'data-code-head': '' },
+    children: [
+      windowDots(),
+      {
+        type: 'element',
+        tagName: 'span',
+        properties: { 'data-code-lang': '' },
+        children: label ? [{ type: 'text', value: label }] : [],
+      },
+      ...(withCopyButton ? [copyButton()] : []),
     ],
   };
 }
@@ -382,35 +529,11 @@ function frameCodeBlocks(langs: string[]) {
       if (node.tagName !== 'pre') return;
       if (!parent || index === null || index === undefined) return;
       const lang = langs[at++] ?? '';
-      const head: Element = {
-        type: 'element',
-        tagName: 'figcaption',
-        properties: { 'data-code-head': '' },
-        children: [
-          {
-            type: 'element',
-            tagName: 'span',
-            properties: { 'data-code-dots': '', 'aria-hidden': 'true' },
-            children: [
-              { type: 'element', tagName: 'i', properties: {}, children: [] },
-              { type: 'element', tagName: 'i', properties: {}, children: [] },
-              { type: 'element', tagName: 'i', properties: {}, children: [] },
-            ],
-          },
-          {
-            type: 'element',
-            tagName: 'span',
-            properties: { 'data-code-lang': '' },
-            children: lang ? [{ type: 'text', value: lang }] : [],
-          },
-          copyButton(),
-        ],
-      };
       parent.children[index] = {
         type: 'element',
         tagName: 'figure',
         properties: { 'data-code': '' },
-        children: [head, node],
+        children: [appleWindowHeader(lang, true), node],
       };
       return 'skip';
     });

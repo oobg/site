@@ -251,7 +251,6 @@ export function PostList({
                   </button>
                 </th>
                 <th>상태</th>
-                <th>카테고리</th>
                 <th aria-sort={ariaSort('createdAt')}>
                   <button
                     className={styles.sortButton}
@@ -300,14 +299,17 @@ export function PostList({
                     </div>
                   </td>
                   <td data-label="제목">
-                    <Link
-                      className={styles.title}
-                      href={ROUTES.ADMIN.POST(post.id)}
-                      onClick={rememberContext}
-                    >
-                      {post.title}
-                    </Link>
-                    <span className={styles.slug}>/{post.slug}</span>
+                    <div className={styles.content}>
+                      <span className={styles.category}>{post.categoryName ?? '미분류'}</span>
+                      <Link
+                        className={styles.title}
+                        href={ROUTES.ADMIN.POST(post.id)}
+                        onClick={rememberContext}
+                      >
+                        {post.title}
+                      </Link>
+                      <span className={styles.slug}>/{post.slug}</span>
+                    </div>
                   </td>
                   <td data-label="상태">
                     <select
@@ -323,7 +325,6 @@ export function PostList({
                       <option value="published">공개</option>
                     </select>
                   </td>
-                  <td data-label="카테고리">{post.categoryName ?? '미분류'}</td>
                   <td data-label="생성일">
                     <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
                   </td>
@@ -390,6 +391,7 @@ export function PostList({
               key={post.id}
             >
               <div className={styles.content}>
+                <span className={styles.category}>{post.categoryName ?? '미분류'}</span>
                 <Link
                   className={styles.title}
                   href={ROUTES.ADMIN.POST(post.id)}
@@ -404,7 +406,6 @@ export function PostList({
                 <span className={post.status === 'published' ? styles.published : styles.draft}>
                   {post.status === 'published' ? '공개' : '초안'}
                 </span>
-                <span className={styles.category}>{post.categoryName ?? '미분류'}</span>
                 <time data-label="생성일" dateTime={post.createdAt}>
                   {formatDate(post.createdAt)}
                 </time>

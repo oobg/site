@@ -202,7 +202,8 @@
 }
 
 /* macOS 창 문법은 헤더의 위치를 빠르게 알려 주고, 언어와 복사 버튼은 기능을 맡는다. */
-.prose figure[data-code] figcaption {
+.prose figure[data-code] figcaption,
+.prose figure[data-filetree] figcaption {
   display: flex;
   align-items: center;
   justify-content: flex-start;
@@ -211,27 +212,32 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.prose figure[data-code] span[data-code-dots] {
+.prose figure[data-code] span[data-code-dots],
+.prose figure[data-filetree] span[data-code-dots] {
   display: inline-flex;
   gap: 6px;
 }
 
-.prose figure[data-code] span[data-code-dots] i {
+.prose figure[data-code] span[data-code-dots] i,
+.prose figure[data-filetree] span[data-code-dots] i {
   width: 10px;
   height: 10px;
   border-radius: 50%;
   background: var(--color-window-close);
 }
 
-.prose figure[data-code] span[data-code-dots] i:nth-child(2) {
+.prose figure[data-code] span[data-code-dots] i:nth-child(2),
+.prose figure[data-filetree] span[data-code-dots] i:nth-child(2) {
   background: var(--color-window-minimize);
 }
 
-.prose figure[data-code] span[data-code-dots] i:nth-child(3) {
+.prose figure[data-code] span[data-code-dots] i:nth-child(3),
+.prose figure[data-filetree] span[data-code-dots] i:nth-child(3) {
   background: var(--color-window-expand);
 }
 
-.prose figure[data-code] figcaption span[data-code-lang] {
+.prose figure[data-code] figcaption span[data-code-lang],
+.prose figure[data-filetree] figcaption span[data-code-lang] {
   font-family: var(--font-mono), monospace;
   font-size: var(--fs-12);
   letter-spacing: 0.08em;
@@ -321,14 +327,6 @@
   line-height: var(--lh-dense);
 }
 
-.prose figure[data-filetree] figcaption {
-  padding: var(--space-3) var(--space-5);
-  border-bottom: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  font-size: var(--fs-12);
-  letter-spacing: 0.08em;
-}
-
 .prose figure[data-filetree] ul {
   margin: 0;
   padding: 0;
@@ -346,6 +344,17 @@
   padding: 0 0 0 var(--space-5);
   color: var(--color-text-secondary);
   white-space: nowrap;
+}
+
+.prose figure[data-filetree] img[data-filetree-icon] {
+  display: inline-block;
+  width: var(--space-4);
+  height: var(--space-4);
+  margin: 0 var(--space-2) 0 0;
+  border: 0;
+  border-radius: 0;
+  object-fit: contain;
+  vertical-align: -0.2em;
 }
 
 .prose figure[data-filetree] li::before {

@@ -22,7 +22,7 @@ const BLOCK_TAGS = new Set([
 
 const ignoredElement = (element: Element) =>
   element.matches(
-    'button[data-code-copy], [data-code-copy-status], [data-code-head], [data-code-dots], [data-callout-label]',
+    'button[data-code-copy], [data-code-copy-status], [data-code-head], [data-code-dots], [data-filetree-icon], [data-callout-label]',
   );
 
 const safeUrl = (value: string, image = false) => {
