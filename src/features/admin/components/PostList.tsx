@@ -22,6 +22,14 @@ export type AdminPostListItem = {
 };
 
 const PAGE_SIZE = 10;
+type SortKey = 'title' | 'createdAt' | 'updatedAt';
+type SortDirection = 'asc' | 'desc';
+
+const DEFAULT_SORT_DIRECTION: Record<SortKey, SortDirection> = {
+  title: 'asc',
+  createdAt: 'desc',
+  updatedAt: 'desc',
+};
 
 function withFreshOverride(post: AdminPostListItem, override?: Partial<AdminPostListItem>) {
   if (!override?.updatedAt || new Date(override.updatedAt) <= new Date(post.updatedAt)) return post;
@@ -49,9 +57,8 @@ export function PostList({
   const [query, setQuery] = useState('');
   const [status, setStatus] = useState<'all' | 'draft' | 'published'>('all');
   const [category, setCategory] = useState('');
-  const [sort, setSort] = useState<'created-desc' | 'created-asc' | 'updated-desc' | 'title-asc'>(
-    'created-desc',
-  );
+  const [sortKey, setSortKey] = useState<SortKey>('createdAt');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [page, setPage] = useState(1);
   const [pendingIds, setPendingIds] = useState<Set<string>>(() => new Set());
   const [message, setMessage] = useState('');
@@ -68,16 +75,32 @@ export function PostList({
               post.title.toLocaleLowerCase('ko').includes(query.trim().toLocaleLowerCase('ko'))),
         )
         .sort((a, b) => {
-          if (sort === 'title-asc') return a.title.localeCompare(b.title, 'ko');
-          const field = sort === 'updated-desc' ? 'updatedAt' : 'createdAt';
-          const direction = sort === 'created-asc' ? -1 : 1;
-          return direction * (new Date(b[field]).getTime() - new Date(a[field]).getTime());
+          const comparison =
+            sortKey === 'title'
+              ? a.title.localeCompare(b.title, 'ko')
+              : new Date(a[sortKey]).getTime() - new Date(b[sortKey]).getTime();
+          return sortDirection === 'asc' ? comparison : -comparison;
         }),
-    [category, overrides, posts, query, sort, status],
+    [category, overrides, posts, query, sortDirection, sortKey, status],
   );
   const totalPages = Math.max(1, Math.ceil(visiblePosts.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pagePosts = visiblePosts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  const changeSort = (nextSortKey: SortKey) => {
+    setSortDirection((currentDirection) =>
+      sortKey === nextSortKey
+        ? currentDirection === 'asc'
+          ? 'desc'
+          : 'asc'
+        : DEFAULT_SORT_DIRECTION[nextSortKey],
+    );
+    setSortKey(nextSortKey);
+    setPage(1);
+  };
+
+  const ariaSort = (key: SortKey) =>
+    sortKey === key ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none';
 
   useEffect(() => {
     try {
@@ -206,23 +229,6 @@ export function PostList({
           />
         </label>
       </div>
-      {!compact ? (
-        <label className={styles.sortControl}>
-          정렬
-          <select
-            value={sort}
-            onChange={(event) => {
-              setSort(event.target.value as typeof sort);
-              setPage(1);
-            }}
-          >
-            <option value="created-desc">최근 생성 순</option>
-            <option value="created-asc">오래된 생성 순</option>
-            <option value="updated-desc">최근 수정 순</option>
-            <option value="title-asc">제목 순</option>
-          </select>
-        </label>
-      ) : null}
       <p className={styles.feedback} aria-live="polite">
         {message}
       </p>
@@ -232,21 +238,44 @@ export function PostList({
             <thead>
               <tr>
                 <th>대표 이미지</th>
-                <th aria-sort={sort === 'title-asc' ? 'ascending' : 'none'}>제목</th>
+                <th aria-sort={ariaSort('title')}>
+                  <button
+                    className={styles.sortButton}
+                    type="button"
+                    onClick={() => changeSort('title')}
+                  >
+                    제목
+                    <span aria-hidden>
+                      {sortKey === 'title' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                    </span>
+                  </button>
+                </th>
                 <th>상태</th>
                 <th>카테고리</th>
-                <th
-                  aria-sort={
-                    sort === 'created-desc'
-                      ? 'descending'
-                      : sort === 'created-asc'
-                        ? 'ascending'
-                        : 'none'
-                  }
-                >
-                  생성일
+                <th aria-sort={ariaSort('createdAt')}>
+                  <button
+                    className={styles.sortButton}
+                    type="button"
+                    onClick={() => changeSort('createdAt')}
+                  >
+                    생성일
+                    <span aria-hidden>
+                      {sortKey === 'createdAt' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                    </span>
+                  </button>
                 </th>
-                <th aria-sort={sort === 'updated-desc' ? 'descending' : 'none'}>수정일</th>
+                <th aria-sort={ariaSort('updatedAt')}>
+                  <button
+                    className={styles.sortButton}
+                    type="button"
+                    onClick={() => changeSort('updatedAt')}
+                  >
+                    수정일
+                    <span aria-hidden>
+                      {sortKey === 'updatedAt' ? (sortDirection === 'asc' ? '↑' : '↓') : '↕'}
+                    </span>
+                  </button>
+                </th>
                 <th>
                   <span className={styles.visuallyHidden}>작업</span>
                 </th>
@@ -255,7 +284,7 @@ export function PostList({
             <tbody>
               {pagePosts.map((post) => (
                 <tr key={post.id}>
-                  <td>
+                  <td data-label="대표 이미지">
                     <div className={styles.thumbnail}>
                       {post.coverImageUrl ? (
                         <img
@@ -270,7 +299,7 @@ export function PostList({
                       <span aria-hidden>이미지 없음</span>
                     </div>
                   </td>
-                  <td>
+                  <td data-label="제목">
                     <Link
                       className={styles.title}
                       href={ROUTES.ADMIN.POST(post.id)}
@@ -280,7 +309,7 @@ export function PostList({
                     </Link>
                     <span className={styles.slug}>/{post.slug}</span>
                   </td>
-                  <td>
+                  <td data-label="상태">
                     <select
                       className={styles.statusSelect}
                       aria-label={`${post.title} 상태`}
@@ -294,14 +323,14 @@ export function PostList({
                       <option value="published">공개</option>
                     </select>
                   </td>
-                  <td>{post.categoryName ?? '미분류'}</td>
-                  <td>
+                  <td data-label="카테고리">{post.categoryName ?? '미분류'}</td>
+                  <td data-label="생성일">
                     <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>
                   </td>
-                  <td>
+                  <td data-label="수정일">
                     <time dateTime={post.updatedAt}>{formatDate(post.updatedAt)}</time>
                   </td>
-                  <td>
+                  <td data-label="작업">
                     <Link
                       className={styles.more}
                       href={ROUTES.ADMIN.POST(post.id)}

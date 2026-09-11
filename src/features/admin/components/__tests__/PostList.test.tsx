@@ -50,6 +50,80 @@ describe('PostList table', () => {
     expect(screen.getByText('2 / 2')).toBeInTheDocument();
   });
 
+  it('sorts from the column headers in both directions and removes the sort select', () => {
+    render(
+      <PostList
+        posts={[
+          {
+            ...posts[0],
+            id: 'charlie',
+            title: '다 제목',
+            createdAt: '2026-09-01',
+            updatedAt: '2026-09-03',
+          },
+          {
+            ...posts[1],
+            id: 'alpha',
+            title: '가 제목',
+            createdAt: '2026-09-03',
+            updatedAt: '2026-09-01',
+          },
+          {
+            ...posts[2],
+            id: 'bravo',
+            title: '나 제목',
+            createdAt: '2026-09-02',
+            updatedAt: '2026-09-02',
+          },
+        ]}
+      />,
+    );
+
+    const table = screen.getByRole('table', { name: '글 목록' });
+    const rowTitles = () =>
+      [...table.querySelectorAll('tbody tr > td:nth-child(2) a')].map((node) => node.textContent);
+    const titleHeader = screen.getByRole('columnheader', { name: /제목/ });
+    const createdHeader = screen.getByRole('columnheader', { name: /생성일/ });
+    const updatedHeader = screen.getByRole('columnheader', { name: /수정일/ });
+
+    expect(rowTitles()).toEqual(['가 제목', '나 제목', '다 제목']);
+    expect(createdHeader).toHaveAttribute('aria-sort', 'descending');
+    expect(titleHeader).toHaveAttribute('aria-sort', 'none');
+    expect(screen.queryByRole('combobox', { name: '정렬' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '제목' }));
+    expect(rowTitles()).toEqual(['가 제목', '나 제목', '다 제목']);
+    expect(titleHeader).toHaveAttribute('aria-sort', 'ascending');
+    fireEvent.click(screen.getByRole('button', { name: '제목' }));
+    expect(rowTitles()).toEqual(['다 제목', '나 제목', '가 제목']);
+    expect(titleHeader).toHaveAttribute('aria-sort', 'descending');
+
+    fireEvent.click(screen.getByRole('button', { name: '수정일' }));
+    expect(rowTitles()).toEqual(['다 제목', '나 제목', '가 제목']);
+    expect(updatedHeader).toHaveAttribute('aria-sort', 'descending');
+    fireEvent.click(screen.getByRole('button', { name: '수정일' }));
+    expect(rowTitles()).toEqual(['가 제목', '나 제목', '다 제목']);
+    expect(updatedHeader).toHaveAttribute('aria-sort', 'ascending');
+
+    fireEvent.click(screen.getByRole('button', { name: '생성일' }));
+    expect(rowTitles()).toEqual(['가 제목', '나 제목', '다 제목']);
+    expect(createdHeader).toHaveAttribute('aria-sort', 'descending');
+    fireEvent.click(screen.getByRole('button', { name: '생성일' }));
+    expect(rowTitles()).toEqual(['다 제목', '나 제목', '가 제목']);
+    expect(createdHeader).toHaveAttribute('aria-sort', 'ascending');
+  });
+
+  it('returns to the first page when a column sort changes', () => {
+    render(<PostList posts={posts} />);
+    fireEvent.click(screen.getByRole('button', { name: '다음' }));
+    expect(screen.getByText('2 / 2')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '제목' }));
+
+    expect(screen.getByText('1 / 2')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '글 00' })).toBeInTheDocument();
+  });
+
   it('centers cover thumbnails regardless of the saved cover position', () => {
     render(
       <PostList
