@@ -2,6 +2,7 @@ import './globals.css';
 import Script from 'next/script';
 import { sans, mono } from '@styles/fonts';
 import { AppProviders } from '@components/providers/AppProviders';
+import { ProductionGoogleAnalytics } from '@components/analytics/ProductionGoogleAnalytics';
 import { baseMetadata } from '@lib/metadata/metadata';
 import { SiteHeader } from '@/app/_components/SiteHeader';
 import { SiteFooter } from '@/app/_components/SiteFooter';
@@ -9,6 +10,11 @@ import { INTRO_STORAGE_KEY } from '@components/intro/introState';
 import styles from './layout.module.css';
 
 export const metadata = baseMetadata;
+
+const googleAnalyticsId =
+  process.env.NODE_ENV === 'production'
+    ? process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID?.trim()
+    : undefined;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -31,6 +37,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <SiteFooter />
         </AppProviders>
+        {googleAnalyticsId ? <ProductionGoogleAnalytics measurementId={googleAnalyticsId} /> : null}
       </body>
     </html>
   );

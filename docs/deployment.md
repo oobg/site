@@ -21,6 +21,7 @@
 - 새 production tunnel의 connector health와 공개 `/health`, `/`, `/blog`, `/about`, `/admin` 응답을 확인했다. 개인정보 제거 대상 문자열은 공개 응답에 없고 삭제한 author 이미지는 404다.
 - 로그인 뒤 새 글 화면이 build-time 환경에 고정되던 문제를 발견해 관리자 segment를 runtime 렌더링으로 바꾸고 재배포했다. production build의 prerender manifest에서 관리자 경로가 제외됨을 확인했다.
 - production 관리자에서 사용자가 draft 저장, 글 발행, 이미지 업로드를 확인했다. 실제 컨테이너 rollback 검증은 아직 남아 있다.
+- GA4는 production hostname에서만 태그를 로드하도록 운영 source archive에 선택 적용했다. 운영 archive에는 아직 Git HEAD에 없는 CMS·댓글·intro 변경이 있어, 저장소의 GA 변경은 그 운영 파일들을 덮지 않도록 배포 시 다시 병합해야 한다.
 - `dev.raven.kr`과 `cdn-dev.raven.kr` DNS는 아직 만들지 않았으며, dev 작업은 main acceptance 이후 진행한다.
 - 실제 개인 이메일, 계정명, key 값과 private secret path는 문서에 기록하지 않는다. 저장소 commit·push와 production workflow 실행은 하지 않았다.
 
@@ -89,7 +90,7 @@ GitHub Actions에는 앱 runtime secret을 주입하지 않는다. workflow가 �
 
 ## 환경변수 원칙
 
-`CONTENT_SOURCE=supabase`, `SITE_URL=https://raven.kr`, `R2_PUBLIC_URL=https://cdn.raven.kr`은 production script가 요구한다. `NEXT_PUBLIC_SUPABASE_URL`, publishable key, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, CMS owner allowlist, R2 credentials, bucket 이름은 OCI 호스트의 `.env.production`에서 읽는다. 세 `NEXT_PUBLIC_*` 값은 browser bundle에 들어가므로 Docker build argument로도 전달한다. Google client ID가 없으면 production CMS 배포를 중단하지만 기존 홈서버의 기본 `CONTENT_SOURCE=mock` 빌드는 빈 값으로 계속 동작한다. 실제 값은 이 저장소에 두지 않는다.
+`CONTENT_SOURCE=supabase`, `SITE_URL=https://raven.kr`, `R2_PUBLIC_URL=https://cdn.raven.kr`은 production script가 요구한다. `NEXT_PUBLIC_SUPABASE_URL`, publishable key, `NEXT_PUBLIC_GOOGLE_CLIENT_ID`, 선택적인 `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID`, CMS owner allowlist, R2 credentials, bucket 이름은 OCI 호스트의 `.env.production`에서 읽는다. 네 `NEXT_PUBLIC_*` 값은 browser bundle에 들어가므로 Docker build argument로도 전달한다. Google client ID가 없으면 production CMS 배포를 중단하지만 GA4 Measurement ID가 없거나 기존 홈서버의 기본 `CONTENT_SOURCE=mock` 빌드인 경우에는 analytics 없이 계속 동작한다. 실제 값은 이 저장소에 두지 않는다. GA4 태그는 `NODE_ENV=production`이고 Measurement ID가 있으며 브라우저 hostname이 `raven.kr`일 때만 로드한다. App Router 이동은 GA4 향상된 측정의 브라우저 히스토리 변경으로 수집하며 애플리케이션에서 별도 `page_view`를 보내지 않는다.
 
 ## 운영 전환 기록
 

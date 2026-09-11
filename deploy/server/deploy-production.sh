@@ -69,6 +69,10 @@ if [ "${#missing[@]}" -gt 0 ]; then
   printf 'missing required configuration: %s\n' "${missing[*]}" >&2
   exit 1
 fi
+if [ -n "$(env_value NEXT_PUBLIC_GOOGLE_ANALYTICS_ID "$ENV_FILE")" ]; then
+  printf '%s' "$(env_value NEXT_PUBLIC_GOOGLE_ANALYTICS_ID "$ENV_FILE")" | grep -qE '^G-[A-Z0-9]+$' \
+    || die "NEXT_PUBLIC_GOOGLE_ANALYTICS_ID는 GA4 Measurement ID 형식이어야 합니다."
+fi
 echo "  ok — production marker와 필수 설정 이름 확인 (값은 출력하지 않음)"
 
 log "2/6 이전 이미지 보존"

@@ -75,6 +75,8 @@ export default async function AdminPage({
             slug: post.slug,
             status: post.status,
             updatedAt: post.updated_at,
+            body: post.body,
+            coverImageUrl: post.cover_image_url,
           }))}
         />
       </AdminFrame>

@@ -5,6 +5,7 @@ export const ROUTES = {
   PROJECTS: { LIST: '/projects', DETAIL: (slug: string) => `/projects/${slug}` },
   ADMIN: {
     HOME: '/admin',
+    ANALYTICS: '/admin/analytics',
     NEW_POST: '/admin/posts/new',
     POST: (id: string) => `/admin/posts/${id}`,
   },

@@ -14,10 +14,12 @@ ARG CONTENT_SOURCE=mock
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ARG NEXT_PUBLIC_GOOGLE_ANALYTICS_ID
 ENV CONTENT_SOURCE=$CONTENT_SOURCE
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ENV NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=$NEXT_PUBLIC_GOOGLE_ANALYTICS_ID
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # 개인정보 이미지 제거 뒤 fresh checkout에는 public/ 자체가 없을 수 있다.
@@ -28,6 +30,10 @@ RUN mkdir -p public
 RUN if [ "$CONTENT_SOURCE" = "supabase" ]; then \
       test -n "$NEXT_PUBLIC_GOOGLE_CLIENT_ID" || \
         (echo "NEXT_PUBLIC_GOOGLE_CLIENT_ID is required for a Supabase CMS build" >&2; exit 1); \
+    fi
+RUN if [ -n "$NEXT_PUBLIC_GOOGLE_ANALYTICS_ID" ]; then \
+      printf '%s' "$NEXT_PUBLIC_GOOGLE_ANALYTICS_ID" | grep -qE '^G-[A-Z0-9]+$' || \
+        (echo "NEXT_PUBLIC_GOOGLE_ANALYTICS_ID must be a GA4 Measurement ID when set" >&2; exit 1); \
     fi
 # .next/cache를 캐시 마운트로 재활용 → next build가 콜드가 아닌 증분으로 동작
 RUN --mount=type=cache,id=next-cache,target=/app/.next/cache \

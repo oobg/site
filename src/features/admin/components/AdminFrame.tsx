@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { SignOut } from '@phosphor-icons/react/dist/ssr';
+import { ChartLine, SignOut } from '@phosphor-icons/react/dist/ssr';
 import { ROUTES } from '@constants/routes';
 import { signOutAction } from '@features/admin/services/auth.actions';
 import styles from './AdminFrame.module.css';
@@ -34,6 +34,10 @@ export function AdminFrame({
       </header>
       {userEmail ? (
         <div className={styles.session}>
+          <Link className={styles.analyticsLink} href={ROUTES.ADMIN.ANALYTICS}>
+            <ChartLine aria-hidden size={16} />
+            방문 통계
+          </Link>
           <span>{userEmail}</span>
           <form action={signOutAction}>
             <button className={styles.signOut} type="submit">

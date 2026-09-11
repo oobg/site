@@ -114,6 +114,50 @@ export async function updatePostAction(
   }
 }
 
+export async function updatePostStatusAction(
+  idValue: string,
+  statusValue: string,
+): Promise<PostActionState> {
+  const id = postIdSchema.safeParse(idValue);
+  const status = postInputSchema.shape.status.safeParse(statusValue);
+  if (!id.success || !status.success)
+    return { status: 'error', message: '올바르지 않은 상태입니다.' };
+  try {
+    await requireOwner();
+    const supabase = await createClient();
+    const { data: current, error: readError } = await supabase
+      .from('posts')
+      .select('title,slug,description,body,status,published_at')
+      .eq('id', id.data)
+      .single();
+    if (readError) throw readError;
+    const validated = postInputSchema.safeParse({ ...current, status: status.data });
+    if (status.data === 'published' && !validated.success)
+      return {
+        status: 'error',
+        message: '필수 내용을 채운 뒤 공개해 주세요.',
+        fieldErrors: validated.error.flatten().fieldErrors,
+      };
+    const publishedAt =
+      status.data === 'published' ? (current.published_at ?? new Date().toISOString()) : null;
+    const updatedAt = new Date().toISOString();
+    const { error } = await supabase
+      .from('posts')
+      .update({ status: status.data, published_at: publishedAt, updated_at: updatedAt })
+      .eq('id', id.data);
+    if (error) throw error;
+    refreshPostPaths(current.slug);
+    return {
+      status: 'success',
+      message: status.data === 'published' ? '글을 공개했어요.' : '글을 초안으로 바꿨어요.',
+      updatedAt,
+    };
+  } catch (error) {
+    if (!(error instanceof OwnerAuthorizationError)) console.error('Update post status failed');
+    return failure(error);
+  }
+}
+
 export async function deletePostAction(
   _previousState: PostActionState,
   formData: FormData,

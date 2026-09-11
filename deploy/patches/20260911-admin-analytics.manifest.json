@@ -1,0 +1,46 @@
+{
+  "baselineArchive": "20260911T011401Z-pre-admin-dashboard-table-source.tar.gz",
+  "baselineArchiveSha256": "394beabf1ae01dd5622c52279a7aa39357c164ed855fbc77984074fcbf348687",
+  "files": {
+    "src/constants/routes.ts": {
+      "beforeSha256": "f08cc25b8ce9afadec20c07be82f3616cb7813ea75dba13960b8a865649142fc",
+      "afterSha256": "87dc68d10d5e3b05b4b75eec79d7f46c37d4d44e76d6be5727cea931a0f552b6"
+    },
+    "src/features/admin/components/AdminShell.tsx": {
+      "beforeSha256": "205a621cdfa6cce41c6b71b94189a60e25835d4ecc01bc151b60d335518d00c5",
+      "afterSha256": "2340b4413f1cbc0208769a2dc3ccb5ed4a933fe971eaac5c63a70477df0e1ef3"
+    },
+    "src/app/admin/page.tsx": {
+      "beforeSha256": "13177c00c5164037176ce0c197a7920706bdc4997d8c6d355bd48d520e7fb92d",
+      "afterSha256": "3b1f94b8013eb3c37eb37298d8a815eb6d6f0e0c0acaf945c9122eacde616c06"
+    },
+    "src/app/admin/analytics/page.tsx": {
+      "beforeSha256": null,
+      "afterSha256": "06e7627a3bb2fa5d97e3e5a29e0ac1f22bc4a98f2b58ff1e56cee1cb6214f0dc"
+    },
+    "src/features/admin/services/posts.admin.ts": {
+      "beforeSha256": "407933bf6011236856580ff03063d8c7b7c566a1098ca55dc4787cfcce0050ce",
+      "afterSha256": "92a866ec6e0f95db77ce783a21cd5bd49548d1a03a245c96b482f30848fb9042"
+    },
+    "src/features/admin/components/AdminWorkspace.tsx": {
+      "beforeSha256": "bc7306a076a7e12007e99d6213ae4d04a1d0a0c6eb31978eb254eaab1e24fede",
+      "afterSha256": "f59a82c810a34e49260eb75ee20736ab2ce25db02b400e39861c2033238ad3dc"
+    },
+    "src/features/admin/components/PostList.tsx": {
+      "beforeSha256": "97313c13d637cacde48f3b4351b55cf332b8e8a7ec1abdf95fc49ba47272dc8d",
+      "afterSha256": "91d1a9cc89b5bb250e4d87f61103b579607baeff2fa55ed2a538ba51673fd73a"
+    },
+    "src/features/admin/components/PostList.module.css": {
+      "beforeSha256": "865d7010e35e62d49f0ccdf2b8e2ed30e1ba991572ed6499a4e902c0d59f4168",
+      "afterSha256": "4a61adc2cd547b044a6bbd018760faa83538857dff49cc3e672610e4739421ab"
+    },
+    "src/features/admin/services/posts.actions.ts": {
+      "beforeSha256": "0eff3238df55185eeaaa806e303ee019640290c797e496ed256d84be385646ad",
+      "afterSha256": "74eb1d1f6b5618f11f5f4112711cba06e4f63999c83e5af7ae4b25a8ddeb0462"
+    },
+    "src/features/admin/types/posts-admin.types.ts": {
+      "beforeSha256": "06328d926e70ee2ec5e381abcaec2195a07707e81cc6a78609ea7a10d2f3edd0",
+      "afterSha256": "dad708e1ca6e1dc7e121d3817f17cacb242b6244d9ddc0a64d0e7e314eb5e0bb"
+    }
+  }
+}

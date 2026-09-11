@@ -6,7 +6,8 @@ import type { AdminPost } from '@/features/admin/types/posts-admin.types';
 import { requireOwner } from '@lib/auth/owner';
 import { createClient } from '@lib/supabase/server';
 
-const columns = 'id,title,slug,description,body,status,published_at,created_at,updated_at';
+const columns =
+  'id,title,slug,description,body,status,published_at,created_at,updated_at,cover_image_url';
 
 export async function listAdminPosts(): Promise<AdminPost[]> {
   noStore();
