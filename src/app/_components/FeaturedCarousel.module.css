@@ -11,6 +11,7 @@
   align-items: center;
   gap: clamp(20px, 2.5vw, 32px);
   touch-action: pan-y;
+  animation: featured-slide-in 360ms var(--d0-ease);
 }
 .cover {
   aspect-ratio: 1.9;
@@ -29,13 +30,20 @@
 .copy:not([data-with-cover]) {
   grid-column: 1/-1;
 }
+.metaRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  min-height: 40px;
+}
 .category {
   color: var(--d0-blue-dark);
   font-size: 13px;
   font-weight: 600;
 }
 .copy h2 {
-  margin-top: var(--space-2);
+  margin-top: var(--space-3);
   font-size: clamp(24px, 2.3vw, 30px);
   line-height: var(--d0-leading-display);
   letter-spacing: var(--d0-tracking-display);
@@ -60,24 +68,25 @@
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-3);
-  margin-top: var(--space-3);
   color: var(--d0-grey-600);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
 .controls button {
   display: grid;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   place-items: center;
   border: 1px solid var(--d0-grey-200);
-  border-radius: var(--d0-radius-sm);
+  border-radius: 50%;
   background: var(--color-surface);
   color: var(--d0-grey-800);
   cursor: pointer;
 }
 .controls button:hover {
-  background: var(--d0-grey-50);
+  border-color: var(--d0-blue);
+  color: var(--d0-blue-dark);
+  background: var(--d0-blue-light);
 }
 .controls button:focus-visible {
   outline: 2px solid var(--d0-blue);
@@ -101,5 +110,23 @@
   }
   .copy time {
     margin-top: var(--space-4);
+  }
+}
+
+@keyframes featured-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide {
+    animation: none;
   }
 }

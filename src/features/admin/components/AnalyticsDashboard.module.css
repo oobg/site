@@ -1,18 +1,29 @@
-.dashboard {
-  margin-top: var(--space-8);
+.dashboard,
+.state {
+  margin-inline: clamp(var(--space-4), 3vw, var(--space-7));
 }
+
+.dashboard {
+  min-width: 0;
+  margin-top: var(--space-7);
+  margin-bottom: var(--space-9);
+}
+
 .heading {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--d0-grey-200);
 }
+
 .heading h2,
 .state h2 {
   font-size: var(--fs-28);
   letter-spacing: var(--ls-title);
 }
+
 .heading p,
 .panel p,
 .detail {
@@ -20,63 +31,80 @@
   color: var(--color-text-muted);
   font-size: var(--fs-13);
 }
+
 .heading > span {
   color: var(--color-text-secondary);
   font-family: var(--font-mono), monospace;
   font-size: var(--fs-12);
 }
+
 .metrics {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-border);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: var(--space-5);
+  border-block: 1px solid var(--d0-grey-200);
 }
+
 .metrics > div {
-  padding: var(--space-5);
-  background: var(--color-surface);
+  min-width: 0;
+  min-height: 116px;
+  padding: var(--space-5) var(--space-4);
 }
+
+.metrics > div + div {
+  border-left: 1px solid var(--d0-grey-200);
+}
+
 .metrics dt {
   color: var(--color-text-secondary);
   font-size: var(--fs-13);
 }
+
 .metrics dd {
   margin-top: var(--space-2);
+  color: var(--color-text);
+  font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--fs-30);
   font-weight: 700;
   letter-spacing: var(--ls-title);
+  font-variant-numeric: tabular-nums;
 }
+
 .grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--space-4);
-  margin-top: var(--space-4);
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, 1fr);
+  column-gap: var(--space-7);
+  margin-top: var(--space-7);
+  border-top: 1px solid var(--d0-grey-200);
 }
-.panel,
-.state {
-  padding: var(--space-5);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background: var(--color-surface);
+
+.panel {
+  min-width: 0;
+  padding-block: var(--space-6);
+  border-bottom: 1px solid var(--d0-grey-200);
 }
+
 .panel h3 {
-  font-size: var(--fs-16);
+  color: var(--color-text);
+  font-size: var(--fs-18);
 }
+
 .chart {
   width: 100%;
   height: 280px;
-  margin-top: var(--space-4);
+  margin-top: var(--space-5);
   font-size: var(--fs-12);
 }
+
 .wide {
   grid-column: 1 / -1;
 }
+
 .deviceList {
-  margin-top: var(--space-4);
+  margin-top: var(--space-5);
   list-style: none;
 }
+
 .deviceList li {
   display: flex;
   justify-content: space-between;
@@ -84,51 +112,188 @@
   border-bottom: 1px solid var(--color-border);
   color: var(--color-text-secondary);
 }
+
+.deviceList li:last-child {
+  border-bottom: 0;
+}
+
 .deviceList strong {
   color: var(--color-text);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
 }
+
 .tableWrap {
   overflow-x: auto;
-  margin-top: var(--space-3);
+  margin-top: var(--space-4);
 }
+
 .tableWrap table {
   width: 100%;
+  min-width: 36rem;
   border-collapse: collapse;
   font-size: var(--fs-13);
 }
+
 .tableWrap th,
 .tableWrap td {
   padding: var(--space-3);
-  border-bottom: 1px solid var(--color-border);
+  border-top: 1px solid var(--color-border);
   text-align: right;
 }
+
 .tableWrap th:first-child,
 .tableWrap td:first-child {
+  width: 64%;
   text-align: left;
 }
+
 .tableWrap td strong,
 .tableWrap td span {
   display: block;
 }
+
 .tableWrap td span {
   overflow: hidden;
   max-width: 34rem;
   color: var(--color-text-muted);
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--fs-12);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.tableWrap tbody tr:hover {
+  background: var(--d0-grey-50);
+}
+
 .state {
   margin-top: var(--space-7);
+  margin-bottom: var(--space-8);
+  padding-block: var(--space-6);
+  border-block: 1px solid var(--d0-grey-200);
 }
-@media (max-width: 760px) {
+
+@media (max-width: 960px) {
   .metrics {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .metrics > div:nth-child(3),
+  .metrics > div:nth-child(4) {
+    border-top: 1px solid var(--d0-grey-200);
+  }
+
   .grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+@media (max-width: 760px) {
+  .dashboard,
+  .state {
+    margin-inline: var(--space-4);
+  }
+
+  .dashboard {
+    margin-top: var(--space-6);
+  }
+
   .heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .metrics > div + div {
+    border-left: 0;
+  }
+
+  .metrics > div:nth-child(2) {
+    border-top: 1px solid var(--d0-grey-200);
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .panel {
+    padding-block: var(--space-5);
+  }
+
+  .chart {
+    height: 240px;
+  }
+}
+
+@media (max-width: 600px) {
+  .metrics > div {
+    min-height: 108px;
+    padding: var(--space-4);
+  }
+
+  .metrics dd {
+    font-size: var(--fs-20);
+  }
+
+  .tableWrap {
+    overflow: visible;
+  }
+
+  .tableWrap table {
+    min-width: 0;
+  }
+
+  .tableWrap thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .tableWrap tbody,
+  .tableWrap tr,
+  .tableWrap td {
+    display: block;
+  }
+
+  .tableWrap tr {
+    padding-block: var(--space-2);
+    border-top: 1px solid var(--d0-grey-300);
+  }
+
+  .tableWrap td,
+  .tableWrap td:first-child {
+    width: auto;
+    padding: var(--space-2) 0;
+    border-top: 0;
+    text-align: right;
+  }
+
+  .tableWrap td:first-child {
+    padding-bottom: var(--space-3);
+    text-align: left;
+  }
+
+  .tableWrap td:not(:first-child) {
+    display: grid;
+    grid-template-columns: minmax(90px, 0.45fr) minmax(0, 1fr);
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+
+  .tableWrap td:not(:first-child)::before {
+    content: attr(data-label);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: var(--d0-label);
+    text-align: left;
+  }
+
+  .tableWrap td span {
+    max-width: none;
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
 }

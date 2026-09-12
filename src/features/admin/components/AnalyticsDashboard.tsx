@@ -69,10 +69,9 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
   const { data } = result;
   const daily = data.daily.map((item) => ({ ...item, label: shortDate(item.date) }));
   return (
-    <section className={styles.dashboard} aria-labelledby="analytics-title">
+    <section className={styles.dashboard} aria-label="방문 통계 데이터">
       <div className={styles.heading}>
         <div>
-          <h2 id="analytics-title">방문 통계</h2>
           <p>raven.kr · GA4</p>
         </div>
         <span>최근 {data.range.days}일</span>
