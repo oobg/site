@@ -1,13 +1,10 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-
 import type { PostActionState } from '@/features/admin/types/posts-admin.types';
 import { postIdSchema, postInputSchema } from '@/features/admin/services/posts.schema';
-import { ROUTES } from '@constants/routes';
 import { OwnerAuthorizationError, requireOwner } from '@lib/auth/owner';
 import { createClient } from '@lib/supabase/server';
-import { invalidatePublicPostCache } from '@lib/cache/posts';
+import { refreshPostPaths, refreshPublicPostCache } from './posts.refresh';
 
 const valuesFrom = (formData: FormData) => ({
   title: formData.get('title'),
@@ -35,36 +32,6 @@ const logFailure = (operation: string, error: unknown) => {
     kind: error instanceof Error ? error.name : 'UnknownError',
   });
 };
-
-function refreshPostPaths(...slugs: (string | undefined)[]) {
-  const paths = new Set([
-    ROUTES.HOME,
-    ROUTES.BLOG.LIST,
-    ROUTES.ADMIN.HOME,
-    ...slugs.filter((slug): slug is string => Boolean(slug)).map(ROUTES.BLOG.DETAIL),
-  ]);
-
-  for (const path of paths) {
-    try {
-      revalidatePath(path);
-    } catch (error) {
-      console.error('Post cache revalidation failed', {
-        kind: error instanceof Error ? error.name : 'UnknownError',
-        path,
-      });
-    }
-  }
-}
-
-function refreshPublicPostCache(oldSlug?: string, newSlug?: string) {
-  try {
-    invalidatePublicPostCache({ oldSlug, newSlug });
-  } catch (error) {
-    console.error('Post data cache invalidation failed', {
-      kind: error instanceof Error ? error.name : 'UnknownError',
-    });
-  }
-}
 
 export async function createPostAction(
   _previousState: PostActionState,

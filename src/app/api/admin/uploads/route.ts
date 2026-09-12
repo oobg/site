@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-
-import { CmsConfigurationError, getAssetStorageConfig } from '@configs/cms-env';
+import { getAssetStorageConfig } from '@configs/cms-env';
 import { storeAsset } from '@lib/assets/storage';
-import { OwnerAuthorizationError, requireOwner } from '@lib/auth/owner';
+import { isAssetKey } from '@lib/assets/key';
+import { requireAdminApiAccess } from '@lib/auth/admin-api';
+import { AdminApiError, adminError, adminJson, readLimitedBody } from '@lib/api/admin-http';
 
 export const runtime = 'nodejs';
 
@@ -33,60 +33,72 @@ const imageTypes = {
 
 export async function POST(request: Request) {
   try {
-    const origin = request.headers.get('origin');
-    const expectedOrigin = process.env.SITE_URL?.replace(/\/$/, '') ?? new URL(request.url).origin;
-    if (!origin || origin !== expectedOrigin) {
-      return NextResponse.json({ error: '허용되지 않은 요청 출처입니다.' }, { status: 403 });
-    }
-
-    await requireOwner();
-    const declaredLength = Number(request.headers.get('content-length'));
-    if (Number.isFinite(declaredLength) && declaredLength > MAX_REQUEST_SIZE)
-      return NextResponse.json({ error: '요청 본문이 너무 큽니다.' }, { status: 413 });
+    await requireAdminApiAccess(request);
+    const body = await readLimitedBody(request, MAX_REQUEST_SIZE);
 
     let formData: FormData;
     try {
-      formData = await request.formData();
+      formData = await new Response(body, {
+        headers: { 'content-type': request.headers.get('content-type') ?? '' },
+      }).formData();
     } catch {
-      return NextResponse.json({ error: '요청 형식이 올바르지 않습니다.' }, { status: 400 });
+      throw new AdminApiError(400, 'INVALID_MULTIPART', '요청 형식이 올바르지 않습니다.');
     }
     const file = formData.get('file');
-    if (!(file instanceof File))
-      return NextResponse.json({ error: '이미지 파일이 필요합니다.' }, { status: 400 });
+    if (!file || typeof file === 'string')
+      throw new AdminApiError(400, 'FILE_REQUIRED', '이미지 파일이 필요합니다.');
     if (file.size === 0 || file.size > MAX_FILE_SIZE)
-      return NextResponse.json({ error: '이미지는 10MB 이하여야 합니다.' }, { status: 400 });
+      throw new AdminApiError(400, 'INVALID_FILE_SIZE', '이미지는 10MB 이하여야 합니다.');
 
     const imageType = imageTypes[file.type as keyof typeof imageTypes];
     if (!imageType)
-      return NextResponse.json(
-        { error: 'JPEG, PNG, GIF, WebP 이미지만 업로드할 수 있습니다.' },
-        { status: 415 },
+      throw new AdminApiError(
+        415,
+        'UNSUPPORTED_IMAGE',
+        'JPEG, PNG, GIF, WebP 이미지만 업로드할 수 있습니다.',
       );
     const bytes = new Uint8Array(await file.arrayBuffer());
     if (!imageType.matches(bytes))
-      return NextResponse.json(
-        { error: '파일 내용이 이미지 형식과 일치하지 않습니다.' },
-        { status: 415 },
-      );
+      throw new AdminApiError(415, 'INVALID_IMAGE', '파일 내용이 이미지 형식과 일치하지 않습니다.');
 
     const config = getAssetStorageConfig();
     const date = new Date().toISOString().slice(0, 10);
-    const path = `assets/posts/${date}/${crypto.randomUUID()}.${imageType.extension}`;
+    const explicitKey = formData.get('key');
+    if (
+      explicitKey !== null &&
+      (typeof explicitKey !== 'string' ||
+        !isAssetKey(explicitKey) ||
+        !explicitKey.endsWith(`.${imageType.extension}`))
+    )
+      throw new AdminApiError(
+        422,
+        'INVALID_ASSET_KEY',
+        '이미지 키 또는 확장자가 올바르지 않습니다.',
+      );
+    const path =
+      (explicitKey as string | null) ??
+      `assets/posts/${date}/${crypto.randomUUID()}.${imageType.extension}`;
     await storeAsset(config, { key: path, body: bytes, contentType: file.type });
 
     const markdownPath = `/${path}`;
-    return NextResponse.json(
+    return adminJson(
       { path: markdownPath, url: markdownPath, publicUrl: `${config.publicUrl}/${path}` },
-      { status: 201 },
+      201,
     );
   } catch (error) {
-    if (error instanceof OwnerAuthorizationError)
-      return NextResponse.json({ error: error.message }, { status: error.status });
-    if (error instanceof CmsConfigurationError)
-      return NextResponse.json({ error: error.message }, { status: 503 });
-    console.error('Asset upload failed', {
-      kind: error instanceof Error ? error.name : 'UnknownError',
-    });
-    return NextResponse.json({ error: '이미지를 업로드하지 못했습니다.' }, { status: 500 });
+    const storageError = error as {
+      code?: string;
+      name?: string;
+      $metadata?: { httpStatusCode?: number };
+    } | null;
+    if (
+      storageError?.code === 'EEXIST' ||
+      storageError?.name === 'PreconditionFailed' ||
+      [409, 412].includes(storageError?.$metadata?.httpStatusCode ?? 0)
+    )
+      return adminError(
+        new AdminApiError(409, 'ASSET_EXISTS', '같은 키의 이미지가 이미 있습니다.'),
+      );
+    return adminError(error);
   }
 }

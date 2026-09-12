@@ -4,6 +4,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { storeLocalAsset } from '@lib/assets/storage';
+import { isAssetKey } from '@lib/assets/key';
 
 const roots: string[] = [];
 
@@ -25,6 +26,25 @@ const object = {
 };
 
 describe('local asset storage', () => {
+  it('preserves descriptive filenames and rejects unsafe keys', async () => {
+    const root = await assetRoot();
+    const key = 'assets/posts/2026-09-10/design-system-00-v2.png';
+    await storeLocalAsset(root, { ...object, key });
+    expect(await readFile(path.join(root, key.slice('assets/'.length)))).toEqual(
+      Buffer.from(object.body),
+    );
+    for (const invalid of [
+      '/assets/posts/2026-09-10/a.png',
+      'assets/posts/2026-09-10/../a.png',
+      'assets/posts/2026-09-10/%2e%2e.png',
+      'assets/posts/2026-09-10/a.svg',
+      'assets/posts/2026-02-30/a.png',
+      'assets/posts/2026-09-10/a.png.exe',
+      'https://cdn.example/a.png',
+    ]) {
+      expect(isAssetKey(invalid)).toBe(false);
+    }
+  });
   it('maps /assets/posts URLs to the nginx alias root without a duplicate assets segment', async () => {
     const root = await assetRoot();
     await storeLocalAsset(root, object);

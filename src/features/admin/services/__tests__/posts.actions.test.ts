@@ -105,10 +105,7 @@ describe('post actions', () => {
       '/admin',
       '/blog/post-slug',
     ]);
-    expect(log).toHaveBeenCalledWith('Post cache revalidation failed', {
-      kind: 'Error',
-      path: '/',
-    });
+    expect(log).toHaveBeenCalledWith('Post cache revalidation failed');
     log.mockRestore();
   });
 

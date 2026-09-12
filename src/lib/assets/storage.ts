@@ -5,20 +5,13 @@ import { link, lstat, mkdir, realpath, unlink, writeFile } from 'node:fs/promise
 import path from 'node:path';
 
 import type { AssetStorageConfig } from '@configs/cms-env';
+import { assertAssetKey } from '@lib/assets/key';
 
 export type AssetObject = {
   key: string;
   body: Uint8Array;
   contentType: string;
 };
-
-const ASSET_KEY = /^assets\/posts\/\d{4}-\d{2}-\d{2}\/[0-9a-f-]+\.(?:jpg|png|gif|webp)$/;
-
-function assertAssetKey(key: string) {
-  if (!ASSET_KEY.test(key) || path.posix.normalize(key) !== key) {
-    throw new Error('Invalid asset key');
-  }
-}
 
 async function ensureDirectoryWithoutSymlinks(root: string, segments: string[]) {
   const rootStat = await lstat(root);
@@ -68,6 +61,7 @@ export async function storeLocalAsset(root: string, object: AssetObject) {
 }
 
 export async function storeAsset(config: AssetStorageConfig, object: AssetObject) {
+  assertAssetKey(object.key);
   if (config.backend === 'local') {
     await storeLocalAsset(config.root, object);
     return;
@@ -86,6 +80,7 @@ export async function storeAsset(config: AssetStorageConfig, object: AssetObject
         Body: object.body,
         ContentType: object.contentType,
         CacheControl: 'public, max-age=31536000, immutable',
+        IfNoneMatch: '*',
       }),
     );
   } finally {
