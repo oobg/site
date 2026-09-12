@@ -41,10 +41,17 @@ type PostDraft = {
   cover_alt?: string | null;
 };
 
-const errorMessage = (value: unknown) =>
-  typeof value === 'object' && value !== null && 'error' in value && typeof value.error === 'string'
-    ? value.error
+const errorMessage = (value: unknown) => {
+  if (typeof value !== 'object' || value === null || !('error' in value)) return null;
+  if (typeof value.error === 'string') return value.error;
+  const error = value.error;
+  return typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof error.message === 'string'
+    ? error.message
     : null;
+};
 
 const previewHtmlFrom = (value: unknown) =>
   typeof value === 'object' && value !== null && 'html' in value && typeof value.html === 'string'

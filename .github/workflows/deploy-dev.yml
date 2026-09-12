@@ -11,6 +11,11 @@ on:
         description: dev에 포함된 정확한 40자리 commit SHA
         required: true
         type: string
+      refresh_cdn:
+        description: dev CDN 컨테이너를 재생성해 이미지 캐시를 비움
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: deploy-dev
@@ -87,6 +92,53 @@ jobs:
           show_log lint "$lint_rc" "$logs/lint.log"
           test "$typecheck_rc" -eq 0 && test "$lint_rc" -eq 0
 
+      - name: dev Access 설정 반영
+        env:
+          CLOUDFLARE_ACCESS_TEAM_DOMAIN: ${{ vars.CLOUDFLARE_ACCESS_TEAM_DOMAIN }}
+          CLOUDFLARE_ACCESS_AUDIENCE: ${{ vars.CLOUDFLARE_ACCESS_AUDIENCE }}
+        run: |
+          set -euo pipefail
+          [ -n "${CLOUDFLARE_ACCESS_TEAM_DOMAIN:-}" ] || { echo '::error::missing repository variable: CLOUDFLARE_ACCESS_TEAM_DOMAIN'; exit 1; }
+          [ -n "${CLOUDFLARE_ACCESS_AUDIENCE:-}" ] || { echo '::error::missing repository variable: CLOUDFLARE_ACCESS_AUDIENCE'; exit 1; }
+          python3 - "$CLOUDFLARE_ACCESS_TEAM_DOMAIN" "$CLOUDFLARE_ACCESS_AUDIENCE" <<'PY'
+          from pathlib import Path
+          import os
+          import sys
+          import tempfile
+
+          path = Path("/srv/docker/raven-dev/config/.env.dev")
+          team_domain, audience = sys.argv[1:3]
+          updates = {
+              "CLOUDFLARE_ACCESS_TEAM_DOMAIN": team_domain,
+              "CLOUDFLARE_ACCESS_AUDIENCE": audience,
+          }
+          lines = path.read_text(encoding="utf-8").splitlines()
+          output = []
+          seen = set()
+          for line in lines:
+              key, separator, _ = line.partition("=")
+              if separator and key in updates:
+                  output.append(f"{key}={updates[key]}")
+                  seen.add(key)
+              else:
+                  output.append(line)
+          for key, value in updates.items():
+              if key not in seen:
+                  output.append(f"{key}={value}")
+          content = "\n".join(output) + "\n"
+          fd, temporary = tempfile.mkstemp(prefix=".env.dev.", dir=str(path.parent), text=True)
+          try:
+              with os.fdopen(fd, "w", encoding="utf-8") as handle:
+                  handle.write(content)
+              os.chmod(temporary, 0o600)
+              os.replace(temporary, path)
+          finally:
+              try:
+                  os.unlink(temporary)
+              except FileNotFoundError:
+                  pass
+          PY
+
       - name: 검증한 snapshot 배포
         env:
           TARGET_SHA: ${{ steps.target.outputs.sha }}
@@ -144,3 +196,7 @@ jobs:
           activated=0
           rm -rf -- "$backup"
           backup=''
+
+      - name: dev CDN 캐시 갱신
+        if: github.event_name == 'workflow_dispatch' && inputs.refresh_cdn
+        run: bash deploy/server/deploy-cdn-dev.sh
