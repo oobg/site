@@ -18,7 +18,7 @@ docker network inspect nginx-proxy-manager_default >/dev/null 2>&1 \
 
 docker compose -f "$COMPOSE_FILE" config --quiet
 docker compose -f "$COMPOSE_FILE" pull images
-docker compose -f "$COMPOSE_FILE" up -d --no-build images
+docker compose -f "$COMPOSE_FILE" up -d --no-build --force-recreate images
 
 deadline=$(( $(date +%s) + 90 ))
 state=""
