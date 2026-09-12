@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
 import { Dialog } from '@base-ui/react/dialog';
 import {
   Code,
@@ -153,13 +153,6 @@ export function PostEditor({
   useEffect(() => {
     bodyValueRef.current = body;
   }, [body]);
-
-  useLayoutEffect(() => {
-    const textarea = bodyRef.current;
-    if (!textarea) return;
-    textarea.style.height = 'auto';
-    textarea.style.height = `${textarea.scrollHeight}px`;
-  }, [body, editorTab]);
 
   useEffect(() => {
     titleRef.current?.focus();
@@ -369,17 +362,10 @@ export function PostEditor({
             type="submit"
             data-status={secondaryStatus}
             disabled={busy}
-            onClick={() => setEditorTab('write')}
           >
             {pending ? '저장 중...' : secondaryLabel}
           </button>
-          <button
-            className={styles.submit}
-            type="submit"
-            data-status="published"
-            disabled={busy}
-            onClick={() => setEditorTab('write')}
-          >
+          <button className={styles.submit} type="submit" data-status="published" disabled={busy}>
             공개하기
           </button>
         </div>

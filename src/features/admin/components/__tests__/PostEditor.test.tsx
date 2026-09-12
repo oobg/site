@@ -115,6 +115,65 @@ describe('PostEditor slug editing', () => {
     expect(body).toHaveValue('## 작성 중인 본문');
   });
 
+  it('leaves textarea sizing to CSS while typing and preserves the caret', () => {
+    render(<PostEditor action={action} />);
+    const body = screen.getByRole('textbox', { name: '본문' }) as HTMLTextAreaElement;
+
+    expect(body.style.height).toBe('');
+    body.focus();
+    fireEvent.change(body, { target: { value: '입력 중인 본문' } });
+    body.setSelectionRange(4, 4);
+    fireEvent.compositionStart(body);
+    fireEvent.change(body, {
+      target: { value: '입력 중인 한글 본문', selectionStart: 4, selectionEnd: 4 },
+    });
+
+    expect(body.style.height).toBe('');
+    expect(body).toHaveFocus();
+    expect(body.selectionStart).toBe(4);
+    expect(body.selectionEnd).toBe(4);
+  });
+
+  it('keeps the preview tab open after saving', async () => {
+    const save = vi.fn(async () => ({ status: 'idle' as const, message: '' }));
+    render(
+      <PostEditor
+        action={save}
+        categories={[{ id: 'c1', slug: 'dev', name: '개발', sort_order: 0, is_default: true }]}
+        post={{
+          id: 'p1',
+          title: '제목',
+          slug: 'title',
+          description: '설명',
+          body: '본문',
+          status: 'draft',
+          category_id: 'c1',
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    const writePanel = document.getElementById('editor-write-panel');
+    const previewPanel = document.getElementById('editor-preview-panel');
+    expect(writePanel).not.toBeNull();
+    expect(previewPanel).not.toBeNull();
+    expect(screen.getByRole('tab', { name: '텍스트 편집' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(writePanel).toHaveAttribute('hidden');
+
+    fireEvent.click(screen.getByRole('button', { name: '초안 저장' }));
+    await waitFor(() => expect(save).toHaveBeenCalledOnce());
+
+    expect(screen.getByRole('tab', { name: '텍스트 편집' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(writePanel).toHaveAttribute('hidden');
+    expect(previewPanel).not.toHaveAttribute('hidden');
+  });
+
   it('requests a debounced preview only after opening the preview tab', () => {
     vi.useFakeTimers();
     const fetchMock = vi.mocked(fetch);

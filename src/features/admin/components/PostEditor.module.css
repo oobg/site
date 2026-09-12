@@ -304,8 +304,8 @@
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--fs-15);
   line-height: var(--lh-body);
-  overflow: hidden;
-  resize: none;
+  overflow: auto;
+  resize: vertical;
   tab-size: 2;
 }
 
