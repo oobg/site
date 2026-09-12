@@ -23,6 +23,7 @@ vi.mock('@lib/auth/owner', async (original) => ({
 vi.mock('@lib/supabase/server', () => ({ createClient: mocks.session }));
 
 import { GET } from '@/app/api/docs/route';
+import { renderApiDocsHtml } from '@lib/api/docs-html';
 import { apiSpecification } from '@lib/api/openapi';
 
 const DOCS_EMAIL = 'yoonseok.bae98@gmail.com';
@@ -47,13 +48,14 @@ async function token(overrides: Record<string, unknown> = {}, wrongSignature = f
     .sign((wrongSignature ? wrongKeys : keys).privateKey);
 }
 
-function request(jwt?: string) {
-  return new Request(`${PROD_URL}/api/docs`, {
+function request(jwt?: string, options: { accept?: string; path?: string } = {}) {
+  return new Request(`${PROD_URL}${options.path ?? '/api/docs'}`, {
     headers: {
       // Even a same-origin Google session or an asserted email cannot replace JWT auth.
       origin: PROD_URL,
       cookie: 'session=fake',
       'cf-access-authenticated-user-email': DOCS_EMAIL,
+      ...(options.accept ? { accept: options.accept } : {}),
       ...(jwt === undefined ? {} : { 'cf-access-jwt-assertion': jwt }),
     },
   });
@@ -61,7 +63,8 @@ function request(jwt?: string) {
 
 function expectHeaders(response: Response) {
   expect(response.headers.get('cache-control')).toBe('private, no-store');
-  expect(response.headers.get('vary')).toBe('Cf-Access-Jwt-Assertion');
+  expect(response.headers.get('vary')).toBe('Accept, Cf-Access-Jwt-Assertion');
+  expect(response.headers.get('x-content-type-options')).toBe('nosniff');
   expect(response.headers.get('content-type')).toContain('application/json');
 }
 
@@ -199,6 +202,10 @@ describe('GET /api/docs production-only Access authorization', () => {
     expect(mocks.keyLookup).not.toHaveBeenCalled();
   });
 
+  it('keeps browser-shaped unauthorized requests on the JSON denial path', async () => {
+    await expectDenied(await GET(request(undefined, { accept: 'text/html' })), 401);
+  });
+
   it.each(['forged', 'x'.repeat(32_769)])(
     'returns 401 for a malformed or oversized assertion',
     async (jwt) => {
@@ -253,11 +260,74 @@ describe('GET /api/docs production-only Access authorization', () => {
     },
   );
 
+  it('renders designed HTML documentation for an authorized browser request', async () => {
+    const response = await GET(
+      request(await token(), { accept: 'text/html,application/xhtml+xml' }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toContain('text/html');
+    expect(response.headers.get('cache-control')).toBe('private, no-store');
+    expect(response.headers.get('vary')).toBe('Accept, Cf-Access-Jwt-Assertion');
+    expect(response.headers.get('content-security-policy')).toContain("default-src 'none'");
+    const html = await response.text();
+    expect(html).toContain('<h1>Raven HTTP API</h1>');
+    expect(html).toContain('v2.0.0');
+    expect(html).toContain('href="/api/docs?format=json"');
+    expect(html).toContain('Public');
+    expect(html).toContain('Admin');
+    expect(html).toContain('/api/posts/{slug}');
+    expect(html).toContain('CloudflareAccessJwt');
+    expect(html).toContain('요청 본문');
+    expect(html).toContain('응답');
+  });
+
+  it.each(['json', 'raw'])(
+    'forces OpenAPI JSON with format=%s for browser clients',
+    async (format) => {
+      const response = await GET(
+        request(await token(), { accept: 'text/html', path: `/api/docs?format=${format}` }),
+      );
+
+      expectHeaders(response);
+      expect(await response.json()).toEqual(apiSpecification);
+    },
+  );
+
+  it('keeps JSON when text/html is explicitly unacceptable', async () => {
+    const response = await GET(
+      request(await token(), { accept: 'application/json, text/html;q=0' }),
+    );
+
+    expectHeaders(response);
+    expect(await response.json()).toEqual(apiSpecification);
+  });
+
   it('normalizes surrounding whitespace and a trailing slash in the production SITE_URL', async () => {
     vi.stubEnv('SITE_URL', ` ${PROD_URL}/ `);
     const response = await GET(request(await token()));
     expect(response.status).toBe(200);
     expectHeaders(response);
     expect(await response.json()).toEqual(apiSpecification);
+  });
+});
+
+describe('API docs HTML escaping', () => {
+  it('escapes spec-derived text without executable markup', () => {
+    const html = renderApiDocsHtml({
+      openapi: '3.1.0',
+      info: { title: '<script>alert(1)</script>', version: '1', description: '<img src=x>' },
+      paths: {
+        '/api/<unsafe>': {
+          get: { tags: ['<b>group</b>'], summary: '<svg onload=alert(1)>', responses: {} },
+        },
+      },
+    });
+
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(html).not.toContain('<img src=x>');
+    expect(html).not.toContain('<svg onload=alert(1)>');
+    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+    expect(html).toContain('/api/&lt;unsafe&gt;');
   });
 });

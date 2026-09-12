@@ -249,6 +249,20 @@
   background: var(--d0-grey-100);
 }
 
+.toolbar button:disabled,
+.toolbarUpload[aria-disabled='true'] {
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.toolbarHint {
+  margin-left: auto;
+  color: var(--color-text-muted);
+  font-size: var(--fs-12);
+  white-space: nowrap;
+}
+
 .toolbar button:focus-visible,
 .toolbarUpload:focus-within {
   outline: 2px solid var(--d0-blue);
@@ -270,17 +284,24 @@
   min-width: 0;
 }
 
+.editorColumns {
+  height: calc(100dvh - 12rem);
+  min-height: 32rem;
+}
+
 .dropzone {
   position: relative;
+  height: 100%;
 }
 
 .body,
 .preview {
   display: block;
   width: 100%;
-  min-height: 44rem;
+  height: 100%;
+  min-height: 0;
   padding: var(--space-5);
-  overflow: auto;
+  overflow-y: auto;
   border: 0;
   border-radius: 0 0 var(--radius-control) var(--radius-control);
   background: var(--color-surface);
@@ -290,7 +311,7 @@
   font-family: var(--font-mono), ui-monospace, monospace;
   font-size: var(--fs-15);
   line-height: var(--lh-body);
-  resize: vertical;
+  resize: none;
   tab-size: 2;
 }
 
@@ -310,6 +331,16 @@
 
 .preview :global(button[data-code-copy]) {
   display: none;
+}
+
+.visualEditor {
+  min-height: 100%;
+  outline: 0;
+}
+
+.visualEditor:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
 }
 
 .helper {
@@ -566,8 +597,16 @@
 
   .body,
   .preview {
-    min-height: 32rem;
     padding: var(--space-4);
+  }
+
+  .editorColumns {
+    height: calc(100dvh - 10rem);
+    min-height: 28rem;
+  }
+
+  .toolbarHint {
+    display: none;
   }
 
   .settings {

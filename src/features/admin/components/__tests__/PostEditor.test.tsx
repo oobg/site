@@ -99,17 +99,78 @@ describe('PostEditor slug editing', () => {
   it('keeps the Markdown body while switching editor tabs', () => {
     render(<PostEditor action={action} />);
     const body = screen.getByRole('textbox', { name: '본문' }) as HTMLTextAreaElement;
-    const writePanel = screen.getByRole('tabpanel', { name: '작성' });
+    const writePanel = screen.getByRole('tabpanel', { name: '마크다운' });
 
     fireEvent.change(body, { target: { value: '## 작성 중인 본문' } });
-    fireEvent.click(screen.getByRole('tab', { name: '미리보기' }));
-    expect(screen.getByRole('tab', { name: '미리보기' })).toHaveAttribute('aria-selected', 'true');
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    expect(screen.getByRole('tab', { name: '텍스트 편집' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
     expect(writePanel).toHaveAttribute('hidden');
-    expect(screen.getByRole('tabpanel', { name: '미리보기' })).not.toHaveAttribute('hidden');
+    expect(screen.getByRole('tabpanel', { name: '텍스트 편집' })).not.toHaveAttribute('hidden');
     fireEvent.keyDown(screen.getByRole('tablist'), { key: 'ArrowLeft' });
 
-    expect(screen.getByRole('tab', { name: '작성' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('tab', { name: '마크다운' })).toHaveAttribute('aria-selected', 'true');
     expect(body).toHaveValue('## 작성 중인 본문');
+  });
+
+  it('keeps the Markdown caret and internal scroll position while typing', () => {
+    render(<PostEditor action={action} />);
+    const body = screen.getByRole('textbox', { name: '본문' }) as HTMLTextAreaElement;
+    body.scrollTop = 180;
+
+    fireEvent.input(body, {
+      target: { value: '앞 문장과 뒤 문장', selectionStart: 5, selectionEnd: 5 },
+    });
+
+    expect(body).toHaveAttribute('data-editor-scroll-region');
+    expect(body.selectionStart).toBe(5);
+    expect(body.selectionEnd).toBe(5);
+    expect(body.scrollTop).toBe(180);
+  });
+
+  it('keeps the visual editor caret, DOM, and internal scroll position while typing', async () => {
+    vi.useFakeTimers();
+    render(
+      <PostEditor
+        action={action}
+        post={{
+          id: 'p1',
+          title: '제목',
+          slug: 'title',
+          description: '설명',
+          body: '미리보기',
+          status: 'draft',
+        }}
+      />,
+    );
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    await act(async () => vi.advanceTimersByTimeAsync(350));
+    const visual = screen.getByRole('textbox', { name: '본문 텍스트 편집' });
+    const visualPanel = visual.closest<HTMLElement>('[role="tabpanel"]');
+    const textNode = visual.querySelector('p')?.firstChild;
+    expect(visualPanel).not.toBeNull();
+    expect(textNode).not.toBeNull();
+    textNode!.textContent = '미리보기 수정';
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.setStart(textNode!, 6);
+    range.collapse(true);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    visualPanel!.scrollTop = 140;
+
+    fireEvent.input(visual);
+
+    expect(visualPanel).toHaveAttribute('data-editor-scroll-region');
+    expect(visual.querySelector('p')?.firstChild).toBe(textNode);
+    expect(window.getSelection()?.anchorNode).toBe(textNode);
+    expect(window.getSelection()?.anchorOffset).toBe(6);
+    expect(visualPanel!.scrollTop).toBe(140);
+    expect(screen.getByRole('textbox', { name: '본문', hidden: true })).toHaveValue(
+      '미리보기 수정',
+    );
   });
 
   it('requests a debounced preview only after opening the preview tab', () => {
@@ -123,7 +184,7 @@ describe('PostEditor slug editing', () => {
     act(() => vi.advanceTimersByTime(400));
     expect(fetchMock).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole('tab', { name: '미리보기' }));
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
     act(() => vi.advanceTimersByTime(349));
     expect(fetchMock).not.toHaveBeenCalled();
     act(() => vi.advanceTimersByTime(1));
@@ -137,7 +198,7 @@ describe('PostEditor slug editing', () => {
   it('shows the empty-body guidance when opening preview initially', () => {
     render(<PostEditor action={action} />);
 
-    fireEvent.click(screen.getByRole('tab', { name: '미리보기' }));
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
     expect(screen.getByRole('status')).toHaveTextContent(
       '본문을 입력하면 여기에 미리보기가 표시돼요.',
     );
@@ -154,7 +215,7 @@ describe('PostEditor slug editing', () => {
     fireEvent.change(screen.getByRole('textbox', { name: '본문' }), {
       target: { value: '본문' },
     });
-    fireEvent.click(screen.getByRole('tab', { name: '미리보기' }));
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
     await act(async () => vi.advanceTimersByTimeAsync(350));
 
     expect(screen.getByRole('status')).toHaveTextContent('미리보기를 만들지 못했습니다.');

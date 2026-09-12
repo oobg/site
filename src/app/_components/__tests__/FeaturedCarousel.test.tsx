@@ -30,6 +30,22 @@ describe('FeaturedCarousel', () => {
     render(<FeaturedCarousel posts={[post(1)]} />);
     expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  });
+
+  it('renders progress only over a cover image and updates its ten-second countdown', () => {
+    vi.useFakeTimers();
+    const { rerender } = render(<FeaturedCarousel posts={[post(1), post(3)]} />);
+    const progress = screen.getByRole('progressbar', { name: '다음 추천 글 전환까지' });
+
+    expect(progress).toHaveAttribute('aria-valuemax', '10000');
+    expect(progress).toHaveAttribute('aria-valuenow', '0');
+    act(() => vi.advanceTimersByTime(5000));
+    expect(progress).toHaveAttribute('aria-valuenow', '5000');
+    expect(progress).toHaveAttribute('aria-valuetext', '5초 후 전환');
+
+    rerender(<FeaturedCarousel posts={[post(2), post(3)]} />);
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
   it('supports manual navigation and clamps the current slide when results shrink', () => {
@@ -58,6 +74,14 @@ describe('FeaturedCarousel', () => {
     fireEvent.mouseLeave(section);
     act(() => vi.advanceTimersByTime(10000));
     expect(screen.getByRole('heading', { name: '추천 글 3' })).toBeInTheDocument();
+
+    const nextButton = screen.getByRole('button', { name: '다음 추천 글' });
+    fireEvent.focus(nextButton);
+    act(() => vi.advanceTimersByTime(10000));
+    expect(screen.getByRole('heading', { name: '추천 글 3' })).toBeInTheDocument();
+    fireEvent.blur(nextButton);
+    act(() => vi.advanceTimersByTime(10000));
+    expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
   });
 
   it('does not render a broken image when a cover is missing', () => {

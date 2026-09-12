@@ -1,6 +1,6 @@
 /**
  * OpenAPI 3.1 specification for raven.kr public and admin HTTP APIs.
- * This object is served verbatim by GET /api/docs (production-only, Cloudflare Access–gated).
+ * This object backs GET /api/docs and its raw JSON representation (production-only and Access-gated).
  * Keep it in sync with the actual route implementations and docs/api.md.
  */
 export const apiSpecification = {

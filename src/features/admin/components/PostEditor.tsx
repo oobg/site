@@ -11,6 +11,7 @@ import { normalizeSlug } from '@features/admin/services/slug';
 import type { PostActionState, PostStatus } from '@features/admin/types/posts-admin.types';
 import type { BlogCategory } from '@features/posts/types/posts.types';
 import { initialPostActionState } from '@features/admin/types/posts-admin.types';
+import { htmlToMarkdown } from '@features/admin/utils/htmlToMarkdown';
 import styles from './PostEditor.module.css';
 import { useAdminNavigationGuard } from './AdminNavigationProvider';
 
@@ -97,10 +98,12 @@ export function PostEditor({
   const [previewMessage, setPreviewMessage] = useState('미리보기를 준비하고 있어요.');
   const [editorTab, setEditorTab] = useState<'write' | 'preview'>('write');
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const visualEditorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const statusInputRef = useRef<HTMLInputElement>(null);
   const bodyValueRef = useRef(body);
   const previewSequenceRef = useRef(0);
+  const previewSourceRef = useRef('');
   const editRevisionRef = useRef(0);
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -155,9 +158,15 @@ export function PostEditor({
 
   useEffect(() => {
     const sequence = ++previewSequenceRef.current;
-    if (editorTab !== 'preview' || !body.trim()) {
+    if (editorTab !== 'preview') return;
+    if (!body.trim()) {
+      previewSourceRef.current = '';
+      visualEditorRef.current?.replaceChildren();
       return;
     }
+    if (previewSourceRef.current === body) return;
+
+    visualEditorRef.current?.replaceChildren();
 
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
@@ -175,6 +184,8 @@ export function PostEditor({
         if (!response.ok || html === null) {
           throw new Error(errorMessage(result) ?? '미리보기를 만들지 못했습니다.');
         }
+        previewSourceRef.current = body;
+        if (visualEditorRef.current) visualEditorRef.current.innerHTML = html;
         setPreviewHtml(html);
         setPreviewMessage('');
       } catch (error) {
@@ -397,7 +408,7 @@ export function PostEditor({
         <div
           className={styles.editorTabs}
           role="tablist"
-          aria-label="본문 편집 보기"
+          aria-label="본문 편집 모드"
           onKeyDown={(event) => {
             if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
             event.preventDefault();
@@ -423,7 +434,7 @@ export function PostEditor({
             tabIndex={editorTab === 'write' ? 0 : -1}
             onClick={() => setEditorTab('write')}
           >
-            작성
+            마크다운
           </button>
           <button
             id="editor-preview-tab"
@@ -434,22 +445,32 @@ export function PostEditor({
             tabIndex={editorTab === 'preview' ? 0 : -1}
             onClick={() => setEditorTab('preview')}
           >
-            미리보기
+            텍스트 편집
           </button>
         </div>
         <div className={styles.toolbar} role="toolbar" aria-label="Markdown 서식">
           <button
             type="button"
+            disabled={busy || editorTab !== 'write'}
+            title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
             onClick={() => wrapSelection('## ', '', '소제목')}
             aria-label="소제목"
           >
             H2
           </button>
-          <button type="button" onClick={() => wrapSelection('**', '**')} aria-label="굵게">
+          <button
+            type="button"
+            disabled={busy || editorTab !== 'write'}
+            title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
+            onClick={() => wrapSelection('**', '**')}
+            aria-label="굵게"
+          >
             <TextB aria-hidden size={18} weight="bold" />
           </button>
           <button
             type="button"
+            disabled={busy || editorTab !== 'write'}
+            title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
             onClick={() => wrapSelection('[', '](https://)', '링크 텍스트')}
             aria-label="링크"
           >
@@ -457,6 +478,8 @@ export function PostEditor({
           </button>
           <button
             type="button"
+            disabled={busy || editorTab !== 'write'}
+            title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
             onClick={() => wrapSelection('> ', '', '인용문')}
             aria-label="인용문"
           >
@@ -464,17 +487,23 @@ export function PostEditor({
           </button>
           <button
             type="button"
+            disabled={busy || editorTab !== 'write'}
+            title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
             onClick={() => wrapSelection('`', '`', '코드')}
             aria-label="인라인 코드"
           >
             <Code aria-hidden size={18} weight="bold" />
           </button>
-          <label className={styles.toolbarUpload} aria-disabled={busy}>
+          <label
+            className={styles.toolbarUpload}
+            aria-disabled={busy || editorTab !== 'write'}
+            title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
+          >
             <ImageSquare aria-hidden size={19} />
             <span className={styles.visuallyHidden}>본문 이미지 선택</span>
             <input
               accept="image/jpeg,image/png,image/gif,image/webp"
-              disabled={busy}
+              disabled={busy || editorTab !== 'write'}
               onChange={(event) => {
                 const file = event.target.files?.[0];
                 if (file) void upload(file);
@@ -483,6 +512,11 @@ export function PostEditor({
               type="file"
             />
           </label>
+          {editorTab === 'preview' ? (
+            <span className={styles.toolbarHint}>
+              서식 도구는 마크다운 모드에서 사용할 수 있어요.
+            </span>
+          ) : null}
         </div>
         <div className={styles.editorColumns}>
           <div
@@ -519,6 +553,7 @@ export function PostEditor({
               aria-describedby="body-help"
               aria-invalid={Boolean(fieldError(state, 'body'))}
               className={styles.body}
+              data-editor-scroll-region
               name="body"
               value={body}
               onChange={(event) => {
@@ -526,6 +561,7 @@ export function PostEditor({
                 setBody(value);
                 if (!value.trim()) {
                   setPreviewHtml('');
+                  previewSourceRef.current = '';
                   setPreviewMessage('본문을 입력하면 여기에 미리보기가 표시돼요.');
                 }
               }}
@@ -540,19 +576,42 @@ export function PostEditor({
             aria-labelledby="editor-preview-tab"
             hidden={editorTab !== 'preview'}
             className={styles.preview}
-            onClick={(event) => event.preventDefault()}
+            data-editor-scroll-region
+            onClick={(event) => {
+              if ((event.target as Element).closest('a')) event.preventDefault();
+            }}
           >
-            {previewHtml ? (
-              <div
-                className={articleStyles.prose}
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
-              />
-            ) : null}
+            <div
+              ref={visualEditorRef}
+              className={`${articleStyles.prose} ${styles.visualEditor}`}
+              contentEditable={!busy}
+              suppressContentEditableWarning
+              role="textbox"
+              aria-label="본문 텍스트 편집"
+              aria-multiline="true"
+              aria-readonly={busy}
+              aria-describedby="body-help visual-editor-help"
+              data-empty={!previewHtml ? 'true' : undefined}
+              onInput={(event) => {
+                const html = event.currentTarget.innerHTML;
+                const markdown = htmlToMarkdown(event.currentTarget);
+                previewSourceRef.current = markdown;
+                setPreviewHtml(markdown ? html : '');
+                bodyValueRef.current = markdown;
+                setBody(markdown);
+                editRevisionRef.current += 1;
+                setDirty(true);
+                setPreviewMessage('');
+              }}
+            />
             {visiblePreviewMessage ? (
               <p className={styles.previewMessage} role="status">
                 {visiblePreviewMessage}
               </p>
             ) : null}
+            <span id="visual-editor-help" className={styles.visuallyHidden}>
+              렌더링된 본문을 직접 수정할 수 있습니다. 변경 내용은 마크다운 원문에 반영됩니다.
+            </span>
           </section>
         </div>
         <p id="body-help" className={styles.helper} aria-live="polite">
