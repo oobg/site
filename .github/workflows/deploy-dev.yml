@@ -11,6 +11,11 @@ on:
         description: dev에 포함된 정확한 40자리 commit SHA
         required: true
         type: string
+      refresh_cdn:
+        description: dev CDN 컨테이너를 재생성해 이미지 캐시를 비움
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: deploy-dev
@@ -191,3 +196,7 @@ jobs:
           activated=0
           rm -rf -- "$backup"
           backup=''
+
+      - name: dev CDN 캐시 갱신
+        if: github.event_name == 'workflow_dispatch' && inputs.refresh_cdn
+        run: bash deploy/server/deploy-cdn-dev.sh
