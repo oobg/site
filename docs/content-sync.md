@@ -2,6 +2,8 @@
 
 `scripts/sync-main-content-to-dev.mjs`는 main의 공개 글과 그 글이 참조하는 커버 이미지만 dev로 복사한다. 기본 동작은 dry-run이며 `--apply`를 명시하지 않으면 대상 API를 호출하거나 dev를 변경하지 않는다. Node.js 20 이상에서 실행한다.
 
+`--replace-conflicts`는 `--apply`와 함께 사용할 때만 유효하다. 이 옵션이 없으면 기존 same-key 이미지의 hash가 다를 때 중단하고, 옵션을 사용하면 hash conflict인 key에만 업로드 요청의 `overwrite=true`를 붙여 교체한다. 같은 hash는 계속 skip하고, 없는 key는 일반 create-only 업로드로 처리한다. `--replace-conflicts`는 dry-run이나 `--check-target`과 함께 사용할 수 없으며, 두 모드 모두 대상 mutation을 하지 않는다.
+
 ## 범위
 
 - 포함: 공개 API가 반환한 `published` 글, 해당 글의 `cover_image_key`가 가리키는 커버 이미지
@@ -65,6 +67,15 @@ node scripts/sync-main-content-to-dev.mjs --apply \
   --manifest /absolute/path/content-sync-manifest.json
 ```
 
+hash conflict를 명시적으로 교체하려면 다음처럼 `--apply --replace-conflicts`를 사용한다.
+
+```sh
+TARGET_ACCESS_CLIENT_ID='...' \
+TARGET_ACCESS_CLIENT_SECRET='...' \
+node scripts/sync-main-content-to-dev.mjs --apply --replace-conflicts \
+  --manifest /absolute/path/content-sync-manifest.json
+```
+
 CLI는 다음 Cloudflare Access 헤더를 대상 관리자 API 요청에 보낸다.
 
 ```text
@@ -95,13 +106,16 @@ URL 변수는 path가 없는 HTTPS origin이어야 하며 source와 target site 
 
 - hash가 같음: 업로드 생략
 - key가 없거나 CDN이 404 반환: multipart `file`과 `key`로 업로드
-- hash가 다름: conflict로 중단하며 기존 object를 덮어쓰지 않음
+- hash가 다름: 기본 모드에서는 conflict로 중단하며 기존 object를 덮어쓰지 않음
+- `--apply --replace-conflicts`에서 hash가 다름: 해당 key만 multipart `overwrite=true`로 원자적 교체
+
+manifest의 `plan.images.overwrite_on_conflict`는 replace 옵션 사용 여부를 기록하고, 실제 conflict 교체 계획은 `plan.images.replacements`에 key와 source/target hash로 기록한다. 일반 업로드에는 `overwrite` field를 보내지 않으므로 conflict가 아닌 경로가 우연히 덮어써지지 않는다.
 
 이미지가 모두 준비되면 slug별 `PUT /api/admin/posts/{slug}` upsert를 수행한다. 따라서 같은 source로 재실행해도 같은 이미지는 생략되고 같은 slug는 갱신된다. 실패 전에 업로드된 key와 upsert된 slug가 있으면 요약과 manifest 결과에 남고, 원인을 해결한 뒤 같은 `--apply` 명령을 다시 실행하면 된다.
 
 ## Conflict와 rollback 주의
 
-이미지 hash conflict는 자동 rollback하지 않는다. 기존 dev object와 source 중 어느 쪽이 맞는지 확인한 뒤 운영 절차에 따라 별도로 복구하고 재실행한다. 글 upsert도 여러 요청으로 이뤄지므로 중간 실패 시 앞서 반영된 글은 유지된다. manifest와 실행 요약을 기준으로 영향 범위를 확인한다.
+이미지 hash conflict는 기본 모드에서 자동 rollback하지 않는다. `--replace-conflicts`는 명시적 opt-in이며 자동 rollback하지 않는다. 기존 dev object와 source 중 어느 쪽이 맞는지 확인한 뒤 운영 절차에 따라 별도로 복구하고 재실행한다. 글 upsert도 여러 요청으로 이뤄지므로 중간 실패 시 앞서 반영된 글은 유지된다. manifest와 실행 요약을 기준으로 영향 범위를 확인한다.
 
 이 도구는 source 밖의 dev 글을 삭제하지 않으며, 이전 dev 상태를 자동으로 되돌리지도 않는다. 적용 전 dev 데이터와 asset 저장소의 복구 가능한 백업을 준비하는 것이 rollback 경계다.
 

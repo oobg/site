@@ -29,6 +29,7 @@ function parseArgs(argv) {
   let manifestPath;
   let explicitMode;
   let checkTarget = false;
+  let replaceConflicts = false;
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--dry-run') {
@@ -49,11 +50,20 @@ function parseArgs(argv) {
     } else if (arg === '--check-target') {
       if (checkTarget) throw new SyncError('--check-target was specified more than once');
       checkTarget = true;
+    } else if (arg === '--replace-conflicts') {
+      if (replaceConflicts) throw new SyncError('--replace-conflicts was specified more than once');
+      replaceConflicts = true;
     } else {
       throw new SyncError(`unknown argument: ${arg}`);
     }
   }
-  return { mode, manifestPath, checkTarget };
+  if (replaceConflicts && mode !== 'apply') {
+    throw new SyncError('--replace-conflicts is valid only with --apply');
+  }
+  if (replaceConflicts && checkTarget) {
+    throw new SyncError('--replace-conflicts cannot be combined with --check-target');
+  }
+  return { mode, manifestPath, checkTarget, replaceConflicts };
 }
 
 function readCategoryMap() {
@@ -376,7 +386,7 @@ async function checkTargetCategories(config, mapping) {
   return { status: 'passed', category_count: targetIds.size, target_category_ids: [...targetIds].sort() };
 }
 
-function buildManifest(config, posts, images, sourceCategories, mapping, mode) {
+function buildManifest(config, posts, images, sourceCategories, mapping, { mode, replaceConflicts }) {
   const categoryIds = sourceCategories.map((category) => category.id).sort();
   const categoryMapping = Object.fromEntries([...mapping.entries()].sort(([a], [b]) => a.localeCompare(b)));
   return {
@@ -396,7 +406,14 @@ function buildManifest(config, posts, images, sourceCategories, mapping, mode) {
     },
     category_mapping: categoryMapping,
     plan: {
-      images: { action: 'compare_then_upload_if_missing', count: images.length, overwrite_on_conflict: false },
+      images: {
+        action: replaceConflicts
+          ? 'compare_then_upload_or_replace_conflicts'
+          : 'compare_then_upload_if_missing',
+        count: images.length,
+        overwrite_on_conflict: replaceConflicts,
+        replacements: [],
+      },
       posts: { action: 'put_upsert', count: posts.length, status: 'published', category_mapping: categoryMapping },
       deletes: 0,
     },
@@ -417,13 +434,12 @@ async function inspectTargetImage(config, sourceImage) {
   const response = await fetchResponse(url, {
     headers: { Accept: 'image/*', 'Cache-Control': 'no-cache' }, cache: 'no-store',
   }, `target image ${sourceImage.key}`, 60_000);
-  if (response.status === 404) return 'missing';
+  if (response.status === 404) return { state: 'missing' };
   if (!response.ok) throw new SyncError(`target image ${sourceImage.key}: HTTP ${response.status}`, { status: response.status });
   const targetImage = await readImage(response, `target image ${sourceImage.key}`);
-  if (targetImage.sha256 !== sourceImage.sha256) {
-    throw new SyncError(`target image ${sourceImage.key}: hash conflict; existing object was not overwritten`);
-  }
-  return 'same';
+  if (targetImage.sha256 !== sourceImage.sha256)
+    return { state: 'conflict', targetSha256: targetImage.sha256 };
+  return { state: 'same' };
 }
 
 function safeErrorCode(payload) {
@@ -431,10 +447,11 @@ function safeErrorCode(payload) {
   return typeof code === 'string' && /^[A-Z0-9_-]{1,80}$/.test(code) ? code : undefined;
 }
 
-async function uploadImage(config, image) {
+async function uploadImage(config, image, { overwrite = false } = {}) {
   const form = new FormData();
   form.append('file', new Blob([image.bytes], { type: image.type }), basename(image.key));
   form.append('key', image.key);
+  if (overwrite) form.append('overwrite', 'true');
   const url = new URL('/api/admin/uploads', config.targetSiteUrl);
   const response = await fetchResponse(url, { method: 'POST', headers: targetHeaders(config), body: form }, `upload ${image.key}`, 60_000);
   let payload;
@@ -491,11 +508,25 @@ async function upsertPost(config, post) {
   return payload?.created === true ? 'created' : payload?.created === false ? 'updated' : 'upserted';
 }
 
-async function apply(config, posts, images, progress) {
+async function apply(config, posts, images, progress, manifest, replaceConflicts) {
   for (const image of images) {
     const state = await inspectTargetImage(config, image);
-    if (state === 'same') {
+    if (state.state === 'same') {
       progress.skipped_image_keys.push(image.key);
+      continue;
+    }
+    if (state.state === 'conflict') {
+      if (!replaceConflicts) {
+        throw new SyncError(`target image ${image.key}: hash conflict; existing object was not overwritten`);
+      }
+      manifest.plan.images.replacements.push({
+        key: image.key,
+        source_sha256: image.sha256,
+        target_sha256: state.targetSha256,
+        action: 'replace',
+      });
+      await uploadImage(config, image, { overwrite: true });
+      progress.replaced_image_keys.push(image.key);
       continue;
     }
     await uploadImage(config, image);
@@ -512,7 +543,7 @@ function printSuccess(mode, posts, images, progress, manifestPath) {
   console.log(`Source: ${posts.length} posts, ${images.length} images, ${new Set(posts.map((post) => post.category_id)).size} categories`);
   console.log(`Plan: compare/upload ${images.length} images, PUT upsert ${posts.length} posts, delete 0`);
   if (mode === 'apply') {
-    console.log(`Applied: ${progress.uploaded_image_keys.length} images uploaded, ${progress.skipped_image_keys.length} images skipped, ${progress.applied_posts.length} posts upserted`);
+    console.log(`Applied: ${progress.uploaded_image_keys.length} images uploaded, ${progress.replaced_image_keys.length} images replaced, ${progress.skipped_image_keys.length} images skipped, ${progress.applied_posts.length} posts upserted`);
   } else {
     console.log('Target mutations: 0 (use --apply to write)');
   }
@@ -521,15 +552,16 @@ function printSuccess(mode, posts, images, progress, manifestPath) {
 
 function printFailure(error, progress) {
   console.error(`Sync failed: ${error instanceof Error ? error.message : 'unknown error'}`);
-  if (progress.uploaded_image_keys.length || progress.applied_posts.length) {
+  if (progress.uploaded_image_keys.length || progress.replaced_image_keys.length || progress.applied_posts.length) {
     console.log(`Partial apply: uploaded image keys=${JSON.stringify(progress.uploaded_image_keys)}`);
+    console.log(`Partial apply: replaced image keys=${JSON.stringify(progress.replaced_image_keys)}`);
     console.log(`Partial apply: upserted slugs=${JSON.stringify(progress.applied_posts.map((post) => post.slug))}`);
     console.log('Next step: resolve the reported error, then rerun the same command with --apply; completed hashes/slugs are idempotent.');
   }
 }
 
 async function main() {
-  const progress = { uploaded_image_keys: [], skipped_image_keys: [], applied_posts: [] };
+  const progress = { uploaded_image_keys: [], replaced_image_keys: [], skipped_image_keys: [], applied_posts: [] };
   let manifest;
   try {
     const args = parseArgs(process.argv.slice(2));
@@ -538,7 +570,7 @@ async function main() {
     const mapping = resolveCategoryMapping(source.categories, config.categoryMap);
     const posts = applyCategoryMapping(source.posts, source.categories, mapping);
     const images = await loadSourceImages(posts);
-    manifest = buildManifest(config, posts, images, source.categories, mapping, args.mode);
+    manifest = buildManifest(config, posts, images, source.categories, mapping, args);
     await saveManifest(args.manifestPath, manifest);
     if (args.mode === 'apply' || args.checkTarget) {
       try {
@@ -558,7 +590,7 @@ async function main() {
     }
     if (args.mode === 'apply') {
       try {
-        await apply(config, posts, images, progress);
+        await apply(config, posts, images, progress, manifest, args.replaceConflicts);
         manifest.result = { status: 'complete', ...progress };
       } catch (error) {
         manifest.result = { status: 'failed', ...progress };

@@ -263,7 +263,7 @@ export const apiSpecification = {
       // ── Upload response ──────────────────────────────────────────────────────
       UploadResult: {
         type: 'object',
-        required: ['path', 'url', 'publicUrl'],
+        required: ['path', 'url', 'publicUrl', 'replaced'],
         properties: {
           path: { type: 'string', example: '/assets/posts/2026-09-10/design-system-00-v2.png' },
           url: { type: 'string', example: '/assets/posts/2026-09-10/design-system-00-v2.png' },
@@ -271,6 +271,10 @@ export const apiSpecification = {
             type: 'string',
             format: 'uri',
             example: 'https://cdn.raven.kr/assets/posts/2026-09-10/design-system-00-v2.png',
+          },
+          replaced: {
+            type: 'boolean',
+            description: 'Whether an existing regular asset was atomically replaced.',
           },
         },
       },
@@ -722,7 +726,7 @@ export const apiSpecification = {
         operationId: 'uploadAsset',
         summary: 'Upload an image asset',
         description:
-          'Uploads a JPEG/PNG/GIF/WebP image. Validates MIME type and file signature. Max file 10 MiB, max multipart 11 MiB. Returns 409 if the key already exists.',
+          'Uploads a JPEG/PNG/GIF/WebP image. Validates MIME type and file signature. Max file 10 MiB, max multipart 11 MiB. The optional overwrite field must be the exact string true or false; true requires an explicit valid key and atomically replaces an existing regular asset. Omit overwrite or send false for create-only behavior. Returns 201 for a new asset and 200 when an existing asset is replaced; returns 409 if a create-only key already exists.',
         tags: ['Admin'],
         security: [{ CloudflareAccessJwt: [] }],
         requestBody: {
@@ -745,14 +749,26 @@ export const apiSpecification = {
                     pattern:
                       '^assets/posts/[0-9]{4}-[0-9]{2}-[0-9]{2}/[A-Za-z0-9][A-Za-z0-9_-]{0,199}\\.(jpg|png|gif|webp)$',
                   },
+                  overwrite: {
+                    type: 'string',
+                    enum: ['true', 'false'],
+                    description:
+                      'Multipart text field. The exact string true enables replacement and requires key; false or omission keeps create-only behavior.',
+                  },
                 },
               },
             },
           },
         },
         responses: {
+          '200': {
+            description: 'Existing regular asset atomically replaced',
+            content: {
+              'application/json': { schema: { $ref: '#/components/schemas/UploadResult' } },
+            },
+          },
           '201': {
-            description: 'Asset stored',
+            description: 'New asset stored',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/UploadResult' } },
             },
@@ -779,7 +795,8 @@ export const apiSpecification = {
             },
           },
           '422': {
-            description: 'Invalid asset key format',
+            description:
+              'Invalid asset key or overwrite field; overwrite=true requires an explicit valid key',
             content: {
               'application/json': { schema: { $ref: '#/components/schemas/ErrorEnvelope' } },
             },
