@@ -37,6 +37,7 @@ async function uploadRequest(
   origin: string | null = 'https://dev.raven.kr',
   key?: string,
   token?: string,
+  overwrite?: string,
 ) {
   const bytes = await file.arrayBuffer();
   const boundary = 'raven-upload-test';
@@ -46,7 +47,7 @@ async function uploadRequest(
     ),
     Buffer.from(bytes),
     Buffer.from(
-      `\r\n${key === undefined ? '' : `--${boundary}\r\nContent-Disposition: form-data; name="key"\r\n\r\n${key}\r\n`}--${boundary}--\r\n`,
+      `\r\n${key === undefined ? '' : `--${boundary}\r\nContent-Disposition: form-data; name="key"\r\n\r\n${key}\r\n`}${overwrite === undefined ? '' : `--${boundary}\r\nContent-Disposition: form-data; name="overwrite"\r\n\r\n${overwrite}\r\n`}--${boundary}--\r\n`,
     ),
   ]);
   return new Request('https://dev.raven.kr/api/admin/uploads', {
@@ -190,6 +191,76 @@ describe('POST /api/admin/uploads', () => {
     );
     expect(response.status).toBe(422);
     expect(mocks.storeAsset).not.toHaveBeenCalled();
+  });
+
+  it('rejects overwrite=true without an explicit key', async () => {
+    const response = await POST(
+      await uploadRequest(
+        new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'a.png', { type: 'image/png' }),
+        'https://dev.raven.kr',
+        undefined,
+        undefined,
+        'true',
+      ),
+    );
+    expect(response.status).toBe(422);
+    expect(await response.json()).toMatchObject({ error: { code: 'OVERWRITE_KEY_REQUIRED' } });
+    expect(mocks.storeAsset).not.toHaveBeenCalled();
+  });
+
+  it.each(['TRUE', '1', 'yes', ''])(
+    'requires overwrite to be an exact boolean string: %s',
+    async (overwrite) => {
+      const response = await POST(
+        await uploadRequest(
+          new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'a.png', { type: 'image/png' }),
+          'https://dev.raven.kr',
+          'assets/posts/2026-09-10/a.png',
+          undefined,
+          overwrite,
+        ),
+      );
+      expect(response.status).toBe(422);
+      expect(await response.json()).toMatchObject({ error: { code: 'INVALID_OVERWRITE' } });
+      expect(mocks.storeAsset).not.toHaveBeenCalled();
+    },
+  );
+
+  it('returns 200 and marks an explicit replacement', async () => {
+    mocks.storeAsset.mockResolvedValue({ replaced: true });
+    const key = 'assets/posts/2026-09-10/design-system-00-v2.png';
+    const response = await POST(
+      await uploadRequest(
+        new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'a.png', { type: 'image/png' }),
+        'https://dev.raven.kr',
+        key,
+        undefined,
+        'true',
+      ),
+    );
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      path: `/${key}`,
+      publicUrl: `https://cdn-dev.raven.kr/${key}`,
+      replaced: true,
+    });
+    expect(mocks.storeAsset.mock.calls[0][2]).toEqual({ overwrite: true });
+  });
+
+  it('keeps overwrite=false on the create-only path', async () => {
+    const key = 'assets/posts/2026-09-10/design-system-00-v2.png';
+    const response = await POST(
+      await uploadRequest(
+        new File([new Uint8Array([0x89, 0x50, 0x4e, 0x47])], 'a.png', { type: 'image/png' }),
+        'https://dev.raven.kr',
+        key,
+        undefined,
+        'false',
+      ),
+    );
+    expect(response.status).toBe(201);
+    expect(await response.json()).toMatchObject({ replaced: false });
+    expect(mocks.storeAsset.mock.calls[0][2]).toEqual({ overwrite: false });
   });
 
   it.each([{ code: 'EEXIST' }, { name: 'PreconditionFailed', $metadata: { httpStatusCode: 412 } }])(

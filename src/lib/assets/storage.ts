@@ -1,7 +1,7 @@
 import 'server-only';
 
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
-import { link, lstat, mkdir, realpath, unlink, writeFile } from 'node:fs/promises';
+import { HeadObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { link, lstat, mkdir, realpath, rename, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import type { AssetStorageConfig } from '@configs/cms-env';
@@ -11,6 +11,14 @@ export type AssetObject = {
   key: string;
   body: Uint8Array;
   contentType: string;
+};
+
+export type AssetStoreOptions = {
+  overwrite?: boolean;
+};
+
+export type AssetStoreResult = {
+  replaced: boolean;
 };
 
 async function ensureDirectoryWithoutSymlinks(root: string, segments: string[]) {
@@ -35,7 +43,11 @@ async function ensureDirectoryWithoutSymlinks(root: string, segments: string[]) 
   return current;
 }
 
-export async function storeLocalAsset(root: string, object: AssetObject) {
+export async function storeLocalAsset(
+  root: string,
+  object: AssetObject,
+  { overwrite = false }: AssetStoreOptions = {},
+): Promise<AssetStoreResult> {
   assertAssetKey(object.key);
   const resolvedRoot = path.resolve(root);
   // nginx `location /assets/ { alias /srv/assets/; }` removes the URL prefix.
@@ -50,21 +62,43 @@ export async function storeLocalAsset(root: string, object: AssetObject) {
 
   const destination = path.join(actualParent, fileName);
   const temporary = path.join(actualParent, `.${fileName}.${crypto.randomUUID()}.tmp`);
+  let replacesExistingFile = false;
+  if (overwrite) {
+    try {
+      const destinationStat = await lstat(destination);
+      if (destinationStat.isSymbolicLink() || !destinationStat.isFile()) {
+        throw new Error('Unsafe asset destination');
+      }
+      replacesExistingFile = true;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
+    }
+  }
+
   try {
     await writeFile(temporary, object.body, { flag: 'wx', mode: 0o644 });
-    await link(temporary, destination);
+    // A hard link preserves create-only semantics. `rename` replaces the
+    // already-validated regular file atomically and never follows a final
+    // component symlink, so a concurrent symlink swap cannot redirect bytes
+    // outside the storage root.
+    if (replacesExistingFile) await rename(temporary, destination);
+    else await link(temporary, destination);
   } finally {
     await unlink(temporary).catch((error: NodeJS.ErrnoException) => {
       if (error.code !== 'ENOENT') throw error;
     });
   }
+  return { replaced: replacesExistingFile };
 }
 
-export async function storeAsset(config: AssetStorageConfig, object: AssetObject) {
+export async function storeAsset(
+  config: AssetStorageConfig,
+  object: AssetObject,
+  { overwrite = false }: AssetStoreOptions = {},
+): Promise<AssetStoreResult> {
   assertAssetKey(object.key);
   if (config.backend === 'local') {
-    await storeLocalAsset(config.root, object);
-    return;
+    return storeLocalAsset(config.root, object, { overwrite });
   }
 
   const client = new S3Client({
@@ -73,6 +107,26 @@ export async function storeAsset(config: AssetStorageConfig, object: AssetObject
     credentials: { accessKeyId: config.accessKeyId, secretAccessKey: config.secretAccessKey },
   });
   try {
+    let existed = false;
+    if (overwrite) {
+      try {
+        await client.send(new HeadObjectCommand({ Bucket: config.bucket, Key: object.key }));
+        existed = true;
+      } catch (error) {
+        const metadata = error as {
+          name?: string;
+          code?: string;
+          $metadata?: { httpStatusCode?: number };
+        } | null;
+        const missing =
+          metadata?.name === 'NotFound' ||
+          metadata?.name === 'NoSuchKey' ||
+          metadata?.code === 'NotFound' ||
+          metadata?.code === 'NoSuchKey' ||
+          metadata?.$metadata?.httpStatusCode === 404;
+        if (!missing) throw error;
+      }
+    }
     await client.send(
       new PutObjectCommand({
         Bucket: config.bucket,
@@ -80,9 +134,10 @@ export async function storeAsset(config: AssetStorageConfig, object: AssetObject
         Body: object.body,
         ContentType: object.contentType,
         CacheControl: 'public, max-age=31536000, immutable',
-        IfNoneMatch: '*',
+        ...(overwrite ? {} : { IfNoneMatch: '*' }),
       }),
     );
+    return { replaced: existed };
   } finally {
     // 이 함수가 매 업로드마다 만든 클라이언트라 여기서 소켓도 함께 닫는다.
     client.destroy();

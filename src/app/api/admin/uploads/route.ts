@@ -64,6 +64,13 @@ export async function POST(request: Request) {
     const config = getAssetStorageConfig();
     const date = new Date().toISOString().slice(0, 10);
     const explicitKey = formData.get('key');
+    const overwriteValue = formData.get('overwrite');
+    if (
+      overwriteValue !== null &&
+      (typeof overwriteValue !== 'string' || !['true', 'false'].includes(overwriteValue))
+    )
+      throw new AdminApiError(422, 'INVALID_OVERWRITE', 'overwrite는 true 또는 false여야 합니다.');
+    const overwrite = overwriteValue === 'true';
     if (
       explicitKey !== null &&
       (typeof explicitKey !== 'string' ||
@@ -75,15 +82,30 @@ export async function POST(request: Request) {
         'INVALID_ASSET_KEY',
         '이미지 키 또는 확장자가 올바르지 않습니다.',
       );
+    if (overwrite && explicitKey === null)
+      throw new AdminApiError(
+        422,
+        'OVERWRITE_KEY_REQUIRED',
+        '덮어쓰려면 명시적인 이미지 키가 필요합니다.',
+      );
     const path =
       (explicitKey as string | null) ??
       `assets/posts/${date}/${crypto.randomUUID()}.${imageType.extension}`;
-    await storeAsset(config, { key: path, body: bytes, contentType: file.type });
+    const result = await storeAsset(
+      config,
+      { key: path, body: bytes, contentType: file.type },
+      { overwrite },
+    );
 
     const markdownPath = `/${path}`;
     return adminJson(
-      { path: markdownPath, url: markdownPath, publicUrl: `${config.publicUrl}/${path}` },
-      201,
+      {
+        path: markdownPath,
+        url: markdownPath,
+        publicUrl: `${config.publicUrl}/${path}`,
+        replaced: result?.replaced === true,
+      },
+      result?.replaced === true ? 200 : 201,
     );
   } catch (error) {
     const storageError = error as {

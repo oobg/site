@@ -70,23 +70,24 @@ draft는 관리자 조회에서만 보이고 공개 API는 published만 반환�
 
 ## 이미지 업로드 → 글 저장
 
-`POST /api/admin/uploads`는 multipart `file` 필수, `key` 선택입니다. 파일은 비어 있지 않은 JPEG/PNG/GIF/WebP만 지원하고 MIME과 기존 파일 signature 검사를 모두 통과해야 합니다. 파일 최대 10 MiB, multipart 전체 최대 11 MiB입니다(선언값과 실제 스트림 검사).
+`POST /api/admin/uploads`는 multipart `file` 필수, `key` 선택입니다. 파일은 비어 있지 않은 JPEG/PNG/GIF/WebP만 지원하고 MIME과 기존 파일 signature 검사를 모두 통과해야 합니다. 파일 최대 10 MiB, multipart 전체 최대 11 MiB입니다(선언값과 실제 스트림 검사). `overwrite`는 선택적인 multipart text field이며 값은 정확히 문자열 `true` 또는 `false`여야 합니다. `overwrite=true`는 명시적인 유효한 `key`가 있을 때만 허용되며 기존 regular 파일을 원자적으로 교체합니다. `overwrite=false` 또는 생략은 기존 create-only 동작을 유지합니다.
 
 키는 `assets/posts/YYYY-MM-DD/<safe filename>.<extension>`이며 앞에 `/`를 붙이지 않습니다. 날짜는 유효한 달력 날짜이고, filename은 영숫자로 시작하는 1–200자의 영숫자·`_`·`-`입니다. 확장자는 소문자 `jpg|png|gif|webp`이며 업로드 MIME과 일치해야 합니다. 경로 이동·절대 경로·URL·인코딩된 경로·SVG는 허용하지 않습니다. key를 생략하면 기존 날짜 + UUID 형식으로 생성합니다.
 
-성공은 201:
+새 object 업로드 성공은 201, 기존 object 교체 성공은 200입니다. 응답의 `replaced`로 두 결과를 구분할 수 있습니다.
 
 ```json
 {
   "path": "/assets/posts/2026-09-10/design-system-00-v2.png",
   "url": "/assets/posts/2026-09-10/design-system-00-v2.png",
-  "publicUrl": "https://cdn-dev.raven.kr/assets/posts/2026-09-10/design-system-00-v2.png"
+  "publicUrl": "https://cdn-dev.raven.kr/assets/posts/2026-09-10/design-system-00-v2.png",
+  "replaced": false
 }
 ```
 
 `path`/`url`은 Markdown에 넣을 사이트 루트 상대 경로입니다. 커버에는 path의 맨 앞 `/`를 제거한 키를 사용합니다. publicUrl은 실행 환경에서 파생되며 main이라면 main CDN입니다. 본문의 기존 절대 이미지 URL은 서버가 재작성하지 않으므로, 동기화 도구가 루트 상대 `/assets/...`로 바꾸거나 대상 환경 주소로 치환해야 합니다.
 
-동일 키가 있으면 local의 atomic link 또는 R2의 conditional write(`If-None-Match: *`)가 덮어쓰기를 막고 409 `ASSET_EXISTS`를 반환합니다. 동기화 도구는 대상 CDN의 파일을 읽어 원본과 해시가 같은지 확인한 후에만 skip해야 합니다. 409 자체는 동일 내용의 증거가 아닙니다. 다른 내용이면 새 키를 사용하세요. 키 없는 재업로드는 새 UUID를 생성하므로 idempotent하지 않습니다.
+동일 키가 있으면 기본적으로 local의 atomic link 또는 R2의 conditional write(`If-None-Match: *`)가 덮어쓰기를 막고 409 `ASSET_EXISTS`를 반환합니다. `overwrite=true`일 때만 이 조건을 생략하며, local은 대상이 symlink/non-regular이면 거부하고 기존 regular 파일만 원자적으로 교체합니다. R2도 overwrite 경로에서만 조건부 헤더를 생략합니다. 동기화 도구는 대상 CDN의 파일을 읽어 원본과 해시가 같은지 확인한 후에만 skip하거나, 명시적인 replace 옵션이 있을 때 hash conflict만 교체해야 합니다. 409 자체는 동일 내용의 증거가 아닙니다. 키 없는 재업로드는 새 UUID를 생성하므로 idempotent하지 않습니다.
 
 다음 예시의 변수는 로컬 런타임에서 주입하고 토큰을 저장소나 로그에 남기지 않습니다. 서비스 자격 증명은 edge로 보내는 값이며 JWT assertion은 edge가 전달합니다.
 
@@ -98,6 +99,14 @@ curl --fail-with-body "$API_BASE/api/admin/uploads" \
   -H "CF-Access-Client-Secret: $ACCESS_CLIENT_SECRET" \
   -F 'file=@./design-system-00-v2.png;type=image/png' \
   -F 'key=assets/posts/2026-09-10/design-system-00-v2.png'
+
+# 의도적인 기존 asset 교체: key는 반드시 명시하고 overwrite의 값은 정확히 true
+curl --fail-with-body "$API_BASE/api/admin/uploads" \
+  -H "CF-Access-Client-Id: $ACCESS_CLIENT_ID" \
+  -H "CF-Access-Client-Secret: $ACCESS_CLIENT_SECRET" \
+  -F 'file=@./design-system-00-v2.png;type=image/png' \
+  -F 'key=assets/posts/2026-09-10/design-system-00-v2.png' \
+  -F 'overwrite=true'
 
 # post.json은 위 JSON 계약을 따릅니다. 이미지를 먼저 올린 뒤 실행합니다.
 curl --fail-with-body -X PUT "$API_BASE/api/admin/posts/design-system" \
@@ -119,18 +128,18 @@ curl --fail-with-body -X POST "$API_BASE/api/admin/posts" \
 
 새 posts와 uploads 오류는 `{ "error": { "code": "POST_CONFLICT", "message": "슬러그 또는 고정 순서가 이미 사용 중입니다." } }` 형태입니다. DB 오류 상세·토큰·입력 원문은 응답이나 새 API 로그에 남기지 않습니다.
 
-| 상태 | 의미 / 주요 code                                                                      |
-| ---- | ------------------------------------------------------------------------------------- |
-| 400  | 잘못된 JSON·multipart·slug, `SLUG_MISMATCH`, 누락 파일, 빈 파일 또는 10 MiB 초과 파일 |
-| 401  | `UNAUTHORIZED`: Google 로그인/JWT 검증 실패                                           |
-| 403  | `FORBIDDEN`: Origin 오류, Origin 없는 비-Access 요청, owner/RLS 권한 부족             |
-| 404  | `POST_NOT_FOUND`                                                                      |
-| 409  | `POST_CONFLICT`, `ASSET_EXISTS`                                                       |
-| 413  | `PAYLOAD_TOO_LARGE`: 요청/Markdown 크기 초과                                          |
-| 415  | uploads의 `UNSUPPORTED_IMAGE`, `INVALID_IMAGE`                                        |
-| 422  | `INVALID_POST`, `INVALID_ASSET_KEY`: 입력·FK·DB check 위반                            |
-| 500  | `DATABASE_ERROR`, `INTERNAL_ERROR`: 안전한 일반 메시지                                |
-| 503  | `NOT_CONFIGURED`, `AUTH_UNAVAILABLE`: 서버 설정 또는 인증 서비스 사용 불가            |
+| 상태 | 의미 / 주요 code                                                                                          |
+| ---- | --------------------------------------------------------------------------------------------------------- |
+| 400  | 잘못된 JSON·multipart·slug, `SLUG_MISMATCH`, 누락 파일, 빈 파일 또는 10 MiB 초과 파일                     |
+| 401  | `UNAUTHORIZED`: Google 로그인/JWT 검증 실패                                                               |
+| 403  | `FORBIDDEN`: Origin 오류, Origin 없는 비-Access 요청, owner/RLS 권한 부족                                 |
+| 404  | `POST_NOT_FOUND`                                                                                          |
+| 409  | `POST_CONFLICT`, `ASSET_EXISTS`                                                                           |
+| 413  | `PAYLOAD_TOO_LARGE`: 요청/Markdown 크기 초과                                                              |
+| 415  | uploads의 `UNSUPPORTED_IMAGE`, `INVALID_IMAGE`                                                            |
+| 422  | `INVALID_POST`, `INVALID_ASSET_KEY`, `INVALID_OVERWRITE`, `OVERWRITE_KEY_REQUIRED`: 입력·FK·DB check 위반 |
+| 500  | `DATABASE_ERROR`, `INTERNAL_ERROR`: 안전한 일반 메시지                                                    |
+| 503  | `NOT_CONFIGURED`, `AUTH_UNAVAILABLE`: 서버 설정 또는 인증 서비스 사용 불가                                |
 
 ## 기존 공개 API
 

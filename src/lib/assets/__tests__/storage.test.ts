@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, readFile, symlink } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
@@ -64,6 +64,46 @@ describe('local asset storage', () => {
     await expect(
       readFile(path.join(root, 'posts/2026-09-07/123e4567-e89b-12d3-a456-426614174000.png')),
     ).resolves.toEqual(Buffer.from(object.body));
+  });
+
+  it('atomically replaces an existing regular file only when requested', async () => {
+    const root = await assetRoot();
+    await storeLocalAsset(root, object);
+    const replacement = new Uint8Array([1, 2, 3]);
+    await expect(
+      storeLocalAsset(root, { ...object, body: replacement }, { overwrite: true }),
+    ).resolves.toEqual({ replaced: true });
+    await expect(
+      readFile(path.join(root, 'posts/2026-09-07/123e4567-e89b-12d3-a456-426614174000.png')),
+    ).resolves.toEqual(Buffer.from(replacement));
+  });
+
+  it('rejects a symlink destination without changing its target', async () => {
+    const root = await assetRoot();
+    const outside = await assetRoot();
+    const outsideFile = path.join(outside, 'outside.png');
+    await writeFile(outsideFile, Buffer.from([9, 9, 9]));
+    await mkdir(path.join(root, 'posts/2026-09-07'), { recursive: true });
+    const destination = path.join(
+      root,
+      'posts/2026-09-07/123e4567-e89b-12d3-a456-426614174000.png',
+    );
+    await symlink(outsideFile, destination);
+
+    await expect(storeLocalAsset(root, object, { overwrite: true })).rejects.toThrow(
+      'Unsafe asset destination',
+    );
+    await expect(readFile(outsideFile)).resolves.toEqual(Buffer.from([9, 9, 9]));
+  });
+
+  it('rejects a non-regular destination during replacement', async () => {
+    const root = await assetRoot();
+    await mkdir(path.join(root, 'posts/2026-09-07/123e4567-e89b-12d3-a456-426614174000.png'), {
+      recursive: true,
+    });
+    await expect(storeLocalAsset(root, object, { overwrite: true })).rejects.toThrow(
+      'Unsafe asset destination',
+    );
   });
 
   it('allows concurrent first uploads to create the same date directory', async () => {
