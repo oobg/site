@@ -161,6 +161,13 @@ export function PostEditor({
     bodyValueRef.current = body;
   }, [body]);
 
+  const syncVisualEditor = useCallback(
+    (editor: HTMLDivElement | null) => {
+      if (editor && editor.innerHTML !== previewHtml) editor.innerHTML = previewHtml;
+    },
+    [previewHtml],
+  );
+
   useEffect(() => {
     titleRef.current?.focus();
   }, [post?.id]);
@@ -562,6 +569,7 @@ export function PostEditor({
             <textarea
               ref={bodyRef}
               id="post-body"
+              data-editor-scroll-region
               aria-label="본문"
               aria-describedby="body-help"
               aria-invalid={Boolean(fieldError(state, 'body'))}
@@ -584,6 +592,7 @@ export function PostEditor({
           </div>
           <section
             id="editor-preview-panel"
+            data-editor-scroll-region
             role="tabpanel"
             aria-labelledby="editor-preview-tab"
             hidden={editorTab !== 'preview'}
@@ -593,6 +602,7 @@ export function PostEditor({
             }}
           >
             <div
+              ref={syncVisualEditor}
               className={`${articleStyles.prose} ${styles.visualEditor}`}
               contentEditable={!busy}
               suppressContentEditableWarning
@@ -601,13 +611,10 @@ export function PostEditor({
               aria-multiline="true"
               aria-readonly={busy}
               aria-describedby="body-help visual-editor-help"
-              data-empty={!previewHtml ? 'true' : undefined}
-              dangerouslySetInnerHTML={{ __html: previewHtml }}
+              data-empty={!body.trim() ? 'true' : undefined}
               onInput={(event) => {
-                const html = event.currentTarget.innerHTML;
                 const markdown = htmlToMarkdown(event.currentTarget);
                 previewSourceRef.current = markdown;
-                setPreviewHtml(markdown ? html : '');
                 bodyValueRef.current = markdown;
                 setBody(markdown);
                 editRevisionRef.current += 1;

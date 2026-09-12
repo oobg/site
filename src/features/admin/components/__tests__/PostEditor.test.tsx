@@ -120,7 +120,9 @@ describe('PostEditor slug editing', () => {
     const body = screen.getByRole('textbox', { name: '본문' }) as HTMLTextAreaElement;
 
     expect(body.style.height).toBe('');
+    expect(body).toHaveAttribute('data-editor-scroll-region');
     body.focus();
+    body.scrollTop = 240;
     fireEvent.change(body, { target: { value: '입력 중인 본문' } });
     body.setSelectionRange(4, 4);
     fireEvent.compositionStart(body);
@@ -132,6 +134,7 @@ describe('PostEditor slug editing', () => {
     expect(body).toHaveFocus();
     expect(body.selectionStart).toBe(4);
     expect(body.selectionEnd).toBe(4);
+    expect(body.scrollTop).toBe(240);
   });
 
   it('keeps the preview tab open after saving', async () => {
@@ -270,6 +273,54 @@ describe('PostEditor slug editing', () => {
     fireEvent.click(screen.getByRole('button', { name: '초안 저장' }));
     await waitFor(() => expect(save).toHaveBeenCalledOnce());
     expect(save.mock.calls[0]?.[1].get('body')).toBe('## 바뀐 제목\n\n수정한 **본문**');
+  });
+
+  it('keeps the visual editor caret and viewport stable while syncing input', async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ html: '<p>기존 본문</p>' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    render(
+      <PostEditor
+        action={action}
+        post={{
+          id: 'p1',
+          title: '제목',
+          slug: 'title',
+          description: '설명',
+          body: '기존 본문',
+          status: 'draft',
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    await act(async () => vi.advanceTimersByTimeAsync(350));
+    const panel = screen.getByRole('tabpanel', { name: '텍스트 편집' });
+    const visualEditor = screen.getByRole('textbox', { name: '본문 텍스트 편집' });
+    const textNode = visualEditor.querySelector('p')?.firstChild;
+    expect(textNode).toBeInstanceOf(Text);
+    expect(panel).toHaveAttribute('data-editor-scroll-region');
+
+    panel.scrollTop = 180;
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.setStart(textNode!, 2);
+    range.collapse(true);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    (textNode as Text).insertData(2, '수정');
+    fireEvent.input(visualEditor);
+
+    expect(textNode?.isConnected).toBe(true);
+    expect(selection?.anchorNode).toBe(textNode);
+    expect(panel.scrollTop).toBe(180);
+    expect(document.querySelector<HTMLTextAreaElement>('textarea[name="body"]')).toHaveValue(
+      '기존수정 본문',
+    );
   });
 
   it('keeps edited filetree structure in the Markdown save payload', async () => {
