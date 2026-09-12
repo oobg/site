@@ -43,8 +43,10 @@
 | `--d0-radius-control` | `10px`                           | 입력과 기본 컨트롤            |
 | `--d0-radius-sm`      | `8px`                            | 작은 컨트롤                   |
 | `--d0-ease`           | `cubic-bezier(0.22, 1, 0.36, 1)` | 상태 전환                     |
+| `--d0-ease-in-out`    | `cubic-bezier(0.65, 0, 0.35, 1)` | 큰 레이아웃 전환              |
 | `--d0-dur-fast`       | `140ms`                          | hover와 focus                 |
 | `--d0-dur`            | `220ms`                          | 팝업과 indicator              |
+| `--d0-dur-slow`       | `420ms`                          | sticky 헤더 형태 전환         |
 
 브랜드 블루는 흰색과 작은 글자 조합에서 AA 대비가 부족하므로 작은 링크와 흰 글자 버튼에는
 `--d0-blue-dark`를 쓴다. 흰 배경 위의 13px 메타는 grey-600 이상을 사용한다.

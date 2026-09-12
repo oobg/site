@@ -108,14 +108,13 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
   const daily = data.daily.map((item) => ({ ...item, label: shortDate(item.date) }));
   const pages = data.pages.filter((page) => !isAdminAnalyticsPath(page.path));
   return (
-    <section className={styles.dashboard} aria-labelledby="analytics-title" data-matrix>
+    <section className={styles.dashboard} aria-label="방문 통계 데이터" data-matrix>
       <div className={styles.heading}>
         <div className={styles.headingCopy}>
           <span className={styles.pageLabel}>
             <span className={styles.signalDot} aria-hidden />
             사이트 신호
           </span>
-          <h2 id="analytics-title">방문 통계</h2>
           <p>raven.kr · GA4</p>
         </div>
         <div className={styles.headingMeta}>

@@ -11,13 +11,13 @@
   border-bottom: 1px solid var(--d0-grey-200);
   background: var(--color-surface);
   transition:
-    border-color var(--d0-dur) var(--d0-ease),
-    background var(--d0-dur) var(--d0-ease);
+    border-color var(--d0-dur-slow) var(--d0-ease-in-out),
+    background var(--d0-dur-slow) var(--d0-ease-in-out);
 }
 .inner {
-  width: 100%;
+  width: min(100% - 40px, var(--w-container));
   margin-inline: auto;
-  transition: width var(--d0-dur) var(--d0-ease);
+  transition: width var(--d0-dur-slow) var(--d0-ease-in-out);
 }
 .pill {
   position: relative;
@@ -32,14 +32,14 @@
   background: transparent;
   box-shadow: none;
   transition:
-    min-height var(--d0-dur) var(--d0-ease),
-    padding var(--d0-dur) var(--d0-ease),
-    border-color var(--d0-dur) var(--d0-ease),
-    border-radius var(--d0-dur) var(--d0-ease),
-    background var(--d0-dur) var(--d0-ease),
-    box-shadow var(--d0-dur) var(--d0-ease),
-    -webkit-backdrop-filter var(--d0-dur) var(--d0-ease),
-    backdrop-filter var(--d0-dur) var(--d0-ease);
+    min-height var(--d0-dur-slow) var(--d0-ease-in-out),
+    padding var(--d0-dur-slow) var(--d0-ease-in-out),
+    border-color var(--d0-dur-slow) var(--d0-ease-in-out),
+    border-radius var(--d0-dur-slow) var(--d0-ease-in-out),
+    background var(--d0-dur-slow) var(--d0-ease-in-out),
+    box-shadow var(--d0-dur-slow) var(--d0-ease-in-out),
+    -webkit-backdrop-filter var(--d0-dur-slow) var(--d0-ease-in-out),
+    backdrop-filter var(--d0-dur-slow) var(--d0-ease-in-out);
 }
 .header[data-stuck] {
   border-bottom-color: transparent;
@@ -70,7 +70,7 @@
   white-space: nowrap;
   transition:
     color var(--d0-dur-fast) var(--d0-ease),
-    transform var(--d0-dur-fast) var(--d0-ease);
+    transform var(--d0-dur-slow) var(--d0-ease-in-out);
 }
 .wordmark:hover {
   color: var(--d0-blue-dark);
@@ -84,7 +84,7 @@
 }
 @media (max-width: 900px) {
   .inner {
-    width: 100%;
+    width: min(100% - 32px, 780px);
   }
   .pill {
     padding-inline: var(--space-5);
@@ -96,6 +96,9 @@
 @media (max-width: 640px) {
   .header {
     height: 60px;
+  }
+  .inner {
+    width: min(100% - 24px, 780px);
   }
   .pill {
     min-height: 60px;

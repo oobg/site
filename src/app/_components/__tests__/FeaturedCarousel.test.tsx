@@ -50,21 +50,21 @@ describe('FeaturedCarousel', () => {
     expect(screen.getByText('2 / 2')).toBeInTheDocument();
   });
 
-  it('moves to the next post every four seconds and pauses while it is being read', () => {
+  it('moves to the next post every ten seconds and pauses while it is being read', () => {
     vi.useFakeTimers();
     render(<FeaturedCarousel posts={[1, 2, 3].map(post)} />);
     const section = screen.getByRole('region', { name: '추천 글' });
 
-    act(() => vi.advanceTimersByTime(3999));
+    act(() => vi.advanceTimersByTime(9999));
     expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(1));
     expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
 
     fireEvent.mouseEnter(section);
-    act(() => vi.advanceTimersByTime(4000));
+    act(() => vi.advanceTimersByTime(10000));
     expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
     fireEvent.mouseLeave(section);
-    act(() => vi.advanceTimersByTime(4000));
+    act(() => vi.advanceTimersByTime(10000));
     expect(screen.getByRole('heading', { name: '추천 글 3' })).toBeInTheDocument();
   });
 

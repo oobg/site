@@ -5,16 +5,8 @@
 
 .dashboard {
   min-width: 0;
-  margin-top: var(--space-8);
-  margin-bottom: var(--space-10);
-  padding: clamp(var(--space-5), 3vw, var(--space-7));
-  border: 1px solid var(--d0-grey-200);
-  border-radius: var(--d0-radius-card);
-  background-color: var(--d0-grey-50);
-  background-image:
-    linear-gradient(to right, var(--d0-grey-100) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--d0-grey-100) 1px, transparent 1px);
-  background-size: 32px 32px;
+  margin-top: var(--space-7);
+  margin-bottom: var(--space-9);
 }
 
 .heading {
@@ -23,7 +15,7 @@
   justify-content: space-between;
   gap: var(--space-5);
   padding-bottom: var(--space-5);
-  border-bottom: 1px solid var(--d0-grey-300);
+  border-bottom: 1px solid var(--d0-grey-200);
 }
 
 .headingCopy,
@@ -118,24 +110,23 @@
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1px;
   margin-top: var(--space-5);
-  overflow: hidden;
-  border: 1px solid var(--d0-grey-200);
-  border-radius: var(--d0-radius-sm);
-  background: var(--d0-grey-200);
+  border-block: 1px solid var(--d0-grey-200);
 }
 
 .metrics > div {
   position: relative;
   min-width: 0;
-  min-height: 140px;
-  padding: var(--space-5);
-  background: var(--color-surface);
+  min-height: 128px;
+  padding: var(--space-5) var(--space-4);
 }
 
 .metrics > div[data-tone='accent'] {
   background: var(--d0-blue-light);
+}
+
+.metrics > div + div {
+  border-left: 1px solid var(--d0-grey-200);
 }
 
 .metricIndex {
@@ -166,18 +157,15 @@
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(17rem, 1fr);
-  gap: 1px;
-  margin-top: var(--space-5);
-  overflow: hidden;
-  border: 1px solid var(--d0-grey-200);
-  border-radius: var(--d0-radius-sm);
-  background: var(--d0-grey-200);
+  column-gap: var(--space-7);
+  margin-top: var(--space-7);
+  border-top: 1px solid var(--d0-grey-200);
 }
 
 .panel {
   min-width: 0;
-  padding: clamp(var(--space-5), 2.5vw, var(--space-7));
-  background: var(--color-surface);
+  padding-block: clamp(var(--space-5), 2.5vw, var(--space-7));
+  border-bottom: 1px solid var(--d0-grey-200);
 }
 
 .panelHeading {
@@ -235,6 +223,10 @@
   color: var(--color-text-secondary);
 }
 
+.deviceList li:last-child {
+  border-bottom: 0;
+}
+
 .deviceList strong {
   color: var(--color-text);
   font-family: var(--font-mono), ui-monospace, monospace;
@@ -244,16 +236,14 @@
 .locationGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-3);
+  gap: var(--space-6);
   margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--d0-grey-200);
 }
 
 .locationSection {
   min-width: 0;
-  padding: var(--space-4);
-  border: 1px solid var(--d0-grey-100);
-  border-radius: var(--d0-radius-sm);
-  background: var(--d0-grey-50);
 }
 
 .locationHeading {
@@ -288,6 +278,10 @@
   min-height: 48px;
   padding-block: var(--space-2);
   border-bottom: 1px solid var(--d0-grey-100);
+}
+
+.locationList li:last-child {
+  border-bottom: 0;
 }
 
 .locationRank {
@@ -392,19 +386,18 @@
 .state {
   margin-top: var(--space-7);
   margin-bottom: var(--space-8);
-  padding: clamp(var(--space-5), 3vw, var(--space-7));
-  border: 1px solid var(--d0-grey-200);
-  border-radius: var(--d0-radius-card);
-  background-color: var(--d0-grey-50);
-  background-image:
-    linear-gradient(to right, var(--d0-grey-100) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--d0-grey-100) 1px, transparent 1px);
-  background-size: 32px 32px;
+  padding-block: var(--space-6);
+  border-block: 1px solid var(--d0-grey-200);
 }
 
 @media (max-width: 960px) {
   .metrics {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .metrics > div:nth-child(3),
+  .metrics > div:nth-child(4) {
+    border-top: 1px solid var(--d0-grey-200);
   }
 
   .grid {
@@ -420,7 +413,6 @@
 
   .dashboard {
     margin-top: var(--space-6);
-    padding: var(--space-4);
   }
 
   .heading {
@@ -435,12 +427,20 @@
     border-top: 1px solid var(--d0-grey-200);
   }
 
+  .metrics > div + div {
+    border-left: 0;
+  }
+
+  .metrics > div:nth-child(2) {
+    border-top: 1px solid var(--d0-grey-200);
+  }
+
   .grid {
     grid-template-columns: 1fr;
   }
 
   .panel {
-    padding: var(--space-5);
+    padding-block: var(--space-5);
   }
 
   .locationGrid {
@@ -454,15 +454,6 @@
 }
 
 @media (max-width: 600px) {
-  .dashboard,
-  .state {
-    margin-inline: var(--space-4);
-  }
-
-  .dashboard {
-    padding: var(--space-3);
-  }
-
   .metrics > div {
     min-height: 124px;
     padding: var(--space-4);
