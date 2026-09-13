@@ -307,6 +307,172 @@
   min-width: fit-content;
 }
 
+/* Mermaid는 원문 코드가 먼저 보이고, 안전한 SVG 렌더가 끝났을 때만 뷰어로 바뀐다.
+   JS나 문법 오류가 나면 같은 코드블럭이 그대로 남아 내용을 잃지 않는다. */
+.prose figure[data-mermaid] {
+  margin-block: var(--space-7);
+}
+
+.prose figure[data-mermaid] > figcaption {
+  margin-bottom: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--fs-13);
+  font-weight: 600;
+}
+
+.prose figure[data-mermaid] [data-mermaid-output] {
+  display: none;
+  padding-block: var(--space-4);
+  overflow-x: auto;
+}
+
+.prose figure[data-mermaid][data-mermaid-state='ready'] [data-mermaid-output] {
+  display: grid;
+  place-items: center;
+}
+
+.prose figure[data-mermaid][data-mermaid-state='ready'] [data-mermaid-fallback] {
+  display: none;
+}
+
+.prose figure[data-mermaid] [data-mermaid-output] svg {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  color: var(--color-text);
+}
+
+.prose figure[data-mermaid] [data-mermaid-fallback] > figure[data-code] {
+  margin-block: 0;
+}
+
+/* 설치 안내는 하나의 문서 흐름이다. 제목·명령·단계를 별도 카드로 쪼개지 않고 선과
+   여백으로 위계를 만들며, 좁은 화면에서는 번호 레일만 줄인다. */
+.prose figure[data-installer] {
+  margin-block: var(--space-7);
+  padding-block: var(--space-5);
+  border-block: 1px solid var(--color-border-strong);
+}
+
+.prose figure[data-installer] [data-installer-head] h3 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--fs-20);
+}
+
+.prose figure[data-installer] [data-installer-head] p {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--fs-15);
+}
+
+.prose figure[data-installer] [data-installer-managers] {
+  margin-top: var(--space-5);
+}
+
+.prose figure[data-installer] [role='tablist'] {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prose figure[data-installer] button[data-installer-manager] {
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--color-text-muted);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-13);
+  cursor: pointer;
+}
+
+.prose figure[data-installer] button[data-installer-manager][aria-selected='true'] {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.prose figure[data-installer] button[data-installer-manager]:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.prose figure[data-installer] [data-installer-panel][hidden] {
+  display: none;
+}
+
+.prose figure[data-installer] [data-installer-panel] > figure[data-code] {
+  margin-block: 0;
+}
+
+.prose figure[data-installer] ol[data-installer-steps] {
+  display: grid;
+  gap: 0;
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: installer-step;
+}
+
+.prose figure[data-installer] ol[data-installer-steps] > li {
+  position: relative;
+  margin: 0;
+  padding: 0 0 var(--space-6) var(--space-7);
+  counter-increment: installer-step;
+}
+
+.prose figure[data-installer] ol[data-installer-steps] > li:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 28px;
+  bottom: 0;
+  left: 13px;
+  border-left: 1px solid var(--color-border-strong);
+}
+
+.prose figure[data-installer] ol[data-installer-steps] > li::before {
+  content: counter(installer-step);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-family: var(--font-mono), monospace;
+  font-size: var(--fs-12);
+}
+
+.prose figure[data-installer] ol[data-installer-steps] > li > h4 {
+  margin: 2px 0 var(--space-2);
+  color: var(--color-text);
+  font-size: var(--fs-18);
+}
+
+.prose figure[data-installer] ol[data-installer-steps] > li > p {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-secondary);
+  font-size: var(--fs-15);
+}
+
+.prose figure[data-installer] ol[data-installer-steps] > li > figure[data-code],
+.prose figure[data-installer] ol[data-installer-steps] > li > blockquote {
+  margin-block: var(--space-3) 0;
+}
+
+@media (max-width: 640px) {
+  .prose figure[data-installer] ol[data-installer-steps] > li {
+    padding-left: var(--space-6);
+  }
+}
+
 /* 표도 자기 안에서만 넘친다. */
 .prose table {
   display: block;

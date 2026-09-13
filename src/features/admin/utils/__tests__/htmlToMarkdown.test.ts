@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { htmlToMarkdown } from '@features/admin/utils/htmlToMarkdown';
+import { renderMarkdown } from '@lib/markdown/render';
 
 const root = (html: string) => {
   const element = document.createElement('div');
@@ -132,5 +133,40 @@ describe('htmlToMarkdown', () => {
     expect(markdown).toBe('보존할 내용\n\n안전한 글자이미지 설명');
     expect(markdown).not.toContain('javascript:');
     expect(markdown).not.toContain('data:image');
+  });
+
+  it.each([
+    [
+      'mermaid',
+      'graph TD\n  A --> B',
+      '<figure data-mermaid><span hidden data-mermaid-source>graph TD\n  A --&gt; B</span><div data-mermaid-output><svg></svg></div><div data-mermaid-fallback><figure data-code><pre><code>graph TD\n  A --&gt; B</code></pre></figure></div></figure>',
+    ],
+    [
+      'installer',
+      '{\n  "title": "SDK 설치",\n  "steps": [{ "title": "실행", "code": "pnpm add raven" }]\n}',
+      '<figure data-installer><span hidden data-installer-source>{\n  &quot;title&quot;: &quot;SDK 설치&quot;,\n  &quot;steps&quot;: [{ &quot;title&quot;: &quot;실행&quot;, &quot;code&quot;: &quot;pnpm add raven&quot; }]\n}</span><header><h3>수정되어도 저장하지 않는 렌더 라벨</h3></header></figure>',
+    ],
+  ])('round-trips a %s figure to its fenced source', (language, source, html) => {
+    expect(htmlToMarkdown(root(html))).toBe(`\`\`\`${language}\n${source}\n\`\`\``);
+  });
+
+  it.each([
+    ['mermaid', 'flowchart LR\n  Draft --> Review'],
+    [
+      'installer',
+      '{\n  "title": "SDK 설치",\n  "managers": { "pnpm": "pnpm add raven" },\n  "steps": [{ "title": "실행", "language": "sh", "code": "pnpm add raven" }]\n}',
+    ],
+  ])('returns rendered %s HTML to the original fence', async (language, source) => {
+    const markdown = `\`\`\`${language}\n${source}\n\`\`\``;
+    const { html } = await renderMarkdown(markdown);
+    expect(htmlToMarkdown(root(html))).toBe(markdown);
+  });
+
+  it('preserves special fence source whitespace exactly through editor serialization', () => {
+    const source =
+      '{  \n  "title": "SDK 설치",  \n  "managers": {"npm": "  npm i raven  "},\n  "steps": [{"title":"실행","code":"  echo ready  "}]\n}';
+    const html = `<figure data-installer><span hidden data-installer-source>${source}</span></figure>`;
+
+    expect(htmlToMarkdown(root(html))).toBe(`\`\`\`installer\n${source}\n\`\`\``);
   });
 });

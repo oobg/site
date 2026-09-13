@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import { ROUTES } from '@constants/routes';
 import articleStyles from '@components/content/ArticleBody.module.css';
+import { CodeCopy } from '@components/content/CodeCopy';
+import { MarkdownWidgets } from '@components/content/MarkdownWidgets';
 import { normalizeSlug } from '@features/admin/services/slug';
 import type { PostActionState, PostStatus } from '@features/admin/types/posts-admin.types';
 import type { BlogCategory } from '@features/posts/types/posts.types';
@@ -612,6 +614,8 @@ export function PostEditor({
             <span id="visual-editor-help" className={styles.visuallyHidden}>
               렌더링된 본문을 직접 수정할 수 있습니다. 변경 내용은 마크다운 원문에 반영됩니다.
             </span>
+            <CodeCopy />
+            <MarkdownWidgets />
           </section>
         </div>
         <p id="body-help" className={styles.helper} aria-live="polite">

@@ -22,7 +22,7 @@ const BLOCK_TAGS = new Set([
 
 const ignoredElement = (element: Element) =>
   element.matches(
-    'button[data-code-copy], [data-code-copy-status], [data-code-head], [data-code-dots], [data-callout-label]',
+    'button[data-code-copy], [data-code-copy-status], [data-code-head], [data-code-dots], [data-callout-label], [data-mermaid-source], [data-installer-source]',
   );
 
 const safeUrl = (value: string, image = false) => {
@@ -100,6 +100,23 @@ function codeBlock(element: Element) {
   const longest = Math.max(0, ...Array.from(value.matchAll(/`{3,}/g), (match) => match[0].length));
   const fence = '`'.repeat(Math.max(3, longest + 1));
   return `${fence}${language}\n${value}\n${fence}`;
+}
+
+type SerializationContext = { specialFences: string[] };
+
+function specialFence(
+  element: Element,
+  language: 'mermaid' | 'installer',
+  context: SerializationContext,
+) {
+  const source = element.querySelector<HTMLElement>(`[data-${language}-source]`)?.textContent ?? '';
+  if (!source) return '';
+  const longest = Math.max(0, ...Array.from(source.matchAll(/`{3,}/g), (match) => match[0].length));
+  const fence = '`'.repeat(Math.max(3, longest + 1));
+  const index = context.specialFences.push(`${fence}${language}\n${source}\n${fence}`) - 1;
+  // Normal Markdown serialization trims presentation whitespace. Keep special fence sources out
+  // of that cleanup pass, then restore their exact text at the end.
+  return `\u0000raven-special-fence-${index}\u0000`;
 }
 
 type FileTreeEntry = {
@@ -195,14 +212,19 @@ function table(element: Element) {
   ].join('\n');
 }
 
-function listItem(element: Element, ordered: boolean, index: number) {
+function listItem(
+  element: Element,
+  ordered: boolean,
+  index: number,
+  context: SerializationContext,
+) {
   const nested = Array.from(element.children).filter((child) =>
     child.matches(':scope > ul, :scope > ol'),
   );
   const bodyNodes = Array.from(element.childNodes).filter(
     (node) => !(node instanceof Element && (node.tagName === 'UL' || node.tagName === 'OL')),
   );
-  const body = blocks(bodyNodes).trim() || '';
+  const body = blocks(bodyNodes, context).trim() || '';
   const marker = ordered ? `${index + 1}. ` : '- ';
   const lines = body.split('\n');
   const own = `${marker}${lines[0] ?? ''}${lines
@@ -211,7 +233,7 @@ function listItem(element: Element, ordered: boolean, index: number) {
     .join('')}`;
   const children = nested
     .map((child) =>
-      block(child)
+      block(child, context)
         .split('\n')
         .map((line) => `  ${line}`)
         .join('\n'),
@@ -220,7 +242,7 @@ function listItem(element: Element, ordered: boolean, index: number) {
   return children ? `${own}\n${children}` : own;
 }
 
-function block(element: Element): string {
+function block(element: Element, context: SerializationContext): string {
   if (ignoredElement(element)) return '';
   const tag = element.tagName;
 
@@ -229,6 +251,12 @@ function block(element: Element): string {
   }
   if (tag === 'P') return Array.from(element.childNodes, inline).join('').trim();
   if (tag === 'HR') return '---';
+  if (tag === 'FIGURE' && element.hasAttribute('data-mermaid')) {
+    return specialFence(element, 'mermaid', context);
+  }
+  if (tag === 'FIGURE' && element.hasAttribute('data-installer')) {
+    return specialFence(element, 'installer', context);
+  }
   if (tag === 'FIGURE' && element.hasAttribute('data-filetree')) return fileTree(element);
   if (tag === 'FIGURE' && element.hasAttribute('data-code')) return codeBlock(element);
   if (tag === 'PRE') return codeBlock(element);
@@ -237,7 +265,7 @@ function block(element: Element): string {
     const children = Array.from(element.childNodes).filter(
       (node) => !(node instanceof Element && node.hasAttribute('data-callout-label')),
     );
-    const value = blocks(children).trim();
+    const value = blocks(children, context).trim();
     const quoted = value
       .split('\n')
       .map((line) => (line ? `> ${line}` : '>'))
@@ -248,15 +276,15 @@ function block(element: Element): string {
     const ordered = tag === 'OL';
     return Array.from(element.children)
       .filter((child) => child.tagName === 'LI')
-      .map((item, index) => listItem(item, ordered, index))
+      .map((item, index) => listItem(item, ordered, index, context))
       .join('\n');
   }
   if (tag === 'TABLE') return table(element);
 
-  return blocks(Array.from(element.childNodes));
+  return blocks(Array.from(element.childNodes), context);
 }
 
-function blocks(nodes: Node[]) {
+function blocks(nodes: Node[], context: SerializationContext) {
   const result: string[] = [];
   let inlineBuffer = '';
   const flush = () => {
@@ -268,7 +296,7 @@ function blocks(nodes: Node[]) {
   for (const node of nodes) {
     if (node instanceof Element && BLOCK_TAGS.has(node.tagName)) {
       flush();
-      const value = block(node).trim();
+      const value = block(node, context).trim();
       if (value) result.push(value);
     } else {
       inlineBuffer += inline(node);
@@ -280,7 +308,12 @@ function blocks(nodes: Node[]) {
 
 /** 렌더링된 글 DOM을 저장 계약인 Markdown 원문으로 보수적으로 되돌린다. */
 export function htmlToMarkdown(root: ParentNode) {
-  return blocks(Array.from(root.childNodes))
+  const context: SerializationContext = { specialFences: [] };
+  const markdown = blocks(Array.from(root.childNodes), context)
     .replace(/[ \t]+$/gm, '')
     .trim();
+  return context.specialFences.reduce(
+    (value, fence, index) => value.replace(`\u0000raven-special-fence-${index}\u0000`, fence),
+    markdown,
+  );
 }

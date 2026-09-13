@@ -168,6 +168,95 @@ describe('renderMarkdown', () => {
     expect(html).not.toContain('<script>');
   });
 
+  describe('문서 컴포넌트 fence', () => {
+    it('mermaid 원문을 실행 가능한 HTML이 아닌 텍스트 fallback과 뷰어 대상으로 만든다', async () => {
+      const { html } = await renderMarkdown(
+        '```mermaid\ngraph TD\n  A["<img src=x onerror=alert(1)>"] --> B\n```',
+      );
+
+      expect(html).toContain('<figure data-mermaid="" data-mermaid-state="loading"');
+      expect(html).toContain('data-mermaid-output');
+      expect(html).toContain('data-mermaid-fallback');
+      expect(html).toContain('&#x3C;img src=x onerror=alert(1)>');
+      expect(html).not.toContain('<img src=x');
+      expect(html).toContain('data-code-lang="">mermaid</span>');
+    });
+
+    it('빈 mermaid fence는 기존 일반 코드블럭으로 남긴다', async () => {
+      const { html } = await renderMarkdown('```mermaid\n\n```');
+      expect(html).not.toContain('data-mermaid=""');
+      expect(html).toContain('<figure data-code');
+    });
+
+    it('검증된 installer JSON을 패키지 매니저 탭과 단계 문서로 만든다', async () => {
+      const source = JSON.stringify({
+        title: 'SDK 설치',
+        intro: '프로젝트에 맞는 명령을 고르세요.',
+        managers: { pnpm: 'pnpm add raven', npm: 'npm install raven' },
+        steps: [
+          {
+            title: '환경 설정',
+            description: '키를 추가합니다.',
+            language: 'bash',
+            code: 'export RAVEN_KEY="<secret>"',
+            tip: '비밀 값은 커밋하지 마세요.',
+          },
+        ],
+      });
+      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
+
+      expect(html).toContain('<figure data-installer=""');
+      expect(html).toContain('data-installer-manager="pnpm"');
+      expect(html).toMatch(/aria-selected="true"[^>]*data-installer-manager="pnpm"/);
+      expect(html).toMatch(/aria-selected="false"[^>]*data-installer-manager="npm"/);
+      expect(html).toContain('data-installer-steps');
+      expect(html).toContain('data-callout="tip"');
+      expect(html).toContain('data-code-lang="">bash</span>');
+      expect(html).toContain('&#x3C;secret>');
+      expect(html.match(/data-code-copy=""/g)).toHaveLength(3);
+      expect(html.match(/<figure data-code/g)).toHaveLength(3);
+    });
+
+    it('패키지 매니저 명령과 단계 코드를 실제 pre/code로 만들고 공백을 보존한다', async () => {
+      const source = JSON.stringify({
+        title: 'SDK 설치',
+        managers: { pnpm: '  pnpm add raven  ' },
+        steps: [{ title: '설정', language: 'text', code: '  first\n    second  ' }],
+      });
+      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
+      const root = document.createElement('div');
+      root.innerHTML = html;
+      const codes = Array.from(
+        root.querySelectorAll<HTMLElement>('[data-installer] figure[data-code] pre code'),
+        (code) => code.textContent,
+      );
+
+      expect(codes).toEqual(['  pnpm add raven  ', '  first\n    second  ']);
+      expect(root.querySelectorAll('[data-installer] button[data-code-copy]')).toHaveLength(2);
+    });
+
+    it.each([
+      ['깨진 JSON', '{"title":'],
+      ['필수 단계 누락', '{"title":"SDK","steps":[]}'],
+      ['패키지 매니저 누락', '{"title":"SDK","steps":[{"title":"실행"}]}'],
+      ['빈 패키지 매니저 객체', '{"title":"SDK","managers":{},"steps":[{"title":"실행"}]}'],
+      [
+        '공백뿐인 패키지 매니저 명령',
+        '{"title":"SDK","managers":{"npm":"   "},"steps":[{"title":"실행"}]}',
+      ],
+      [
+        '허용하지 않은 필드',
+        '{"title":"SDK","steps":[{"title":"실행","code":"ok"}],"href":"javascript:alert(1)"}',
+      ],
+    ])('%s installer는 예외 없이 기존 코드블럭으로 남긴다', async (_name, source) => {
+      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
+      expect(html).not.toContain('data-installer=""');
+      expect(html).toContain('<figure data-code');
+      expect(html).toContain('data-code-lang="">installer</span>');
+      expect(html.toLowerCase()).not.toContain('href="javascript:');
+    });
+  });
+
   describe('콜아웃', () => {
     /* 기술 글은 "주의"·"참고"를 자주 쓴다. 없으면 인용문을 그 용도로 전용하게 되고,
        그러면 진짜 인용과 경고가 같은 모양이 된다. GitHub 표기를 그대로 받는다. */

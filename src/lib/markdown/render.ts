@@ -10,6 +10,7 @@ import { bundledLanguages, type BuiltinLanguage } from 'shiki';
 import { isSpecialLang } from 'shiki/core';
 import { visit } from 'unist-util-visit';
 import type { Root, Element } from 'hast';
+import { z } from 'zod';
 import type { TocEntry } from '@lib/markdown/toc.types';
 import { env } from '@configs/env';
 
@@ -176,6 +177,256 @@ function calloutBlocks() {
   };
 }
 
+const installerText = (max: number) => z.string().trim().min(1).max(max);
+// Commands and snippets are payload, not labels. Validate them without transforming them so
+// indentation and intentional leading/trailing whitespace reach the rendered <code> verbatim.
+const installerCode = (max: number) =>
+  z
+    .string()
+    .max(max)
+    .refine((value) => value.trim().length > 0);
+const INSTALLER_MANAGERS = ['npm', 'pnpm', 'yarn', 'bun'] as const;
+const installerSchema = z
+  .object({
+    title: installerText(120),
+    intro: installerText(600).optional(),
+    managers: z
+      .object({
+        npm: installerCode(2_000).optional(),
+        pnpm: installerCode(2_000).optional(),
+        yarn: installerCode(2_000).optional(),
+        bun: installerCode(2_000).optional(),
+      })
+      .strict()
+      .refine((managers) => INSTALLER_MANAGERS.some((manager) => managers[manager] !== undefined)),
+    steps: z
+      .array(
+        z
+          .object({
+            title: installerText(120),
+            description: installerText(600).optional(),
+            language: z
+              .string()
+              .trim()
+              .regex(/^[a-z0-9_+#.-]{1,32}$/i)
+              .optional(),
+            code: installerCode(20_000).optional(),
+            note: installerText(600).optional(),
+            tip: installerText(600).optional(),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(20),
+  })
+  .strict();
+
+type Installer = z.infer<typeof installerSchema>;
+type HastChild = Element['children'][number];
+
+function textElement(
+  tagName: string,
+  value: string,
+  properties: Element['properties'] = {},
+): Element {
+  return {
+    type: 'element',
+    tagName,
+    properties,
+    children: [{ type: 'text', value }],
+  };
+}
+
+function fencedCode(value: string, language = ''): Element {
+  return {
+    type: 'element',
+    tagName: 'pre',
+    properties: {},
+    children: [
+      {
+        type: 'element',
+        tagName: 'code',
+        properties: language ? { className: [`language-${language}`] } : {},
+        children: [{ type: 'text', value: value.endsWith('\n') ? value : `${value}\n` }],
+      },
+    ],
+  };
+}
+
+function callout(kind: 'note' | 'tip', value: string): Element {
+  return {
+    type: 'element',
+    tagName: 'blockquote',
+    properties: { 'data-callout': kind },
+    children: [
+      textElement('p', kind === 'tip' ? '팁' : '참고', { 'data-callout-label': '' }),
+      textElement('p', value),
+    ],
+  };
+}
+
+function installerFigure(
+  installer: Installer,
+  source: string,
+  managerOrder: Array<keyof NonNullable<Installer['managers']>>,
+  id: number,
+): Element {
+  const children: HastChild[] = [
+    textElement('span', source, { 'data-installer-source': '', hidden: true }),
+    {
+      type: 'element',
+      tagName: 'header',
+      properties: { 'data-installer-head': '' },
+      children: [
+        textElement('h3', installer.title),
+        ...(installer.intro ? [textElement('p', installer.intro)] : []),
+      ],
+    },
+  ];
+
+  if (installer.managers && managerOrder.length) {
+    const tabs: Element[] = [];
+    const panels: Element[] = [];
+    managerOrder.forEach((manager, index) => {
+      const panelId = `installer-${id}-${manager}`;
+      tabs.push(
+        textElement('button', manager, {
+          type: 'button',
+          role: 'tab',
+          id: `${panelId}-tab`,
+          'aria-controls': panelId,
+          'aria-selected': index === 0 ? 'true' : 'false',
+          tabIndex: index === 0 ? 0 : -1,
+          'data-installer-manager': manager,
+        }),
+      );
+      panels.push({
+        type: 'element',
+        tagName: 'div',
+        properties: {
+          role: 'tabpanel',
+          id: panelId,
+          'aria-labelledby': `${panelId}-tab`,
+          'data-installer-panel': manager,
+          hidden: index === 0 ? undefined : true,
+        },
+        children: [fencedCode(installer.managers![manager]!, 'shell')],
+      });
+    });
+    children.push({
+      type: 'element',
+      tagName: 'section',
+      properties: { 'data-installer-managers': '' },
+      children: [
+        {
+          type: 'element',
+          tagName: 'div',
+          properties: { role: 'tablist', 'aria-label': '패키지 매니저' },
+          children: tabs,
+        },
+        ...panels,
+      ],
+    });
+  }
+
+  children.push({
+    type: 'element',
+    tagName: 'ol',
+    properties: { 'data-installer-steps': '' },
+    children: installer.steps.map((step) => ({
+      type: 'element' as const,
+      tagName: 'li',
+      properties: {},
+      children: [
+        textElement('h4', step.title),
+        ...(step.description ? [textElement('p', step.description)] : []),
+        ...(step.code ? [fencedCode(step.code, step.language)] : []),
+        ...(step.note ? [callout('note', step.note)] : []),
+        ...(step.tip ? [callout('tip', step.tip)] : []),
+      ],
+    })),
+  });
+
+  return {
+    type: 'element',
+    tagName: 'figure',
+    properties: { 'data-installer': '', contentEditable: 'false' },
+    children,
+  };
+}
+
+/** 특수 fence는 먼저 안전한 HAST로 바꾼다. JSON/다이어그램 원문은 텍스트 노드로만
+    보관하므로 마크업으로 실행되지 않고, 일반 코드블럭 장식과 하이라이트는 이후 단계가 맡는다. */
+function expandSpecialCodeBlocks() {
+  return (tree: Root) => {
+    let installerId = 0;
+    visit(tree, 'element', (node: Element, index, parent) => {
+      if (node.tagName !== 'pre' || !parent || index === null || index === undefined) return;
+      const code = node.children.find(
+        (child): child is Element => child.type === 'element' && child.tagName === 'code',
+      );
+      if (!code) return;
+      const classes = Array.isArray(code.properties?.className)
+        ? code.properties.className.map(String)
+        : [];
+      const language = classes
+        .find((name) => name.startsWith('language-'))
+        ?.slice('language-'.length)
+        .toLowerCase();
+      const source = nodeText(code as unknown as TextishNode).replace(/\n$/, '');
+
+      if (language === 'mermaid' && source.trim()) {
+        parent.children[index] = {
+          type: 'element',
+          tagName: 'figure',
+          properties: {
+            'data-mermaid': '',
+            'data-mermaid-state': 'loading',
+            contentEditable: 'false',
+          },
+          children: [
+            textElement('figcaption', '다이어그램'),
+            textElement('span', source, { 'data-mermaid-source': '', hidden: true }),
+            {
+              type: 'element',
+              tagName: 'div',
+              properties: { 'data-mermaid-output': '' },
+              children: [],
+            },
+            {
+              type: 'element',
+              tagName: 'div',
+              properties: { 'data-mermaid-fallback': '' },
+              children: [node],
+            },
+          ],
+        };
+        return 'skip';
+      }
+
+      if (language !== 'installer') return;
+      try {
+        const raw: unknown = JSON.parse(source);
+        const parsed = installerSchema.safeParse(raw);
+        if (!parsed.success) return;
+        const rawManagers =
+          typeof raw === 'object' && raw !== null && 'managers' in raw && raw.managers
+            ? raw.managers
+            : {};
+        const managerOrder = Object.keys(rawManagers).filter(
+          (key): key is keyof NonNullable<Installer['managers']> =>
+            INSTALLER_MANAGERS.includes(key as (typeof INSTALLER_MANAGERS)[number]) &&
+            Boolean(parsed.data.managers?.[key as (typeof INSTALLER_MANAGERS)[number]]),
+        );
+        parent.children[index] = installerFigure(parsed.data, source, managerOrder, installerId++);
+        return 'skip';
+      } catch {
+        // JSON이나 스키마가 잘못된 installer는 기존 코드블럭으로 그대로 이어진다.
+      }
+    });
+  };
+}
+
 function resolveAssetPath(value: string, publicUrl: string): string | null {
   if (!value.startsWith('/assets/')) return null;
 
@@ -301,6 +552,7 @@ export async function renderMarkdown(
     .use(removeUnsafeResourceUrls)
     .use(rehypeSlug)
     .use(collectToc, toc)
+    .use(expandSpecialCodeBlocks)
     .use(collectCodeLangs, langs)
     .use(calloutBlocks)
     /* 어두운 화면이라 어두운 테마를 쓴다. shiki는 pre에 배경색을 인라인으로 박기
