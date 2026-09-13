@@ -367,7 +367,8 @@
   font-size: var(--fs-15);
 }
 
-.prose figure[data-installer] [data-installer-managers] {
+.prose figure[data-installer] [data-installer-managers],
+.prose figure[data-installer] [data-installer-agents] {
   margin-top: var(--space-5);
 }
 
@@ -378,7 +379,8 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.prose figure[data-installer] button[data-installer-manager] {
+.prose figure[data-installer] button[data-installer-manager],
+.prose figure[data-installer] button[data-installer-agent] {
   padding: var(--space-2) var(--space-3);
   border: 0;
   border-bottom: 2px solid transparent;
@@ -389,12 +391,14 @@
   cursor: pointer;
 }
 
-.prose figure[data-installer] button[data-installer-manager][aria-selected='true'] {
+.prose figure[data-installer] button[data-installer-manager][aria-selected='true'],
+.prose figure[data-installer] button[data-installer-agent][aria-selected='true'] {
   border-bottom-color: var(--color-accent);
   color: var(--color-text);
 }
 
-.prose figure[data-installer] button[data-installer-manager]:focus-visible {
+.prose figure[data-installer] button[data-installer-manager]:focus-visible,
+.prose figure[data-installer] button[data-installer-agent]:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }

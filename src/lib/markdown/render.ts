@@ -186,6 +186,12 @@ const installerCode = (max: number) =>
     .max(max)
     .refine((value) => value.trim().length > 0);
 const INSTALLER_MANAGERS = ['npm', 'pnpm', 'yarn', 'bun'] as const;
+const INSTALLER_AGENTS = ['codex', 'claude-code', 'grok'] as const;
+const INSTALLER_AGENT_LABELS: Record<(typeof INSTALLER_AGENTS)[number], string> = {
+  codex: 'Codex',
+  'claude-code': 'Claude Code',
+  grok: 'Grok',
+};
 const installerSchema = z
   .object({
     title: installerText(120),
@@ -198,7 +204,17 @@ const installerSchema = z
         bun: installerCode(2_000).optional(),
       })
       .strict()
-      .refine((managers) => INSTALLER_MANAGERS.some((manager) => managers[manager] !== undefined)),
+      .refine((managers) => INSTALLER_MANAGERS.some((manager) => managers[manager] !== undefined))
+      .optional(),
+    agents: z
+      .object({
+        codex: installerCode(2_000).optional(),
+        'claude-code': installerCode(2_000).optional(),
+        grok: installerCode(2_000).optional(),
+      })
+      .strict()
+      .refine((agents) => INSTALLER_AGENTS.some((agent) => agents[agent] !== undefined))
+      .optional(),
     steps: z
       .array(
         z
@@ -219,9 +235,16 @@ const installerSchema = z
       .min(1)
       .max(20),
   })
-  .strict();
+  .strict()
+  .refine(({ managers, agents }) => Boolean(managers || agents));
 
 type Installer = z.infer<typeof installerSchema>;
+type InstallerTab = {
+  kind: 'manager' | 'agent';
+  key: string;
+  label: string;
+  command: string;
+};
 type HastChild = Element['children'][number];
 
 function textElement(
@@ -268,7 +291,7 @@ function callout(kind: 'note' | 'tip', value: string): Element {
 function installerFigure(
   installer: Installer,
   source: string,
-  managerOrder: Array<keyof NonNullable<Installer['managers']>>,
+  tabs: InstallerTab[],
   id: number,
 ): Element {
   const children: HastChild[] = [
@@ -284,20 +307,23 @@ function installerFigure(
     },
   ];
 
-  if (installer.managers && managerOrder.length) {
-    const tabs: Element[] = [];
+  if (tabs.length) {
+    const renderedTabs: Element[] = [];
     const panels: Element[] = [];
-    managerOrder.forEach((manager, index) => {
-      const panelId = `installer-${id}-${manager}`;
-      tabs.push(
-        textElement('button', manager, {
+    const tabKind = tabs[0].kind;
+    tabs.forEach((tab, index) => {
+      const panelId = `installer-${id}-${tab.key}`;
+      renderedTabs.push(
+        textElement('button', tab.label, {
           type: 'button',
           role: 'tab',
           id: `${panelId}-tab`,
           'aria-controls': panelId,
           'aria-selected': index === 0 ? 'true' : 'false',
           tabIndex: index === 0 ? 0 : -1,
-          'data-installer-manager': manager,
+          ...(tab.kind === 'agent'
+            ? { 'data-installer-agent': tab.key }
+            : { 'data-installer-manager': tab.key }),
         }),
       );
       panels.push({
@@ -307,22 +333,27 @@ function installerFigure(
           role: 'tabpanel',
           id: panelId,
           'aria-labelledby': `${panelId}-tab`,
-          'data-installer-panel': manager,
+          'data-installer-panel': tab.key,
           hidden: index === 0 ? undefined : true,
         },
-        children: [fencedCode(installer.managers![manager]!, 'shell')],
+        children: [fencedCode(tab.command, 'shell')],
       });
     });
     children.push({
       type: 'element',
       tagName: 'section',
-      properties: { 'data-installer-managers': '' },
+      properties: {
+        [tabKind === 'agent' ? 'data-installer-agents' : 'data-installer-managers']: '',
+      },
       children: [
         {
           type: 'element',
           tagName: 'div',
-          properties: { role: 'tablist', 'aria-label': '패키지 매니저' },
-          children: tabs,
+          properties: {
+            role: 'tablist',
+            'aria-label': tabKind === 'agent' ? '에이전트' : '패키지 매니저',
+          },
+          children: renderedTabs,
         },
         ...panels,
       ],
@@ -409,22 +440,44 @@ function expandSpecialCodeBlocks() {
         const raw: unknown = JSON.parse(source);
         const parsed = installerSchema.safeParse(raw);
         if (!parsed.success) return;
-        const rawManagers =
-          typeof raw === 'object' && raw !== null && 'managers' in raw && raw.managers
-            ? raw.managers
-            : {};
-        const managerOrder = Object.keys(rawManagers).filter(
-          (key): key is keyof NonNullable<Installer['managers']> =>
-            INSTALLER_MANAGERS.includes(key as (typeof INSTALLER_MANAGERS)[number]) &&
-            Boolean(parsed.data.managers?.[key as (typeof INSTALLER_MANAGERS)[number]]),
-        );
-        parent.children[index] = installerFigure(parsed.data, source, managerOrder, installerId++);
+        const rawObject = typeof raw === 'object' && raw !== null ? raw : null;
+        const rawManagers = rawObject && 'managers' in rawObject ? rawObject.managers : undefined;
+        const rawAgents = rawObject && 'agents' in rawObject ? rawObject.agents : undefined;
+        const managerOrder = installerKeys(rawManagers, INSTALLER_MANAGERS, parsed.data.managers);
+        const agentOrder = installerKeys(rawAgents, INSTALLER_AGENTS, parsed.data.agents);
+        // managers wins when both forms are present so existing installer documents retain
+        // their package-manager behavior without rendering two competing tab sets.
+        const tabs = parsed.data.managers
+          ? managerOrder.map((manager) => ({
+              kind: 'manager' as const,
+              key: manager,
+              label: manager,
+              command: parsed.data.managers![manager]!,
+            }))
+          : agentOrder.map((agent) => ({
+              kind: 'agent' as const,
+              key: agent,
+              label: INSTALLER_AGENT_LABELS[agent],
+              command: parsed.data.agents![agent]!,
+            }));
+        parent.children[index] = installerFigure(parsed.data, source, tabs, installerId++);
         return 'skip';
       } catch {
         // JSON이나 스키마가 잘못된 installer는 기존 코드블럭으로 그대로 이어진다.
       }
     });
   };
+}
+
+function installerKeys<T extends string>(
+  rawValues: unknown,
+  allowed: readonly T[],
+  parsedValues: Partial<Record<T, string>> | undefined,
+): T[] {
+  if (typeof rawValues !== 'object' || rawValues === null) return [];
+  return Object.keys(rawValues).filter(
+    (key): key is T => allowed.includes(key as T) && parsedValues?.[key as T] !== undefined,
+  );
 }
 
 function resolveAssetPath(value: string, publicUrl: string): string | null {

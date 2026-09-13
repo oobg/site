@@ -84,7 +84,7 @@ describe('MarkdownWidgets', () => {
   it('switches installer panels with click and keyboard tabs', () => {
     document.body.innerHTML = `
       <figure data-installer>
-        <div role="tablist">
+        <div role="tablist" aria-label="패키지 매니저">
           <button role="tab" data-installer-manager="pnpm" aria-selected="true" tabindex="0">pnpm</button>
           <button role="tab" data-installer-manager="npm" aria-selected="false" tabindex="-1">npm</button>
         </div>
@@ -103,6 +103,30 @@ describe('MarkdownWidgets', () => {
     fireEvent.keyDown(npm, { key: 'ArrowLeft' });
     expect(pnpm).toHaveAttribute('aria-selected', 'true');
     expect(pnpm).toHaveFocus();
+  });
+
+  it('switches agent installer panels with click and keyboard tabs', () => {
+    document.body.innerHTML = `
+      <figure data-installer>
+        <div role="tablist" aria-label="에이전트">
+          <button role="tab" data-installer-agent="codex" aria-selected="true" tabindex="0">Codex</button>
+          <button role="tab" data-installer-agent="grok" aria-selected="false" tabindex="-1">Grok</button>
+        </div>
+        <div data-installer-panel="codex">raven install --agent codex</div>
+        <div data-installer-panel="grok" hidden>raven install --agent grok</div>
+      </figure>`;
+    render(<MarkdownWidgets />);
+    const codex = document.querySelector<HTMLButtonElement>('[data-installer-agent="codex"]')!;
+    const grok = document.querySelector<HTMLButtonElement>('[data-installer-agent="grok"]')!;
+
+    fireEvent.click(grok);
+    expect(grok).toHaveAttribute('aria-selected', 'true');
+    expect(document.querySelector('[data-installer-panel="grok"]')).not.toHaveAttribute('hidden');
+    expect(document.querySelector('[data-installer-panel="codex"]')).toHaveAttribute('hidden');
+
+    fireEvent.keyDown(grok, { key: 'ArrowLeft' });
+    expect(codex).toHaveAttribute('aria-selected', 'true');
+    expect(codex).toHaveFocus();
   });
 
   it('activates a dynamically inserted preview diagram exactly once', async () => {

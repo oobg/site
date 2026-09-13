@@ -156,6 +156,10 @@ describe('htmlToMarkdown', () => {
       'installer',
       '{\n  "title": "SDK 설치",\n  "managers": { "pnpm": "pnpm add raven" },\n  "steps": [{ "title": "실행", "language": "sh", "code": "pnpm add raven" }]\n}',
     ],
+    [
+      'installer',
+      '{\n  "title": "에이전트 설치",\n  "agents": { "codex": "raven install --agent codex" },\n  "steps": [{ "title": "실행" }]\n}',
+    ],
   ])('returns rendered %s HTML to the original fence', async (language, source) => {
     const markdown = `\`\`\`${language}\n${source}\n\`\`\``;
     const { html } = await renderMarkdown(markdown);

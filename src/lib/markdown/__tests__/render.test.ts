@@ -207,6 +207,7 @@ describe('renderMarkdown', () => {
 
       expect(html).toContain('<figure data-installer=""');
       expect(html).toContain('data-installer-manager="pnpm"');
+      expect(html).toContain('aria-label="패키지 매니저"');
       expect(html).toMatch(/aria-selected="true"[^>]*data-installer-manager="pnpm"/);
       expect(html).toMatch(/aria-selected="false"[^>]*data-installer-manager="npm"/);
       expect(html).toContain('data-installer-steps');
@@ -215,6 +216,46 @@ describe('renderMarkdown', () => {
       expect(html).toContain('&#x3C;secret>');
       expect(html.match(/data-code-copy=""/g)).toHaveLength(3);
       expect(html.match(/<figure data-code/g)).toHaveLength(3);
+    });
+
+    it('검증된 installer agents를 에이전트 탭과 명령 코드로 만든다', async () => {
+      const source = JSON.stringify({
+        title: '에이전트 설치',
+        agents: {
+          codex: 'raven install --agent codex',
+          'claude-code': 'raven install --agent claude-code',
+          grok: 'raven install --agent grok',
+        },
+        steps: [{ title: '설치 확인', code: 'raven doctor' }],
+      });
+      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
+      const root = document.createElement('div');
+      root.innerHTML = html;
+
+      expect(root.querySelector('[data-installer-agents]')).toBeTruthy();
+      expect(root.querySelector('[aria-label="에이전트"]')).toBeTruthy();
+      expect(root.querySelector('button[data-installer-agent="codex"]')).toHaveTextContent('Codex');
+      expect(root.querySelector('button[data-installer-agent="claude-code"]')).toHaveTextContent(
+        'Claude Code',
+      );
+      expect(root.querySelector('button[data-installer-agent="grok"]')).toHaveTextContent('Grok');
+      expect(root.querySelector('[data-installer-manager]')).toBeNull();
+      expect(root.querySelector('pre code')).toHaveTextContent('raven install --agent codex');
+    });
+
+    it('managers와 agents가 함께 있으면 기존 managers 탭을 우선한다', async () => {
+      const source = JSON.stringify({
+        title: 'SDK 설치',
+        managers: { pnpm: 'pnpm add raven' },
+        agents: { codex: 'raven install --agent codex' },
+        steps: [{ title: '실행' }],
+      });
+      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
+
+      expect(html).toContain('aria-label="패키지 매니저"');
+      expect(html).not.toContain('aria-label="에이전트"');
+      expect(html).toContain('data-installer-manager="pnpm"');
+      expect(html).not.toContain('data-installer-agent="codex"');
     });
 
     it('패키지 매니저 명령과 단계 코드를 실제 pre/code로 만들고 공백을 보존한다', async () => {
@@ -243,6 +284,15 @@ describe('renderMarkdown', () => {
       [
         '공백뿐인 패키지 매니저 명령',
         '{"title":"SDK","managers":{"npm":"   "},"steps":[{"title":"실행"}]}',
+      ],
+      ['빈 agents 객체', '{"title":"SDK","agents":{},"steps":[{"title":"실행"}]}'],
+      [
+        '공백뿐인 agent 명령',
+        '{"title":"SDK","agents":{"codex":"   "},"steps":[{"title":"실행"}]}',
+      ],
+      [
+        '허용하지 않은 agent',
+        '{"title":"SDK","agents":{"openai":"raven install --agent openai"},"steps":[{"title":"실행"}]}',
       ],
       [
         '허용하지 않은 필드',

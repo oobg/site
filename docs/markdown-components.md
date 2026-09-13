@@ -52,10 +52,31 @@ flowchart LR
 
 - `title`: 필수 문자열
 - `intro`: 선택 문자열
-- `managers`: 필수 객체. `npm`, `pnpm`, `yarn`, `bun` 중 하나 이상의 명령 문자열이 필요하다. JSON에 먼저 적은 유효한 항목이 기본 탭이 된다.
+- `managers`: `agents` 대신 사용할 수 있는 선택 객체. `npm`, `pnpm`, `yarn`, `bun` 중 하나 이상의 명령 문자열이 필요하다. JSON에 먼저 적은 유효한 항목이 기본 탭이 된다.
+- `agents`: `managers` 대신 사용할 수 있는 선택 객체. `codex`, `claude-code`, `grok` 중 하나 이상의 명령 문자열이 필요하며 화면에는 각각 `Codex`, `Claude Code`, `Grok` 탭으로 표시된다. JSON에 먼저 적은 유효한 항목이 기본 탭이 된다.
 - `steps`: 하나 이상의 객체가 필요한 배열
 - 각 단계의 `title`: 필수 문자열
 - 각 단계의 `description`, `language`, `code`, `note`, `tip`: 선택 문자열
+
+패키지 매니저가 아닌 에이전트별 명령을 보여주려면 `managers`를 생략하고 `agents`를 적는다.
+
+````markdown
+```installer
+{
+  "title": "에이전트 설치",
+  "agents": {
+    "codex": "raven install --agent codex",
+    "claude-code": "raven install --agent claude-code",
+    "grok": "raven install --agent grok"
+  },
+  "steps": [
+    { "title": "설치 확인", "code": "raven doctor" }
+  ]
+}
+```
+````
+
+`managers`와 `agents`를 함께 적으면 기존 문법과의 호환을 위해 `managers`만 화면에 표시한다. 두 객체의 키는 각각 허용된 이름만 사용할 수 있고 명령 문자열은 비어 있을 수 없다.
 
 패키지 매니저 명령과 단계의 `code` 값은 앞뒤 공백과 들여쓰기를 포함해 그대로 코드블럭에 표시된다. 공백만 있는 값은 유효한 명령이나 코드로 보지 않는다.
 

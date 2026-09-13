@@ -112,17 +112,19 @@ async function renderDiagram(figure: HTMLElement) {
   }
 }
 
-function activateManager(tab: HTMLButtonElement) {
+const installerTabSelector = 'button[data-installer-manager], button[data-installer-agent]';
+
+function activateInstallerTab(tab: HTMLButtonElement) {
   const widget = tab.closest<HTMLElement>('[data-installer]');
-  const manager = tab.dataset.installerManager;
-  if (!widget || !manager) return;
-  widget.querySelectorAll<HTMLButtonElement>('[data-installer-manager]').forEach((button) => {
+  const value = tab.dataset.installerManager ?? tab.dataset.installerAgent;
+  if (!widget || !value) return;
+  widget.querySelectorAll<HTMLButtonElement>(installerTabSelector).forEach((button) => {
     const active = button === tab;
     button.setAttribute('aria-selected', String(active));
     button.tabIndex = active ? 0 : -1;
   });
   widget.querySelectorAll<HTMLElement>('[data-installer-panel]').forEach((panel) => {
-    panel.hidden = panel.dataset.installerPanel !== manager;
+    panel.hidden = panel.dataset.installerPanel !== value;
   });
 }
 
@@ -138,18 +140,21 @@ export function MarkdownWidgets() {
     const onClick = (event: MouseEvent) => {
       const target = event.target;
       if (!(target instanceof Element)) return;
-      const tab = target.closest<HTMLButtonElement>('button[data-installer-manager]');
-      if (tab) activateManager(tab);
+      const tab = target.closest<HTMLButtonElement>(installerTabSelector);
+      if (tab) activateInstallerTab(tab);
     };
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target;
-      if (!(target instanceof HTMLButtonElement) || !target.matches('[data-installer-manager]')) {
+      if (!(target instanceof HTMLButtonElement) || !target.matches(installerTabSelector)) {
         return;
       }
       if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
       const tabs = Array.from(
-        target.closest('[role="tablist"]')?.querySelectorAll<HTMLButtonElement>('[role="tab"]') ??
-          [],
+        target
+          .closest('[role="tablist"]')
+          ?.querySelectorAll<HTMLButtonElement>(
+            `[role="tab"]:is([data-installer-manager], [data-installer-agent])`,
+          ) ?? [],
       );
       if (!tabs.length) return;
       event.preventDefault();
@@ -160,7 +165,7 @@ export function MarkdownWidgets() {
           : event.key === 'End'
             ? tabs.length - 1
             : (current + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
-      activateManager(tabs[next]);
+      activateInstallerTab(tabs[next]);
       tabs[next].focus();
     };
     const observer = new MutationObserver((records) => {
