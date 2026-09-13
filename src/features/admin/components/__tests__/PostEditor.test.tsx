@@ -31,6 +31,7 @@ describe('PostEditor slug editing', () => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
     Reflect.deleteProperty(window, 'navigation');
+    Reflect.deleteProperty(navigator, 'clipboard');
     vi.restoreAllMocks();
   });
 
@@ -197,6 +198,44 @@ describe('PostEditor slug editing', () => {
       '/api/admin/preview',
       expect.objectContaining({ body: JSON.stringify({ markdown: '## 최신 본문' }) }),
     );
+  });
+
+  it('activates code copy buttons in the rendered visual preview', async () => {
+    vi.useFakeTimers();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          html: '<figure data-code><button type="button" data-code-copy><span data-code-copy-status>코드 복사</span></button><pre><code>npm install raven</code></pre></figure>',
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+    render(
+      <PostEditor
+        action={action}
+        post={{
+          id: 'p1',
+          title: '설치',
+          slug: 'install',
+          description: '설명',
+          body: '```sh\nnpm install raven\n```',
+          status: 'draft',
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    await act(async () => vi.advanceTimersByTimeAsync(350));
+    const copy = screen.getByRole('button', { name: '코드 복사' });
+    await act(async () => fireEvent.click(copy));
+
+    expect(writeText).toHaveBeenCalledWith('npm install raven');
+    expect(copy).toHaveAttribute('data-copied');
   });
 
   it('shows the empty-body guidance when opening preview initially', () => {

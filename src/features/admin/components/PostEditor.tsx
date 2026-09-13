@@ -16,6 +16,8 @@ import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import { ROUTES } from '@constants/routes';
 import articleStyles from '@components/content/ArticleBody.module.css';
+import { CodeCopy } from '@components/content/CodeCopy';
+import { ContentEnhancements } from '@components/content/ContentEnhancements';
 import { normalizeSlug } from '@features/admin/services/slug';
 import { htmlToMarkdown } from '@features/admin/utils/htmlToMarkdown';
 import type { PostActionState, PostStatus } from '@features/admin/types/posts-admin.types';
@@ -631,6 +633,8 @@ export function PostEditor({
               렌더링된 본문을 직접 수정할 수 있습니다. 변경 내용은 마크다운 원문에 반영됩니다.
             </span>
           </section>
+          <CodeCopy />
+          <ContentEnhancements contentKey={previewHtml} />
         </div>
         <p id="body-help" className={styles.helper} aria-live="polite">
           {fieldError(state, 'body') ||

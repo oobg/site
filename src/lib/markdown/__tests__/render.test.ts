@@ -312,6 +312,111 @@ describe('renderMarkdown', () => {
     );
   });
 
+  describe('Mermaid', () => {
+    it('mermaid 펜스를 실행되지 않는 원문과 클라이언트 캔버스로 분리한다', async () => {
+      const source = 'flowchart LR\n  A[입력] --> B[출력]';
+      const { html } = await renderMarkdown(`\`\`\`mermaid\n${source}\n\`\`\``);
+
+      expect(html).toContain('<section data-mermaid="" data-mermaid-state="pending"');
+      expect(html).toContain('data-mermaid-canvas="" role="img"');
+      expect(html).toContain(`data-mermaid-source="" hidden aria-hidden="true">${source}`);
+      expect(html).toContain('data-mermaid-fallback="" data-code="" hidden');
+      expect(html).not.toContain('<figure data-code=""><figure');
+    });
+
+    it('비어 있는 mermaid 펜스는 기존 코드블럭으로 남긴다', async () => {
+      const { html } = await renderMarkdown('```mermaid\n\n```');
+      expect(html).toContain('<figure data-code');
+      expect(html).not.toContain('data-mermaid-state');
+    });
+  });
+
+  describe('설치 안내', () => {
+    const valid = {
+      title: 'SDK 설치',
+      intro: '사용하는 패키지 매니저를 고르세요.',
+      managers: { npm: 'npm install @raven/sdk', pnpm: 'pnpm add @raven/sdk' },
+      steps: [
+        {
+          title: '환경 변수 추가',
+          description: '프로젝트 루트에 값을 추가합니다.',
+          code: 'RAVEN_TOKEN=<token>',
+          language: 'dotenv',
+          tip: '토큰은 저장소에 커밋하지 마세요.',
+        },
+      ],
+    };
+
+    it('검증된 installer JSON을 탭과 순서형 문서로 렌더한다', async () => {
+      const { html } = await renderMarkdown(
+        `\`\`\`installer\n${JSON.stringify(valid, null, 2)}\n\`\`\``,
+      );
+
+      expect(html).toContain('<section data-installer=""');
+      expect(html).toContain('role="tablist" aria-label="패키지 매니저"');
+      expect(html).toContain('data-installer-manager="npm"');
+      expect(html).toContain(
+        'aria-selected="true" tabindex="0" data-installer-manager="npm">npm</button>',
+      );
+      expect(html).toContain(
+        'aria-selected="false" tabindex="-1" data-installer-manager="pnpm">pnpm</button>',
+      );
+      expect(html).toContain('data-installer-panel="pnpm" hidden');
+      expect(html).toContain('data-installer-steps=""');
+      expect(html).toMatch(/data-installer-command=""><figure data-code="">[\s\S]*?<pre/);
+      expect(html).toMatch(/data-installer-code=""><figure data-code="">[\s\S]*?<pre/);
+      expect(html.match(/data-code-copy=""/g)).toHaveLength(3);
+      expect(html).toContain('RAVEN_TOKEN=&#x3C;token>');
+      expect(html).not.toContain('<script');
+    });
+
+    it.each([
+      '{broken',
+      JSON.stringify({ ...valid, managers: {} }),
+      JSON.stringify({ ...valid, managers: { npm: '   \n' } }),
+      JSON.stringify({ title: valid.title, steps: valid.steps }),
+      JSON.stringify({ ...valid, managers: { npm: 'npm i x', curl: 'javascript:alert(1)' } }),
+      JSON.stringify({ ...valid, steps: [] }),
+      JSON.stringify({ ...valid, steps: [{ title: '단계', language: 'bad language' }] }),
+    ])('잘못된 JSON이나 스키마는 오류 없이 installer 코드블럭으로 남긴다', async (value) => {
+      const { html } = await renderMarkdown(`\`\`\`installer\n${value}\n\`\`\``);
+      expect(html).toContain('<figure data-code');
+      expect(html).toContain('data-code-lang="">installer</span>');
+      expect(html).not.toContain('data-installer=""');
+    });
+
+    it('JSON 문자열을 HTML로 실행하지 않고 텍스트로 escape한다', async () => {
+      const unsafe = {
+        ...valid,
+        title: '<img src=x onerror=alert(1)>',
+        managers: { npm: '<script>alert(1)</script>' },
+      };
+      const { html } = await renderMarkdown(`\`\`\`installer\n${JSON.stringify(unsafe)}\n\`\`\``);
+      expect(html).toContain('&#x3C;img src=x onerror=alert(1)>');
+      expect(html).toContain('&#x3C;script>alert(1)&#x3C;/script>');
+      expect(html).not.toContain('<script>');
+      expect(html).not.toContain('<img src=x');
+    });
+
+    it('명령과 단계 코드의 의미 있는 공백을 보존한다', async () => {
+      const source = JSON.stringify({
+        ...valid,
+        managers: { npm: '  npm install raven  ' },
+        steps: [{ title: '설정', code: '  first\n    second\n  ', language: 'sh' }],
+      });
+      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
+      const root = document.createElement('div');
+      root.innerHTML = html;
+
+      expect(root.querySelector('[data-installer-command] code')?.textContent).toBe(
+        '  npm install raven  ',
+      );
+      expect(root.querySelector('[data-installer-code] code')?.textContent).toBe(
+        '  first\n    second\n  ',
+      );
+    });
+  });
+
   describe('콜아웃', () => {
     /* 기술 글은 "주의"·"참고"를 자주 쓴다. 없으면 인용문을 그 용도로 전용하게 되고,
        그러면 진짜 인용과 경고가 같은 모양이 된다. GitHub 표기를 그대로 받는다. */

@@ -102,6 +102,13 @@ function codeBlock(element: Element) {
   return `${fence}${language}\n${value}\n${fence}`;
 }
 
+function componentFence(element: Element, kind: 'mermaid' | 'installer') {
+  const value = element.querySelector(`[data-${kind}-source]`)?.textContent ?? '';
+  const longest = Math.max(0, ...Array.from(value.matchAll(/`{3,}/g), (match) => match[0].length));
+  const fence = '`'.repeat(Math.max(3, longest + 1));
+  return `${fence}${kind}\n${value}\n${fence}`;
+}
+
 type FileTreeEntry = {
   name: string;
   kind: 'file' | 'folder';
@@ -229,6 +236,12 @@ function block(element: Element): string {
   }
   if (tag === 'P') return Array.from(element.childNodes, inline).join('').trim();
   if (tag === 'HR') return '---';
+  if (element.hasAttribute('data-mermaid')) {
+    return componentFence(element, 'mermaid');
+  }
+  if (element.hasAttribute('data-installer')) {
+    return componentFence(element, 'installer');
+  }
   if (tag === 'FIGURE' && element.hasAttribute('data-filetree')) return fileTree(element);
   if (tag === 'FIGURE' && element.hasAttribute('data-code')) return codeBlock(element);
   if (tag === 'PRE') return codeBlock(element);

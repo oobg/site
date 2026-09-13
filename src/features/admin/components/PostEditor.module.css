@@ -336,10 +336,6 @@
   display: none;
 }
 
-.preview :global(button[data-code-copy]) {
-  display: none;
-}
-
 .visualEditor {
   min-height: 100%;
   outline: 0;

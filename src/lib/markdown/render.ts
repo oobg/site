@@ -10,6 +10,7 @@ import { bundledLanguages, type BuiltinLanguage } from 'shiki';
 import { isSpecialLang } from 'shiki/core';
 import { visit } from 'unist-util-visit';
 import type { Root, Element } from 'hast';
+import { z } from 'zod';
 import type { TocEntry } from '@lib/markdown/toc.types';
 import { env } from '@configs/env';
 
@@ -47,10 +48,256 @@ function collectCodeLangs(langs: string[]) {
     visit(tree, 'element', (node: Element, _index, parent) => {
       if (node.tagName !== 'code') return;
       if (!parent || parent.type !== 'element' || parent.tagName !== 'pre') return;
+      if (parent.properties?.['data-mermaid-fallback-code'] !== undefined) return;
       const classes = node.properties?.className;
       const list = Array.isArray(classes) ? classes.map(String) : [];
       const found = list.find((name) => name.startsWith('language-'));
       langs.push(found ? found.slice('language-'.length) : '');
+    });
+  };
+}
+
+const INSTALLER_MANAGERS = ['npm', 'pnpm', 'yarn', 'bun'] as const;
+
+const installerText = (maximum: number) => z.string().trim().min(1).max(maximum);
+const installerCode = (maximum: number) =>
+  z
+    .string()
+    .max(maximum)
+    .refine((value) => value.trim().length > 0);
+const installerSchema = z
+  .object({
+    title: installerText(120),
+    intro: installerText(600).optional(),
+    managers: z
+      .object({
+        npm: installerCode(2_000).optional(),
+        pnpm: installerCode(2_000).optional(),
+        yarn: installerCode(2_000).optional(),
+        bun: installerCode(2_000).optional(),
+      })
+      .strict()
+      .refine((managers) => Object.values(managers).some(Boolean)),
+    steps: z
+      .array(
+        z
+          .object({
+            title: installerText(120),
+            description: installerText(1_000).optional(),
+            code: installerCode(20_000).optional(),
+            language: z
+              .string()
+              .trim()
+              .regex(/^[a-z0-9][a-z0-9.+#_-]{0,31}$/i)
+              .optional(),
+            note: installerText(1_000).optional(),
+            tip: installerText(1_000).optional(),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(30),
+  })
+  .strict();
+
+type Installer = z.infer<typeof installerSchema>;
+
+function textElement(
+  tagName: string,
+  value: string,
+  properties: Element['properties'] = {},
+): Element {
+  return {
+    type: 'element',
+    tagName,
+    properties,
+    children: [{ type: 'text', value }],
+  };
+}
+
+function sourceStore(kind: 'mermaid' | 'installer', value: string): Element {
+  return textElement('div', value, {
+    [`data-${kind}-source`]: '',
+    hidden: true,
+    'aria-hidden': 'true',
+  });
+}
+
+function installerCodeBlock(value: string, label: string, kind: 'command' | 'step'): Element {
+  return {
+    type: 'element',
+    tagName: 'div',
+    properties: {
+      [kind === 'command' ? 'data-installer-command' : 'data-installer-code']: '',
+    },
+    children: [
+      {
+        type: 'element',
+        tagName: 'pre',
+        properties: {},
+        children: [textElement('code', value, label ? { className: [`language-${label}`] } : {})],
+      },
+    ],
+  };
+}
+
+function installerView(installer: Installer, source: string, ordinal: number): Element {
+  const managers = INSTALLER_MANAGERS.filter((manager) => installer.managers[manager]);
+  const tabId = (manager: string) => `installer-${ordinal}-tab-${manager}`;
+  const panelId = (manager: string) => `installer-${ordinal}-panel-${manager}`;
+
+  return {
+    type: 'element',
+    tagName: 'section',
+    properties: {
+      'data-installer': '',
+      'aria-labelledby': `installer-${ordinal}-title`,
+      contentEditable: 'false',
+    },
+    children: [
+      sourceStore('installer', source),
+      textElement('h3', installer.title, {
+        id: `installer-${ordinal}-title`,
+        'data-installer-title': '',
+      }),
+      ...(installer.intro
+        ? [textElement('p', installer.intro, { 'data-installer-intro': '' })]
+        : []),
+      {
+        type: 'element',
+        tagName: 'div',
+        properties: { role: 'tablist', 'aria-label': '패키지 매니저', 'data-installer-tabs': '' },
+        children: managers.map((manager, index) =>
+          textElement('button', manager, {
+            type: 'button',
+            role: 'tab',
+            id: tabId(manager),
+            'aria-controls': panelId(manager),
+            'aria-selected': index === 0 ? 'true' : 'false',
+            tabIndex: index === 0 ? 0 : -1,
+            'data-installer-manager': manager,
+          }),
+        ),
+      },
+      ...managers.map((manager, index) => ({
+        type: 'element' as const,
+        tagName: 'div',
+        properties: {
+          role: 'tabpanel',
+          id: panelId(manager),
+          'aria-labelledby': tabId(manager),
+          'data-installer-panel': manager,
+          hidden: index === 0 ? undefined : true,
+        },
+        children: [installerCodeBlock(installer.managers[manager]!, 'sh', 'command')],
+      })),
+      {
+        type: 'element',
+        tagName: 'ol',
+        properties: { 'data-installer-steps': '' },
+        children: installer.steps.map((step) => ({
+          type: 'element',
+          tagName: 'li',
+          properties: {},
+          children: [
+            textElement('h4', step.title),
+            ...(step.description ? [textElement('p', step.description)] : []),
+            ...(step.code ? [installerCodeBlock(step.code, step.language ?? '', 'step')] : []),
+            ...(step.note ? [textElement('p', step.note, { 'data-installer-note': '' })] : []),
+            ...(step.tip ? [textElement('p', step.tip, { 'data-installer-tip': '' })] : []),
+          ],
+        })),
+      },
+    ],
+  };
+}
+
+/** installer JSON is promoted only after strict schema validation; otherwise the pre is untouched. */
+function installerBlocks() {
+  return (tree: Root) => {
+    let ordinal = 0;
+    visit(tree, 'element', (node: Element, index, parent) => {
+      if (node.tagName !== 'pre' || !parent || index === null || index === undefined) return;
+      const code = node.children[0];
+      if (!code || code.type !== 'element' || code.tagName !== 'code') return;
+      const classes = Array.isArray(code.properties?.className)
+        ? code.properties.className.map(String)
+        : [];
+      if (!classes.includes('language-installer')) return;
+
+      const source = nodeText(code as unknown as TextishNode).replace(/\n$/, '');
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(source);
+      } catch {
+        return;
+      }
+      const result = installerSchema.safeParse(parsed);
+      if (!result.success) return;
+
+      ordinal += 1;
+      parent.children[index] = installerView(result.data, source, ordinal);
+      return 'skip';
+    });
+  };
+}
+
+function mermaidBlocks() {
+  return (tree: Root) => {
+    let ordinal = 0;
+    visit(tree, 'element', (node: Element, index, parent) => {
+      if (node.tagName !== 'pre' || !parent || index === null || index === undefined) return;
+      const code = node.children[0];
+      if (!code || code.type !== 'element' || code.tagName !== 'code') return;
+      const classes = Array.isArray(code.properties?.className)
+        ? code.properties.className.map(String)
+        : [];
+      if (!classes.includes('language-mermaid')) return;
+
+      const source = nodeText(code as unknown as TextishNode).replace(/\n$/, '');
+      if (!source.trim()) return;
+      ordinal += 1;
+      parent.children[index] = {
+        type: 'element',
+        tagName: 'section',
+        properties: {
+          'data-mermaid': '',
+          'data-mermaid-state': 'pending',
+          contentEditable: 'false',
+        },
+        children: [
+          sourceStore('mermaid', source),
+          {
+            type: 'element',
+            tagName: 'div',
+            properties: {
+              'data-mermaid-canvas': '',
+              role: 'img',
+              'aria-label': `다이어그램 ${ordinal}`,
+            },
+            children: [],
+          },
+          {
+            type: 'element',
+            tagName: 'figure',
+            properties: { 'data-mermaid-fallback': '', 'data-code': '', hidden: true },
+            children: [
+              appleWindowHeader('mermaid', true),
+              {
+                type: 'element',
+                tagName: 'pre',
+                properties: { 'data-mermaid-fallback-code': '' },
+                children: [textElement('code', source, { className: ['language-mermaid'] })],
+              },
+            ],
+          },
+          textElement('p', '다이어그램을 불러오는 중이에요.', {
+            'data-mermaid-status': '',
+            role: 'status',
+          }),
+        ],
+      };
+      return 'skip';
     });
   };
 }
@@ -528,7 +775,15 @@ function frameCodeBlocks(langs: string[]) {
     visit(tree, 'element', (node: Element, index, parent) => {
       if (node.tagName !== 'pre') return;
       if (!parent || index === null || index === undefined) return;
+      if (node.properties?.['data-mermaid-fallback-code'] !== undefined) return;
       const lang = langs[at++] ?? '';
+      if (
+        parent.type === 'element' &&
+        parent.tagName === 'figure' &&
+        parent.properties?.['data-code'] !== undefined
+      ) {
+        return 'skip';
+      }
       parent.children[index] = {
         type: 'element',
         tagName: 'figure',
@@ -558,6 +813,8 @@ export async function renderMarkdown(
     .use(removeUnsafeResourceUrls)
     .use(rehypeSlug)
     .use(collectToc, toc)
+    .use(installerBlocks)
+    .use(mermaidBlocks)
     .use(fileTreeBlocks)
     .use(collectCodeLangs, langs)
     .use(calloutBlocks)

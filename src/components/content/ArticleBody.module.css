@@ -314,6 +314,143 @@
   min-width: fit-content;
 }
 
+/* Mermaid는 원문을 DOM에 텍스트로 보관한 뒤 클라이언트에서 strict 모드 SVG로 그린다.
+   실패하면 같은 자리에서 원문 코드 창으로 돌아가므로 글의 흐름이 끊기지 않는다. */
+.prose section[data-mermaid] {
+  margin-block: var(--space-6);
+  min-height: var(--space-9);
+  padding-block: var(--space-4);
+  border-block: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.prose [data-mermaid-canvas] {
+  display: grid;
+  place-items: center;
+}
+
+.prose [data-mermaid-canvas] svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.prose [data-mermaid-status] {
+  margin: var(--space-2) 0 0;
+  font-size: var(--fs-13);
+  color: var(--color-text-muted);
+  text-align: center;
+}
+
+.prose [data-mermaid-status]:empty {
+  display: none;
+}
+
+/* 설치 안내는 카드 묶음 대신 제목, 명령, 순서가 이어지는 문서 블록으로 둔다. */
+.prose section[data-installer] {
+  margin-block: var(--space-8);
+  padding-block: var(--space-5);
+  border-block: 1px solid var(--color-border-strong);
+}
+
+.prose section[data-installer] h3[data-installer-title] {
+  margin: 0;
+  font-size: var(--fs-20);
+  color: var(--color-text);
+}
+
+.prose section[data-installer] p[data-installer-intro] {
+  margin-block: var(--space-2) var(--space-5);
+  color: var(--color-text-secondary);
+}
+
+.prose [data-installer-tabs] {
+  display: flex;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prose [data-installer-tabs] button {
+  padding: var(--space-2) 0;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--fs-13);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition:
+    color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+
+.prose [data-installer-tabs] button[aria-selected='true'] {
+  border-bottom-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.prose [data-installer-tabs] button:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: var(--space-1);
+}
+
+.prose [data-installer-panel] {
+  padding-block: var(--space-4);
+}
+
+.prose [data-installer-panel] figure[data-code],
+.prose [data-installer-code] figure[data-code] {
+  margin-block: 0;
+}
+
+.prose ol[data-installer-steps] {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: installer-step;
+}
+
+.prose ol[data-installer-steps] > li {
+  position: relative;
+  margin: 0;
+  padding: var(--space-5) 0 var(--space-5) var(--space-7);
+  border-top: 1px solid var(--color-border);
+  counter-increment: installer-step;
+}
+
+.prose ol[data-installer-steps] > li::before {
+  content: counter(installer-step, decimal-leading-zero);
+  position: absolute;
+  top: var(--space-5);
+  left: 0;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--fs-12);
+  color: var(--color-accent);
+}
+
+.prose ol[data-installer-steps] h4 {
+  margin: 0;
+  font-size: var(--fs-16);
+}
+
+.prose ol[data-installer-steps] p {
+  margin-block: var(--space-2);
+}
+
+.prose [data-installer-note],
+.prose [data-installer-tip] {
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--color-border-strong);
+  font-size: var(--fs-14);
+  color: var(--color-text-secondary);
+}
+
+.prose [data-installer-tip] {
+  border-left-color: var(--color-accent);
+}
+
 /* 명시적 filetree/tree/folder 펜스. 코드 창과 같은 토큰을 쓰되 복사할 코드가
    아니므로 헤더 장식과 버튼 없이 계층 자체를 읽게 한다. */
 .prose figure[data-filetree] {

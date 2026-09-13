@@ -136,6 +136,50 @@ describe('htmlToMarkdown', () => {
     expect(htmlToMarkdown(root(html))).not.toContain('filetree-icons');
   });
 
+  it.each([
+    ['mermaid', 'flowchart TD\n  A --> B'],
+    [
+      'installer',
+      JSON.stringify(
+        {
+          title: 'CLI 설치',
+          intro: '패키지 매니저를 선택하세요.',
+          managers: { npm: 'npm install raven', pnpm: 'pnpm add raven' },
+          steps: [
+            { title: '설정', code: 'raven init', language: 'sh', note: '한 번만 실행합니다.' },
+          ],
+        },
+        null,
+        2,
+      ),
+    ],
+  ])('rendered %s 컴포넌트를 원래 fenced Markdown으로 되돌린다', async (kind, value) => {
+    const source = `\`\`\`${kind}\n${value}\n\`\`\``;
+    const { html } = await renderMarkdown(source);
+    expect(htmlToMarkdown(root(html))).toBe(source);
+  });
+
+  it('컴포넌트 태그가 바뀌어도 숨겨 둔 source를 공백까지 그대로 직렬화한다', async () => {
+    const value = JSON.stringify({
+      title: 'CLI 설치',
+      managers: { npm: '  npm install raven  ' },
+      steps: [{ title: '설정', code: '  raven init\n  ' }],
+    });
+    const source = `\`\`\`installer\n${value}\n\n\`\`\``;
+    const { html } = await renderMarkdown(source);
+    const rendered = root(html);
+    const component = rendered.querySelector('[data-installer]');
+    expect(component).not.toBeNull();
+    const article = document.createElement('article');
+    for (const attribute of Array.from(component!.attributes)) {
+      article.setAttribute(attribute.name, attribute.value);
+    }
+    article.innerHTML = component!.innerHTML;
+    component!.replaceWith(article);
+
+    expect(htmlToMarkdown(rendered)).toBe(source);
+  });
+
   it('preserves unsupported pasted element text and rejects unsafe URLs', () => {
     const markdown = htmlToMarkdown(
       root(
