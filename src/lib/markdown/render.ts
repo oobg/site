@@ -247,6 +247,16 @@ type InstallerTab = {
 };
 type HastChild = Element['children'][number];
 
+/** JSON에 한 줄로 적은 셸 continuation 표기를 코드블럭에서 읽기 좋게 펼친다.
+ *
+ * 명령 사이에 독립적으로 놓인 `\ --flag`만 대상으로 삼아 경로 등에 들어 있는
+ * 임의의 backslash는 건드리지 않는다. 이미 `\` 다음에 줄바꿈이 있으면 작성자가
+ * 넣은 들여쓰기를 보존하기 위해 그대로 둔다.
+ */
+function formatInstallerCommand(command: string): string {
+  return command.replace(/(^|[ \t])\\[ \t]+(?=\S)/gm, '$1\\\n  ');
+}
+
 function textElement(
   tagName: string,
   value: string,
@@ -452,13 +462,13 @@ function expandSpecialCodeBlocks() {
               kind: 'manager' as const,
               key: manager,
               label: manager,
-              command: parsed.data.managers![manager]!,
+              command: formatInstallerCommand(parsed.data.managers![manager]!),
             }))
           : agentOrder.map((agent) => ({
               kind: 'agent' as const,
               key: agent,
               label: INSTALLER_AGENT_LABELS[agent],
-              command: parsed.data.agents![agent]!,
+              command: formatInstallerCommand(parsed.data.agents![agent]!),
             }));
         parent.children[index] = installerFigure(parsed.data, source, tabs, installerId++);
         return 'skip';

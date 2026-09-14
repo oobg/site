@@ -258,6 +258,52 @@ describe('renderMarkdown', () => {
       expect(html).not.toContain('data-installer-agent="codex"');
     });
 
+    it('탭 명령의 compact continuation을 줄바꿈하고 복사 대상 텍스트에도 보존한다', async () => {
+      const command = 'npx skills add oobg/agent-skills \\ --global \\ --skill ux-writing \\ --yes';
+      const literalBackslashCommand = 'echo C:\\tools\\bin';
+      const stepCode = 'echo one \\ --two';
+      const source = JSON.stringify({
+        title: '스킬 설치',
+        managers: { npm: command, pnpm: literalBackslashCommand },
+        steps: [{ title: '확인', language: 'shell', code: stepCode }],
+      });
+      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
+      const root = document.createElement('div');
+      root.innerHTML = html;
+
+      const commandFigure = root.querySelector('[data-installer-panel="npm"] figure[data-code]')!;
+      const formattedCommand =
+        'npx skills add oobg/agent-skills \\\n  --global \\\n  --skill ux-writing \\\n  --yes';
+      expect(commandFigure.querySelector('code')?.textContent).toBe(formattedCommand);
+      expect(commandFigure.querySelector('button[data-code-copy]')).toBeTruthy();
+      expect(
+        root.querySelector('[data-installer-panel="pnpm"] figure[data-code] code')?.textContent,
+      ).toBe(literalBackslashCommand);
+
+      // 단계 code는 installer 탭 명령과 달리 원문 backslash 표기를 유지한다.
+      expect(root.querySelector('[data-installer-steps] figure[data-code] code')?.textContent).toBe(
+        stepCode,
+      );
+      expect(root.querySelector('[data-installer-source]')?.textContent).toBe(source);
+    });
+
+    it('에이전트 탭 명령의 기존 continuation 줄바꿈과 들여쓰기를 보존한다', async () => {
+      const command = 'raven install \\\n    --agent codex \\\n  --yes';
+      const source = JSON.stringify({
+        title: '에이전트 설치',
+        agents: { codex: command },
+        steps: [{ title: '설치 확인' }],
+      });
+      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
+      const root = document.createElement('div');
+      root.innerHTML = html;
+
+      expect(
+        root.querySelector('[data-installer-panel="codex"] figure[data-code] code')?.textContent,
+      ).toBe(command);
+      expect(root.querySelector('[data-installer-source]')?.textContent).toBe(source);
+    });
+
     it('패키지 매니저 명령과 단계 코드를 실제 pre/code로 만들고 공백을 보존한다', async () => {
       const source = JSON.stringify({
         title: 'SDK 설치',
