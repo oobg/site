@@ -370,12 +370,66 @@ describe('renderMarkdown', () => {
       expect(html).not.toContain('<script');
     });
 
+    it('패키지 매니저 없이 에이전트별 설치 명령을 탭으로 렌더한다', async () => {
+      const source = {
+        title: '에이전트 설치',
+        agents: {
+          codex: 'raven install --agent codex',
+          'claude-code': 'raven install --agent claude-code',
+          grok: 'raven install --agent grok',
+        },
+        steps: [{ title: '설치 확인', code: 'raven doctor' }],
+      };
+      const { html } = await renderMarkdown(`\`\`\`installer\n${JSON.stringify(source)}\n\`\`\``);
+
+      expect(html).toContain('role="tablist" aria-label="에이전트"');
+      expect(html).toContain('data-installer-agent="codex">Codex</button>');
+      expect(html).toContain('data-installer-agent="claude-code">Claude Code</button>');
+      expect(html).toContain('data-installer-agent="grok">Grok</button>');
+      expect(html).toContain('data-installer-panel="claude-code" hidden');
+      expect(html).toContain('raven install --agent codex');
+    });
+
+    it('managers와 agents를 함께 적으면 기존 패키지 매니저 탭을 우선한다', async () => {
+      const source = {
+        ...valid,
+        agents: { codex: 'raven install --agent codex' },
+      };
+      const { html } = await renderMarkdown(`\`\`\`installer\n${JSON.stringify(source)}\n\`\`\``);
+
+      expect(html).toContain('role="tablist" aria-label="패키지 매니저"');
+      expect(html).toContain('data-installer-manager="npm"');
+      expect(html).not.toContain('data-installer-agent=');
+    });
+
+    it('에이전트 명령의 compact continuation은 읽기 좋은 줄바꿈으로 펼친다', async () => {
+      const source = {
+        title: '에이전트 설치',
+        agents: { codex: 'raven install \\ --agent codex' },
+        steps: [{ title: '설치 확인' }],
+      };
+      const { html } = await renderMarkdown(`\`\`\`installer\n${JSON.stringify(source)}\n\`\`\``);
+      const root = document.createElement('div');
+      root.innerHTML = html;
+
+      expect(root.querySelector('[data-installer-command] code')?.textContent).toBe(
+        'raven install \\\n  --agent codex',
+      );
+    });
+
     it.each([
       '{broken',
       JSON.stringify({ ...valid, managers: {} }),
       JSON.stringify({ ...valid, managers: { npm: '   \n' } }),
       JSON.stringify({ title: valid.title, steps: valid.steps }),
       JSON.stringify({ ...valid, managers: { npm: 'npm i x', curl: 'javascript:alert(1)' } }),
+      JSON.stringify({ ...valid, managers: undefined, agents: {} }),
+      JSON.stringify({ ...valid, managers: undefined, agents: { codex: '   ' } }),
+      JSON.stringify({
+        ...valid,
+        managers: undefined,
+        agents: { openai: 'raven install --agent openai' },
+      }),
       JSON.stringify({ ...valid, steps: [] }),
       JSON.stringify({ ...valid, steps: [{ title: '단계', language: 'bad language' }] }),
     ])('잘못된 JSON이나 스키마는 오류 없이 installer 코드블럭으로 남긴다', async (value) => {

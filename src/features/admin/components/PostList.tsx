@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
+import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
 import { ROUTES } from '@constants/routes';
 import type { BlogCategory } from '@features/posts/types/posts.types';
 import { updatePostStatusAction } from '@features/admin/services/posts.actions';
@@ -22,6 +23,10 @@ export type AdminPostListItem = {
 };
 
 const PAGE_SIZE = 10;
+const postListFilterParsers = {
+  status: parseAsStringLiteral(['all', 'draft', 'published'] as const).withDefault('all'),
+  category: parseAsString.withDefault(''),
+};
 type SortKey = 'title' | 'createdAt' | 'updatedAt';
 type SortDirection = 'asc' | 'desc';
 
@@ -55,8 +60,9 @@ export function PostList({
   const compactListRef = useRef<HTMLUListElement>(null);
   const [overrides, setOverrides] = useState<Record<string, Partial<AdminPostListItem>>>({});
   const [query, setQuery] = useState('');
-  const [status, setStatus] = useState<'all' | 'draft' | 'published'>('all');
-  const [category, setCategory] = useState('');
+  const [{ status, category }, setFilters] = useQueryStates(postListFilterParsers, {
+    history: 'push',
+  });
   const [sortKey, setSortKey] = useState<SortKey>('createdAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [page, setPage] = useState(1);
@@ -87,6 +93,14 @@ export function PostList({
   const currentPage = Math.min(page, totalPages);
   const pagePosts = visiblePosts.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
+  const postHref = (id: string) => {
+    const search = new URLSearchParams();
+    if (status !== 'all') search.set('status', status);
+    if (category) search.set('category', category);
+    const queryString = search.toString();
+    return `${ROUTES.ADMIN.POST(id)}${queryString ? `?${queryString}` : ''}`;
+  };
+
   const changeSort = (nextSortKey: SortKey) => {
     setSortDirection((currentDirection) =>
       sortKey === nextSortKey
@@ -106,15 +120,11 @@ export function PostList({
     try {
       const saved = JSON.parse(sessionStorage.getItem('raven:admin-list-context') ?? '{}') as {
         query?: string;
-        status?: 'all' | 'draft' | 'published';
-        category?: string;
         scrollTop?: number;
         windowScrollY?: number;
       };
       requestAnimationFrame(() => {
         setQuery(saved.query ?? '');
-        setStatus(['draft', 'published'].includes(saved.status ?? '') ? saved.status! : 'all');
-        setCategory(saved.category ?? '');
         requestAnimationFrame(() => {
           (compact ? compactListRef.current : tableRef.current)?.scrollTo({
             top: saved.scrollTop ?? 0,
@@ -135,8 +145,6 @@ export function PostList({
         'raven:admin-list-context',
         JSON.stringify({
           query,
-          status,
-          category,
           scrollTop: (compact ? compactListRef.current : tableRef.current)?.scrollTop ?? 0,
           windowScrollY: window.scrollY,
         }),
@@ -189,7 +197,7 @@ export function PostList({
               key={value}
               data-active={status === value || undefined}
               onClick={() => {
-                setStatus(value);
+                void setFilters({ status: value });
                 setPage(1);
               }}
             >
@@ -203,7 +211,7 @@ export function PostList({
             aria-label="카테고리 필터"
             value={category}
             onChange={(event) => {
-              setCategory(event.target.value);
+              void setFilters({ category: event.target.value });
               setPage(1);
             }}
           >
@@ -303,7 +311,7 @@ export function PostList({
                       <span className={styles.category}>{post.categoryName ?? '미분류'}</span>
                       <Link
                         className={styles.title}
-                        href={ROUTES.ADMIN.POST(post.id)}
+                        href={postHref(post.id)}
                         onClick={rememberContext}
                       >
                         {post.title}
@@ -334,7 +342,7 @@ export function PostList({
                   <td data-label="작업">
                     <Link
                       className={styles.more}
-                      href={ROUTES.ADMIN.POST(post.id)}
+                      href={postHref(post.id)}
                       aria-label={`${post.title} 편집`}
                     >
                       •••
@@ -394,7 +402,7 @@ export function PostList({
                 <span className={styles.category}>{post.categoryName ?? '미분류'}</span>
                 <Link
                   className={styles.title}
-                  href={ROUTES.ADMIN.POST(post.id)}
+                  href={postHref(post.id)}
                   aria-current={post.id === selectedId ? 'page' : undefined}
                   onClick={rememberContext}
                 >
@@ -414,7 +422,7 @@ export function PostList({
                 </time>
                 <Link
                   className={styles.more}
-                  href={ROUTES.ADMIN.POST(post.id)}
+                  href={postHref(post.id)}
                   aria-label={`${post.title} 편집`}
                 >
                   •••

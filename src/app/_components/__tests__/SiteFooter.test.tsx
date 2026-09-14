@@ -1,13 +1,29 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { SiteFooter } from '@/app/_components/SiteFooter';
+import styles from '@/app/_components/SiteFooter.module.css';
 
 describe('SiteFooter', () => {
   it('내비게이션에서 프로젝트를 숨기고 글과 소개 링크를 렌더한다', () => {
     render(<SiteFooter />);
+    expect(screen.getByRole('heading', { name: '둘러보기', level: 2 })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '글' })).toHaveAttribute('href', '/');
     expect(screen.queryByRole('link', { name: '프로젝트' })).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: '소개' })).toHaveAttribute('href', '/about');
+  });
+
+  it('내비게이션 heading과 링크를 같은 sans 타이포 토큰으로 묶는다', () => {
+    render(<SiteFooter />);
+    const navigation = screen.getByRole('navigation', { name: '사이트 내비게이션' });
+    const heading = screen.getByRole('heading', { name: '둘러보기', level: 2 });
+    const links = [
+      screen.getByRole('link', { name: '글' }),
+      screen.getByRole('link', { name: '소개' }),
+    ];
+
+    expect(navigation).toContainElement(heading);
+    expect(heading).toHaveClass(styles.navItem);
+    for (const link of links) expect(link).toHaveClass(styles.navItem);
   });
 
   it('브랜드 설명과 저작권 정보를 유지한다', () => {

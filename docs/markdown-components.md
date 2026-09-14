@@ -1,13 +1,10 @@
-# Markdown content components
+# Markdown 문서 컴포넌트
 
-Public articles and the admin text-edit preview recognize the following fenced code blocks.
-Keep the language labels lowercase. The admin editor preserves the fenced source when it
-converts the rendered preview back to Markdown.
+글 본문과 관리자 미리보기는 아래 fenced code block을 문서 컴포넌트로 렌더링한다. fence가 비어 있거나 형식 검증에 실패하면 일반 코드블럭으로 표시되므로 원문은 사라지지 않는다.
 
-## Mermaid diagrams
+## Mermaid
 
-Use a `mermaid` fence with ordinary Mermaid source. The browser renders it in Mermaid strict
-security mode; if parsing fails, readers see the source as a normal code block.
+언어 라벨을 `mermaid`로 지정하고 Mermaid 문법을 그대로 적는다.
 
 ````markdown
 ```mermaid
@@ -17,42 +14,70 @@ flowchart LR
 ```
 ````
 
-## Installation guides
+브라우저에서 다이어그램 변환에 실패하면 원문 코드블럭을 대신 표시한다. Mermaid 원문은 HTML로 실행하지 않는다.
 
-Use an `installer` fence containing JSON. `title`, at least one package-manager command, and
-at least one step are required. `intro` is optional. Manager keys are limited to `npm`, `pnpm`,
-`yarn`, and `bun`. Each step requires `title` and may include `description`, `code`, `language`,
-`note`, and `tip`. Unknown fields, malformed JSON, empty commands, or an empty step list leave
-the fence as a normal code block. Command and step-code strings are kept literally, including
-intentional leading spaces, trailing spaces, and line breaks; each is displayed in a copyable
-code block.
+## 설치 안내
+
+언어 라벨이 `installer`인 fence 안에 JSON 객체를 적는다.
 
 ````markdown
 ```installer
 {
   "title": "Raven SDK 설치",
-  "intro": "프로젝트에서 사용하는 패키지 매니저를 선택하세요.",
+  "intro": "사용 중인 패키지 매니저를 선택하세요.",
   "managers": {
-    "npm": "npm install @raven/sdk",
     "pnpm": "pnpm add @raven/sdk",
+    "npm": "npm install @raven/sdk",
     "yarn": "yarn add @raven/sdk",
     "bun": "bun add @raven/sdk"
   },
   "steps": [
     {
       "title": "환경 변수 추가",
-      "description": "프로젝트 루트의 .env 파일에 토큰을 추가합니다.",
-      "code": "RAVEN_TOKEN=your-token",
-      "language": "dotenv",
-      "note": "토큰은 저장소에 커밋하지 마세요."
+      "description": "서버 환경에 API 키를 등록합니다.",
+      "language": "bash",
+      "code": "export RAVEN_API_KEY=your-key",
+      "note": "키를 저장소에 커밋하지 마세요."
     },
     {
-      "title": "클라이언트 초기화",
-      "code": "import { Raven } from '@raven/sdk';\n\nconst raven = new Raven();",
+      "title": "클라이언트 생성",
       "language": "ts",
-      "tip": "애플리케이션 시작 시 한 번만 초기화하세요."
+      "code": "const raven = createClient()",
+      "tip": "클라이언트는 한 번만 생성해 재사용하세요."
     }
   ]
 }
 ```
 ````
+
+- `title`: 필수 문자열
+- `intro`: 선택 문자열
+- `managers`: `agents` 대신 사용할 수 있는 선택 객체. `npm`, `pnpm`, `yarn`, `bun` 중 하나 이상의 명령 문자열이 필요하다. JSON에 먼저 적은 유효한 항목이 기본 탭이 된다.
+- `agents`: `managers` 대신 사용할 수 있는 선택 객체. `codex`, `claude-code`, `grok` 중 하나 이상의 명령 문자열이 필요하며 화면에는 각각 `Codex`, `Claude Code`, `Grok` 탭으로 표시된다. JSON에 먼저 적은 유효한 항목이 기본 탭이 된다.
+- `steps`: 하나 이상의 객체가 필요한 배열
+- 각 단계의 `title`: 필수 문자열
+- 각 단계의 `description`, `language`, `code`, `note`, `tip`: 선택 문자열
+
+패키지 매니저가 아닌 에이전트별 명령을 보여주려면 `managers`를 생략하고 `agents`를 적는다.
+
+````markdown
+```installer
+{
+  "title": "에이전트 설치",
+  "agents": {
+    "codex": "raven install --agent codex",
+    "claude-code": "raven install --agent claude-code",
+    "grok": "raven install --agent grok"
+  },
+  "steps": [
+    { "title": "설치 확인", "code": "raven doctor" }
+  ]
+}
+```
+````
+
+`managers`와 `agents`를 함께 적으면 기존 문법과의 호환을 위해 `managers`만 화면에 표시한다. 두 객체의 키는 각각 허용된 이름만 사용할 수 있고 명령 문자열은 비어 있을 수 없다.
+
+탭 명령 문자열에서 명령 사이에 독립적으로 놓인 compact continuation 표기(`\\ --flag`)는 화면과 복사 결과에서 backslash를 남긴 채 다음 줄로 펼쳐진다. compact 표기에는 두 칸 들여쓰기를 넣고, 이미 backslash 다음에 줄바꿈이 있는 값은 작성한 들여쓰기를 그대로 보존한다. 경로 등에 들어 있는 임의의 backslash와 설치 단계의 `code` 값은 변환하지 않는다. 그 밖의 앞뒤 공백도 포함해 코드블럭에 표시되며, 공백만 있는 값은 유효한 명령이나 코드로 보지 않는다.
+
+알 수 없는 필드, 허용하지 않은 패키지 매니저, 잘못된 JSON은 설치 안내로 변환하지 않는다. 관리자 텍스트 편집에서 다른 내용을 수정해도 두 컴포넌트는 각 fence 원문으로 돌아간다.

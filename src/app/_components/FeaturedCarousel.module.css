@@ -37,6 +37,7 @@
   width: clamp(72px, 18%, 112px);
   height: 2px;
   overflow: hidden;
+  border-radius: var(--radius-pill);
   background: rgb(255 255 255 / 38%);
 }
 
@@ -44,6 +45,7 @@
   display: block;
   width: 0;
   height: 100%;
+  border-radius: inherit;
   background: rgb(255 255 255 / 92%);
   transition: width 80ms linear;
 }

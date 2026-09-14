@@ -58,6 +58,12 @@ function collectCodeLangs(langs: string[]) {
 }
 
 const INSTALLER_MANAGERS = ['npm', 'pnpm', 'yarn', 'bun'] as const;
+const INSTALLER_AGENTS = ['codex', 'claude-code', 'grok'] as const;
+const INSTALLER_AGENT_LABELS: Record<(typeof INSTALLER_AGENTS)[number], string> = {
+  codex: 'Codex',
+  'claude-code': 'Claude Code',
+  grok: 'Grok',
+};
 
 const installerText = (maximum: number) => z.string().trim().min(1).max(maximum);
 const installerCode = (maximum: number) =>
@@ -77,7 +83,17 @@ const installerSchema = z
         bun: installerCode(2_000).optional(),
       })
       .strict()
-      .refine((managers) => Object.values(managers).some(Boolean)),
+      .refine((managers) => Object.values(managers).some(Boolean))
+      .optional(),
+    agents: z
+      .object({
+        codex: installerCode(2_000).optional(),
+        'claude-code': installerCode(2_000).optional(),
+        grok: installerCode(2_000).optional(),
+      })
+      .strict()
+      .refine((agents) => Object.values(agents).some(Boolean))
+      .optional(),
     steps: z
       .array(
         z
@@ -98,9 +114,16 @@ const installerSchema = z
       .min(1)
       .max(30),
   })
-  .strict();
+  .strict()
+  .refine(({ managers, agents }) => Boolean(managers || agents));
 
 type Installer = z.infer<typeof installerSchema>;
+type InstallerTab = {
+  kind: 'manager' | 'agent';
+  key: string;
+  label: string;
+  command: string;
+};
 
 function textElement(
   tagName: string,
@@ -141,10 +164,43 @@ function installerCodeBlock(value: string, label: string, kind: 'command' | 'ste
   };
 }
 
+/** JSON에 한 줄로 적은 셸 continuation 표기를 코드블럭에서 읽기 좋게 펼친다. */
+function formatInstallerCommand(command: string): string {
+  return command.replace(/(^|[ \t])\\[ \t]+(?=\S)/gm, '$1\\\n  ');
+}
+
+function installerKeys<T extends string>(
+  values: Partial<Record<T, string>> | undefined,
+  allowed: readonly T[],
+): T[] {
+  if (!values) return [];
+  return Object.keys(values).filter(
+    (key): key is T => allowed.includes(key as T) && values[key as T] !== undefined,
+  );
+}
+
 function installerView(installer: Installer, source: string, ordinal: number): Element {
-  const managers = INSTALLER_MANAGERS.filter((manager) => installer.managers[manager]);
-  const tabId = (manager: string) => `installer-${ordinal}-tab-${manager}`;
-  const panelId = (manager: string) => `installer-${ordinal}-panel-${manager}`;
+  const managerTabs: InstallerTab[] = installerKeys(installer.managers, INSTALLER_MANAGERS).map(
+    (manager) => ({
+      kind: 'manager' as const,
+      key: manager,
+      label: manager,
+      command: installer.managers![manager]!,
+    }),
+  );
+  const agentTabs: InstallerTab[] = installerKeys(installer.agents, INSTALLER_AGENTS).map(
+    (agent) => ({
+      kind: 'agent' as const,
+      key: agent,
+      label: INSTALLER_AGENT_LABELS[agent],
+      command: installer.agents![agent]!,
+    }),
+  );
+  // managers wins when both forms are present so existing installer documents retain
+  // their package-manager behavior without rendering two competing tab sets.
+  const tabs = installer.managers ? managerTabs : agentTabs;
+  const tabId = (key: string) => `installer-${ordinal}-tab-${key}`;
+  const panelId = (key: string) => `installer-${ordinal}-panel-${key}`;
 
   return {
     type: 'element',
@@ -166,30 +222,36 @@ function installerView(installer: Installer, source: string, ordinal: number): E
       {
         type: 'element',
         tagName: 'div',
-        properties: { role: 'tablist', 'aria-label': '패키지 매니저', 'data-installer-tabs': '' },
-        children: managers.map((manager, index) =>
-          textElement('button', manager, {
+        properties: {
+          role: 'tablist',
+          'aria-label': tabs[0]?.kind === 'agent' ? '에이전트' : '패키지 매니저',
+          'data-installer-tabs': '',
+        },
+        children: tabs.map((tab, index) =>
+          textElement('button', tab.label, {
             type: 'button',
             role: 'tab',
-            id: tabId(manager),
-            'aria-controls': panelId(manager),
+            id: tabId(tab.key),
+            'aria-controls': panelId(tab.key),
             'aria-selected': index === 0 ? 'true' : 'false',
             tabIndex: index === 0 ? 0 : -1,
-            'data-installer-manager': manager,
+            ...(tab.kind === 'agent'
+              ? { 'data-installer-agent': tab.key }
+              : { 'data-installer-manager': tab.key }),
           }),
         ),
       },
-      ...managers.map((manager, index) => ({
+      ...tabs.map((tab, index) => ({
         type: 'element' as const,
         tagName: 'div',
         properties: {
           role: 'tabpanel',
-          id: panelId(manager),
-          'aria-labelledby': tabId(manager),
-          'data-installer-panel': manager,
+          id: panelId(tab.key),
+          'aria-labelledby': tabId(tab.key),
+          'data-installer-panel': tab.key,
           hidden: index === 0 ? undefined : true,
         },
-        children: [installerCodeBlock(installer.managers[manager]!, 'sh', 'command')],
+        children: [installerCodeBlock(formatInstallerCommand(tab.command), 'sh', 'command')],
       })),
       {
         type: 'element',

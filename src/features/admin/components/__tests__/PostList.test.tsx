@@ -1,4 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import type { ReactNode } from 'react';
+import { NuqsTestingAdapter, type UrlUpdateEvent } from 'nuqs/adapters/testing';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { updatePostStatusAction } = vi.hoisted(() => ({ updatePostStatusAction: vi.fn() }));
@@ -12,6 +14,23 @@ Object.defineProperty(Element.prototype, 'scrollTo', {
   value: elementScrollTo,
 });
 const windowScrollTo = vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+
+function renderPostList(
+  component: ReactNode,
+  options: { searchParams?: string; onUrlUpdate?: (event: UrlUpdateEvent) => void } = {},
+) {
+  return render(component, {
+    wrapper: ({ children }) => (
+      <NuqsTestingAdapter
+        hasMemory
+        searchParams={options.searchParams}
+        onUrlUpdate={options.onUrlUpdate}
+      >
+        {children}
+      </NuqsTestingAdapter>
+    ),
+  });
+}
 
 beforeEach(() => {
   sessionStorage.clear();
@@ -35,7 +54,7 @@ describe('PostList table', () => {
       'raven:admin-list-context',
       JSON.stringify({ scrollTop: 120, windowScrollY: 240 }),
     );
-    render(<PostList posts={posts} />);
+    renderPostList(<PostList posts={posts} />);
     await waitFor(() => {
       expect(elementScrollTo).toHaveBeenCalledWith({ top: 120 });
       expect(windowScrollTo).toHaveBeenCalledWith({ top: 240 });
@@ -43,7 +62,7 @@ describe('PostList table', () => {
   });
 
   it('renders a semantic table with cover fallback and pagination', () => {
-    render(<PostList posts={posts} />);
+    renderPostList(<PostList posts={posts} />);
     expect(screen.getByRole('table')).toBeInTheDocument();
     expect(screen.getAllByText('이미지 없음')).toHaveLength(10);
     fireEvent.click(screen.getByRole('button', { name: '다음' }));
@@ -51,7 +70,7 @@ describe('PostList table', () => {
   });
 
   it('places the category chip above the title and slug', () => {
-    render(<PostList posts={[{ ...posts[0], categoryName: '디자인 시스템' }]} />);
+    renderPostList(<PostList posts={[{ ...posts[0], categoryName: '디자인 시스템' }]} />);
 
     const title = screen.getByRole('link', { name: '글 00' });
     const content = title.closest('div');
@@ -63,7 +82,7 @@ describe('PostList table', () => {
   });
 
   it('sorts from the column headers in both directions and removes the sort select', () => {
-    render(
+    renderPostList(
       <PostList
         posts={[
           {
@@ -126,7 +145,7 @@ describe('PostList table', () => {
   });
 
   it('returns to the first page when a column sort changes', () => {
-    render(<PostList posts={posts} />);
+    renderPostList(<PostList posts={posts} />);
     fireEvent.click(screen.getByRole('button', { name: '다음' }));
     expect(screen.getByText('2 / 2')).toBeInTheDocument();
 
@@ -137,7 +156,7 @@ describe('PostList table', () => {
   });
 
   it('centers cover thumbnails regardless of the saved cover position', () => {
-    render(
+    renderPostList(
       <PostList
         posts={[
           {
@@ -155,7 +174,7 @@ describe('PostList table', () => {
   });
 
   it('resets pagination when filtering and shows the search empty state', () => {
-    render(<PostList posts={posts} />);
+    renderPostList(<PostList posts={posts} />);
     fireEvent.click(screen.getByRole('button', { name: '다음' }));
     fireEvent.change(screen.getByRole('searchbox', { name: '제목 검색' }), {
       target: { value: '없는 글' },
@@ -165,7 +184,7 @@ describe('PostList table', () => {
 
   it('keeps the previous status on failure and updates it on success', async () => {
     updatePostStatusAction.mockResolvedValueOnce({ status: 'error', message: '실패' });
-    render(<PostList posts={[posts[0]]} />);
+    renderPostList(<PostList posts={[posts[0]]} />);
     const select = screen.getByRole('combobox', { name: '글 00 상태' });
     fireEvent.change(select, { target: { value: 'published' } });
     await waitFor(() => expect(screen.getByText('실패')).toBeInTheDocument());
@@ -185,7 +204,7 @@ describe('PostList table', () => {
       message: '공개',
       updatedAt: '2026-09-12T00:00:00Z',
     });
-    const { rerender } = render(<PostList posts={[posts[0]]} />);
+    const { rerender } = renderPostList(<PostList posts={[posts[0]]} />);
     const select = screen.getByRole('combobox', { name: '글 00 상태' });
     fireEvent.change(select, { target: { value: 'published' } });
     await waitFor(() => expect(select).toHaveValue('published'));
@@ -194,11 +213,76 @@ describe('PostList table', () => {
     );
     expect(select).toHaveValue('draft');
   });
+
+  it('uses all statuses and all categories when the URL has no filters', () => {
+    renderPostList(<PostList posts={posts} />);
+
+    expect(screen.getByRole('button', { name: '전체' })).toHaveAttribute('data-active', 'true');
+    expect(screen.getByRole('combobox', { name: '카테고리 필터' })).toHaveValue('');
+  });
+
+  it('restores status and category filters from URL query parameters', () => {
+    sessionStorage.setItem(
+      'raven:admin-list-context',
+      JSON.stringify({ status: 'published', category: 'other' }),
+    );
+    renderPostList(
+      <PostList
+        posts={[
+          { ...posts[0], categoryId: 'dev', categoryName: '개발' },
+          { ...posts[1], categoryId: 'other', categoryName: '기타' },
+        ]}
+        categories={[
+          { id: 'dev', name: '개발', slug: 'dev', sort_order: 1, is_default: false },
+          { id: 'other', name: '기타', slug: 'other', sort_order: 2, is_default: false },
+        ]}
+      />,
+      { searchParams: '?status=draft&category=dev' },
+    );
+
+    expect(screen.getByRole('button', { name: '초안' })).toHaveAttribute('data-active', 'true');
+    expect(screen.getByRole('combobox', { name: '카테고리 필터' })).toHaveValue('dev');
+    expect(screen.getByRole('link', { name: '글 00' })).toHaveAttribute(
+      'href',
+      '/admin/posts/post-0?status=draft&category=dev',
+    );
+    expect(screen.queryByRole('link', { name: '글 01' })).not.toBeInTheDocument();
+  });
+
+  it('pushes filter changes to the URL while preserving other query parameters', async () => {
+    const onUrlUpdate = vi.fn<(event: UrlUpdateEvent) => void>();
+    renderPostList(
+      <PostList
+        posts={posts}
+        categories={[{ id: 'dev', name: '개발', slug: 'dev', sort_order: 1, is_default: false }]}
+      />,
+      {
+        searchParams: '?view=posts',
+        onUrlUpdate,
+      },
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '초안' }));
+    await waitFor(() => expect(onUrlUpdate).toHaveBeenCalledTimes(1));
+    expect(onUrlUpdate.mock.calls[0]?.[0].searchParams.toString()).toBe('view=posts&status=draft');
+    expect(onUrlUpdate.mock.calls[0]?.[0].options.history).toBe('push');
+
+    fireEvent.click(screen.getByRole('button', { name: '전체' }));
+    await waitFor(() => expect(onUrlUpdate).toHaveBeenCalledTimes(2));
+    expect(onUrlUpdate.mock.calls[1]?.[0].searchParams.toString()).toBe('view=posts');
+
+    fireEvent.change(screen.getByRole('combobox', { name: '카테고리 필터' }), {
+      target: { value: 'dev' },
+    });
+    await waitFor(() => expect(onUrlUpdate).toHaveBeenCalledTimes(3));
+    expect(onUrlUpdate.mock.calls[2]?.[0].searchParams.toString()).toBe('view=posts&category=dev');
+    expect(onUrlUpdate.mock.calls[2]?.[0].options.history).toBe('push');
+  });
 });
 
 describe('PostList', () => {
   it('빈 목록에서도 필터와 테이블 구조를 유지한다', () => {
-    render(<PostList posts={[]} />);
+    renderPostList(<PostList posts={[]} />);
     expect(screen.getByLabelText('글 상태')).toBeVisible();
     expect(screen.getByRole('searchbox', { name: '제목 검색' })).toBeVisible();
     expect(screen.getByRole('table', { name: '글 목록' })).toBeVisible();
@@ -206,7 +290,7 @@ describe('PostList', () => {
   });
 
   it('생성일 최신순으로 정렬하고 제목과 카테고리 필터를 조합한다', () => {
-    render(
+    renderPostList(
       <PostList
         categories={[{ id: 'dev', name: '개발', slug: 'dev', sort_order: 1, is_default: false }]}
         posts={[

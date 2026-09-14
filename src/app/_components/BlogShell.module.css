@@ -13,7 +13,12 @@
   display: grid;
   gap: var(--space-4);
   max-height: calc(100dvh - 112px);
+  /* The vertical scrollport otherwise clips an outline on links that touch
+     either horizontal edge. Keep a small token-sized breathing room inside
+     the scrollport so keyboard focus remains visible without x-overflow. */
+  padding-inline: var(--space-1);
   overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
   scrollbar-width: thin;
 }
@@ -42,14 +47,19 @@
   color: var(--d0-blue-dark);
 }
 .navigation a[aria-current='page'] {
-  background: var(--d0-blue-light);
-  color: var(--d0-blue-dark);
+  background: var(--d0-grey-50);
+  color: var(--d0-grey-900);
 }
 .navigation a:focus-visible,
 .menuButton:focus-visible,
 .close:focus-visible {
-  outline: 2px solid var(--d0-blue-dark);
+  outline: 2px solid var(--d0-blue);
   outline-offset: 2px;
+}
+.otherCategories summary:focus-visible {
+  outline: 2px solid var(--d0-blue);
+  outline-offset: 2px;
+  border-radius: var(--d0-radius-sm);
 }
 .otherCategories {
   margin-top: var(--space-2);

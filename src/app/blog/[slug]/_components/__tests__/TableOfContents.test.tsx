@@ -36,6 +36,7 @@ describe('TableOfContents', () => {
     const { container } = render(<TableOfContents toc={TOC} />);
     expect(container.querySelector('details')).toHaveAttribute('open');
     expect(screen.getByText('목차', { selector: 'summary' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '목차', level: 2 })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '왜 헥사고날인가' })).toHaveAttribute(
       'href',
       '#왜-헥사고날인가',

@@ -70,7 +70,9 @@ export function TableOfContents({
     <details className={styles.toc} open={defaultOpen}>
       <summary className={styles.summary}>목차</summary>
       <nav className={styles.inner} aria-label="목차">
-        <Eyebrow className={styles.label}>목차</Eyebrow>
+        <Eyebrow as="h2" className={styles.label}>
+          목차
+        </Eyebrow>
         <ul className={styles.list}>
           {toc.map((entry) => (
             <li key={entry.id}>
