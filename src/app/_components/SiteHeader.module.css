@@ -66,10 +66,11 @@
   min-height: 44px;
   align-items: center;
   color: var(--d0-grey-900);
-  font-size: var(--fs-16);
-  font-weight: 650;
+  font-family: var(--d0-font);
+  font-size: var(--fs-20);
+  font-weight: var(--fw-title);
   line-height: var(--lh-body);
-  letter-spacing: var(--ls-body);
+  letter-spacing: var(--d0-tracking-title);
   white-space: nowrap;
   transition:
     color var(--d0-dur-fast) var(--d0-ease),
@@ -85,8 +86,9 @@
 }
 
 .wordmark:focus-visible {
+  outline: 2px solid var(--d0-blue);
+  outline-offset: 2px;
   border-radius: var(--d0-radius-sm);
-  box-shadow: 0 0 0 3px rgb(61 125 229 / 0.2);
 }
 
 @media (max-width: 900px) {

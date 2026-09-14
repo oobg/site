@@ -49,6 +49,17 @@
   font-size: var(--fs-14);
 }
 
+/* Navigation labels stay in the same Pretendard-based register, including
+   the semantic section heading. The footer status line below is intentionally
+   mono, but that treatment must not leak into this navigation. */
+.navItem {
+  font-family: var(--d0-font);
+  font-size: var(--fs-14);
+  font-weight: 600;
+  line-height: var(--d0-leading-body);
+  letter-spacing: var(--d0-tracking-body);
+}
+
 .column a {
   min-height: 44px;
   display: inline-flex;

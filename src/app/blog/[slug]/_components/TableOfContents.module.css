@@ -1,15 +1,25 @@
 .toc {
   margin: 0;
+  min-width: 0;
 }
 .summary {
   padding-block: var(--space-3);
   border-block: 1px solid var(--d0-grey-100);
   color: var(--d0-grey-800);
-  font-size: 14px;
+  font-family: var(--d0-font);
+  font-size: var(--d0-text-control-sm);
   font-weight: 600;
+  line-height: var(--d0-leading-body);
+  letter-spacing: var(--d0-tracking-body);
   cursor: pointer;
 }
+.summary:focus-visible {
+  outline: 2px solid var(--d0-blue);
+  outline-offset: 2px;
+  border-radius: var(--d0-radius-sm);
+}
 .inner {
+  min-width: 0;
   padding-block: var(--space-3);
 }
 .label {
@@ -17,31 +27,48 @@
 }
 .list {
   display: flex;
+  min-width: 0;
   flex-direction: column;
   gap: var(--space-1);
   border-left: 1px solid var(--d0-grey-200);
 }
+.list li {
+  min-width: 0;
+}
 .item {
   display: block;
+  min-width: 0;
   margin-left: -1px;
-  padding: var(--space-1) 0 var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
   border-left: 2px solid transparent;
-  color: var(--d0-grey-600);
-  font-size: 13px;
-  line-height: 1.5;
+  color: var(--d0-grey-700);
+  font-family: var(--d0-font);
+  font-size: var(--d0-text-compact);
+  font-weight: 500;
+  line-height: var(--d0-leading-body);
+  letter-spacing: var(--d0-tracking-body);
+  overflow-wrap: anywhere;
   transition:
+    background-color var(--d0-dur-fast) var(--d0-ease),
     color var(--d0-dur-fast) var(--d0-ease),
     border-color var(--d0-dur-fast) var(--d0-ease);
 }
 .item:hover {
+  background-color: var(--d0-grey-50);
   color: var(--d0-grey-900);
+}
+.item:focus-visible {
+  outline: 2px solid var(--d0-blue);
+  outline-offset: 2px;
 }
 .depth3 {
   padding-left: var(--space-5);
 }
 .item[aria-current='location'] {
+  background-color: var(--d0-blue-light);
   border-left-color: var(--d0-blue);
   color: var(--d0-grey-900);
+  font-weight: 600;
 }
 @media (min-width: 901px) {
   .summary {
@@ -53,13 +80,19 @@
   .inner {
     padding-block: 0;
   }
-  .label {
+  .inner .label {
     display: block;
     margin-bottom: var(--space-3);
+    color: var(--d0-grey-800);
+    font-family: var(--d0-font);
+    font-size: var(--d0-text-compact);
+    font-weight: 650;
+    line-height: var(--d0-leading-body);
+    letter-spacing: var(--d0-tracking-body);
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .item {
-    transition-duration: 0ms;
+    transition: none;
   }
 }
