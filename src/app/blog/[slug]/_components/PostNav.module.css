@@ -51,14 +51,14 @@
 
 .label {
   font-family: var(--font-mono), monospace;
-  font-size: var(--fs-12);
+  font-size: var(--fs-13);
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
   transition: color var(--dur) linear;
 }
 
 .cardTitle {
-  font-size: var(--fs-16);
+  font-size: var(--fs-20);
   letter-spacing: var(--ls-body);
   line-height: var(--lh-lead);
   color: var(--color-text-secondary);

@@ -1,10 +1,19 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { describe, it, expect, vi } from 'vitest';
+import { afterEach, describe, it, expect, vi } from 'vitest';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { renderToString } from 'react-dom/server';
 import { SiteHeader } from '@/app/_components/SiteHeader';
 
 const push = vi.fn();
+const originalPlatform = navigator.platform;
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push }) }));
+
+afterEach(() => {
+  Object.defineProperty(navigator, 'platform', {
+    configurable: true,
+    value: originalPlatform,
+  });
+});
 
 function renderHeader() {
   return render(
@@ -24,6 +33,27 @@ describe('SiteHeader', () => {
     expect(wordmark).toHaveAttribute('data-site-wordmark');
     expect(screen.getByRole('button', { name: /검색/ })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '소개' })).not.toBeInTheDocument();
+  });
+
+  it('SSR은 안정적인 Ctrl 표기를 쓰고 macOS에서는 mount 뒤 Command 표기로 바꾼다', async () => {
+    Object.defineProperty(navigator, 'platform', { configurable: true, value: 'MacIntel' });
+
+    expect(
+      renderToString(
+        <QueryClientProvider client={new QueryClient()}>
+          <SiteHeader />
+        </QueryClientProvider>,
+      ),
+    ).toContain('Ctrl K');
+
+    renderHeader();
+    await waitFor(() => expect(screen.getByText('⌘ K')).toBeInTheDocument());
+  });
+
+  it('Windows와 Linux 계열에서는 Ctrl 단축키를 표시한다', () => {
+    Object.defineProperty(navigator, 'platform', { configurable: true, value: 'Win32' });
+    renderHeader();
+    expect(screen.getByText('Ctrl K')).toBeInTheDocument();
   });
 
   it('trigger와 단축키로 열고 Escape 뒤 호출 요소로 focus를 복원한다', async () => {

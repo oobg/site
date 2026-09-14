@@ -4,7 +4,7 @@ import { Dialog } from '@base-ui/react/dialog';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Folder, House, MagnifyingGlass, User } from '@phosphor-icons/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { ROUTES } from '@constants/routes';
 import { blogPostsQueryOptions } from '@features/posts/services/posts.query';
 import styles from './CommandPalette.module.css';
@@ -22,6 +22,12 @@ const pages: PaletteItem[] = [
   { id: 'about', label: '소개', meta: '페이지', href: ROUTES.ABOUT, kind: 'page' },
 ];
 
+const noopSubscribe = () => () => {};
+
+function isApplePlatform() {
+  return /Mac|iPhone|iPad|iPod/i.test(navigator.platform || navigator.userAgent);
+}
+
 export function CommandPalette() {
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -33,6 +39,8 @@ export function CommandPalette() {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [activeIndex, setActiveIndex] = useState(0);
   const listboxId = useId();
+  // 서버와 첫 hydration은 같은 Ctrl 표기를 사용하고, mount 뒤 실제 OS 표기로 교체한다.
+  const applePlatform = useSyncExternalStore(noopSubscribe, isApplePlatform, () => false);
   const { data, isLoading, isError } = useQuery({
     ...blogPostsQueryOptions({ q: debouncedQuery, page: 1, pageSize: 6 }),
     enabled: open,
@@ -139,7 +147,7 @@ export function CommandPalette() {
       >
         <MagnifyingGlass aria-hidden="true" />
         <span>검색</span>
-        <kbd>⌘ K</kbd>
+        <kbd>{applePlatform ? '⌘ K' : 'Ctrl K'}</kbd>
       </Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Backdrop className={styles.backdrop} />

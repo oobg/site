@@ -42,14 +42,19 @@
   color: var(--d0-blue-dark);
 }
 .navigation a[aria-current='page'] {
-  background: var(--d0-blue-light);
-  color: var(--d0-blue-dark);
+  background: var(--d0-grey-50);
+  color: var(--d0-grey-900);
 }
 .navigation a:focus-visible,
 .menuButton:focus-visible,
 .close:focus-visible {
-  outline: 2px solid var(--d0-blue-dark);
-  outline-offset: 2px;
+  outline: 0;
+  box-shadow: 0 0 0 2px var(--d0-grey-900);
+}
+.otherCategories summary:focus-visible {
+  outline: 0;
+  border-radius: var(--d0-radius-sm);
+  box-shadow: 0 0 0 2px var(--d0-grey-900);
 }
 .otherCategories {
   margin-top: var(--space-2);

@@ -18,7 +18,9 @@ export function SiteFooter() {
           </div>
           <div className={styles.columns}>
             <nav className={styles.column} aria-label="사이트 내비게이션">
-              <Eyebrow className={styles.colLabel}>둘러보기</Eyebrow>
+              <Eyebrow as="h2" className={styles.colLabel}>
+                둘러보기
+              </Eyebrow>
               <Link href={ROUTES.HOME}>글</Link>
               <Link href={ROUTES.ABOUT}>소개</Link>
             </nav>
