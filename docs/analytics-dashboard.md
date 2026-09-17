@@ -24,4 +24,6 @@ OCI 운영은 `RAVEN_GA4_CREDENTIALS_FILE`의 호스트 JSON을 `/run/secrets/ga
 
 표현은 Cloudflare Analytics 스타일을 따르지만 데이터 원천은 GA4 Data API다. GA4 Data API의 요청 묶음은 최대 5개 보고서까지 지원하므로, 기본 집계·추이·채널·페이지·기기와 국가·UTM·기술·방문 유형을 각각 5개 보고서 묶음으로 요청한다. `GA4_HOSTNAME` 필터로 main과 dev 데이터가 섞이지 않게 한다.
 
+국가별 지구본은 `cobe` WebGL canvas를 사용하고, GA4 위치 데이터를 marker로 연결해 부드럽게 회전한다. 디바이스 시각화는 원형 궤도 대신 인라인 SVG 기기 모양과 CSS `perspective`·`translate3d`를 조합한 2.5D 원근 투영으로 구성한다.
+
 OCI 운영 배포는 `RAVEN_GA4_CREDENTIALS_FILE`의 호스트 JSON 파일을 `/run/secrets/ga4-service-account.json`에 읽기 전용으로 마운트한다. `docker/compose.oci.yml`은 이 호스트 경로를 필수로 요구하며, 현재 운영에서는 인라인 이메일·키 대신 `GOOGLE_APPLICATION_CREDENTIALS`를 사용한다.

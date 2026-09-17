@@ -225,93 +225,137 @@
   background: var(--d0-blue);
 }
 
-.deviceLayout {
+.devicePerspective {
   display: grid;
-  grid-template-columns: minmax(190px, 0.95fr) minmax(170px, 1fr);
+  grid-template-columns: minmax(210px, 1.05fr) minmax(170px, 0.95fr);
   align-items: center;
   gap: var(--space-3);
   margin-top: var(--space-2);
 }
 
-.deviceOrbit {
+.deviceStage {
   position: relative;
   height: 258px;
   overflow: hidden;
-  perspective: 700px;
+  perspective: 1100px;
+  perspective-origin: 50% 42%;
 }
 
-.deviceOrbit::after {
+.deviceStage::before {
   position: absolute;
-  right: 10%;
-  bottom: 12px;
-  left: 10%;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--d0-grey-100);
+  right: 7%;
+  bottom: 16px;
+  left: 7%;
+  height: 58px;
+  border-top: 1px solid var(--d0-grey-200);
+  background: linear-gradient(
+    165deg,
+    transparent 0 48%,
+    var(--d0-grey-100) 49% 50%,
+    transparent 51%
+  );
   content: '';
-  filter: blur(10px);
-  opacity: 0.7;
+  opacity: 0.9;
+  transform: perspective(420px) rotateX(66deg) scaleY(1.8);
+  transform-origin: bottom;
+}
+
+.deviceStage::after {
+  position: absolute;
+  right: 12%;
+  bottom: 10px;
+  left: 12%;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--d0-grey-200);
+  content: '';
+  filter: blur(9px);
+  opacity: 0.72;
   transform: scaleY(0.35);
 }
 
-.orbitCore {
+.deviceStageSummary {
   position: absolute;
-  z-index: 1;
-  top: 50%;
-  left: 50%;
+  z-index: 5;
+  top: 8px;
+  left: 10px;
   display: grid;
-  place-items: center;
-  width: 108px;
-  height: 108px;
-  border: 1px solid var(--d0-grey-200);
-  border-radius: 50%;
-  background: var(--color-surface);
-  transform: translate(-50%, -50%);
+  gap: 2px;
 }
 
-.orbitCore span {
+.deviceStageSummary span {
   color: var(--d0-grey-500);
   font-size: 10px;
 }
 
-.orbitCore strong {
-  margin-top: -22px;
+.deviceStageSummary strong {
   color: var(--d0-grey-900);
   font-family: var(--font-mono), ui-monospace, monospace;
-  font-size: 21px;
+  font-size: 20px;
   font-variant-numeric: tabular-nums;
 }
 
-.orbitRing {
+.deviceUnit {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--orbit-size);
-  height: calc(var(--orbit-size) * 0.42);
-  border: 1px solid var(--d0-grey-300);
-  border-radius: 50%;
-  transform: translate(-50%, -50%) rotateX(64deg) rotateZ(var(--orbit-angle));
+  z-index: 2;
   transform-style: preserve-3d;
-  animation: device-orbit var(--orbit-duration) linear infinite;
+  animation: device-float 7s ease-in-out infinite;
+  filter: drop-shadow(0 16px 13px rgb(15 23 42 / 12%));
 }
 
-.orbitRing[data-reverse='true'] {
-  animation-direction: reverse;
+.deviceDesktop {
+  right: 1%;
+  bottom: 26px;
+  width: min(220px, 94%);
+  transform: translate3d(0, 0, 90px) rotateX(7deg) rotateY(-8deg);
 }
 
-.orbitNode {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  display: grid;
-  place-items: center;
-  width: 34px;
-  height: 34px;
-  border: 1px solid var(--d0-blue);
-  border-radius: 50%;
-  background: var(--d0-blue-light);
-  color: var(--d0-blue-dark);
-  transform: translate(-50%, -50%) rotateX(-64deg);
+.deviceTablet {
+  top: 54px;
+  left: 1%;
+  width: min(114px, 48%);
+  transform: translate3d(0, 0, -80px) rotateX(8deg) rotateY(21deg) rotateZ(-7deg) scale(0.88);
+  animation-delay: -2.2s;
+  opacity: 0.88;
+}
+
+.deviceMobile {
+  top: 40px;
+  right: 4%;
+  width: min(66px, 30%);
+  transform: translate3d(0, 0, -150px) rotateX(10deg) rotateY(-24deg) rotateZ(8deg) scale(0.88);
+  animation-delay: -4.2s;
+  opacity: 0.8;
+}
+
+.deviceGlyph {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.deviceShell {
+  fill: var(--d0-grey-900);
+  stroke: var(--d0-grey-700);
+  stroke-width: 2;
+}
+
+.deviceScreen {
+  fill: var(--d0-blue-light);
+  stroke: var(--d0-blue);
+  stroke-width: 2;
+}
+
+.deviceDetail {
+  fill: none;
+  stroke: var(--d0-grey-500);
+  stroke-linecap: round;
+  stroke-width: 5;
+}
+
+.deviceDetailFill {
+  fill: var(--d0-grey-500);
 }
 
 .deviceLegend {
@@ -407,39 +451,10 @@
   display: block;
   width: 100%;
   max-width: 290px;
+  aspect-ratio: 1;
   margin-inline: auto;
   overflow: visible;
-}
-
-.globeBase {
-  fill: var(--d0-blue-light);
-  stroke: var(--d0-blue);
-  stroke-width: 1;
-}
-
-.globeGrid ellipse {
-  fill: none;
-  stroke: var(--d0-blue);
-  stroke-width: 0.8;
-  opacity: 0.22;
-}
-
-.globeDots circle {
-  fill: var(--d0-blue);
-}
-
-.globeMarkers {
-  fill: var(--d0-orange);
-}
-
-.globeMarkerHalo {
-  fill: var(--d0-orange);
-}
-
-.globeMarker {
-  fill: var(--d0-orange);
-  stroke: var(--color-surface);
-  stroke-width: 1.2;
+  border-radius: 50%;
 }
 
 .globeCaption {
@@ -677,13 +692,13 @@
   font-size: var(--d0-text-compact);
 }
 
-@keyframes device-orbit {
+@keyframes device-float {
   from {
-    transform: translate(-50%, -50%) rotateX(64deg) rotateZ(var(--orbit-angle));
+    translate: 0 0;
   }
 
   to {
-    transform: translate(-50%, -50%) rotateX(64deg) rotateZ(calc(var(--orbit-angle) + 360deg));
+    translate: 0 -5px;
   }
 }
 
@@ -693,7 +708,7 @@
     grid-column: span 12;
   }
 
-  .deviceLayout,
+  .devicePerspective,
   .countryLayout {
     grid-template-columns: minmax(250px, 0.85fr) minmax(280px, 1.15fr);
   }
@@ -733,12 +748,12 @@
     justify-content: space-between;
   }
 
-  .deviceLayout,
+  .devicePerspective,
   .countryLayout {
     grid-template-columns: 1fr;
   }
 
-  .deviceOrbit {
+  .deviceStage {
     max-width: 360px;
     margin-inline: auto;
     width: 100%;
@@ -788,7 +803,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .orbitRing {
+  .deviceUnit {
     animation: none;
   }
 }
