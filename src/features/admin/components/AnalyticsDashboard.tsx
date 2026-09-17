@@ -1,5 +1,6 @@
 'use client';
 
+import createGlobe from 'cobe';
 import {
   Area,
   AreaChart,
@@ -12,13 +13,13 @@ import {
   YAxis,
 } from 'recharts';
 import { Desktop, DeviceMobile, DeviceTablet, Question } from '@phosphor-icons/react';
-import type { CSSProperties, ReactNode } from 'react';
+import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import type {
   AnalyticsDashboardData,
   AnalyticsDashboardResult,
   AnalyticsLocation,
 } from '@features/admin/types/analytics.types';
-import { formatCountryName, getCountryGeo, projectGlobePoint } from './analytics-geo';
+import { formatCountryName, getCountryGeo } from './analytics-geo';
 import styles from './AnalyticsDashboard.module.css';
 
 const number = new Intl.NumberFormat('ko-KR');
@@ -145,7 +146,40 @@ function MetricBarList({
   );
 }
 
-function DeviceOrbit({ devices }: { devices: AnalyticsDashboardData['devices'] }) {
+type DeviceKind = (typeof deviceOrder)[number];
+
+function DeviceGlyph({ kind }: { kind: DeviceKind }) {
+  if (kind === 'desktop') {
+    return (
+      <svg className={styles.deviceGlyph} viewBox="0 0 240 160" aria-hidden="true">
+        <rect className={styles.deviceShell} x="18" y="12" width="204" height="112" rx="10" />
+        <rect className={styles.deviceScreen} x="30" y="24" width="180" height="88" rx="5" />
+        <path className={styles.deviceDetail} d="M94 137h52M80 148h80" />
+      </svg>
+    );
+  }
+
+  if (kind === 'tablet') {
+    return (
+      <svg className={styles.deviceGlyph} viewBox="0 0 240 160" aria-hidden="true">
+        <rect className={styles.deviceShell} x="43" y="8" width="154" height="144" rx="18" />
+        <rect className={styles.deviceScreen} x="53" y="20" width="134" height="112" rx="11" />
+        <circle className={styles.deviceDetailFill} cx="120" cy="142" r="3" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg className={styles.deviceGlyph} viewBox="0 0 240 160" aria-hidden="true">
+      <rect className={styles.deviceShell} x="78" y="7" width="84" height="146" rx="20" />
+      <rect className={styles.deviceScreen} x="87" y="23" width="66" height="111" rx="10" />
+      <path className={styles.deviceDetail} d="M111 15h18" />
+      <circle className={styles.deviceDetailFill} cx="120" cy="143" r="3" />
+    </svg>
+  );
+}
+
+function DevicePerspective({ devices }: { devices: AnalyticsDashboardData['devices'] }) {
   const knownDevices = deviceOrder.map((name) => ({
     name,
     activeUsers: devices.find((item) => item.name.toLowerCase() === name)?.activeUsers ?? 0,
@@ -155,32 +189,28 @@ function DeviceOrbit({ devices }: { devices: AnalyticsDashboardData['devices'] }
   );
   const items = [...knownDevices, ...otherDevices];
   const total = items.reduce((sum, item) => sum + item.activeUsers, 0);
+  const deviceClasses: Record<DeviceKind, string> = {
+    desktop: styles.deviceDesktop,
+    tablet: styles.deviceTablet,
+    mobile: styles.deviceMobile,
+  };
 
   return (
-    <div className={styles.deviceLayout}>
-      <div className={styles.deviceOrbit} aria-hidden="true">
-        <div className={styles.orbitCore}>
+    <div className={styles.devicePerspective}>
+      <div className={styles.deviceStage} aria-hidden="true">
+        <div className={styles.deviceStageSummary}>
           <span>전체 활성 사용자</span>
           <strong>{formatCompact(total)}</strong>
         </div>
         {knownDevices.map((item, index) => {
-          const DeviceIcon = deviceIcons[item.name];
+          const kind = item.name as DeviceKind;
           return (
             <div
-              className={styles.orbitRing}
-              data-reverse={index === 1 ? 'true' : undefined}
+              className={`${styles.deviceUnit} ${deviceClasses[kind]}`}
+              data-depth={index}
               key={item.name}
-              style={
-                {
-                  '--orbit-angle': `${index * 26 - 20}deg`,
-                  '--orbit-duration': `${16 + index * 3}s`,
-                  '--orbit-size': `${250 - index * 38}px`,
-                } as CSSProperties
-              }
             >
-              <span className={styles.orbitNode}>
-                <DeviceIcon size={18} weight="bold" />
-              </span>
+              <DeviceGlyph kind={kind} />
             </div>
           );
         })}
@@ -213,73 +243,81 @@ function DeviceOrbit({ devices }: { devices: AnalyticsDashboardData['devices'] }
   );
 }
 
-const globeDots = Array.from({ length: 420 }, (_, index) => {
-  const latitude = -80 + (index % 21) * 8;
-  const longitude = -180 + Math.floor(index / 21) * 8;
-  const point = projectGlobePoint(latitude, longitude);
-  return point ? { ...point, key: index } : null;
-}).filter((point): point is NonNullable<typeof point> & { key: number } => Boolean(point));
-
 function CountryGlobe({ countries }: { countries: AnalyticsDashboardData['countries'] }) {
   const max = Math.max(...countries.map((country) => country.activeUsers), 0);
-  const markers = countries
-    .map((country) => {
-      const geo = getCountryGeo(country.name);
-      const point = geo ? projectGlobePoint(geo.latitude, geo.longitude) : null;
-      return geo && point ? { country, geo, point } : null;
-    })
-    .filter((marker): marker is NonNullable<typeof marker> => Boolean(marker));
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const markers = useMemo(
+    () =>
+      countries.flatMap((country) => {
+        const geo = getCountryGeo(country.name);
+        if (!geo) return [];
+        return [
+          {
+            location: [geo.latitude, geo.longitude] as [number, number],
+            size: Math.min(0.1, 0.025 + (max > 0 ? (country.activeUsers / max) * 0.055 : 0)),
+          },
+        ];
+      }),
+    [countries, max],
+  );
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    let phi = 0;
+    let frame = 0;
+    let globe: ReturnType<typeof createGlobe> | undefined;
+    try {
+      globe = createGlobe(canvas, {
+        devicePixelRatio: 2,
+        width: 720,
+        height: 720,
+        phi,
+        theta: 0.16,
+        dark: 0,
+        diffuse: 1.2,
+        scale: 1,
+        mapSamples: 16000,
+        mapBrightness: 2.8,
+        baseColor: [0.2, 0.43, 0.82],
+        markerColor: [0.95, 0.48, 0.16],
+        glowColor: [0.86, 0.92, 1],
+        markers,
+      });
+      const reducedMotion =
+        typeof window !== 'undefined' &&
+        typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!reducedMotion) {
+        const animate = () => {
+          phi += 0.0025;
+          globe?.update({ phi });
+          frame = requestAnimationFrame(animate);
+        };
+        frame = requestAnimationFrame(animate);
+      }
+    } catch (error) {
+      console.warn('Cobe globe could not be initialized.', error);
+    }
+
+    return () => {
+      cancelAnimationFrame(frame);
+      globe?.destroy();
+    };
+  }, [markers]);
 
   return (
     <div className={styles.countryLayout}>
       <div className={styles.globeWrap}>
-        <svg
+        <canvas
+          ref={canvasRef}
           className={styles.globe}
-          viewBox="0 0 320 280"
+          width="720"
+          height="720"
           role="img"
           aria-label="국가별 활성 사용자를 표시한 지구본"
-        >
-          <circle className={styles.globeBase} cx="160" cy="140" r="106" />
-          <g className={styles.globeGrid} aria-hidden="true">
-            <ellipse cx="160" cy="140" rx="106" ry="34" />
-            <ellipse cx="160" cy="140" rx="106" ry="70" />
-            <ellipse cx="160" cy="140" rx="44" ry="106" />
-            <ellipse cx="160" cy="140" rx="78" ry="106" />
-          </g>
-          <g className={styles.globeDots} aria-hidden="true">
-            {globeDots.map((point) => (
-              <circle
-                key={point.key}
-                cx={160 + point.x}
-                cy={140 + point.y}
-                r="1"
-                opacity={0.14 + point.depth * 0.2}
-              />
-            ))}
-          </g>
-          <g className={styles.globeMarkers}>
-            {markers.map(({ country, geo, point }) => (
-              <g key={geo.code}>
-                <title>
-                  {formatCountryName(country.name)} {formatCompact(country.activeUsers)}
-                </title>
-                <circle
-                  className={styles.globeMarkerHalo}
-                  cx={160 + point.x}
-                  cy={140 + point.y}
-                  r={5 + (max > 0 ? (country.activeUsers / max) * 8 : 0)}
-                  opacity={0.16 + point.depth * 0.18}
-                />
-                <circle
-                  className={styles.globeMarker}
-                  cx={160 + point.x}
-                  cy={140 + point.y}
-                  r={2.5 + (max > 0 ? (country.activeUsers / max) * 3.5 : 0)}
-                />
-              </g>
-            ))}
-          </g>
-        </svg>
+        />
         <span className={styles.globeCaption}>상위 국가 위치</span>
       </div>
       <MetricBarList
@@ -529,7 +567,7 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
 
         <article className={`${styles.panel} ${styles.devicePanel}`}>
           <PanelHeader title="디바이스 유형별 방문" description="활성 사용자 기준" />
-          <DeviceOrbit devices={data.devices} />
+          <DevicePerspective devices={data.devices} />
         </article>
 
         <article className={`${styles.panel} ${styles.countryPanel}`}>

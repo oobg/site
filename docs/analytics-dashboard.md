@@ -26,4 +26,6 @@ OCI 운영은 `RAVEN_GA4_CREDENTIALS_FILE`의 호스트 JSON을 `/run/secrets/ga
 
 GA4 응답은 서버 캐시에 저장되며 최대 1시간 동안 재사용한다. 따라서 위치를 포함한 대시보드 수치에는 최대 1시간의 지연이 있을 수 있다. 관리자 인증은 캐시된 데이터에 접근하기 전에 매 요청 확인한다.
 
+국가별 지구본은 `cobe` WebGL canvas를 사용하고, GA4 위치 데이터를 marker로 연결해 부드럽게 회전한다. 디바이스 시각화는 원형 궤도 대신 인라인 SVG 기기 모양과 CSS `perspective`·`translate3d`를 조합한 2.5D 원근 투영으로 구성한다.
+
 OCI 운영 배포는 `RAVEN_GA4_CREDENTIALS_FILE`의 호스트 JSON 파일을 `/run/secrets/ga4-service-account.json`에 읽기 전용으로 마운트한다. `docker/compose.oci.yml`은 이 호스트 경로를 필수로 요구하며, 현재 운영에서는 인라인 이메일·키 대신 `GOOGLE_APPLICATION_CREDENTIALS`를 사용한다.

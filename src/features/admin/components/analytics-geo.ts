@@ -61,37 +61,3 @@ export function getCountryGeo(name: string): CountryGeo | null {
 export function formatCountryName(name: string): string {
   return getCountryGeo(name)?.label ?? name;
 }
-
-export interface GlobePoint {
-  x: number;
-  y: number;
-  depth: number;
-}
-
-/** Projects latitude/longitude onto a small orthographic globe facing Europe and Asia. */
-export function projectGlobePoint(
-  latitude: number,
-  longitude: number,
-  centerLatitude = 20,
-  centerLongitude = 20,
-): GlobePoint | null {
-  const latitudeRadians = (latitude * Math.PI) / 180;
-  const longitudeRadians = (longitude * Math.PI) / 180;
-  const centerLatitudeRadians = (centerLatitude * Math.PI) / 180;
-  const centerLongitudeRadians = (centerLongitude * Math.PI) / 180;
-  const deltaLongitude = longitudeRadians - centerLongitudeRadians;
-  const depth =
-    Math.sin(centerLatitudeRadians) * Math.sin(latitudeRadians) +
-    Math.cos(centerLatitudeRadians) * Math.cos(latitudeRadians) * Math.cos(deltaLongitude);
-
-  if (depth < -0.08) return null;
-
-  return {
-    x: Math.cos(latitudeRadians) * Math.sin(deltaLongitude) * 100,
-    y:
-      (Math.cos(centerLatitudeRadians) * Math.sin(latitudeRadians) -
-        Math.sin(centerLatitudeRadians) * Math.cos(latitudeRadians) * Math.cos(deltaLongitude)) *
-      -100,
-    depth,
-  };
-}

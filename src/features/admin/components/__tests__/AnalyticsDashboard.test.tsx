@@ -1,6 +1,10 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { AnalyticsDashboard } from '@features/admin/components/AnalyticsDashboard';
+
+vi.mock('cobe', () => ({
+  default: () => ({ destroy: vi.fn(), update: vi.fn() }),
+}));
 
 describe('AnalyticsDashboard', () => {
   it('설정되지 않은 서버 변수만 정확히 안내한다', () => {
@@ -80,6 +84,8 @@ describe('AnalyticsDashboard', () => {
     );
 
     expect(screen.getByText('디바이스 유형별 방문')).toBeInTheDocument();
+    expect(screen.getByLabelText('디바이스 유형별 활성 사용자')).toBeInTheDocument();
+    expect(screen.getByText('전체 활성 사용자')).toBeInTheDocument();
     expect(
       screen.getByRole('img', { name: '국가별 활성 사용자를 표시한 지구본' }),
     ).toBeInTheDocument();
