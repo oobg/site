@@ -13,7 +13,7 @@ import {
   YAxis,
 } from 'recharts';
 import { Desktop, DeviceMobile, DeviceTablet, Question } from '@phosphor-icons/react';
-import { useEffect, useMemo, useRef, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type {
   AnalyticsDashboardData,
   AnalyticsDashboardResult,
@@ -175,6 +175,7 @@ function DeviceGlyph({ kind }: { kind: DeviceKind }) {
 }
 
 function DevicePerspective({ devices }: { devices: AnalyticsDashboardData['devices'] }) {
+  const [activeDevice, setActiveDevice] = useState<string>('desktop');
   const knownDevices = deviceOrder.map((name) => ({
     name,
     activeUsers: devices.find((item) => item.name.toLowerCase() === name)?.activeUsers ?? 0,
@@ -192,7 +193,7 @@ function DevicePerspective({ devices }: { devices: AnalyticsDashboardData['devic
 
   return (
     <div className={styles.devicePerspective}>
-      <div className={styles.deviceStage} aria-hidden="true">
+      <div className={styles.deviceStage} data-active-device={activeDevice} aria-hidden="true">
         <div className={styles.deviceStageSummary}>
           <span>전체 활성 사용자</span>
           <strong>{formatCompact(total)}</strong>
@@ -202,7 +203,9 @@ function DevicePerspective({ devices }: { devices: AnalyticsDashboardData['devic
           return (
             <div
               className={`${styles.deviceUnit} ${deviceClasses[kind]}`}
+              data-active={activeDevice === kind}
               data-depth={index}
+              data-device={kind}
               key={item.name}
             >
               <DeviceGlyph kind={kind} />
@@ -215,21 +218,31 @@ function DevicePerspective({ devices }: { devices: AnalyticsDashboardData['devic
           const DeviceIcon =
             deviceIcons[item.name.toLowerCase() as keyof typeof deviceIcons] ?? Question;
           const label = deviceNames[item.name.toLowerCase()] ?? item.name;
+          const deviceKey = item.name.toLowerCase();
           return (
             <li key={item.name}>
-              <div className={styles.deviceLegendLabel}>
-                <span className={styles.deviceIcon} data-device={item.name.toLowerCase()}>
-                  <DeviceIcon aria-hidden size={17} weight="bold" />
-                </span>
-                <span>{label}</span>
-              </div>
-              <div className={styles.deviceLegendValue}>
-                <strong>{formatCompact(item.activeUsers)}</strong>
-                <span>{ratio(item.activeUsers, total)}%</span>
-              </div>
-              <div className={styles.deviceLegendBar} aria-hidden="true">
-                <span style={{ width: `${ratio(item.activeUsers, total)}%` }} />
-              </div>
+              <button
+                type="button"
+                className={styles.deviceButton}
+                aria-pressed={activeDevice === deviceKey}
+                onClick={() => setActiveDevice(deviceKey)}
+                onFocus={() => setActiveDevice(deviceKey)}
+                onMouseEnter={() => setActiveDevice(deviceKey)}
+              >
+                <div className={styles.deviceLegendLabel}>
+                  <span className={styles.deviceIcon} data-device={deviceKey}>
+                    <DeviceIcon aria-hidden size={17} weight="bold" />
+                  </span>
+                  <span>{label}</span>
+                </div>
+                <div className={styles.deviceLegendValue}>
+                  <strong>{formatCompact(item.activeUsers)}</strong>
+                  <span>{ratio(item.activeUsers, total)}%</span>
+                </div>
+                <div className={styles.deviceLegendBar} aria-hidden="true">
+                  <span style={{ width: `${ratio(item.activeUsers, total)}%` }} />
+                </div>
+              </button>
             </li>
           );
         })}
@@ -274,10 +287,11 @@ function CountryGlobe({ countries }: { countries: AnalyticsDashboardData['countr
         diffuse: 1.2,
         scale: 1,
         mapSamples: 16000,
-        mapBrightness: 2.8,
-        baseColor: [0.2, 0.43, 0.82],
+        mapBrightness: 2.1,
+        mapBaseBrightness: 0.16,
+        baseColor: [0.72, 0.78, 0.86],
         markerColor: [0.95, 0.48, 0.16],
-        glowColor: [0.86, 0.92, 1],
+        glowColor: [0.94, 0.96, 0.98],
         markers,
       });
       const reducedMotion =

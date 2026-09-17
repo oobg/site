@@ -8,6 +8,7 @@ export function AdminFrame({
   description,
   actions,
   compact = false,
+  contentAligned = false,
   children,
 }: {
   title: string;
@@ -15,12 +16,14 @@ export function AdminFrame({
   userEmail?: string;
   actions?: ReactNode;
   compact?: boolean;
+  contentAligned?: boolean;
   children: ReactNode;
 }) {
   return (
     <section
       className={styles.frame}
       data-compact={compact || undefined}
+      data-content-aligned={contentAligned || undefined}
       aria-labelledby="admin-title"
     >
       <header className={styles.header}>
