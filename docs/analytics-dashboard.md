@@ -12,7 +12,7 @@
 | `GA4_CLIENT_EMAIL`               | 서비스 계정 이메일                                                       |
 | `GA4_PRIVATE_KEY`                | 서비스 계정 JSON 키의 `private_key`; 줄바꿈은 `\n`으로 저장 가능         |
 | `GOOGLE_APPLICATION_CREDENTIALS` | 위 이메일·키 대신 사용할 서비스 계정 JSON 파일의 컨테이너 내부 절대 경로 |
-| `GA4_HOSTNAME`                   | 집계할 hostname. 생략하면 `raven.kr`                                     |
+| `GA4_HOSTNAME`                   | 집계할 hostname. main은 `raven.kr`, dev는 `dev.raven.kr`                 |
 
 `NEXT_PUBLIC_GOOGLE_ANALYTICS_ID=G-395PD77KT6`는 브라우저 수집 태그용 측정 ID다. Data API의 숫자형 `GA4_PROPERTY_ID=461865918`과 다르다. Property ID와 인증 방식 하나가 준비되지 않으면 대시보드는 통계를 만들지 않고 설정이 필요하다고 표시한다. 인증은 `GA4_CLIENT_EMAIL` + `GA4_PRIVATE_KEY` 조합 또는 `GOOGLE_APPLICATION_CREDENTIALS` 중 하나를 사용한다.
 
@@ -20,7 +20,9 @@
 
 OCI 운영은 `RAVEN_GA4_CREDENTIALS_FILE`의 호스트 JSON을 `/run/secrets/ga4-service-account.json`에 읽기 전용으로 mount한다. 운영 서버에는 Git에 없는 CMS·댓글 관리 변경이 있으므로 배포할 때 저장소 전체를 동기화하지 않고 현재 운영 소스에 대시보드 관련 파일만 병합한다. 병합 전후 소스 archive와 `release-candidate.json`의 source hash를 함께 남긴다.
 
-대시보드는 활성 사용자, 세션, 조회수, 참여율의 기간 집계와 일별 추이, 유입 채널, 인기 페이지, 기기 분포를 조회한다. 인기 페이지에서는 `/admin`과 그 하위 경로를 제외한다. 접속 위치는 국가·지역·도시별 활성 사용자, 세션, 조회수를 함께 조회하며, GA4 위치 데이터가 제공되지 않으면 해당 목록만 빈 상태로 표시한다. 활성 사용자 집계는 일별 값을 더하지 않고 별도의 기간 보고서 값을 사용한다.
+대시보드는 활성 사용자, 세션, 조회수, 참여율의 기간 집계와 일별 추이, 유입 채널, 인기 페이지, 기기 분포를 조회한다. 여기에 국가별 방문, 지역·도시별 위치, UTM 수동 소스·매체·캠페인, 브라우저·운영체제, 신규·재방문 분포를 함께 조회해 Cloudflare Analytics와 비슷한 정보 밀도로 보여준다. 인기 페이지에서는 `/admin`과 그 하위 경로를 제외하며, 활성 사용자 집계는 일별 값을 더하지 않고 별도의 기간 보고서 값을 사용한다.
+
+표현은 Cloudflare Analytics 스타일을 따르지만 데이터 원천은 GA4 Data API다. GA4 Data API의 요청 묶음은 최대 5개 보고서까지 지원하므로, 기본 집계·추이·채널·페이지·기기와 국가·UTM·기술·방문 유형을 각각 5개 보고서 묶음으로 요청하고, 위치 상세 정보는 별도 선택 보고서로 조회한다. `GA4_HOSTNAME` 필터로 main과 dev 데이터가 섞이지 않게 한다.
 
 GA4 응답은 서버 캐시에 저장되며 최대 1시간 동안 재사용한다. 따라서 위치를 포함한 대시보드 수치에는 최대 1시간의 지연이 있을 수 있다. 관리자 인증은 캐시된 데이터에 접근하기 전에 매 요청 확인한다.
 

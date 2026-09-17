@@ -27,35 +27,65 @@ describe('AnalyticsDashboard', () => {
     expect(screen.getByText('방문 통계를 불러오지 못했어요.')).toBeInTheDocument();
   });
 
-  it('인기 페이지에서 관리자 경로를 숨기고 위치별 집계를 보여준다', () => {
+  it('상세 분석 데이터를 Cloudflare 스타일의 밀도 높은 섹션으로 보여준다', () => {
     render(
       <AnalyticsDashboard
         result={{
           status: 'ready',
           data: {
             range: { startDate: '27daysAgo', endDate: 'today', days: 28 },
-            summary: { activeUsers: 12, sessions: 18, screenPageViews: 30, engagementRate: 0.5 },
-            daily: [],
-            channels: [],
+            summary: { activeUsers: 12, sessions: 18, screenPageViews: 40, engagementRate: 0.62 },
+            daily: [
+              {
+                date: '20260916',
+                activeUsers: 12,
+                sessions: 18,
+                screenPageViews: 40,
+                engagementRate: 0.62,
+              },
+            ],
+            channels: [{ name: 'Direct', sessions: 18 }],
             pages: [
               { path: '/admin', title: '관리자', views: 100, activeUsers: 50 },
-              { path: '/blog/notes/post-1', title: '공개 글', views: 20, activeUsers: 10 },
+              { path: '/', title: '홈', views: 40, activeUsers: 12 },
             ],
-            devices: [],
+            devices: [
+              { name: 'desktop', activeUsers: 8 },
+              { name: 'mobile', activeUsers: 3 },
+              { name: 'tablet', activeUsers: 1 },
+            ],
             locations: {
-              countries: [{ name: '대한민국', activeUsers: 10, sessions: 12, views: 30 }],
-              regions: [{ name: '서울특별시 · 대한민국', activeUsers: 9, sessions: 10, views: 22 }],
+              countries: [{ name: 'Korea, South', activeUsers: 10, sessions: 14, views: 32 }],
+              regions: [{ name: '서울특별시 · 대한민국', activeUsers: 9, sessions: 12, views: 28 }],
               cities: [
-                { name: '서울 · 서울특별시 · 대한민국', activeUsers: 8, sessions: 9, views: 18 },
+                { name: '서울 · 서울특별시 · 대한민국', activeUsers: 8, sessions: 10, views: 24 },
               ],
             },
+            countries: [{ name: 'Korea, South', activeUsers: 10, sessions: 14 }],
+            campaigns: [
+              {
+                source: 'google',
+                medium: 'organic',
+                campaign: 'launch',
+                sessions: 8,
+                activeUsers: 6,
+              },
+            ],
+            browsers: [{ name: 'Chrome', activeUsers: 9, sessions: 12 }],
+            operatingSystems: [{ name: 'Macintosh', activeUsers: 7, sessions: 9 }],
+            visitorTypes: [{ name: 'new', activeUsers: 5, sessions: 7 }],
           },
         }}
       />,
     );
+
+    expect(screen.getByText('디바이스 유형별 방문')).toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: '국가별 활성 사용자를 표시한 지구본' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('utm_campaign')).toBeInTheDocument();
+    expect(screen.getByText('브라우저와 운영체제')).toBeInTheDocument();
     expect(screen.queryByText('/admin')).not.toBeInTheDocument();
-    expect(screen.getByText('/blog/notes/post-1')).toBeInTheDocument();
-    expect(screen.getByText('대한민국')).toBeInTheDocument();
     expect(screen.getByText('서울특별시 · 대한민국')).toBeInTheDocument();
   });
 });

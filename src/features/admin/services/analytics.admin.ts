@@ -31,13 +31,13 @@ type AnalyticsRow = {
 
 type AnalyticsReport = { rows?: AnalyticsRow[] | null };
 
-function locationValue(value: string | undefined, fallback = '알 수 없음') {
-  const normalized = value?.trim();
+function locationValue(input: string | undefined, fallback = '알 수 없음') {
+  const normalized = input?.trim();
   return !normalized || normalized === '(not set)' ? fallback : normalized;
 }
 
-function optionalLocationValue(value: string | undefined) {
-  const normalized = value?.trim();
+function optionalLocationValue(input: string | undefined) {
+  const normalized = input?.trim();
   return !normalized || normalized === '(not set)' ? '' : normalized;
 }
 
@@ -84,7 +84,15 @@ export function fillDailyRange(
     const date = new Date(end);
     date.setUTCDate(end.getUTCDate() - (days - 1 - index));
     const key = date.toISOString().slice(0, 10).replaceAll('-', '');
-    return byDate.get(key) ?? { date: key, activeUsers: 0, sessions: 0 };
+    return (
+      byDate.get(key) ?? {
+        date: key,
+        activeUsers: 0,
+        sessions: 0,
+        screenPageViews: 0,
+        engagementRate: 0,
+      }
+    );
   });
 }
 
@@ -148,59 +156,57 @@ const fetchAnalyticsDashboard = unstable_cache(
           ? {}
           : { credentials: { client_email: clientEmail, private_key: privateKey } },
       );
-      const [response] = await client.batchRunReports(
-        {
-          property,
-          requests: [
-            {
-              dateRanges: [dateRange],
-              metrics: ['activeUsers', 'sessions', 'screenPageViews', 'engagementRate'].map(
-                (name) => ({ name }),
-              ),
-              dimensionFilter,
-            },
-            {
-              dateRanges: [dateRange],
-              dimensions: [{ name: 'date' }],
-              metrics: ['activeUsers', 'sessions'].map((name) => ({ name })),
-              dimensionFilter,
-              orderBys: [{ dimension: { dimensionName: 'date' } }],
-            },
-            {
-              dateRanges: [dateRange],
-              dimensions: [{ name: 'sessionDefaultChannelGroup' }],
-              metrics: [{ name: 'sessions' }],
-              dimensionFilter,
-              orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
-              limit: 8,
-            },
-            {
-              dateRanges: [dateRange],
-              dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
-              metrics: ['screenPageViews', 'activeUsers'].map((name) => ({ name })),
-              dimensionFilter: publicPageDimensionFilter,
-              orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-              limit: 20,
-            },
-            {
-              dateRanges: [dateRange],
-              dimensions: [{ name: 'deviceCategory' }],
-              metrics: [{ name: 'activeUsers' }],
-              dimensionFilter,
-              orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
-            },
-          ],
-        },
-        { timeout: 10_000 },
-      );
-      const reports = response.reports ?? [];
-      const summaryRow = reports[0]?.rows?.[0];
-      if (!summaryRow || summaryRow.metricValues?.every((metric) => value(metric.value) === 0))
-        return { status: 'empty', range: dateRange };
-
-      let locationReports: typeof reports = [];
-      try {
-        const [locationResponse] = await client.batchRunReports(
+      const [primaryBatchResult, secondaryBatchResult] = await Promise.all([
+        client.batchRunReports(
+          {
+            property,
+            requests: [
+              {
+                dateRanges: [dateRange],
+                metrics: ['activeUsers', 'sessions', 'screenPageViews', 'engagementRate'].map(
+                  (name) => ({ name }),
+                ),
+                dimensionFilter,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'date' }],
+                metrics: ['activeUsers', 'sessions', 'screenPageViews', 'engagementRate'].map(
+                  (name) => ({ name }),
+                ),
+                dimensionFilter,
+                orderBys: [{ dimension: { dimensionName: 'date' } }],
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+                metrics: [{ name: 'sessions' }],
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+                limit: 8,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
+                metrics: ['screenPageViews', 'activeUsers'].map((name) => ({ name })),
+                dimensionFilter: publicPageDimensionFilter,
+                orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+                limit: 20,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'deviceCategory' }],
+                metrics: [{ name: 'activeUsers' }],
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+              },
+            ],
+          },
+          { timeout: 10_000 },
+        ),
+        // batchRunReports accepts at most five reports. Keep the extra
+        // attribution and audience views in a second batch of five.
+        client.batchRunReports(
           {
             property,
             requests: [
@@ -210,8 +216,67 @@ const fetchAnalyticsDashboard = unstable_cache(
                 metrics: ['activeUsers', 'sessions', 'screenPageViews'].map((name) => ({ name })),
                 dimensionFilter,
                 orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+                limit: 10,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [
+                  { name: 'sessionManualSource' },
+                  { name: 'sessionManualMedium' },
+                  { name: 'sessionManualCampaignName' },
+                ],
+                metrics: ['sessions', 'activeUsers'].map((name) => ({ name })),
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+                limit: 10,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'browser' }],
+                metrics: ['activeUsers', 'sessions'].map((name) => ({ name })),
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
                 limit: 8,
               },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'operatingSystem' }],
+                metrics: ['activeUsers', 'sessions'].map((name) => ({ name })),
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+                limit: 8,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'newVsReturning' }],
+                metrics: ['activeUsers', 'sessions'].map((name) => ({ name })),
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+                limit: 4,
+              },
+            ],
+          },
+          { timeout: 10_000 },
+        ),
+      ]);
+      const response = primaryBatchResult[0];
+      const secondaryReports = secondaryBatchResult[0].reports ?? [];
+      const countryReport = secondaryReports[0];
+      const campaignReport = secondaryReports[1];
+      const browserReport = secondaryReports[2];
+      const operatingSystemReport = secondaryReports[3];
+      const visitorTypeReport = secondaryReports[4];
+      const reports = response.reports ?? [];
+      const summaryRow = reports[0]?.rows?.[0];
+      if (!summaryRow || summaryRow.metricValues?.every((metric) => value(metric.value) === 0))
+        return { status: 'empty', range: dateRange };
+      const countries = mapLocationRows(countryReport, ([country]) => locationValue(country));
+      let locationReports: AnalyticsReport[] = [];
+      try {
+        const [locationResponse] = await client.batchRunReports(
+          {
+            property,
+            requests: [
               {
                 dateRanges: [dateRange],
                 dimensions: [{ name: 'country' }, { name: 'region' }],
@@ -232,13 +297,12 @@ const fetchAnalyticsDashboard = unstable_cache(
           },
           { timeout: 10_000 },
         );
-        locationReports = locationResponse.reports ?? [];
+        locationReports = (locationResponse.reports ?? []) as AnalyticsReport[];
       } catch (error) {
         const code =
           typeof error === 'object' && error && 'code' in error ? String(error.code) : 'unknown';
         console.warn(`GA4 location reports unavailable (code: ${code})`);
       }
-
       const data: AnalyticsDashboardData = {
         range: dateRange,
         summary: {
@@ -252,6 +316,8 @@ const fetchAnalyticsDashboard = unstable_cache(
             date: row.dimensionValues?.[0]?.value ?? '',
             activeUsers: value(row.metricValues?.[0]?.value),
             sessions: value(row.metricValues?.[1]?.value),
+            screenPageViews: value(row.metricValues?.[2]?.value),
+            engagementRate: value(row.metricValues?.[3]?.value),
           })),
           reports[1]?.metadata?.timeZone || 'Asia/Seoul',
         ),
@@ -273,23 +339,46 @@ const fetchAnalyticsDashboard = unstable_cache(
           activeUsers: value(row.metricValues?.[0]?.value),
         })),
         locations: {
-          countries: mapLocationRows(locationReports[0], ([country]) => locationValue(country)),
-          regions: mapLocationRows(locationReports[1], ([country, region]) => {
+          countries,
+          regions: mapLocationRows(locationReports[0], ([country, region]) => {
             const regionName = optionalLocationValue(region);
             return regionName
               ? `${regionName} · ${locationValue(country)}`
               : locationValue(country);
           }),
-          cities: mapLocationRows(locationReports[2], ([country, region, city]) => {
-            return [
-              optionalLocationValue(city),
-              optionalLocationValue(region),
-              locationValue(country),
-            ]
+          cities: mapLocationRows(locationReports[1], ([country, region, city]) =>
+            [optionalLocationValue(city), optionalLocationValue(region), locationValue(country)]
               .filter(Boolean)
-              .join(' · ');
-          }),
+              .join(' · '),
+          ),
         },
+        countries: countries.map(({ name, activeUsers, sessions }) => ({
+          name,
+          activeUsers,
+          sessions,
+        })),
+        campaigns: (campaignReport?.rows ?? []).map((row) => ({
+          source: row.dimensionValues?.[0]?.value || '(not set)',
+          medium: row.dimensionValues?.[1]?.value || '(not set)',
+          campaign: row.dimensionValues?.[2]?.value || '(not set)',
+          sessions: value(row.metricValues?.[0]?.value),
+          activeUsers: value(row.metricValues?.[1]?.value),
+        })),
+        browsers: (browserReport?.rows ?? []).map((row) => ({
+          name: row.dimensionValues?.[0]?.value || '(not set)',
+          activeUsers: value(row.metricValues?.[0]?.value),
+          sessions: value(row.metricValues?.[1]?.value),
+        })),
+        operatingSystems: (operatingSystemReport?.rows ?? []).map((row) => ({
+          name: row.dimensionValues?.[0]?.value || '(not set)',
+          activeUsers: value(row.metricValues?.[0]?.value),
+          sessions: value(row.metricValues?.[1]?.value),
+        })),
+        visitorTypes: (visitorTypeReport?.rows ?? []).map((row) => ({
+          name: row.dimensionValues?.[0]?.value || '(not set)',
+          activeUsers: value(row.metricValues?.[0]?.value),
+          sessions: value(row.metricValues?.[1]?.value),
+        })),
       };
       return { status: 'ready', data };
     } catch (error) {
