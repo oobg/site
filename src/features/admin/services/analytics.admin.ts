@@ -42,7 +42,15 @@ export function fillDailyRange(
     const date = new Date(end);
     date.setUTCDate(end.getUTCDate() - (days - 1 - index));
     const key = date.toISOString().slice(0, 10).replaceAll('-', '');
-    return byDate.get(key) ?? { date: key, activeUsers: 0, sessions: 0 };
+    return (
+      byDate.get(key) ?? {
+        date: key,
+        activeUsers: 0,
+        sessions: 0,
+        screenPageViews: 0,
+        engagementRate: 0,
+      }
+    );
   });
 }
 
@@ -79,51 +87,116 @@ const fetchAnalyticsDashboard = unstable_cache(
           ? {}
           : { credentials: { client_email: clientEmail, private_key: privateKey } },
       );
-      const [response] = await client.batchRunReports(
-        {
-          property,
-          requests: [
-            {
-              dateRanges: [dateRange],
-              metrics: ['activeUsers', 'sessions', 'screenPageViews', 'engagementRate'].map(
-                (name) => ({ name }),
-              ),
-              dimensionFilter,
-            },
-            {
-              dateRanges: [dateRange],
-              dimensions: [{ name: 'date' }],
-              metrics: ['activeUsers', 'sessions'].map((name) => ({ name })),
-              dimensionFilter,
-              orderBys: [{ dimension: { dimensionName: 'date' } }],
-            },
-            {
-              dateRanges: [dateRange],
-              dimensions: [{ name: 'sessionDefaultChannelGroup' }],
-              metrics: [{ name: 'sessions' }],
-              dimensionFilter,
-              orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
-              limit: 8,
-            },
-            {
-              dateRanges: [dateRange],
-              dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
-              metrics: ['screenPageViews', 'activeUsers'].map((name) => ({ name })),
-              dimensionFilter,
-              orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-              limit: 10,
-            },
-            {
-              dateRanges: [dateRange],
-              dimensions: [{ name: 'deviceCategory' }],
-              metrics: [{ name: 'activeUsers' }],
-              dimensionFilter,
-              orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
-            },
-          ],
-        },
-        { timeout: 10_000 },
-      );
+      const [primaryBatchResult, secondaryBatchResult] = await Promise.all([
+        client.batchRunReports(
+          {
+            property,
+            requests: [
+              {
+                dateRanges: [dateRange],
+                metrics: ['activeUsers', 'sessions', 'screenPageViews', 'engagementRate'].map(
+                  (name) => ({ name }),
+                ),
+                dimensionFilter,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'date' }],
+                metrics: ['activeUsers', 'sessions', 'screenPageViews', 'engagementRate'].map(
+                  (name) => ({ name }),
+                ),
+                dimensionFilter,
+                orderBys: [{ dimension: { dimensionName: 'date' } }],
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+                metrics: [{ name: 'sessions' }],
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+                limit: 8,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
+                metrics: ['screenPageViews', 'activeUsers'].map((name) => ({ name })),
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+                limit: 10,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'deviceCategory' }],
+                metrics: [{ name: 'activeUsers' }],
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+              },
+            ],
+          },
+          { timeout: 10_000 },
+        ),
+        // batchRunReports accepts at most five reports. Keep the extra
+        // attribution and audience views in a second batch of five.
+        client.batchRunReports(
+          {
+            property,
+            requests: [
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'country' }],
+                metrics: ['activeUsers', 'sessions'].map((name) => ({ name })),
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+                limit: 10,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [
+                  { name: 'sessionManualSource' },
+                  { name: 'sessionManualMedium' },
+                  { name: 'sessionManualCampaignName' },
+                ],
+                metrics: ['sessions', 'activeUsers'].map((name) => ({ name })),
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+                limit: 10,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'browser' }],
+                metrics: ['activeUsers', 'sessions'].map((name) => ({ name })),
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+                limit: 8,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'operatingSystem' }],
+                metrics: ['activeUsers', 'sessions'].map((name) => ({ name })),
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+                limit: 8,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'newVsReturning' }],
+                metrics: ['activeUsers', 'sessions'].map((name) => ({ name })),
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+                limit: 4,
+              },
+            ],
+          },
+          { timeout: 10_000 },
+        ),
+      ]);
+      const response = primaryBatchResult[0];
+      const secondaryReports = secondaryBatchResult[0].reports ?? [];
+      const countryReport = secondaryReports[0];
+      const campaignReport = secondaryReports[1];
+      const browserReport = secondaryReports[2];
+      const operatingSystemReport = secondaryReports[3];
+      const visitorTypeReport = secondaryReports[4];
       const reports = response.reports ?? [];
       const summaryRow = reports[0]?.rows?.[0];
       if (!summaryRow || summaryRow.metricValues?.every((metric) => value(metric.value) === 0))
@@ -141,6 +214,8 @@ const fetchAnalyticsDashboard = unstable_cache(
             date: row.dimensionValues?.[0]?.value ?? '',
             activeUsers: value(row.metricValues?.[0]?.value),
             sessions: value(row.metricValues?.[1]?.value),
+            screenPageViews: value(row.metricValues?.[2]?.value),
+            engagementRate: value(row.metricValues?.[3]?.value),
           })),
           reports[1]?.metadata?.timeZone || 'Asia/Seoul',
         ),
@@ -158,6 +233,33 @@ const fetchAnalyticsDashboard = unstable_cache(
           name: row.dimensionValues?.[0]?.value || 'unknown',
           activeUsers: value(row.metricValues?.[0]?.value),
         })),
+        countries: (countryReport?.rows ?? []).map((row) => ({
+          name: row.dimensionValues?.[0]?.value || '(not set)',
+          activeUsers: value(row.metricValues?.[0]?.value),
+          sessions: value(row.metricValues?.[1]?.value),
+        })),
+        campaigns: (campaignReport?.rows ?? []).map((row) => ({
+          source: row.dimensionValues?.[0]?.value || '(not set)',
+          medium: row.dimensionValues?.[1]?.value || '(not set)',
+          campaign: row.dimensionValues?.[2]?.value || '(not set)',
+          sessions: value(row.metricValues?.[0]?.value),
+          activeUsers: value(row.metricValues?.[1]?.value),
+        })),
+        browsers: (browserReport?.rows ?? []).map((row) => ({
+          name: row.dimensionValues?.[0]?.value || '(not set)',
+          activeUsers: value(row.metricValues?.[0]?.value),
+          sessions: value(row.metricValues?.[1]?.value),
+        })),
+        operatingSystems: (operatingSystemReport?.rows ?? []).map((row) => ({
+          name: row.dimensionValues?.[0]?.value || '(not set)',
+          activeUsers: value(row.metricValues?.[0]?.value),
+          sessions: value(row.metricValues?.[1]?.value),
+        })),
+        visitorTypes: (visitorTypeReport?.rows ?? []).map((row) => ({
+          name: row.dimensionValues?.[0]?.value || '(not set)',
+          activeUsers: value(row.metricValues?.[0]?.value),
+          sessions: value(row.metricValues?.[1]?.value),
+        })),
       };
       return { status: 'ready', data };
     } catch (error) {
@@ -167,7 +269,7 @@ const fetchAnalyticsDashboard = unstable_cache(
       return { status: 'error', message: '방문 통계를 불러오지 못했어요.' };
     }
   },
-  ['admin-ga4-dashboard-v1'],
+  ['admin-ga4-dashboard-v2'],
   { revalidate: 900 },
 );
 

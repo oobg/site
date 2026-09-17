@@ -40,11 +40,11 @@ describe('GA4 analytics service', () => {
             rows: [
               {
                 dimensionValues: [dimension('20260910')],
-                metricValues: [metric('3'), metric('4')],
+                metricValues: [metric('3'), metric('4'), metric('6'), metric('0.5')],
               },
               {
                 dimensionValues: [dimension('20260911')],
-                metricValues: [metric('3'), metric('4')],
+                metricValues: [metric('3'), metric('4'), metric('6'), metric('0.5')],
               },
             ],
           },
@@ -92,9 +92,90 @@ describe('GA4 analytics service', () => {
     const today = ['year', 'month', 'day']
       .map((type) => parts.find((part) => part.type === type)?.value)
       .join('');
-    const rows = fillDailyRange([{ date: today, activeUsers: 1, sessions: 2 }], 'Asia/Seoul', 2);
+    const rows = fillDailyRange(
+      [{ date: today, activeUsers: 1, sessions: 2, screenPageViews: 3, engagementRate: 0.5 }],
+      'Asia/Seoul',
+      2,
+    );
     expect(rows).toHaveLength(2);
     expect(rows.at(-1)).toMatchObject({ activeUsers: 1, sessions: 2 });
     expect(rows[0]).toMatchObject({ activeUsers: 0, sessions: 0 });
+  });
+
+  it('returns country, attribution, and technology breakdowns from the secondary batch', async () => {
+    mocks.batchRunReports
+      .mockResolvedValueOnce([
+        {
+          reports: [
+            {
+              rows: [{ metricValues: [metric('12'), metric('18'), metric('40'), metric('0.62')] }],
+            },
+            { metadata: { timeZone: 'Asia/Seoul' }, rows: [] },
+            { rows: [] },
+            { rows: [] },
+            { rows: [] },
+          ],
+        },
+      ])
+      .mockResolvedValueOnce([
+        {
+          reports: [
+            {
+              rows: [
+                {
+                  dimensionValues: [dimension('Korea, South')],
+                  metricValues: [metric('10'), metric('14')],
+                },
+              ],
+            },
+            {
+              rows: [
+                {
+                  dimensionValues: [dimension('google'), dimension('organic'), dimension('launch')],
+                  metricValues: [metric('8'), metric('6')],
+                },
+              ],
+            },
+            {
+              rows: [
+                {
+                  dimensionValues: [dimension('Chrome')],
+                  metricValues: [metric('9'), metric('12')],
+                },
+              ],
+            },
+            {
+              rows: [
+                {
+                  dimensionValues: [dimension('Macintosh')],
+                  metricValues: [metric('7'), metric('9')],
+                },
+              ],
+            },
+            {
+              rows: [
+                {
+                  dimensionValues: [dimension('new')],
+                  metricValues: [metric('5'), metric('7')],
+                },
+              ],
+            },
+          ],
+        },
+      ]);
+
+    const result = await getAnalyticsDashboard();
+    expect(result.status).toBe('ready');
+    if (result.status === 'ready') {
+      expect(result.data.countries[0]).toMatchObject({ name: 'Korea, South', activeUsers: 10 });
+      expect(result.data.campaigns[0]).toMatchObject({
+        source: 'google',
+        medium: 'organic',
+        campaign: 'launch',
+      });
+      expect(result.data.browsers[0].name).toBe('Chrome');
+      expect(result.data.operatingSystems[0].name).toBe('Macintosh');
+      expect(result.data.visitorTypes[0].name).toBe('new');
+    }
   });
 });
