@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { AnalyticsDashboard } from '@features/admin/components/AnalyticsDashboard';
 
@@ -84,7 +84,17 @@ describe('AnalyticsDashboard', () => {
     );
 
     expect(screen.getByText('디바이스 유형별 방문')).toBeInTheDocument();
-    expect(screen.getByLabelText('디바이스 유형별 활성 사용자')).toBeInTheDocument();
+    const deviceList = screen.getByLabelText('디바이스 유형별 활성 사용자');
+    expect(deviceList).toBeInTheDocument();
+    const desktopButton = screen.getByRole('button', { name: /데스크톱/ });
+    const mobileButton = screen.getByRole('button', { name: /모바일/ });
+    expect(desktopButton).toHaveAttribute('aria-pressed', 'true');
+    expect(mobileButton).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.focus(mobileButton);
+    expect(mobileButton).toHaveAttribute('aria-pressed', 'true');
+    expect(desktopButton).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(desktopButton);
+    expect(desktopButton).toHaveAttribute('aria-pressed', 'true');
     expect(screen.getByText('전체 활성 사용자')).toBeInTheDocument();
     expect(
       screen.getByRole('img', { name: '국가별 활성 사용자를 표시한 지구본' }),

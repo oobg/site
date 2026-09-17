@@ -14,7 +14,11 @@ export default async function AdminAnalyticsPage() {
   const access = await getOwnerAccess();
   if (!access.authorized) redirect(ROUTES.ADMIN.HOME);
   return (
-    <AdminFrame title="방문 통계" description="최근 28일의 사이트 방문 흐름을 확인합니다.">
+    <AdminFrame
+      title="방문 통계"
+      description="최근 28일의 사이트 방문 흐름을 확인합니다."
+      contentAligned
+    >
       <Suspense fallback={<AnalyticsSectionLoading />}>
         <AnalyticsSection />
       </Suspense>

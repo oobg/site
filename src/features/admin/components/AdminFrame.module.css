@@ -47,6 +47,11 @@
   border-bottom: 1px solid var(--color-border);
 }
 
+.frame[data-content-aligned] .header {
+  width: min(calc(100% - clamp(32px, 6vw, 96px)), 1440px);
+  margin-inline: auto;
+}
+
 .kicker {
   display: inline-block;
   margin-bottom: var(--space-2);
@@ -149,5 +154,11 @@
 
   .frame[data-compact] .session {
     top: var(--space-3);
+  }
+}
+
+@media (max-width: 680px) {
+  .frame[data-content-aligned] .header {
+    width: calc(100% - var(--space-6));
   }
 }

@@ -304,32 +304,84 @@
   z-index: 2;
   transform-style: preserve-3d;
   animation: device-float 7s ease-in-out infinite;
-  filter: drop-shadow(0 16px 13px rgb(15 23 42 / 12%));
+  filter: drop-shadow(0 12px 10px rgb(15 23 42 / 10%));
+  transition:
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 420ms ease,
+    filter 420ms ease;
+  will-change: transform, opacity;
 }
 
 .deviceDesktop {
-  right: 1%;
-  bottom: 26px;
-  width: min(220px, 94%);
-  transform: translate3d(0, 0, 90px) rotateX(7deg) rotateY(-8deg);
+  bottom: 20px;
+  left: 50%;
+  width: min(226px, 94%);
+  transform: translate3d(-50%, 0, 110px) rotateX(5deg) rotateY(-3deg) scale(1);
 }
 
 .deviceTablet {
-  top: 54px;
-  left: 1%;
-  width: min(114px, 48%);
-  transform: translate3d(0, 0, -80px) rotateX(8deg) rotateY(21deg) rotateZ(-7deg) scale(0.88);
+  top: 36px;
+  left: 4%;
+  width: min(106px, 40%);
+  transform: translate3d(0, 0, -100px) rotateX(8deg) rotateY(18deg) rotateZ(-6deg) scale(0.78);
   animation-delay: -2.2s;
-  opacity: 0.88;
+  opacity: 0.62;
 }
 
 .deviceMobile {
-  top: 40px;
-  right: 4%;
-  width: min(66px, 30%);
-  transform: translate3d(0, 0, -150px) rotateX(10deg) rotateY(-24deg) rotateZ(8deg) scale(0.88);
+  top: 30px;
+  right: 5%;
+  width: min(62px, 26%);
+  transform: translate3d(0, 0, -140px) rotateX(10deg) rotateY(-22deg) rotateZ(7deg) scale(0.78);
   animation-delay: -4.2s;
-  opacity: 0.8;
+  opacity: 0.56;
+}
+
+.deviceStage[data-active-device='desktop'] .deviceDesktop {
+  z-index: 6;
+  transform: translate3d(-50%, -8px, 180px) rotateX(4deg) rotateY(-2deg) scale(1.06);
+  filter: drop-shadow(0 16px 12px rgb(15 23 42 / 14%));
+  opacity: 1;
+}
+
+.deviceStage[data-active-device='tablet'] .deviceDesktop,
+.deviceStage[data-active-device='mobile'] .deviceDesktop {
+  z-index: 1;
+  transform: translate3d(-50%, 16px, -30px) rotateX(8deg) rotateY(-4deg) scale(0.86);
+  filter: drop-shadow(0 8px 8px rgb(15 23 42 / 7%));
+  opacity: 0.4;
+}
+
+.deviceStage[data-active-device='tablet'] .deviceTablet {
+  z-index: 6;
+  top: 28px;
+  left: 50%;
+  width: min(132px, 52%);
+  transform: translate3d(-50%, 0, 180px) rotateX(5deg) rotateY(5deg) rotateZ(-2deg) scale(1.12);
+  filter: drop-shadow(0 16px 12px rgb(15 23 42 / 14%));
+  opacity: 1;
+}
+
+.deviceStage[data-active-device='mobile'] .deviceTablet {
+  z-index: 1;
+  transform: translate3d(-12px, 12px, -120px) rotateX(8deg) rotateY(18deg) rotateZ(-6deg) scale(0.7);
+  opacity: 0.38;
+}
+
+.deviceStage[data-active-device='tablet'] .deviceMobile,
+.deviceStage[data-active-device='mobile'] .deviceMobile {
+  opacity: 0.34;
+}
+
+.deviceStage[data-active-device='mobile'] .deviceMobile {
+  z-index: 6;
+  top: 24px;
+  right: auto;
+  left: 50%;
+  width: min(84px, 34%);
+  transform: translate3d(-50%, 0, 190px) rotateX(5deg) rotateY(-5deg) rotateZ(2deg) scale(1.22);
+  filter: drop-shadow(0 16px 12px rgb(15 23 42 / 14%));
+  opacity: 1;
 }
 
 .deviceGlyph {
@@ -369,10 +421,37 @@
 }
 
 .deviceLegend li {
+  min-width: 0;
+}
+
+.deviceButton {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
+  width: 100%;
   gap: 7px var(--space-2);
+  padding: 6px;
+  border: 1px solid transparent;
+  border-radius: var(--d0-radius-sm);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.deviceButton:hover,
+.deviceButton[aria-pressed='true'] {
+  border-color: var(--d0-grey-200);
+  background: var(--d0-grey-50);
+}
+
+.deviceButton:focus-visible {
+  outline: 2px solid var(--d0-blue);
+  outline-offset: 2px;
 }
 
 .deviceLegendLabel,
@@ -459,6 +538,9 @@
   margin-inline: auto;
   overflow: visible;
   border-radius: 50%;
+  border: 1px solid var(--d0-grey-200);
+  background: var(--d0-grey-50);
+  box-shadow: 0 12px 26px rgb(15 23 42 / 8%);
 }
 
 .globeCaption {
@@ -831,5 +913,10 @@
 @media (prefers-reduced-motion: reduce) {
   .deviceUnit {
     animation: none;
+    transition-duration: 0.01ms;
+  }
+
+  .deviceButton {
+    transition-duration: 0.01ms;
   }
 }
