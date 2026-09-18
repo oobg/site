@@ -21,7 +21,7 @@ describe('AdminShell', () => {
       </AdminShell>,
     );
     expect(screen.getByText('raven')).toHaveAttribute('data-site-wordmark');
-    expect(screen.getByRole('link', { name: '글' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByRole('link', { name: '개요' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByRole('main')).toHaveTextContent('내용');
     expect(screen.getByRole('button', { name: '검색' })).toBeVisible();
   });

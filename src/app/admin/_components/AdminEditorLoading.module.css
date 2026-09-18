@@ -11,10 +11,10 @@
   padding-inline: var(--space-5);
 }
 
-@media (min-width: 1900px) {
+@media (min-width: 1440px) {
   .workspace {
     display: grid;
-    grid-template-columns: 360px minmax(0, 1fr);
+    grid-template-columns: minmax(280px, 300px) minmax(0, 1fr);
     gap: var(--space-5);
     max-width: 1920px;
     margin-inline: auto;
@@ -24,6 +24,7 @@
   .list {
     display: grid;
     min-width: 0;
+    overflow: hidden;
     align-content: start;
     gap: var(--space-3);
     padding: var(--space-8) var(--space-5) 0 0;
@@ -47,6 +48,7 @@
   }
 
   .editor {
+    overflow: hidden;
     padding-right: var(--space-6);
   }
 }

@@ -33,6 +33,82 @@ type PostDraft = {
   cover_alt?: string | null;
 };
 
+type EditorSnapshot = {
+  version: 1;
+  title: string;
+  slug: string;
+  description: string;
+  body: string;
+  status: PostStatus;
+  categoryId: string;
+  tags: string;
+  coverKey: string;
+  coverUrl: string;
+  coverAlt: string;
+  coverX: number;
+  coverY: number;
+  slugEdited: boolean;
+  savedAt: string;
+};
+
+const snapshotKeyFor = (post?: PostDraft) => `admin-post-editor-draft:${post?.id ?? 'new'}`;
+
+function readEditorSnapshot(key: string): EditorSnapshot | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.sessionStorage.getItem(key);
+    if (!raw) return null;
+    const value: unknown = JSON.parse(raw);
+    if (
+      typeof value !== 'object' ||
+      value === null ||
+      !('version' in value) ||
+      value.version !== 1 ||
+      !('title' in value) ||
+      typeof value.title !== 'string' ||
+      !('slug' in value) ||
+      typeof value.slug !== 'string' ||
+      !('description' in value) ||
+      typeof value.description !== 'string' ||
+      !('body' in value) ||
+      typeof value.body !== 'string' ||
+      !('status' in value) ||
+      (value.status !== 'draft' && value.status !== 'published') ||
+      !('categoryId' in value) ||
+      typeof value.categoryId !== 'string' ||
+      !('tags' in value) ||
+      typeof value.tags !== 'string' ||
+      !('coverKey' in value) ||
+      typeof value.coverKey !== 'string' ||
+      !('coverUrl' in value) ||
+      typeof value.coverUrl !== 'string' ||
+      !('coverAlt' in value) ||
+      typeof value.coverAlt !== 'string' ||
+      !('coverX' in value) ||
+      typeof value.coverX !== 'number' ||
+      !('coverY' in value) ||
+      typeof value.coverY !== 'number' ||
+      !('slugEdited' in value) ||
+      typeof value.slugEdited !== 'boolean' ||
+      !('savedAt' in value) ||
+      typeof value.savedAt !== 'string'
+    ) {
+      return null;
+    }
+    return value as EditorSnapshot;
+  } catch {
+    return null;
+  }
+}
+
+function removeEditorSnapshot(key: string) {
+  try {
+    window.sessionStorage.removeItem(key);
+  } catch {
+    // sessionStorage may be unavailable in private browsing or restricted contexts.
+  }
+}
+
 const errorMessage = (value: unknown) => {
   if (typeof value !== 'object' || value === null || !('error' in value)) return null;
   if (typeof value.error === 'string') return value.error;
@@ -76,6 +152,7 @@ export function PostEditor({
   categories?: BlogCategory[];
   action: (previousState: PostActionState, formData: FormData) => Promise<PostActionState>;
 }) {
+  const snapshotKey = snapshotKeyFor(post);
   const [title, setTitle] = useState(post?.title ?? '');
   const [slug, setSlug] = useState(post?.slug ?? '');
   const [description, setDescription] = useState(post?.description ?? '');
@@ -99,6 +176,9 @@ export function PostEditor({
   const [previewHtml, setPreviewHtml] = useState('');
   const [previewMessage, setPreviewMessage] = useState('미리보기를 준비하고 있어요.');
   const [editorTab, setEditorTab] = useState<'write' | 'preview'>('write');
+  const [snapshotNotice, setSnapshotNotice] = useState<
+    'restored' | 'saving' | 'saved' | 'error' | null
+  >(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const visualEditorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
@@ -107,9 +187,40 @@ export function PostEditor({
   const previewSequenceRef = useRef(0);
   const previewSourceRef = useRef('');
   const editRevisionRef = useRef(0);
+  const skipNextSnapshotWriteRef = useRef(false);
+  const loadedSnapshotKeyRef = useRef<string | null>(null);
   const router = useRouter();
   const queryClient = useQueryClient();
   useAdminNavigationGuard(dirty);
+
+  useEffect(() => {
+    if (loadedSnapshotKeyRef.current === snapshotKey) return;
+    loadedSnapshotKeyRef.current = snapshotKey;
+    const snapshot = readEditorSnapshot(snapshotKey);
+    if (!snapshot) return;
+
+    const timer = window.setTimeout(() => {
+      setTitle(snapshot.title);
+      setSlug(snapshot.slug);
+      setDescription(snapshot.description);
+      setBody(snapshot.body);
+      bodyValueRef.current = snapshot.body;
+      setStatus(snapshot.status);
+      setCategoryId(snapshot.categoryId);
+      setTags(snapshot.tags);
+      setCoverKey(snapshot.coverKey);
+      setCoverUrl(snapshot.coverUrl);
+      setCoverAlt(snapshot.coverAlt);
+      setCoverX(snapshot.coverX);
+      setCoverY(snapshot.coverY);
+      setSlugEdited(snapshot.slugEdited);
+      setDirty(true);
+      setSnapshotNotice('restored');
+      skipNextSnapshotWriteRef.current = true;
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [snapshotKey]);
+
   const [state, formAction, pending] = useActionState(
     async (previousState: PostActionState, formData: FormData): Promise<PostActionState> => {
       const savedRevision = editRevisionRef.current;
@@ -130,6 +241,10 @@ export function PostEditor({
           setPersistedStatus(submittedStatus);
         }
         setDirty(editRevisionRef.current !== savedRevision);
+        if (editRevisionRef.current === savedRevision) {
+          removeEditorSnapshot(snapshotKey);
+          setSnapshotNotice(null);
+        }
         try {
           await Promise.all([
             queryClient.invalidateQueries({ queryKey: ['blog-posts'] }),
@@ -149,6 +264,58 @@ export function PostEditor({
     },
     initialPostActionState,
   );
+
+  useEffect(() => {
+    if (!dirty || pending) return;
+    if (skipNextSnapshotWriteRef.current) {
+      skipNextSnapshotWriteRef.current = false;
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      const snapshot: EditorSnapshot = {
+        version: 1,
+        title,
+        slug,
+        description,
+        body,
+        status,
+        categoryId,
+        tags,
+        coverKey,
+        coverUrl,
+        coverAlt,
+        coverX,
+        coverY,
+        slugEdited,
+        savedAt: new Date().toISOString(),
+      };
+      try {
+        window.sessionStorage.setItem(snapshotKey, JSON.stringify(snapshot));
+        setSnapshotNotice('saved');
+      } catch {
+        setSnapshotNotice('error');
+      }
+    }, 500);
+    setSnapshotNotice('saving');
+    return () => window.clearTimeout(timer);
+  }, [
+    body,
+    categoryId,
+    coverAlt,
+    coverKey,
+    coverUrl,
+    coverX,
+    coverY,
+    description,
+    dirty,
+    pending,
+    slug,
+    slugEdited,
+    snapshotKey,
+    status,
+    tags,
+    title,
+  ]);
 
   useEffect(() => {
     bodyValueRef.current = body;
@@ -313,6 +480,41 @@ export function PostEditor({
         ? '초안 저장'
         : '초안 만들기';
 
+  function discardSnapshot() {
+    removeEditorSnapshot(snapshotKey);
+    const initialCategory =
+      post?.category_id ?? categories.find((category) => category.is_default)?.id ?? '';
+    setTitle(post?.title ?? '');
+    setSlug(post?.slug ?? '');
+    setDescription(post?.description ?? '');
+    setBody(post?.body ?? '');
+    bodyValueRef.current = post?.body ?? '';
+    setStatus(post?.status ?? 'draft');
+    setPersistedStatus(post?.status ?? 'draft');
+    setCategoryId(initialCategory);
+    setTags(post?.tags?.join(', ') ?? '');
+    setCoverKey(post?.cover_image_key ?? '');
+    setCoverUrl(post?.cover_image_url ?? '');
+    setCoverAlt(post?.cover_alt ?? '');
+    setCoverX(post?.cover_position_x ?? 0.5);
+    setCoverY(post?.cover_position_y ?? 0.5);
+    setSlugEdited(Boolean(post?.slug));
+    editRevisionRef.current += 1;
+    setDirty(false);
+    setSnapshotNotice(null);
+  }
+
+  const snapshotMessage =
+    snapshotNotice === 'restored'
+      ? '이 기기에서 작성하던 임시 저장 내용을 복구했어요.'
+      : snapshotNotice === 'saving'
+        ? '임시 저장 중…'
+        : snapshotNotice === 'saved'
+          ? '임시 저장됨'
+          : snapshotNotice === 'error'
+            ? '임시 저장하지 못했어요. 브라우저 저장 공간을 확인해 주세요.'
+            : null;
+
   return (
     <form
       action={formAction}
@@ -332,6 +534,21 @@ export function PostEditor({
         }
       }}
     >
+      {snapshotMessage ? (
+        <div className={styles.snapshotNotice} aria-live="polite">
+          <span>{snapshotMessage}</span>
+          {snapshotNotice === 'restored' ? (
+            <span className={styles.snapshotActions}>
+              <button type="button" onClick={() => setSnapshotNotice(null)}>
+                계속 작성
+              </button>
+              <button type="button" onClick={discardSnapshot}>
+                임시 저장 버리기
+              </button>
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       {post?.id ? <input type="hidden" name="id" value={post.id} /> : null}
       <input ref={statusInputRef} type="hidden" name="status" value={status} />
       <footer className={styles.footer}>

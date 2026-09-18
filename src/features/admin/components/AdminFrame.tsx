@@ -7,6 +7,8 @@ export function AdminFrame({
   title,
   description,
   actions,
+  backHref = ROUTES.ADMIN.HOME,
+  backLabel = '개요',
   compact = false,
   contentAligned = false,
   children,
@@ -15,6 +17,8 @@ export function AdminFrame({
   description: string;
   userEmail?: string;
   actions?: ReactNode;
+  backHref?: string;
+  backLabel?: string;
   compact?: boolean;
   contentAligned?: boolean;
   children: ReactNode;
@@ -28,9 +32,9 @@ export function AdminFrame({
     >
       <header className={styles.header}>
         <div>
-          {title !== '글 관리' ? (
-            <Link className={styles.kicker} href={ROUTES.ADMIN.HOME}>
-              글 관리
+          {title !== '개요' && title !== '글 관리' ? (
+            <Link className={styles.kicker} href={backHref}>
+              {backLabel}
             </Link>
           ) : null}
           <h1 id="admin-title" className={styles.title}>

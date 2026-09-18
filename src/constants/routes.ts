@@ -8,6 +8,7 @@ export const ROUTES = {
   },
   ADMIN: {
     HOME: '/admin',
+    POSTS: '/admin?view=posts',
     ANALYTICS: '/admin/analytics',
     NEW_POST: '/admin/posts/new',
     POST: (id: string) => `/admin/posts/${id}`,
