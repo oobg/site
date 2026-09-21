@@ -32,14 +32,14 @@
   font-size: var(--d0-meta);
   font-weight: 600;
 }
-.body h2 {
+.body :is(h2, h3) {
   margin-top: var(--space-2);
   color: var(--d0-grey-900);
   font-size: 18px;
   line-height: var(--d0-leading-title);
   letter-spacing: var(--d0-tracking-title);
 }
-.body h2 a:hover {
+.body :is(h2, h3) a:hover {
   color: var(--d0-blue-dark);
 }
 .body p {

@@ -57,6 +57,9 @@ export function BlogHomeSkeleton() {
           <Skeleton width="6rem" height="24px" />
           <Skeleton width="5rem" height="20px" />
         </div>
+        <div className={home.sectionLabel}>
+          <Skeleton width="4rem" height="18px" />
+        </div>
         <section className={featured.section} data-with-cover="">
           <div className={featured.slide}>
             <Skeleton className={featured.cover} height="auto" radius="var(--d0-radius-card)" />
@@ -73,6 +76,9 @@ export function BlogHomeSkeleton() {
             <Skeleton width="40px" height="40px" radius="var(--d0-radius-sm)" />
           </div>
         </section>
+        <div className={home.sectionLabel}>
+          <Skeleton width="4rem" height="18px" />
+        </div>
         <div className={home.recentGrid}>
           <PostCardSkeletons />
         </div>

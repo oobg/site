@@ -47,13 +47,13 @@
   font-size: 13px;
   font-weight: 600;
 }
-.copy h2 {
+.copy :is(h2, h3) {
   margin-top: var(--space-3);
   font-size: clamp(24px, 2.3vw, 30px);
   line-height: var(--d0-leading-display);
   letter-spacing: var(--d0-tracking-display);
 }
-.copy h2 a:hover {
+.copy :is(h2, h3) a:hover {
   color: var(--d0-blue-dark);
 }
 .copy p {
@@ -130,6 +130,17 @@
   white-space: nowrap;
   border: 0;
 }
+.announcer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 .progressRing {
   position: absolute;
   inset: 0;
@@ -163,7 +174,7 @@
     grid-template-columns: 1fr;
     gap: var(--space-5);
   }
-  .copy h2 {
+  .copy :is(h2, h3) {
     margin-top: var(--space-3);
     font-size: 26px;
   }

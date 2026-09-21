@@ -146,4 +146,47 @@ describe('FeaturedCarousel', () => {
     const { container } = render(<FeaturedCarousel posts={[post(2)]} />);
     expect(container.querySelector('img')).toBeNull();
   });
+
+  it('announces only the slides the reader moved to, not the automatic ones', () => {
+    vi.useFakeTimers();
+    const { container } = render(<FeaturedCarousel posts={[1, 2, 3].map(post)} />);
+    const live = container.querySelector('[aria-live="polite"]');
+
+    /* 10초마다 말을 걸면 스크린리더 사용자는 글을 읽을 수 없다. */
+    expect(live).toHaveTextContent('');
+    act(() => vi.advanceTimersByTime(10000));
+    expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
+    expect(live).toHaveTextContent('');
+
+    fireEvent.click(screen.getByRole('button', { name: '다음 추천 글' }));
+    expect(live).toHaveTextContent('3 / 3 · 추천 글 3');
+    fireEvent.click(screen.getByRole('button', { name: '이전 추천 글' }));
+    expect(live).toHaveTextContent('2 / 3 · 추천 글 2');
+  });
+
+  it('gives the cover a shape before it loads and asks for the first one early', () => {
+    const { container } = render(<FeaturedCarousel posts={[post(1), post(3)]} />);
+    const image = container.querySelector('img');
+    /* 1140 / 600 = 1.9 — .cover의 aspect-ratio와 같다. */
+    expect(image).toHaveAttribute('width', '1140');
+    expect(image).toHaveAttribute('height', '600');
+    expect(image).toHaveAttribute('fetchpriority', 'high');
+    expect(image).toHaveAttribute('decoding', 'async');
+
+    fireEvent.click(screen.getByRole('button', { name: '다음 추천 글' }));
+    /* 첫 슬라이드만 LCP 후보다. 뒤 슬라이드까지 우선순위를 올리면 경쟁만 붙는다. */
+    expect(container.querySelector('img')).toHaveAttribute('fetchpriority', 'auto');
+  });
+
+  it('takes its region name from the visible heading when the page supplies one', () => {
+    render(
+      <>
+        <h2 id="featured-heading">추천 글</h2>
+        <FeaturedCarousel posts={[post(1), post(3)]} headingId="featured-heading" />
+      </>,
+    );
+    const region = screen.getByRole('region', { name: '추천 글' });
+    expect(region).toHaveAttribute('aria-labelledby', 'featured-heading');
+    expect(region).not.toHaveAttribute('aria-label');
+  });
 });

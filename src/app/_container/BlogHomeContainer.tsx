@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@components/ui/Button';
@@ -14,6 +14,21 @@ import { homeSearchHref } from '@constants/routes';
 import styles from './BlogHomeContainer.module.css';
 
 type Filters = Required<Pick<BlogPostFilters, 'q' | 'category' | 'tag' | 'page' | 'pageSize'>>;
+
+const RECENT_COUNT = 3;
+const FEATURED_HEADING_ID = 'home-featured-heading';
+
+/** 새 탭·새 창을 여는 클릭은 가로채지 않는다. 가로채면 링크가 링크가 아니게 된다. */
+function opensElsewhere(event: React.MouseEvent): boolean {
+  return event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey;
+}
+
+interface ActiveFilter {
+  key: string;
+  label: string;
+  clearLabel: string;
+  next: Filters;
+}
 
 export function BlogHomeContainer({
   initialData,
@@ -46,9 +61,12 @@ export function BlogHomeContainer({
     !filters.tag &&
     filters.page === 1 &&
     searchParams.get('view') !== 'all';
+  /* 목록이 바뀐 뒤 화면을 그 머리로 되돌린다. 페이지를 넘겼는데 스크롤이 그대로면
+     같은 자리에 다른 글이 나타나고, 그러면 "넘어갔다"는 신호가 아무 데도 없다. */
+  const archiveRef = useRef<HTMLElement>(null);
 
-  const navigate = useCallback(
-    (next: Filters, replace = false) => {
+  const hrefFor = useCallback(
+    (next: Filters) => {
       const params = new URLSearchParams();
       if (
         searchParams.get('view') === 'all' ||
@@ -59,33 +77,114 @@ export function BlogHomeContainer({
       if (next.category) params.set('category', next.category);
       if (next.tag) params.set('tag', next.tag);
       if (next.page > 1) params.set('page', String(next.page));
-      const href = `${pathname}${params.size ? `?${params}` : ''}`;
-      window.history[replace ? 'replaceState' : 'pushState'](null, '', href);
+      return `${pathname}${params.size ? `?${params}` : ''}`;
     },
     [filters.page, pathname, searchParams],
   );
 
+  const navigate = useCallback(
+    (next: Filters, replace = false) => {
+      window.history[replace ? 'replaceState' : 'pushState'](null, '', hrefFor(next));
+    },
+    [hrefFor],
+  );
+
+  const scrollToResults = useCallback(() => {
+    const node = archiveRef.current;
+    /* jsdom을 비롯해 scrollIntoView가 없는 환경이 있다 — 이동 자체를 막지는 않는다. */
+    if (!node || typeof node.scrollIntoView !== 'function') return;
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    node.scrollIntoView({ block: 'start', behavior: reduced ? 'auto' : 'smooth' });
+  }, []);
+
+  const categories = data?.categories ?? initialData.categories;
+  const categoryName =
+    categories.find((item) => item.slug === filters.category)?.name || filters.category;
+
+  /* 제목이 URL을 그대로 말한다. "전체 글"이 검색 결과 위에 떠 있으면 필터가
+     걸렸다는 사실을 화면 어디서도 읽을 수 없다. */
+  const archiveTitle = filters.q
+    ? `‘${filters.q}’ 검색 결과`
+    : filters.category
+      ? categoryName
+      : filters.tag
+        ? `#${filters.tag}`
+        : '전체 글';
+
+  const activeFilters: ActiveFilter[] = [];
+  if (filters.q)
+    activeFilters.push({
+      key: 'q',
+      label: `검색: ${filters.q}`,
+      clearLabel: '검색어 지우기',
+      next: { ...filters, q: '', page: 1 },
+    });
+  if (filters.category)
+    activeFilters.push({
+      key: 'category',
+      label: `카테고리: ${categoryName}`,
+      clearLabel: '카테고리 필터 지우기',
+      next: { ...filters, category: '', page: 1 },
+    });
+  if (filters.tag)
+    activeFilters.push({
+      key: 'tag',
+      label: `태그: ${filters.tag}`,
+      clearLabel: '태그 필터 지우기',
+      next: { ...filters, tag: '', page: 1 },
+    });
+
+  const pageLink = (targetPage: number, label: string, available: boolean) => {
+    if (!available)
+      return (
+        <span className={styles.pageStep} data-disabled="" aria-hidden="true">
+          {label}
+        </span>
+      );
+    return (
+      <Link
+        className={styles.pageStep}
+        href={hrefFor({ ...filters, page: targetPage })}
+        onClick={(event) => {
+          if (opensElsewhere(event)) return;
+          event.preventDefault();
+          navigate({ ...filters, page: targetPage });
+          scrollToResults();
+        }}
+      >
+        {label}
+      </Link>
+    );
+  };
+
+  const errorState = (
+    <div className={styles.state} role="alert">
+      <p>글을 불러오지 못했어요.</p>
+      <Button onClick={() => result.refetch()}>다시 시도</Button>
+    </div>
+  );
+
+  const featuredSlugs = new Set(data?.featured.map((post) => post.slug));
+  /* 추천에 이미 올린 글이 바로 아래 카드로 또 나오면 최근 글 세 칸 중 한둘이
+     같은 말을 반복한다. 빼고 나서 뒤의 글로 세 칸을 채운다. */
+  const recentPosts = (data?.archive.items ?? [])
+    .filter((post) => !featuredSlugs.has(post.slug))
+    .slice(0, RECENT_COUNT);
+
   return (
     <BlogShell
-      categories={data?.categories ?? initialData.categories}
+      categories={categories}
       onNavigate={(href) => window.history.pushState(null, '', href)}
     >
-      {overview && data ? (
+      {overview ? (
         <div className={styles.overview}>
           <div className={styles.overviewHeading}>
-            <h1>추천 글</h1>
+            <h1>기술 블로그</h1>
             <Link
               className={styles.allPostsLink}
               href="/?view=all"
               onClick={(event) => {
-                if (
-                  event.button !== 0 ||
-                  event.metaKey ||
-                  event.ctrlKey ||
-                  event.shiftKey ||
-                  event.altKey
-                )
-                  return;
+                if (opensElsewhere(event)) return;
                 event.preventDefault();
                 window.history.pushState(null, '', '/?view=all');
               }}
@@ -93,92 +192,115 @@ export function BlogHomeContainer({
               전체 글 보기
             </Link>
           </div>
+          {/* 실패했을 때 옛 목록을 같이 띄우면 그게 지금 상태인 줄 안다. 하나만 보인다. */}
           {result.isError ? (
-            <div className={styles.state} role="alert">
-              <p>글을 불러오지 못했어요.</p>
-              <Button onClick={() => result.refetch()}>다시 시도</Button>
-            </div>
+            errorState
+          ) : !data ? (
+            <BlogArchiveContentSkeleton showHeading={false} />
           ) : data.archive.totalItems === 0 ? (
             <div className={styles.state} role="status" aria-live="polite">
               <p>아직 공개한 글이 없어요.</p>
             </div>
-          ) : null}
-          <FeaturedCarousel posts={data.featured} />
-          <div className={styles.recentGrid}>
-            {data.archive.items.slice(0, 3).map((post) => (
-              <PostCard key={post.slug} post={post} />
-            ))}
-          </div>
-          <div className={styles.sections}>
-            {data.sections
-              .filter((section) => section.posts.length)
-              .map((section) => (
-                <section className={styles.topic} key={section.category.id}>
-                  <div className={styles.topicHeading}>
-                    <h2>{section.category.name}</h2>
-                    <Link
-                      href={homeSearchHref({ category: section.category.slug })}
-                      onClick={(event) => {
-                        if (
-                          event.button !== 0 ||
-                          event.metaKey ||
-                          event.ctrlKey ||
-                          event.shiftKey ||
-                          event.altKey
-                        )
-                          return;
-                        event.preventDefault();
-                        navigate({ ...filters, category: section.category.slug, page: 1 });
-                      }}
-                    >
-                      모두 보기
-                    </Link>
-                  </div>
-                  <div className={styles.topicGrid}>
-                    {section.posts.map((post) => (
-                      <PostCard
-                        key={post.slug}
-                        post={post}
-                        showCategory={false}
-                        reserveCoverSpace={section.posts.some((item) =>
-                          Boolean(item.cover_image_url),
-                        )}
-                      />
+          ) : (
+            <>
+              {data.featured.length > 0 ? (
+                <>
+                  <h2 className={styles.sectionLabel} id={FEATURED_HEADING_ID}>
+                    추천 글
+                  </h2>
+                  <FeaturedCarousel posts={data.featured} headingId={FEATURED_HEADING_ID} />
+                </>
+              ) : null}
+              {recentPosts.length > 0 ? (
+                <section className={styles.recent} aria-labelledby="home-recent-heading">
+                  <h2 className={styles.sectionLabel} id="home-recent-heading">
+                    최근 글
+                  </h2>
+                  <div className={styles.recentGrid}>
+                    {recentPosts.map((post) => (
+                      <PostCard key={post.slug} post={post} headingLevel={3} />
                     ))}
                   </div>
                 </section>
-              ))}
-          </div>
+              ) : null}
+              <div className={styles.sections}>
+                {data.sections
+                  .filter((section) => section.posts.length)
+                  .map((section) => (
+                    <section className={styles.topic} key={section.category.id}>
+                      <div className={styles.topicHeading}>
+                        <h2>{section.category.name}</h2>
+                        <Link
+                          href={homeSearchHref({ category: section.category.slug })}
+                          onClick={(event) => {
+                            if (opensElsewhere(event)) return;
+                            event.preventDefault();
+                            navigate({ ...filters, category: section.category.slug, page: 1 });
+                          }}
+                        >
+                          모두 보기
+                        </Link>
+                      </div>
+                      <div className={styles.topicGrid}>
+                        {section.posts.map((post) => (
+                          <PostCard
+                            key={post.slug}
+                            post={post}
+                            headingLevel={3}
+                            showCategory={false}
+                            reserveCoverSpace={section.posts.some((item) =>
+                              Boolean(item.cover_image_url),
+                            )}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+              </div>
+            </>
+          )}
         </div>
       ) : null}
       {!overview ? (
-        <section className={styles.archive} aria-labelledby="archive-title">
+        <section className={styles.archive} aria-labelledby="archive-title" ref={archiveRef}>
           <div className={styles.heading}>
             <div>
-              <h1 id="archive-title">전체 글</h1>
-              <p>새로 쓴 글부터 차례로 모았어요.</p>
+              <h1 id="archive-title">{archiveTitle}</h1>
+              {activeFilters.length === 0 ? <p>새로 쓴 글부터 차례로 모았어요.</p> : null}
             </div>
           </div>
-          {filters.tag && (
-            <div className={styles.tagNotice}>
-              <span>태그: {filters.tag}</span>
-              <button type="button" onClick={() => navigate({ ...filters, tag: '', page: 1 })}>
-                태그 필터 지우기
-              </button>
+          {activeFilters.length > 0 && (
+            <div className={styles.filters}>
+              <div className={styles.filterChips}>
+                {activeFilters.map((filter) => (
+                  <span className={styles.filterChip} key={filter.key}>
+                    <span>{filter.label}</span>
+                    <button
+                      type="button"
+                      aria-label={filter.clearLabel}
+                      onClick={() => navigate(filter.next)}
+                    >
+                      지우기
+                    </button>
+                  </span>
+                ))}
+              </div>
+              {data && data.archive.totalItems > 0 ? (
+                <p className={styles.resultCount} role="status">
+                  글 {data.archive.totalItems}개
+                </p>
+              ) : null}
             </div>
           )}
           <div>
             {result.isError ? (
-              <div className={styles.state} role="alert">
-                <p>글을 불러오지 못했어요.</p>
-                <Button onClick={() => result.refetch()}>다시 시도</Button>
-              </div>
+              errorState
             ) : !data ? (
               <BlogArchiveContentSkeleton showHeading={false} />
             ) : data.archive.items.length === 0 ? (
               <div className={styles.state} role="status" aria-live="polite">
                 <p>
-                  {filters.q || filters.category || filters.tag
+                  {activeFilters.length > 0
                     ? '조건에 맞는 글이 없어요.'
                     : '아직 공개한 글이 없어요.'}
                 </p>
@@ -202,23 +324,11 @@ export function BlogHomeContainer({
                 </div>
                 {data.archive.totalPages > 1 && (
                   <nav className={styles.pagination} aria-label="글 페이지">
-                    <Button
-                      size="sm"
-                      disabled={result.isFetching || filters.page <= 1}
-                      onClick={() => navigate({ ...filters, page: filters.page - 1 })}
-                    >
-                      이전
-                    </Button>
+                    {pageLink(filters.page - 1, '이전', filters.page > 1)}
                     <span>
                       <strong>{data.archive.page}</strong> / {data.archive.totalPages}
                     </span>
-                    <Button
-                      size="sm"
-                      disabled={result.isFetching || filters.page >= data.archive.totalPages}
-                      onClick={() => navigate({ ...filters, page: filters.page + 1 })}
-                    >
-                      다음
-                    </Button>
+                    {pageLink(filters.page + 1, '다음', filters.page < data.archive.totalPages)}
                   </nav>
                 )}
               </>
