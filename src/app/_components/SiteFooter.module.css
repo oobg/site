@@ -1,7 +1,8 @@
-/* 면을 깔지 않고 hairline 하나로 본문과 구분한다. */
+/* 면을 깔지 않고 hairline 하나로 본문과 구분한다. 조용한 대신 본문과 붙어 있으면
+   글의 마지막 문단처럼 읽히므로, 구분은 선이 아니라 거리가 먼저 하게 둔다. */
 .footer {
-  margin-top: var(--space-6);
-  padding-block: var(--space-4) var(--space-3);
+  margin-top: var(--space-8);
+  padding-block: var(--space-6) var(--space-4);
   border-top: 1px solid var(--color-border);
 }
 
@@ -37,21 +38,26 @@
 
 .columns {
   display: flex;
-  align-items: center;
+  align-items: start;
   gap: var(--space-6);
 }
 
+/* 레이블 한 줄, 링크 한 줄. 레이블을 링크와 같은 줄에 세우면 위계가 사라져
+   "둘러보기"가 세 번째 링크로 보인다. */
 .column {
   display: grid;
-  grid-template-columns: auto repeat(2, auto);
-  align-items: center;
-  gap: 0 var(--space-4);
+  gap: var(--space-2);
   font-size: var(--fs-14);
 }
 
-/* Navigation labels stay in the same Pretendard-based register, including
-   the semantic section heading. The footer status line below is intentionally
-   mono, but that treatment must not leak into this navigation. */
+.columnLinks {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+/* 내비게이션 링크는 Pretendard 레지스터를 유지한다. 아래 상태줄의 mono가
+   여기까지 흘러들면 푸터가 두 서체로 갈린다. */
 .navItem {
   font-family: var(--d0-font);
   font-size: var(--fs-14);
@@ -72,8 +78,10 @@
   color: var(--color-accent);
 }
 
+/* 레이블은 Eyebrow의 보조 레지스터를 그대로 쓰되, 서체만 상태줄의 mono가 새지
+   않도록 못 박는다. */
 .colLabel {
-  margin-right: var(--space-1);
+  font-family: var(--d0-font);
 }
 
 /* 하단 줄은 편집기 하단의 상태줄에 가깝게 둔다 — 형태를 베끼는 게 아니라
@@ -83,7 +91,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: var(--space-3) var(--space-5);
-  margin-top: var(--space-3);
+  margin-top: var(--space-5);
   padding-top: var(--space-3);
   border-top: 1px solid var(--color-border);
   font-family: var(--font-mono), monospace;
@@ -104,19 +112,5 @@
 
   .columns {
     gap: var(--space-4);
-  }
-
-  .column {
-    grid-template-columns: repeat(2, auto);
-    justify-content: start;
-    gap: 0 var(--space-4);
-  }
-
-  .colLabel {
-    grid-column: 1 / -1;
-    min-height: 28px;
-    display: inline-flex;
-    align-items: center;
-    margin: 0;
   }
 }

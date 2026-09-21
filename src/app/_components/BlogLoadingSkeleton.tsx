@@ -33,7 +33,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className={shell.shell} aria-busy="true" aria-label="불러오는 중">
       <aside className={shell.sidebar} aria-hidden="true">
-        <Skeleton width="7rem" height="24px" />
+        <Skeleton width="5rem" height="18px" />
         <div className={shell.navigation}>
           <Skeleton width="72%" height="42px" />
           <Skeleton width="84%" height="42px" />
@@ -213,7 +213,7 @@ export function BlogArticleDataSkeleton({
     <BlogShell
       categories={categories}
       activeCategory={post.category.slug}
-      detailNavigation={<TableOfContents toc={toc} />}
+      detail
       mobileDetailNavigation={<TableOfContents toc={toc} defaultOpen={false} />}
     >
       <div className={article.page} aria-busy="true" aria-label="글 본문을 불러오는 중">
@@ -225,6 +225,10 @@ export function BlogArticleDataSkeleton({
           </div>
           <ArticleFooterSkeleton showShare={false} />
         </article>
+        {/* 로딩에서도 오른쪽 레일을 같이 그린다 — 여기서 빠지면 본문이 뜨는 순간 목차만큼 폭이 튄다. */}
+        <div className={article.tocRail}>
+          <TableOfContents toc={toc} />
+        </div>
       </div>
     </BlogShell>
   );

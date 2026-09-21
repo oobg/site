@@ -1,18 +1,24 @@
+/* 폭 공식은 Container와 같다. 셸만 다른 공식을 쓰면 헤더 워드마크·본문·푸터가
+   서로 다른 x축에 서고, 목록에서 상세로 갈 때 그 차이만큼 화면이 튄다. */
 .shell {
   display: grid;
   grid-template-columns: minmax(176px, 18%) minmax(0, 1fr);
-  gap: 32px;
-  width: min(100% - 40px, 1200px);
+  gap: var(--space-6);
+  width: 100%;
+  max-width: var(--w-container);
   margin-inline: auto;
-  padding-block: var(--space-8) var(--space-9);
+  padding-inline: var(--outer);
+  /* 아래 여백의 나머지는 푸터의 margin-top이 낸다. 양쪽이 각자 넉넉히 두면
+     블로그 화면만 바닥이 두 배로 비어 축이 아니라 여백이 화면을 끝낸다. */
+  padding-block: var(--space-8);
 }
 .sidebar {
   position: sticky;
-  top: 92px;
+  top: var(--rail-top);
   align-self: start;
   display: grid;
   gap: var(--space-4);
-  max-height: calc(100dvh - 112px);
+  max-height: calc(100dvh - var(--rail-top) - var(--space-5));
   /* The vertical scrollport otherwise clips an outline on links that touch
      either horizontal edge. Keep a small token-sized breathing room inside
      the scrollport so keyboard focus remains visible without x-overflow. */
@@ -22,10 +28,11 @@
   overscroll-behavior: contain;
   scrollbar-width: thin;
 }
+/* 레일의 이름표다. 24px 제목으로 두면 본문 H1(홈 28px·상세 30px 이상)과 위계가
+   맞붙어 어느 쪽이 이 페이지의 제목인지 흐려진다. 색·크기는 Eyebrow가 정하고
+   여기서는 서체만 못 박는다 — 더 흐리게 내리면 12px에서 대비가 AA 밑으로 떨어진다. */
 .title {
-  color: var(--d0-grey-900);
-  font-size: 24px;
-  letter-spacing: var(--d0-tracking-title);
+  font-family: var(--d0-font);
 }
 .navigation {
   display: grid;
@@ -87,10 +94,6 @@
 .otherCategories summary svg {
   transition: transform var(--d0-dur-fast) var(--d0-ease);
 }
-.detailNavigation {
-  border-top: 1px solid var(--d0-grey-100);
-  padding-top: var(--space-4);
-}
 .content {
   min-width: 0;
 }
@@ -150,7 +153,6 @@
 @media (max-width: 900px) {
   .shell {
     display: block;
-    width: min(100% - 40px, 780px);
     padding-top: 0;
   }
   .sidebar {
@@ -160,8 +162,8 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    margin-inline: -20px;
-    padding: 8px 20px;
+    margin-inline: calc(var(--outer) * -1);
+    padding: var(--space-2) var(--outer);
     border-bottom: 1px solid var(--d0-grey-100);
   }
   .mobileDetailNavigation {

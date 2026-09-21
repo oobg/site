@@ -76,7 +76,7 @@ async function BlogPostContent({
     <BlogShell
       categories={categories}
       activeCategory={post.category.slug}
-      detailNavigation={<TableOfContents toc={toc} />}
+      detail
       mobileDetailNavigation={<TableOfContents toc={toc} defaultOpen={false} />}
     >
       <div className={styles.page}>
@@ -87,6 +87,10 @@ async function BlogPostContent({
             <ShareButtons title={post.title} />
           </div>
         </article>
+        {/* 데스크톱 전용 오른쪽 레일. 900 이하에서는 CSS로 감추고 본문 위 접이식 목차만 남는다. */}
+        <div className={styles.tocRail}>
+          <TableOfContents toc={toc} />
+        </div>
         <CommentsSection key={post.slug} slug={post.slug} />
         <ArticleAside related={related} />
         <PostNav prev={prev} next={next} />

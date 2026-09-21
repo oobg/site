@@ -5,6 +5,7 @@ import { Dialog } from '@base-ui/react/dialog';
 import { CaretDown, X } from '@phosphor-icons/react';
 import { useSearchParams } from 'next/navigation';
 import type { BlogCategoryWithCount } from '@features/posts/types/posts.types';
+import { Eyebrow } from '@components/ui/Eyebrow';
 import { homeSearchHref, ROUTES } from '@constants/routes';
 import styles from './BlogShell.module.css';
 
@@ -103,30 +104,28 @@ export function BlogShell({
   categories,
   activeCategory,
   onNavigate,
-  detailNavigation,
+  /** 상세에서는 왼쪽 레일을 주제 내비게이션만 남기고 좁힌다 — 목차는 본문 오른쪽 레일이 맡는다. */
+  detail = false,
   mobileDetailNavigation,
   children,
 }: {
   categories: BlogCategoryWithCount[];
   activeCategory?: string;
   onNavigate?: (href: string) => void;
-  detailNavigation?: React.ReactNode;
+  detail?: boolean;
   mobileDetailNavigation?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
-        <strong className={styles.title}>기술 블로그</strong>
+        <Eyebrow className={styles.title}>기술 블로그</Eyebrow>
         <Navigation
           categories={categories}
           activeCategory={activeCategory}
           onNavigate={onNavigate}
-          compact={Boolean(detailNavigation)}
+          compact={detail}
         />
-        {detailNavigation ? (
-          <div className={styles.detailNavigation}>{detailNavigation}</div>
-        ) : null}
       </aside>
       <div className={styles.mobileBar}>
         <Dialog.Root>
@@ -143,7 +142,7 @@ export function BlogShell({
                 close
                 activeCategory={activeCategory}
                 onNavigate={onNavigate}
-                compact={Boolean(detailNavigation)}
+                compact={detail}
               />
               <Dialog.Close className={styles.close} aria-label="메뉴 닫기">
                 <X aria-hidden size={22} />
