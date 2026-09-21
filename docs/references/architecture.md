@@ -86,7 +86,8 @@ canonical은 **한 세그먼트**다: `/blog/{slug}`. 카테고리는 주소에 
 `app/blog/loading.tsx`, `app/blog/[slug]/loading.tsx`, `app/projects/[slug]/loading.tsx`를
 **되살리지 않는다**. 공개 상세의 부분 로딩은 페이지 안 `<Suspense>`로만 한다(데이터를 이미 읽은
 뒤라 상태 코드에 영향이 없다). 목록인 `app/projects/loading.tsx`는 목록 셸을 위한 경계라 이 규칙의
-대상이 아니다.
+대상이 아니다. Projects 목록의 로딩은 `app/(projects)/projects/loading.tsx`처럼 목록 route group
+안에 두어 상세 경로의 404 상태를 가리지 않게 한다.
 
 검증: 프로덕션 빌드 뒤 `.next/standalone/server.js`로 `/blog/{없는-slug}`가 404인지 본다.
 `next dev`나 `next start`가 아니라 standalone이 실제 배포 경로다.

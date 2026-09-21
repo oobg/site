@@ -1,6 +1,6 @@
 import { Container } from '@components/layout/Container';
 import { Skeleton } from '@components/ui/Skeleton';
-import projects from './projects.module.css';
+import projects from '@/app/projects/projects.module.css';
 import card from '@features/projects/components/ProjectCard.module.css';
 
 const CARDS = 4;
