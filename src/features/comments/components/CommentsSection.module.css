@@ -152,6 +152,13 @@
   color: var(--color-text-secondary);
   text-align: center;
 }
+.recovery {
+  display: grid;
+  justify-items: center;
+}
+.recovery .empty {
+  width: 100%;
+}
 .loading {
   display: grid;
   gap: var(--space-3);
