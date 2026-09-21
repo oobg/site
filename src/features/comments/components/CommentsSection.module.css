@@ -20,6 +20,11 @@
   align-items: center;
   gap: var(--space-3);
 }
+.nicknameLabel {
+  min-width: 0;
+  position: relative;
+  isolation: isolate;
+}
 .avatar,
 .commentAvatar {
   width: 44px;
@@ -58,7 +63,7 @@
 }
 .randomButton,
 .more {
-  min-height: 40px;
+  min-height: 44px;
   padding-inline: var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--d0-radius-sm);
@@ -68,6 +73,9 @@
   font-size: var(--fs-13);
   font-weight: 650;
   cursor: pointer;
+}
+.randomButton {
+  white-space: nowrap;
 }
 .formFooter {
   display: flex;
@@ -174,17 +182,46 @@
     opacity: 1;
   }
 }
+.nicknameRipple {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--d0-blue);
+  border-radius: var(--d0-radius-sm);
+  pointer-events: none;
+  animation: nickname-ripple 480ms ease-out both;
+}
+.avatar[data-randomized='true'] {
+  animation: avatar-pop 360ms var(--d0-ease) both;
+}
+@keyframes avatar-pop {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.16);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes nickname-ripple {
+  0% {
+    transform: scale(0.98);
+    opacity: 0.65;
+  }
+  100% {
+    transform: scale(1.04, 1.2);
+    opacity: 0;
+  }
+}
 @media (max-width: 640px) {
   .identityRow {
-    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: var(--space-2);
   }
   .avatar {
     width: 40px;
     height: 40px;
-  }
-  .randomButton {
-    grid-column: 2;
-    justify-self: start;
   }
   .comment {
     padding: var(--space-4);
@@ -200,5 +237,12 @@
 @media (prefers-reduced-motion: reduce) {
   .loading span {
     animation: none;
+  }
+  .avatar[data-randomized='true'],
+  .nicknameRipple {
+    animation: none;
+  }
+  .nicknameRipple {
+    display: none;
   }
 }
