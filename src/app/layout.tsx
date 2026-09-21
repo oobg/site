@@ -4,6 +4,7 @@ import { ProductionGoogleAnalytics } from '@components/analytics/ProductionGoogl
 import { AppProviders } from '@components/providers/AppProviders';
 import { INTRO_STORAGE_KEY } from '@components/intro/introState';
 import { baseMetadata } from '@lib/metadata/metadata';
+import { buildSiteStructuredData, serializeJsonLd } from '@lib/metadata/structured-data';
 import { PublicChrome } from '@/app/_components/PublicChrome';
 import styles from './layout.module.css';
 
@@ -16,10 +17,16 @@ const googleAnalyticsId =
     ? process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID?.trim()
     : undefined;
 
+const siteStructuredData = serializeJsonLd(buildSiteStructuredData());
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko" suppressHydrationWarning className={`${sans.variable} ${mono.variable}`}>
       <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: siteStructuredData }}
+        />
         <script dangerouslySetInnerHTML={{ __html: introBootScript }} />
       </head>
       <body>

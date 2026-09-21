@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { buildMetadata } from '@lib/metadata/metadata';
+import { baseMetadata, buildMetadata } from '@lib/metadata/metadata';
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -20,14 +20,39 @@ describe('buildMetadata', () => {
   it('canonical과 설명 fallback을 함께 만든다', () => {
     const meta = buildMetadata({ title: '제목', path: '/about' });
     expect(meta.description).toBe('생각을 다듬고 시스템으로 만드는 과정을 기록하는 공간.');
-    expect(meta.alternates).toEqual({ canonical: '/about' });
+    expect(meta.alternates).toMatchObject({ canonical: '/about' });
     expect((meta.openGraph as Record<string, unknown>).description).toBe(
       '생각을 다듬고 시스템으로 만드는 과정을 기록하는 공간.',
     );
   });
 });
 
+describe('buildArticleMetadata', () => {
+  it('OG type을 article로 바꾸고 발행·수정 시각을 덧붙인다', async () => {
+    const { buildArticleMetadata } = await import('@lib/metadata/metadata');
+    const meta = buildArticleMetadata({
+      title: '글제목',
+      path: '/blog/my-post',
+      publishedTime: '2026-09-01T00:00:00.000Z',
+      modifiedTime: '2026-09-02T00:00:00.000Z',
+    });
+    expect(meta.alternates?.canonical).toBe('/blog/my-post');
+    expect(meta.openGraph).toMatchObject({
+      type: 'article',
+      url: '/blog/my-post',
+      publishedTime: '2026-09-01T00:00:00.000Z',
+      modifiedTime: '2026-09-02T00:00:00.000Z',
+    });
+  });
+});
+
 describe('baseMetadata', () => {
+  it('RSS 피드를 alternate 링크로 알린다', () => {
+    expect(baseMetadata.alternates?.types).toEqual({
+      'application/rss+xml': [{ url: '/rss.xml', title: 'raven.kr RSS' }],
+    });
+  });
+
   it('SITE_URL이 없으면 production origin과 검색 허용을 사용한다', async () => {
     vi.stubEnv('SITE_URL', '');
     const { baseMetadata } = await import('@lib/metadata/metadata');

@@ -298,4 +298,29 @@ describe('posts.api', () => {
       digest: 'NEXT_HTTP_ERROR_FALLBACK;404',
     });
   });
+  it('RSS 피드는 최신순 공개 글을 본문까지 채워 준다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'mock');
+    const { getPublishedBlogPostsForFeed } = await import('@features/posts/services/posts.api');
+    const posts = await getPublishedBlogPostsForFeed();
+    expect(posts.map((post) => post.slug)).toEqual([
+      'rsc-우선-데이터-패칭',
+      '가벼운-헥사고날로-nestjs-나누기',
+    ]);
+    expect(posts[0].body_markdown.length).toBeGreaterThan(0);
+    expect(posts.every((post) => post.status === 'published')).toBe(true);
+  });
+
+  it('RSS 피드 supabase 오류를 피드 문맥이 있는 오류로 바꾼다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'supabase');
+    const limit = vi.fn().mockResolvedValue({ data: null, error: { message: 'db down' } });
+    const from = vi.fn(() => ({
+      select: () => ({ eq: () => ({ order: () => ({ order: () => ({ limit }) }) }) }),
+    }));
+    vi.doMock('@lib/supabase/public', () => ({ createPublicClient: () => ({ from }) }));
+    const { getPublishedBlogPostsForFeed } = await import('@features/posts/services/posts.api');
+    await expect(getPublishedBlogPostsForFeed()).rejects.toThrow(
+      'RSS 공개 글을 불러오지 못했습니다: db down',
+    );
+    expect(limit).toHaveBeenCalledWith(20);
+  });
 });

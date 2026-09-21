@@ -7,10 +7,28 @@ describe('normalizeRouteSlug', () => {
   });
 
   it('분해된 유니코드를 콘텐츠 키와 같은 NFC로 정규화한다', () => {
-    expect(normalizeRouteSlug('공개-글')).toBe('공개-글');
+    expect(normalizeRouteSlug('공개-글')).toBe('공개-글');
   });
 
-  it.each(['%', '%E0%A4%A', 'post%ZZ'])('잘못된 percent 경로 %s는 notFound로 보낸다', (slug) => {
+  it.each([
+    '%',
+    '%E0%A4%A',
+    'post%ZZ',
+    '',
+    '.',
+    '..',
+    '%2e%2e',
+    '/',
+    '%2f',
+    '\\',
+    '%5c',
+    '%252f',
+    '%252e%252e',
+    '%00',
+    '\n',
+    '\u007f',
+    '‮',
+  ])('잘못된 경로 %j는 notFound로 보낸다', (slug) => {
     expect(() => normalizeRouteSlug(slug)).toThrowError(
       expect.objectContaining({ digest: 'NEXT_HTTP_ERROR_FALLBACK;404' }),
     );
