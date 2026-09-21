@@ -48,7 +48,7 @@ describe('FeaturedCarousel', () => {
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
-  it('renders progress only over a cover image and updates its ten-second countdown', () => {
+  it('renders progress in the autoplay control and updates its ten-second countdown', () => {
     vi.useFakeTimers();
     const { rerender } = render(<FeaturedCarousel posts={[post(1), post(3)]} />);
     const progress = screen.getByRole('progressbar', { name: '다음 추천 글 전환까지' });
@@ -60,7 +60,7 @@ describe('FeaturedCarousel', () => {
     expect(progress).toHaveAttribute('aria-valuetext', '5초 후 전환');
 
     rerender(<FeaturedCarousel posts={[post(2), post(3)]} />);
-    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: '다음 추천 글 전환까지' })).toBeInTheDocument();
   });
 
   it('supports manual navigation and clamps the current slide when results shrink', () => {

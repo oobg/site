@@ -9,6 +9,8 @@ import styles from './FeaturedCarousel.module.css';
 
 const AUTOPLAY_MS = 10_000;
 const PROGRESS_TICK_MS = 50;
+const PROGRESS_RING_RADIUS = 19;
+const PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RING_RADIUS;
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 
 function subscribeReducedMotion(onChange: () => void) {
@@ -113,19 +115,6 @@ export function FeaturedCarousel({ posts }: { posts: readonly BlogPostSummary[] 
                 objectPosition: `${post.cover_position.x * 100}% ${post.cover_position.y * 100}%`,
               }}
             />
-            {posts.length > 1 ? (
-              <div
-                className={styles.progressTrack}
-                role="progressbar"
-                aria-label="다음 추천 글 전환까지"
-                aria-valuemin={0}
-                aria-valuemax={AUTOPLAY_MS}
-                aria-valuenow={Math.round(progress * AUTOPLAY_MS)}
-                aria-valuetext={paused ? '일시정지' : `${remainingSeconds}초 후 전환`}
-              >
-                <span className={styles.progressBar} style={{ transform: `scaleX(${progress})` }} />
-              </div>
-            ) : null}
           </div>
         )}
         <div className={styles.copy} data-with-cover={post.cover_image_url ? '' : undefined}>
@@ -133,18 +122,53 @@ export function FeaturedCarousel({ posts }: { posts: readonly BlogPostSummary[] 
             <span className={styles.category}>{post.category.name}</span>
             {posts.length > 1 ? (
               <div className={styles.controls}>
-                <button
-                  type="button"
-                  onClick={toggleAutoplay}
-                  aria-pressed={stopped}
-                  aria-label={stopped ? '자동 전환 재생' : '자동 전환 일시정지'}
-                >
-                  {stopped ? (
-                    <Play aria-hidden size={15} weight="fill" />
-                  ) : (
-                    <Pause aria-hidden size={15} weight="fill" />
-                  )}
-                </button>
+                <div className={styles.autoplayControl}>
+                  <span
+                    className={styles.progressStatus}
+                    role="progressbar"
+                    aria-label="다음 추천 글 전환까지"
+                    aria-valuemin={0}
+                    aria-valuemax={AUTOPLAY_MS}
+                    aria-valuenow={Math.round(progress * AUTOPLAY_MS)}
+                    aria-valuetext={paused ? '일시정지' : `${remainingSeconds}초 후 전환`}
+                  />
+                  <button
+                    type="button"
+                    className={styles.autoplayButton}
+                    onClick={toggleAutoplay}
+                    aria-pressed={stopped}
+                    aria-label={stopped ? '자동 전환 재생' : '자동 전환 일시정지'}
+                  >
+                    <svg className={styles.progressRing} viewBox="0 0 44 44" aria-hidden="true">
+                      <circle
+                        className={styles.progressRingTrack}
+                        cx="22"
+                        cy="22"
+                        r={PROGRESS_RING_RADIUS}
+                        fill="none"
+                        strokeWidth="2"
+                      />
+                      <circle
+                        className={styles.progressRingValue}
+                        cx="22"
+                        cy="22"
+                        r={PROGRESS_RING_RADIUS}
+                        fill="none"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeDasharray={PROGRESS_RING_CIRCUMFERENCE}
+                        strokeDashoffset={PROGRESS_RING_CIRCUMFERENCE * (1 - progress)}
+                      />
+                    </svg>
+                    <span className={styles.autoplayIcon}>
+                      {stopped ? (
+                        <Play aria-hidden size={15} weight="fill" />
+                      ) : (
+                        <Pause aria-hidden size={15} weight="fill" />
+                      )}
+                    </span>
+                  </button>
+                </div>
                 <div className={styles.nav} role="group" aria-label="추천 글 탐색">
                   <button type="button" onClick={() => move(-1)} aria-label="이전 추천 글">
                     <CaretLeft aria-hidden size={17} weight="bold" />

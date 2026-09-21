@@ -28,26 +28,6 @@
   height: 100%;
   object-fit: cover;
 }
-.progressTrack {
-  position: absolute;
-  bottom: clamp(12px, 2vw, 16px);
-  left: clamp(12px, 2vw, 16px);
-  width: clamp(72px, 18%, 112px);
-  height: 2px;
-  overflow: hidden;
-  border-radius: var(--radius-pill);
-  background: rgb(255 255 255 / 40%);
-}
-.progressBar {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: inherit;
-  background: rgb(255 255 255 / 90%);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform 80ms linear;
-}
 .copy {
   max-width: 520px;
 }
@@ -126,6 +106,52 @@
   border-color: var(--d0-blue);
   color: var(--d0-blue-dark);
 }
+.autoplayControl {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+}
+.autoplayButton {
+  position: relative;
+  width: 44px !important;
+  height: 44px !important;
+}
+.progressStatus {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.progressRing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+.progressRingTrack {
+  stroke: var(--d0-grey-200);
+}
+.progressRingValue {
+  stroke: var(--d0-blue);
+  transition: stroke-dashoffset 80ms linear;
+}
+.autoplayIcon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+}
 @media (max-width: 640px) {
   .section {
     padding-top: var(--space-6);
@@ -166,7 +192,7 @@
   .slide {
     animation: none;
   }
-  .progressBar {
+  .progressRingValue {
     transition-duration: 0ms;
   }
 }
