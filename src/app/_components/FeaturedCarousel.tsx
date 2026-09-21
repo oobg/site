@@ -8,7 +8,9 @@ import { ROUTES } from '@constants/routes';
 import styles from './FeaturedCarousel.module.css';
 
 const AUTOPLAY_MS = 10_000;
-const PROGRESS_TICK_MS = 50;
+/* 링은 CSS transition으로 틱 사이를 잇고, React 상태는 접근성 값과 슬라이드 전환에만
+   초당 한 번 갱신한다. 20Hz 상태 갱신은 읽는 동안 불필요한 서브트리 리렌더를 만든다. */
+const PROGRESS_TICK_MS = 1_000;
 const PROGRESS_RING_RADIUS = 19;
 const PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RING_RADIUS;
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';

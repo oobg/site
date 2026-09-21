@@ -146,7 +146,7 @@ describe('CommentsSection identity picker', () => {
 });
 
 describe('CommentsSection load failure', () => {
-  it('surfaces the failure in the status region and recovers through the retry action', async () => {
+  it('surfaces one recovery message and recovers through the retry action', async () => {
     const fetchMock = vi
       .fn()
       .mockRejectedValueOnce(new Error('network'))
@@ -171,15 +171,14 @@ describe('CommentsSection load failure', () => {
     render(<CommentsSection slug="post" />);
     await flushMicrotasks();
 
-    const status = screen.getByText('댓글을 불러오지 못했어요. 다시 시도해 주세요.');
-    expect(status).toBeInTheDocument();
-    expect(status).toHaveAttribute('aria-live', 'polite');
+    expect(screen.getByText('댓글은 잠시 쉬고 있어요.')).toBeInTheDocument();
+    expect(screen.queryByText('댓글을 불러오지 못했어요. 다시 시도해 주세요.')).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }));
     await flushMicrotasks();
 
     expect(screen.getByText('다시 불러온 댓글')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '다시 불러오기' })).toBeNull();
-    expect(screen.queryByText('댓글을 불러오지 못했어요. 다시 시도해 주세요.')).toBeNull();
+    expect(screen.queryByText('댓글은 잠시 쉬고 있어요.')).toBeNull();
   });
 });

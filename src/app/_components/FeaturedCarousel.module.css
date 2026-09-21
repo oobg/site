@@ -155,7 +155,10 @@
 }
 .progressRingValue {
   stroke: var(--d0-blue);
-  transition: stroke-dashoffset 80ms linear;
+  transition: stroke-dashoffset 1000ms linear;
+}
+.section[data-paused] .progressRingValue {
+  transition-duration: 0ms;
 }
 .autoplayIcon {
   position: relative;

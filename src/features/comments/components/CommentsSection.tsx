@@ -226,8 +226,6 @@ function randomIdentity() {
 
 const NICKNAME_STEP_MS = 40;
 
-const LOAD_ERROR_MESSAGE = '댓글을 불러오지 못했어요. 다시 시도해 주세요.';
-
 function identityNoticeFor(nickname: string) {
   return `닉네임과 아이콘을 새로 골랐어요. ${nickname}`;
 }
@@ -306,7 +304,8 @@ export function CommentsSection({ slug }: { slug: string }) {
         .catch((reason: unknown) => {
           if ((reason as Error).name === 'AbortError') return;
           setLoadError(true);
-          setError(LOAD_ERROR_MESSAGE);
+          // 복구 블록이 같은 실패를 설명한다. status에는 두 번째 문구를 겹쳐 읽히게 하지 않는다.
+          setError('');
         })
         .finally(() => {
           if (!signal?.aborted) setLoading(false);
