@@ -114,7 +114,7 @@ describe('SiteHeader', () => {
     fireEvent.compositionEnd(input);
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     fireEvent.keyDown(input, { key: 'Enter' });
-    expect(push).toHaveBeenCalledWith('/projects');
+    expect(push).toHaveBeenCalledWith('/about');
   });
 
   it('listbox 결과는 비포커스 option이고 빈 검색 결과를 announce한다', async () => {
@@ -139,7 +139,8 @@ describe('SiteHeader', () => {
     const input = await screen.findByRole('combobox');
     const options = await screen.findAllByRole('option');
 
-    expect(options).toHaveLength(3);
+    expect(options).toHaveLength(2);
+    expect(screen.queryByText('프로젝트')).not.toBeInTheDocument();
     options.forEach((option) => expect(option).toHaveAttribute('tabindex', '-1'));
     expect(input).toHaveAttribute('aria-activedescendant', options[0].id);
 

@@ -2,14 +2,7 @@
 
 import { Dialog } from '@base-ui/react/dialog';
 import { useQuery } from '@tanstack/react-query';
-import {
-  ArrowRight,
-  Folder,
-  House,
-  MagnifyingGlass,
-  SquaresFour,
-  User,
-} from '@phosphor-icons/react';
+import { ArrowRight, Folder, House, MagnifyingGlass, User } from '@phosphor-icons/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { ROUTES } from '@constants/routes';
@@ -26,13 +19,6 @@ type PaletteItem = {
 
 const pages: PaletteItem[] = [
   { id: 'home', label: '홈', meta: '페이지', href: ROUTES.HOME, kind: 'page' },
-  {
-    id: 'projects',
-    label: '프로젝트',
-    meta: '페이지',
-    href: ROUTES.PROJECTS.LIST,
-    kind: 'page',
-  },
   { id: 'about', label: '소개', meta: '페이지', href: ROUTES.ABOUT, kind: 'page' },
 ];
 
@@ -233,9 +219,7 @@ export function CommandPalette() {
                         ? Folder
                         : item.id === 'home'
                           ? House
-                          : item.id === 'projects'
-                            ? SquaresFour
-                            : User;
+                          : User;
                   return (
                     <button
                       key={item.id}
