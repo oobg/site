@@ -115,11 +115,11 @@ describe('글 상세 레이아웃', () => {
     expect(props).not.toHaveProperty('detailNavigation');
   });
 
-  /* 두 벌을 동시에 보이게 두면 같은 목차가 화면에 두 번 뜬다. 데스크톱은 오른쪽 레일,
-     900 이하는 본문 위 접이식 하나. 경계는 CSS가 나누므로 규칙 자체를 잡는다. */
-  it('900 이하에서 오른쪽 레일을 접어 목차가 겹치지 않는다', () => {
+  /* 두 벌을 동시에 보이게 두면 같은 목차가 화면에 두 번 뜬다. 1200 이하는 본문 위
+     접이식 하나, 900 이하는 셸도 한 열이다. 경계는 CSS가 나누므로 규칙 자체를 잡는다. */
+  it('1200 이하에서 오른쪽 레일을 접어 목차가 겹치지 않는다', () => {
     const css = articleCss();
-    const narrow = css.match(/@media \(max-width: 900px\) \{([\s\S]*)\n\}/)?.[1] ?? '';
+    const narrow = css.match(/@media \(max-width: 1200px\) \{([\s\S]*)\n\}/)?.[1] ?? '';
     expect(narrow).toMatch(/\.tocRail \{[^}]*display: none/);
     expect(narrow).toMatch(/\.page \{[^}]*display: block/);
   });

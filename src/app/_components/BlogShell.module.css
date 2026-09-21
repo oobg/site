@@ -150,6 +150,14 @@
   font-size: 17px;
   font-weight: 400;
 }
+/* 상세 오른쪽 레일이 접히는 구간에서도 본문 위 목차는 남긴다. 카테고리 목록에는
+   이 슬롯이 없으므로 목록 화면에는 영향을 주지 않는다. */
+@media (max-width: 1200px) {
+  .mobileDetailNavigation {
+    display: block;
+    margin-bottom: var(--space-5);
+  }
+}
 @media (max-width: 900px) {
   .shell {
     display: block;
@@ -165,10 +173,6 @@
     margin-inline: calc(var(--outer) * -1);
     padding: var(--space-2) var(--outer);
     border-bottom: 1px solid var(--d0-grey-100);
-  }
-  .mobileDetailNavigation {
-    display: block;
-    margin-bottom: var(--space-5);
   }
 }
 @media (prefers-reduced-motion: reduce) {
