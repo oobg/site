@@ -129,9 +129,11 @@ export function BlogShell({
         ) : null}
       </aside>
       <div className={styles.mobileBar}>
-        <strong>기술 블로그</strong>
         <Dialog.Root>
-          <Dialog.Trigger className={styles.menuButton}>주제 보기</Dialog.Trigger>
+          <Dialog.Trigger className={styles.menuButton} aria-label="블로그 카테고리 선택">
+            <strong>기술 블로그</strong>
+            <CaretDown aria-hidden size={16} />
+          </Dialog.Trigger>
           <Dialog.Portal>
             <Dialog.Backdrop className={styles.backdrop} />
             <Dialog.Popup className={styles.menu}>

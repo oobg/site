@@ -1,6 +1,6 @@
 // src/components/intro/__tests__/IntroProvider.test.tsx
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import { IntroProvider, useIntro } from '@components/intro/IntroProvider';
 
 function mockReducedMotion(matches: boolean) {
@@ -74,6 +74,26 @@ describe('IntroProvider / useIntro', () => {
     const background = document.querySelector<HTMLElement>('[data-intro-background]');
     expect(background?.inert).toBe(true);
     act(() => screen.getByRole('button', { name: 'finish' }).click());
+    expect(background?.inert).toBe(false);
+  });
+
+  it('Tab을 누르면 인트로를 끝내고 해당 키 입력을 콘텐츠에 넘긴다', () => {
+    document.documentElement.dataset.intro = 'pending';
+    mockReducedMotion(false);
+    render(
+      <IntroProvider>
+        <div data-intro-background>
+          <button>background action</button>
+        </div>
+        <Probe />
+      </IntroProvider>,
+    );
+    const background = document.querySelector<HTMLElement>('[data-intro-background]');
+    expect(background?.inert).toBe(true);
+
+    fireEvent.keyDown(window, { key: 'Tab' });
+
+    expect(screen.getByTestId('playing')).toHaveTextContent('false');
     expect(background?.inert).toBe(false);
   });
 

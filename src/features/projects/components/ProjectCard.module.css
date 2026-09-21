@@ -9,6 +9,12 @@
   transition: color var(--d0-dur-fast) var(--d0-ease);
 }
 
+.card:focus-visible {
+  outline: 2px solid var(--d0-blue);
+  outline-offset: 4px;
+  border-radius: var(--d0-radius-sm);
+}
+
 .card:hover {
   color: var(--d0-blue-dark);
 }

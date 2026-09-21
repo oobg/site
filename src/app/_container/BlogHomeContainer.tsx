@@ -99,7 +99,7 @@ export function BlogHomeContainer({
               <Button onClick={() => result.refetch()}>다시 시도</Button>
             </div>
           ) : data.archive.totalItems === 0 ? (
-            <div className={styles.state}>
+            <div className={styles.state} role="status" aria-live="polite">
               <p>아직 공개한 글이 없어요.</p>
             </div>
           ) : null}
@@ -176,7 +176,7 @@ export function BlogHomeContainer({
             ) : !data ? (
               <BlogArchiveContentSkeleton showHeading={false} />
             ) : data.archive.items.length === 0 ? (
-              <div className={styles.state}>
+              <div className={styles.state} role="status" aria-live="polite">
                 <p>
                   {filters.q || filters.category || filters.tag
                     ? '조건에 맞는 글이 없어요.'

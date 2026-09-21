@@ -20,7 +20,9 @@ export function StatusScreen({
     <Container>
       <div className={styles.screen}>
         <Eyebrow>{code}</Eyebrow>
-        <h1 className={styles.title}>{title}</h1>
+        <h1 className={styles.title} tabIndex={-1} autoFocus>
+          {title}
+        </h1>
         <p className={styles.description}>{description}</p>
         <div className={styles.action}>{action}</div>
       </div>

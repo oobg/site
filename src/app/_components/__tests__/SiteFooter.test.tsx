@@ -4,7 +4,7 @@ import { SiteFooter } from '@/app/_components/SiteFooter';
 import styles from '@/app/_components/SiteFooter.module.css';
 
 describe('SiteFooter', () => {
-  it('내비게이션에서 프로젝트를 숨기고 글과 소개 링크를 렌더한다', () => {
+  it('글과 소개 링크만 렌더한다', () => {
     render(<SiteFooter />);
     expect(screen.getByRole('heading', { name: '둘러보기', level: 2 })).toBeInTheDocument();
     expect(screen.getByRole('link', { name: '글' })).toHaveAttribute('href', '/');

@@ -26,12 +26,14 @@ function renderHeader() {
 }
 
 describe('SiteHeader', () => {
-  it('로고와 command palette trigger만 렌더한다', () => {
+  it('wordmark와 검색 trigger만 렌더한다', () => {
     renderHeader();
     const wordmark = screen.getByRole('link', { name: 'raven' });
     expect(wordmark).toHaveAttribute('href', '/');
     expect(wordmark).toHaveAttribute('data-site-wordmark');
     expect(screen.getByRole('button', { name: /검색/ })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: '글' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: '프로젝트' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '소개' })).not.toBeInTheDocument();
   });
 
@@ -112,6 +114,39 @@ describe('SiteHeader', () => {
     fireEvent.compositionEnd(input);
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     fireEvent.keyDown(input, { key: 'Enter' });
-    expect(push).toHaveBeenCalledWith('/about');
+    expect(push).toHaveBeenCalledWith('/projects');
+  });
+
+  it('listbox 결과는 비포커스 option이고 빈 검색 결과를 announce한다', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(
+            JSON.stringify({
+              featured: [],
+              categories: [],
+              sections: [],
+              archive: { items: [], page: 1, pageSize: 6, totalItems: 0, totalPages: 0 },
+            }),
+            { status: 200 },
+          ),
+        ),
+      ),
+    );
+    renderHeader();
+    fireEvent.click(screen.getByRole('button', { name: /검색/ }));
+    const input = await screen.findByRole('combobox');
+    const options = await screen.findAllByRole('option');
+
+    expect(options).toHaveLength(3);
+    options.forEach((option) => expect(option).toHaveAttribute('tabindex', '-1'));
+    expect(input).toHaveAttribute('aria-activedescendant', options[0].id);
+
+    fireEvent.change(input, { target: { value: '없는검색어' } });
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent('검색 결과가 없습니다.'),
+    );
+    expect(input).not.toHaveAttribute('aria-activedescendant');
   });
 });

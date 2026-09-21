@@ -21,9 +21,24 @@ function post(index: number): BlogPostSummary {
   };
 }
 
+/* 컴포넌트가 마운트 직후 모션 축소 설정을 읽는다. jsdom 기본 스텁은 matches:false라
+   자동 전환이 켜진 채 시작하고, 이 함수로만 꺼진 환경을 만든다. */
+function stubReducedMotion(matches: boolean) {
+  vi.stubGlobal(
+    'matchMedia',
+    vi.fn().mockReturnValue({
+      matches,
+      media: '(prefers-reduced-motion: reduce)',
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }),
+  );
+}
+
 describe('FeaturedCarousel', () => {
   afterEach(() => {
     vi.useRealTimers();
+    vi.unstubAllGlobals();
   });
 
   it('does not show controls for one featured post', () => {
@@ -82,6 +97,49 @@ describe('FeaturedCarousel', () => {
     fireEvent.blur(nextButton);
     act(() => vi.advanceTimersByTime(10000));
     expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+  });
+
+  it('lets a keyboard or touch user stop and restart the ten-second rotation', () => {
+    vi.useFakeTimers();
+    render(<FeaturedCarousel posts={[1, 2, 3].map(post)} />);
+
+    fireEvent.click(screen.getByRole('button', { name: '자동 전환 일시정지' }));
+    const resume = screen.getByRole('button', { name: '자동 전환 재생' });
+    expect(resume).toHaveAttribute('aria-pressed', 'true');
+    act(() => vi.advanceTimersByTime(20000));
+    expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+
+    /* 버튼에 포커스가 남아 있어도 재생은 곧바로 되살아나야 한다 — 그러지 않으면
+       키보드 사용자에게는 재생 버튼이 아무 일도 하지 않는 것처럼 보인다. */
+    fireEvent.focus(resume);
+    fireEvent.click(resume);
+    expect(screen.getByRole('button', { name: '자동 전환 일시정지' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    act(() => vi.advanceTimersByTime(10000));
+    expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
+  });
+
+  it('marks the rotation as paused while it is stopped by the button', () => {
+    vi.useFakeTimers();
+    render(<FeaturedCarousel posts={[post(1), post(3)]} />);
+    fireEvent.click(screen.getByRole('button', { name: '자동 전환 일시정지' }));
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuetext', '일시정지');
+  });
+
+  it('starts with auto-advance off when the reader asks for reduced motion', () => {
+    stubReducedMotion(true);
+    vi.useFakeTimers();
+    render(<FeaturedCarousel posts={[1, 2, 3].map(post)} />);
+
+    expect(screen.getByRole('button', { name: '자동 전환 재생' })).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(30000));
+    expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: '자동 전환 재생' }));
+    act(() => vi.advanceTimersByTime(10000));
+    expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
   });
 
   it('does not render a broken image when a cover is missing', () => {

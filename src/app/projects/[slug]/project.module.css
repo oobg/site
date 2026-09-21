@@ -6,3 +6,9 @@
   margin-inline: auto;
   padding-block: var(--space-7) var(--space-10);
 }
+
+@media (max-width: 640px) {
+  .article {
+    padding-top: var(--space-6);
+  }
+}

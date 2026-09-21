@@ -13,7 +13,11 @@ export function PostCard({
   showCategory?: boolean;
 }) {
   return (
-    <article className={styles.card}>
+    <article
+      className={styles.card}
+      data-no-cover={!post.cover_image_url || undefined}
+      data-reserved={reserveCoverSpace || undefined}
+    >
       {post.cover_image_url && (
         <Link
           className={styles.cover}
@@ -30,11 +34,6 @@ export function PostCard({
           />
         </Link>
       )}
-      {!post.cover_image_url && reserveCoverSpace ? (
-        <div className={`${styles.cover} ${styles.coverFallback}`} aria-hidden="true">
-          <span aria-hidden>Raven</span>
-        </div>
-      ) : null}
       <div className={styles.body}>
         {showCategory ? <span className={styles.category}>{post.category.name}</span> : null}
         <h2>

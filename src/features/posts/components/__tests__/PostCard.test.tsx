@@ -21,14 +21,14 @@ const post: BlogPostSummary = {
 };
 
 describe('PostCard', () => {
-  it('혼합 목록에서만 표지 없는 글의 텍스트 자리를 맞춘다', () => {
+  it('표지 없는 글은 가짜 미디어 없이 여백과 선으로 자리를 보존한다', () => {
     const { container, rerender } = render(<PostCard post={post} />);
     expect(container.querySelector('[aria-hidden="true"]')).toBeNull();
 
     rerender(<PostCard post={post} reserveCoverSpace />);
-    const fallback = container.querySelector('[aria-hidden="true"]');
-    expect(fallback).toHaveTextContent('Raven');
-    expect(fallback).not.toHaveTextContent('표지가 없는 글');
+    expect(container.querySelector('[aria-hidden="true"]')).toBeNull();
+    expect(container.querySelector('article')).toHaveAttribute('data-reserved');
+    expect(container.querySelector('article')).toHaveAttribute('data-no-cover');
     expect(screen.getByRole('link', { name: '표지가 없는 글' })).toBeInTheDocument();
   });
 });

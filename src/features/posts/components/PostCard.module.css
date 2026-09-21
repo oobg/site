@@ -14,25 +14,18 @@
   object-fit: cover;
   transition: transform var(--d0-dur) var(--d0-ease);
 }
-.coverFallback {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: var(--space-2);
-  padding: var(--space-5);
-  color: var(--d0-grey-700);
-  background: var(--d0-blue-light);
-}
-.coverFallback span {
-  color: var(--d0-blue-dark);
-  font-size: var(--d0-meta);
-  font-weight: 650;
-}
 .card:hover .cover img {
   transform: scale(1.02);
 }
 .body {
   padding-top: var(--space-3);
+}
+.card[data-no-cover][data-reserved] {
+  padding-top: 62.5%;
+}
+.card[data-no-cover][data-reserved] .body {
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--d0-grey-100);
 }
 .category {
   color: var(--d0-blue-dark);

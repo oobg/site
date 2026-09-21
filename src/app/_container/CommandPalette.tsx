@@ -2,7 +2,14 @@
 
 import { Dialog } from '@base-ui/react/dialog';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Folder, House, MagnifyingGlass, User } from '@phosphor-icons/react';
+import {
+  ArrowRight,
+  Folder,
+  House,
+  MagnifyingGlass,
+  SquaresFour,
+  User,
+} from '@phosphor-icons/react';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { ROUTES } from '@constants/routes';
@@ -19,6 +26,13 @@ type PaletteItem = {
 
 const pages: PaletteItem[] = [
   { id: 'home', label: '홈', meta: '페이지', href: ROUTES.HOME, kind: 'page' },
+  {
+    id: 'projects',
+    label: '프로젝트',
+    meta: '페이지',
+    href: ROUTES.PROJECTS.LIST,
+    kind: 'page',
+  },
   { id: 'about', label: '소개', meta: '페이지', href: ROUTES.ABOUT, kind: 'page' },
 ];
 
@@ -206,7 +220,9 @@ export function CommandPalette() {
                 </p>
               ) : null}
               {!isLoading && !isError && query.trim() === debouncedQuery && items.length === 0 ? (
-                <p className={styles.state}>검색 결과가 없습니다.</p>
+                <p className={styles.state} role="status">
+                  검색 결과가 없습니다.
+                </p>
               ) : null}
               <div id={listboxId} role="listbox" aria-label="검색 결과">
                 {items.map((item, index) => {
@@ -217,13 +233,16 @@ export function CommandPalette() {
                         ? Folder
                         : item.id === 'home'
                           ? House
-                          : User;
+                          : item.id === 'projects'
+                            ? SquaresFour
+                            : User;
                   return (
                     <button
                       key={item.id}
                       id={`${listboxId}-${item.id}`}
                       className={styles.result}
                       role="option"
+                      tabIndex={-1}
                       aria-selected={index === safeActiveIndex}
                       data-active={index === safeActiveIndex || undefined}
                       onMouseMove={() => setActiveIndex(index)}
