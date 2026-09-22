@@ -71,7 +71,7 @@ export function FeaturedCarousel({
       if (elapsed >= AUTOPLAY_MS) {
         elapsedRef.current = 0;
         setProgress(0);
-        setIndex((activeIndex + 1) % posts.length);
+        setIndex((current) => (current + 1) % posts.length);
       }
     }, PROGRESS_TICK_MS);
     return () => window.clearInterval(timer);
@@ -161,8 +161,8 @@ export function FeaturedCarousel({
                     role="progressbar"
                     aria-label="다음 추천 글 전환까지"
                     aria-valuemin={0}
-                    aria-valuemax={AUTOPLAY_MS}
-                    aria-valuenow={Math.round(progress * AUTOPLAY_MS)}
+                    aria-valuemax={100}
+                    aria-valuenow={Math.round(progress * 100)}
                     aria-valuetext={paused ? '일시정지' : `${remainingSeconds}초 후 전환`}
                   />
                   <button
@@ -219,7 +219,7 @@ export function FeaturedCarousel({
             ) : null}
           </div>
           <h3>
-            <Link href={ROUTES.BLOG.DETAIL(post.slug)}>{post.title}</Link>
+            <Link href={ROUTES.BLOG.DETAIL(post.category.slug, post.slug)}>{post.title}</Link>
           </h3>
           {post.summary && <p>{post.summary}</p>}
           <time dateTime={post.published_at}>

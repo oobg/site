@@ -13,7 +13,7 @@ import { BlogSettings } from '@features/admin/components/BlogSettings';
 const categories = [
   {
     id: '00000000-0000-4000-8000-000000000001',
-    slug: 'uncategorized',
+    slug: '미분류',
     name: '미분류',
     sort_order: 99,
     is_default: true,

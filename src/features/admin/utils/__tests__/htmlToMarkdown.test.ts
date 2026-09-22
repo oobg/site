@@ -123,6 +123,63 @@ describe('htmlToMarkdown', () => {
     expect(markdown).not.toContain('파일 구조');
   });
 
+  it('round-trips rendered filetree decorations without serializing them', async () => {
+    const source = ['```filetree', 'project/', '└── src/', '    └── index.ts', '```'].join('\n');
+    const { html } = await renderMarkdown(source);
+
+    expect(html).toContain('data-filetree-icon="folder"');
+    expect(html).toContain('data-filetree-icon="ts"');
+    expect(html).toContain('alt="" aria-hidden="true"');
+    expect(html).toContain('data-code-dots="" aria-hidden="true"');
+    expect(html).toContain('data-code-lang="">파일 구조</span>');
+    expect(htmlToMarkdown(root(html))).toBe(source);
+    expect(htmlToMarkdown(root(html))).not.toContain('filetree-icons');
+  });
+
+  it.each([
+    ['mermaid', 'flowchart TD\n  A --> B'],
+    [
+      'installer',
+      JSON.stringify(
+        {
+          title: 'CLI 설치',
+          intro: '패키지 매니저를 선택하세요.',
+          managers: { npm: 'npm install raven', pnpm: 'pnpm add raven' },
+          steps: [
+            { title: '설정', code: 'raven init', language: 'sh', note: '한 번만 실행합니다.' },
+          ],
+        },
+        null,
+        2,
+      ),
+    ],
+  ])('rendered %s 컴포넌트를 원래 fenced Markdown으로 되돌린다', async (kind, value) => {
+    const source = `\`\`\`${kind}\n${value}\n\`\`\``;
+    const { html } = await renderMarkdown(source);
+    expect(htmlToMarkdown(root(html))).toBe(source);
+  });
+
+  it('컴포넌트 태그가 바뀌어도 숨겨 둔 source를 공백까지 그대로 직렬화한다', async () => {
+    const value = JSON.stringify({
+      title: 'CLI 설치',
+      managers: { npm: '  npm install raven  ' },
+      steps: [{ title: '설정', code: '  raven init\n  ' }],
+    });
+    const source = `\`\`\`installer\n${value}\n\n\`\`\``;
+    const { html } = await renderMarkdown(source);
+    const rendered = root(html);
+    const component = rendered.querySelector('[data-installer]');
+    expect(component).not.toBeNull();
+    const article = document.createElement('article');
+    for (const attribute of Array.from(component!.attributes)) {
+      article.setAttribute(attribute.name, attribute.value);
+    }
+    article.innerHTML = component!.innerHTML;
+    component!.replaceWith(article);
+
+    expect(htmlToMarkdown(rendered)).toBe(source);
+  });
+
   it('preserves unsupported pasted element text and rejects unsafe URLs', () => {
     const markdown = htmlToMarkdown(
       root(
@@ -133,44 +190,5 @@ describe('htmlToMarkdown', () => {
     expect(markdown).toBe('보존할 내용\n\n안전한 글자이미지 설명');
     expect(markdown).not.toContain('javascript:');
     expect(markdown).not.toContain('data:image');
-  });
-
-  it.each([
-    [
-      'mermaid',
-      'graph TD\n  A --> B',
-      '<figure data-mermaid><span hidden data-mermaid-source>graph TD\n  A --&gt; B</span><div data-mermaid-output><svg></svg></div><div data-mermaid-fallback><figure data-code><pre><code>graph TD\n  A --&gt; B</code></pre></figure></div></figure>',
-    ],
-    [
-      'installer',
-      '{\n  "title": "SDK 설치",\n  "steps": [{ "title": "실행", "code": "pnpm add raven" }]\n}',
-      '<figure data-installer><span hidden data-installer-source>{\n  &quot;title&quot;: &quot;SDK 설치&quot;,\n  &quot;steps&quot;: [{ &quot;title&quot;: &quot;실행&quot;, &quot;code&quot;: &quot;pnpm add raven&quot; }]\n}</span><header><h3>수정되어도 저장하지 않는 렌더 라벨</h3></header></figure>',
-    ],
-  ])('round-trips a %s figure to its fenced source', (language, source, html) => {
-    expect(htmlToMarkdown(root(html))).toBe(`\`\`\`${language}\n${source}\n\`\`\``);
-  });
-
-  it.each([
-    ['mermaid', 'flowchart LR\n  Draft --> Review'],
-    [
-      'installer',
-      '{\n  "title": "SDK 설치",\n  "managers": { "pnpm": "pnpm add raven" },\n  "steps": [{ "title": "실행", "language": "sh", "code": "pnpm add raven" }]\n}',
-    ],
-    [
-      'installer',
-      '{\n  "title": "에이전트 설치",\n  "agents": { "codex": "raven install --agent codex" },\n  "steps": [{ "title": "실행" }]\n}',
-    ],
-  ])('returns rendered %s HTML to the original fence', async (language, source) => {
-    const markdown = `\`\`\`${language}\n${source}\n\`\`\``;
-    const { html } = await renderMarkdown(markdown);
-    expect(htmlToMarkdown(root(html))).toBe(markdown);
-  });
-
-  it('preserves special fence source whitespace exactly through editor serialization', () => {
-    const source =
-      '{  \n  "title": "SDK 설치",  \n  "managers": {"npm": "  npm i raven  "},\n  "steps": [{"title":"실행","code":"  echo ready  "}]\n}';
-    const html = `<figure data-installer><span hidden data-installer-source>${source}</span></figure>`;
-
-    expect(htmlToMarkdown(root(html))).toBe(`\`\`\`installer\n${source}\n\`\`\``);
   });
 });

@@ -15,11 +15,16 @@ import {
   type BlogPostFilters,
   type BlogPostSummary,
   type Post,
+  type PostListItem,
 } from '@features/posts/types/posts.types';
 import { mockPostDetails, mockPostList } from '@features/posts/fixtures/posts.mock';
 import { createPublicClient } from '@lib/supabase/public';
 import { sortContentItems } from '@lib/content/sort';
-import { filterAndPaginatePosts, selectFeaturedPosts } from '@features/posts/utils/blog-posts';
+import {
+  filterAndPaginatePosts,
+  selectCategorySectionPosts,
+  selectFeaturedPosts,
+} from '@features/posts/utils/blog-posts';
 import { normalizeBlogPostFilters } from '@features/posts/services/posts.query';
 import { toPlainSummary } from '@features/posts/utils/plain-summary';
 
@@ -56,7 +61,7 @@ function toPostListItem(row: SupabasePostRow): ContentListItem {
   };
 }
 
-async function fetchPosts(params: ListParams): Promise<ContentListItem[]> {
+async function fetchPosts(params: ListParams): Promise<PostListItem[]> {
   if (env.CONTENT_SOURCE === 'mock') {
     const filtered = params.tag
       ? mockPostList.filter((p) => p.tags.includes(params.tag!))
@@ -71,7 +76,7 @@ async function fetchPosts(params: ListParams): Promise<ContentListItem[]> {
     const column = descending ? sort.slice(1) : sort;
     let query = supabase
       .from('posts')
-      .select(PUBLIC_POST_LIST_COLUMNS)
+      .select(`${PUBLIC_POST_LIST_COLUMNS},category:post_categories!inner(slug)`)
       .eq('status', 'published')
       .order(column, { ascending: !descending, nullsFirst: false });
     if (params.tag) query = query.contains('tags', [params.tag.toLocaleLowerCase('ko-KR')]);
@@ -82,7 +87,15 @@ async function fetchPosts(params: ListParams): Promise<ContentListItem[]> {
     const { data, error } = await query;
 
     if (error) throw new Error(`공개 글 목록을 불러오지 못했습니다: ${error.message}`);
-    return ((data ?? []) as SupabasePostRow[]).map(toPostListItem);
+    return (
+      (data ?? []) as (SupabasePostRow & {
+        category: Pick<BlogCategory, 'slug'> | Pick<BlogCategory, 'slug'>[];
+      })[]
+    ).map((row) => {
+      const category = Array.isArray(row.category) ? row.category[0] : row.category;
+      if (!category?.slug) throw new Error('공개 글의 카테고리가 없습니다.');
+      return { ...toPostListItem(row), category };
+    });
   }
   return apiGet<ContentListItem[]>('/content/posts', {
     tags: ['posts'],
@@ -106,7 +119,7 @@ const getPostsFromServerCache = unstable_cache(
     void sourceIdentity;
     return fetchPosts({ tag, page, limit, sort });
   },
-  ['legacy-public-post-list-v1'],
+  ['public-post-list-with-category-v2'],
   { revalidate: 60, tags: ['posts'] },
 );
 
@@ -121,7 +134,7 @@ const getPostsCached = cache(
 );
 
 /** 같은 서버 렌더 안의 동일한 목록 요청을 하나로 합친다. */
-export function getPosts(params: ListParams = {}): Promise<ContentListItem[]> {
+export function getPosts(params: ListParams = {}): Promise<PostListItem[]> {
   const sourceIdentity =
     env.CONTENT_SOURCE === 'api'
       ? `api:${env.CONTENT_API_BASE}`
@@ -169,6 +182,7 @@ export function getPost(slug: string): Promise<Post> {
 interface SupabaseCategoryRow {
   id: string;
   slug: string;
+  legacy_slug: string | null;
   name: string;
   sort_order: number;
   is_default: boolean;
@@ -189,6 +203,7 @@ interface SupabaseBlogPostRow extends SupabasePostRow {
 const DEFAULT_CATEGORY: BlogCategory = {
   id: DEFAULT_POST_CATEGORY_ID,
   slug: DEFAULT_POST_CATEGORY_SLUG,
+  legacy_slug: 'uncategorized',
   name: '미분류',
   sort_order: 2147483647,
   is_default: true,
@@ -209,11 +224,12 @@ const PUBLIC_BLOG_POST_COLUMNS = [
   'cover_position_y',
   'cover_alt',
   'pin_order',
-  'category:post_categories!inner(id,slug,name,sort_order,is_default)',
+  'category:post_categories!inner(id,slug,legacy_slug,name,sort_order,is_default)',
 ].join(',');
 
 function toBlogPostSummary(row: SupabaseBlogPostRow): BlogPostSummary {
   const category = Array.isArray(row.category) ? row.category[0] : row.category;
+  if (!category?.slug) throw new Error('공개 글의 카테고리가 없습니다.');
   return {
     slug: row.slug,
     title: row.title,
@@ -225,7 +241,7 @@ function toBlogPostSummary(row: SupabaseBlogPostRow): BlogPostSummary {
       row.cover_image_url ??
       (row.cover_image_key ? `/${row.cover_image_key.replace(/^\/+/, '')}` : null),
     status: 'published',
-    category: category ?? DEFAULT_CATEGORY,
+    category,
     cover_image_key: row.cover_image_key,
     cover_position: { x: row.cover_position_x, y: row.cover_position_y },
     cover_alt: row.cover_alt,
@@ -251,7 +267,7 @@ async function getSupabaseBlogShellUncached(): Promise<
   const supabase = createPublicClient();
   const categoriesPromise = supabase
     .from('post_categories')
-    .select('id,slug,name,sort_order,is_default,posts(count)')
+    .select('id,slug,legacy_slug,name,sort_order,is_default,posts(count)')
     .order('sort_order', { ascending: true })
     .order('slug', { ascending: true });
 
@@ -275,6 +291,7 @@ async function getSupabaseBlogShellUncached(): Promise<
     .map((category): BlogCategoryWithCount => ({
       id: category.id,
       slug: category.slug,
+      legacy_slug: category.legacy_slug ?? null,
       name: category.name,
       sort_order: category.sort_order,
       is_default: category.is_default,
@@ -288,7 +305,6 @@ async function getSupabaseBlogShellUncached(): Promise<
         .select(PUBLIC_BLOG_POST_COLUMNS)
         .eq('status', 'published')
         .eq('category_id', category.id)
-        .order('published_at', { ascending: false, nullsFirst: false })
         .order('slug', { ascending: true })
         .limit(3),
     ),
@@ -296,7 +312,7 @@ async function getSupabaseBlogShellUncached(): Promise<
   const sections = sectionResults
     .map((result, index) => {
       if (result.error)
-        throw new Error(`카테고리 최신 글을 불러오지 못했습니다: ${result.error.message}`);
+        throw new Error(`카테고리 최초 글을 불러오지 못했습니다: ${result.error.message}`);
       return {
         category: categories[index],
         posts: ((result.data ?? []) as unknown as SupabaseBlogPostRow[]).map(toBlogPostSummary),
@@ -306,10 +322,28 @@ async function getSupabaseBlogShellUncached(): Promise<
   const pinned = ((pinnedResult.data ?? []) as unknown as SupabaseBlogPostRow[]).map(
     toBlogPostSummary,
   );
-  const featured =
-    pinned.length > 0
-      ? selectFeaturedPosts(pinned)
-      : selectFeaturedPosts(sections.flatMap(({ posts }) => posts.slice(0, 1)));
+  let featured = selectFeaturedPosts(pinned);
+  if (pinned.length === 0) {
+    const featuredCandidateResults = await Promise.all(
+      categories.map((category) =>
+        supabase
+          .from('posts')
+          .select(PUBLIC_BLOG_POST_COLUMNS)
+          .eq('status', 'published')
+          .eq('category_id', category.id)
+          .order('published_at', { ascending: false, nullsFirst: false })
+          .order('slug', { ascending: true })
+          .limit(1),
+      ),
+    );
+    featured = selectFeaturedPosts(
+      featuredCandidateResults.flatMap((result) => {
+        if (result.error)
+          throw new Error(`대표 후보 글을 불러오지 못했습니다: ${result.error.message}`);
+        return ((result.data ?? []) as unknown as SupabaseBlogPostRow[]).map(toBlogPostSummary);
+      }),
+    );
+  }
 
   return { featured, categories, sections };
 }
@@ -319,7 +353,7 @@ const getSupabaseBlogShell = unstable_cache(
     void sourceIdentity;
     return getSupabaseBlogShellUncached();
   },
-  ['public-blog-shell-v2'],
+  ['public-blog-shell-v4'],
   { revalidate: 60, tags: ['posts', 'post-categories'] },
 );
 
@@ -378,19 +412,19 @@ export async function getBlogHomeDataUncached(
       ? mockPostList
       : await fetchPosts({ tag: undefined, sort: '-published_at' });
   const posts = legacy.map(legacyToBlogPostSummary);
-  const latestPosts = filterAndPaginatePosts(posts, { page: 1, pageSize: 3 }).items;
-  const categories = latestPosts.length ? [{ ...DEFAULT_CATEGORY, post_count: posts.length }] : [];
+  const sectionPosts = selectCategorySectionPosts(posts);
+  const categories = sectionPosts.length ? [{ ...DEFAULT_CATEGORY, post_count: posts.length }] : [];
   return {
     featured: selectFeaturedPosts(posts),
     categories,
-    sections: categories.map((category) => ({ category, posts: latestPosts })),
+    sections: categories.map((category) => ({ category, posts: sectionPosts })),
     archive: filterAndPaginatePosts(posts, normalized),
   };
 }
 
 const getBlogHomeDataFromServerCache = unstable_cache(
   (_source: string, filters: BlogPostFilters) => getBlogHomeDataUncached(filters),
-  ['public-blog-home-v2'],
+  ['public-blog-home-v4'],
   { revalidate: 60, tags: ['posts', 'post-categories'] },
 );
 
@@ -465,7 +499,7 @@ async function getBlogPostUncached(slug: string): Promise<BlogPost> {
 }
 
 const getBlogPostForRender = cache((source: string, slug: string) =>
-  unstable_cache(() => getBlogPostUncached(slug), ['public-blog-post-v1', source, slug], {
+  unstable_cache(() => getBlogPostUncached(slug), ['public-blog-post-v2', source, slug], {
     revalidate: 60,
     tags: ['posts', `post:${slug}`],
   })(),

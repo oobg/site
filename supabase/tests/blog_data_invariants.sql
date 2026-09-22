@@ -8,6 +8,16 @@ begin
     raise exception 'exactly one default category expected';
   end if;
   if (
+    select slug from public.post_categories where is_default
+  ) <> '미분류' then
+    raise exception 'default category must use the Korean canonical slug';
+  end if;
+  if (
+    select legacy_slug from public.post_categories where is_default
+  ) is distinct from 'uncategorized' then
+    raise exception 'default category must retain its previous slug as an alias';
+  end if;
+  if (
     select count(*) from public.posts
     where slug in ('existing-draft', 'existing-public')
       and category_id = default_id
@@ -21,10 +31,10 @@ $$;
 set request.jwt.claims = '{"email":"owner@example.com","app_metadata":{"provider":"google"}}';
 
 insert into public.post_categories (id, slug, name, sort_order)
-values ('10000000-0000-4000-8000-000000000001', 'temporary', '임시', 1);
+values ('10000000-0000-4000-8000-000000000001', '임시-카테고리', '임시', 1);
 update public.posts set category_id = '10000000-0000-4000-8000-000000000001'
 where slug = 'existing-draft';
-delete from public.post_categories where slug = 'temporary';
+delete from public.post_categories where slug = '임시-카테고리';
 
 do $$
 begin

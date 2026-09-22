@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => ({ updateSession: vi.fn() }));
 vi.mock('@lib/supabase/proxy', () => ({ updateSession: mocks.updateSession }));
 
 import { NextRequest, NextResponse } from 'next/server';
-import { proxy } from '@/proxy';
+import { config, proxy } from '@/proxy';
 
 describe('proxy', () => {
   beforeEach(() => {
@@ -42,6 +42,17 @@ describe('proxy', () => {
 
   it('keeps authentication routes on the session refresh path', async () => {
     const request = new NextRequest('https://raven.kr/admin');
+    await proxy(request);
+    expect(mocks.updateSession).toHaveBeenCalledWith(request);
+  });
+
+  it('matches admin API routes for session refresh without matching public post APIs', () => {
+    expect(config.matcher).toContain('/api/admin/:path*');
+    expect(config.matcher).not.toContain('/api/posts/:path*');
+  });
+
+  it('keeps admin API routes on the session refresh path', async () => {
+    const request = new NextRequest('https://raven.kr/api/admin/comments');
     await proxy(request);
     expect(mocks.updateSession).toHaveBeenCalledWith(request);
   });

@@ -39,7 +39,7 @@ export function buildSiteStructuredData() {
   };
 }
 
-/** path는 현재 canonical인 한 세그먼트 글 경로(`/blog/{slug}`)를 그대로 받는다. */
+/** path는 현재 canonical인 카테고리·글 경로(`/blog/{category}/{slug}`)를 그대로 받는다. */
 export function buildBlogPostingStructuredData(post: BlogPost, path: string) {
   const url = absoluteSiteUrl(path);
   const image = post.cover_image_url ? absoluteSiteUrl(post.cover_image_url) : undefined;

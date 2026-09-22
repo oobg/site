@@ -24,3 +24,12 @@ export const commentCursorSchema = z.object({
 });
 
 export type CommentInput = z.infer<typeof commentInputSchema>;
+
+export const authorReplyInputSchema = z
+  .object({
+    parent_id: z.string().uuid(),
+    body: commentInputSchema.shape.body,
+  })
+  .strict();
+
+export type AuthorReplyInput = z.infer<typeof authorReplyInputSchema>;

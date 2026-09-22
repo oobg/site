@@ -44,19 +44,26 @@ describe('FeaturedCarousel', () => {
   it('does not show controls for one featured post', () => {
     render(<FeaturedCarousel posts={[post(1)]} />);
     expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '추천 글 1' })).toHaveAttribute(
+      'href',
+      '/blog/notes/post-1',
+    );
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
   it('renders progress in the autoplay control and updates its ten-second countdown', () => {
     vi.useFakeTimers();
-    const { rerender } = render(<FeaturedCarousel posts={[post(1), post(3)]} />);
-    const progress = screen.getByRole('progressbar', { name: '다음 추천 글 전환까지' });
+    const { rerender } = render(<FeaturedCarousel posts={[1, 2].map(post)} />);
 
-    expect(progress).toHaveAttribute('aria-valuemax', '10000');
+    const progress = screen.getByRole('progressbar', { name: '다음 추천 글 전환까지' });
+    expect(progress).toHaveAttribute('aria-valuemin', '0');
+    expect(progress).toHaveAttribute('aria-valuemax', '100');
     expect(progress).toHaveAttribute('aria-valuenow', '0');
+    expect(progress).toHaveAttribute('aria-valuetext', '10초 후 전환');
+
     act(() => vi.advanceTimersByTime(5000));
-    expect(progress).toHaveAttribute('aria-valuenow', '5000');
+    expect(progress).toHaveAttribute('aria-valuenow', '50');
     expect(progress).toHaveAttribute('aria-valuetext', '5초 후 전환');
 
     rerender(<FeaturedCarousel posts={[post(2), post(3)]} />);
@@ -68,6 +75,10 @@ describe('FeaturedCarousel', () => {
     const { rerender } = render(<FeaturedCarousel posts={five} />);
     fireEvent.click(screen.getByRole('button', { name: '이전 추천 글' }));
     expect(screen.getByRole('heading', { name: '추천 글 5' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '추천 글 5' })).toHaveAttribute(
+      'href',
+      '/blog/notes/post-5',
+    );
     rerender(<FeaturedCarousel posts={five.slice(0, 2)} />);
     expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
     expect(screen.getByText('2 / 2')).toBeInTheDocument();
@@ -78,25 +89,35 @@ describe('FeaturedCarousel', () => {
     render(<FeaturedCarousel posts={[1, 2, 3].map(post)} />);
     const section = screen.getByRole('region', { name: '추천 글' });
 
-    act(() => vi.advanceTimersByTime(9999));
+    act(() => vi.advanceTimersByTime(5000));
+    expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+
+    fireEvent.mouseEnter(section);
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuetext', '일시정지');
+    act(() => vi.advanceTimersByTime(15000));
+    expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+    fireEvent.mouseLeave(section);
+    act(() => vi.advanceTimersByTime(4999));
     expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
     act(() => vi.advanceTimersByTime(1));
     expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
 
-    fireEvent.mouseEnter(section);
-    act(() => vi.advanceTimersByTime(10000));
-    expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
-    fireEvent.mouseLeave(section);
     act(() => vi.advanceTimersByTime(10000));
     expect(screen.getByRole('heading', { name: '추천 글 3' })).toBeInTheDocument();
+  });
 
-    const nextButton = screen.getByRole('button', { name: '다음 추천 글' });
-    fireEvent.focus(nextButton);
-    act(() => vi.advanceTimersByTime(10000));
-    expect(screen.getByRole('heading', { name: '추천 글 3' })).toBeInTheDocument();
-    fireEvent.blur(nextButton);
+  it('pauses autoplay while focus remains inside the carousel', () => {
+    vi.useFakeTimers();
+    render(<FeaturedCarousel posts={[1, 2, 3].map(post)} />);
+    const next = screen.getByRole('button', { name: '다음 추천 글' });
+
+    fireEvent.focus(next);
     act(() => vi.advanceTimersByTime(10000));
     expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+
+    fireEvent.blur(next, { relatedTarget: document.body });
+    act(() => vi.advanceTimersByTime(10000));
+    expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
   });
 
   it('lets a keyboard or touch user stop and restart the ten-second rotation', () => {

@@ -26,21 +26,23 @@ export function DeletePostButton({ id }: { id: string }) {
     initialPostActionState,
   );
   return (
-    <form
-      className={styles.form}
-      action={action}
-      onSubmit={(event) => {
-        if (!window.confirm('이 글을 삭제할까요? 삭제한 글은 복구할 수 없어요.'))
-          event.preventDefault();
-      }}
-    >
+    <div className={styles.form}>
       <input type="hidden" name="id" value={id} />
-      <button className={styles.button} type="submit" disabled={pending}>
+      <button
+        className={styles.button}
+        type="submit"
+        formAction={action}
+        disabled={pending}
+        onClick={(event) => {
+          if (!window.confirm('이 글을 삭제할까요? 삭제한 글은 복구할 수 없어요.'))
+            event.preventDefault();
+        }}
+      >
         {pending ? '삭제 중...' : '글 삭제'}
       </button>
       {state.message ? (
         <span role={state.status === 'error' ? 'alert' : 'status'}>{state.message}</span>
       ) : null}
-    </form>
+    </div>
   );
 }

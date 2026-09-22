@@ -16,23 +16,27 @@ export function PostCard({
   reserveCoverSpace = false,
   showCategory = true,
   headingLevel = 2,
+  variant = 'default',
 }: {
   post: BlogPostSummary;
   reserveCoverSpace?: boolean;
   showCategory?: boolean;
   headingLevel?: 2 | 3;
+  variant?: 'default' | 'compact';
 }) {
   const Heading = headingLevel === 3 ? 'h3' : 'h2';
+  const hasCover = Boolean(post.cover_image_url || reserveCoverSpace);
   return (
     <article
-      className={styles.card}
+      className={variant === 'compact' ? `${styles.card} ${styles.compact}` : styles.card}
       data-no-cover={!post.cover_image_url || undefined}
       data-reserved={reserveCoverSpace || undefined}
+      data-has-cover={hasCover || undefined}
     >
       {post.cover_image_url ? (
         <Link
           className={styles.cover}
-          href={ROUTES.BLOG.DETAIL(post.slug)}
+          href={ROUTES.BLOG.DETAIL(post.category.slug, post.slug)}
           tabIndex={-1}
           aria-hidden="true"
         >
@@ -54,7 +58,7 @@ export function PostCard({
       <div className={styles.body}>
         {showCategory ? <span className={styles.category}>{post.category.name}</span> : null}
         <Heading>
-          <Link href={ROUTES.BLOG.DETAIL(post.slug)}>{post.title}</Link>
+          <Link href={ROUTES.BLOG.DETAIL(post.category.slug, post.slug)}>{post.title}</Link>
         </Heading>
         {post.summary && <p>{post.summary}</p>}
         <time dateTime={post.published_at}>

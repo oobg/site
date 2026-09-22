@@ -151,6 +151,10 @@
   container-type: inline-size;
 }
 
+.locationDetailPanel {
+  grid-column: span 12;
+}
+
 .channelPanel,
 .audiencePanel,
 .techPanel {
@@ -491,6 +495,23 @@
   opacity: 0.72;
 }
 
+.locationDetailGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-6);
+  margin-top: var(--space-2);
+}
+
+.locationDetailList {
+  min-width: 0;
+}
+
+.locationDetailList h4 {
+  color: var(--d0-grey-500);
+  font-size: var(--d0-label);
+  font-weight: 600;
+}
+
 .metricBarList {
   display: grid;
   gap: var(--space-3);
@@ -768,6 +789,11 @@
   .devicePerspective,
   .countryLayout {
     grid-template-columns: 1fr;
+  }
+
+  .locationDetailGrid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
   }
 
   .deviceStage {

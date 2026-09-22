@@ -16,7 +16,7 @@ describe('BlogShell', () => {
       <BlogShell
         categories={categories}
         activeCategory="backend"
-        detail
+        detailNavigation={<span aria-hidden="true">상세 내비게이션</span>}
         mobileDetailNavigation={
           <details>
             <summary>목차</summary>
@@ -47,7 +47,7 @@ describe('BlogShell', () => {
       <BlogShell
         categories={categories}
         activeCategory="backend"
-        detail
+        detailNavigation={<span aria-hidden="true">상세 내비게이션</span>}
         mobileDetailNavigation={<nav aria-label="목차">목차 항목</nav>}
       >
         본문
@@ -61,7 +61,7 @@ describe('BlogShell', () => {
   /* 레일 이름표가 제목 레지스터로 올라오면 페이지 H1과 어느 쪽이 위인지 흐려진다. */
   it('레일 이름표는 heading이 아니라 보조 레이블이다', () => {
     render(
-      <BlogShell categories={categories} detail>
+      <BlogShell categories={categories} detailNavigation={<span aria-hidden="true">상세</span>}>
         본문
       </BlogShell>,
     );

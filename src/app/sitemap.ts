@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next';
 import { getPosts } from '@features/posts/services/posts.api';
 import { getProjects } from '@features/projects/services/projects.api';
 import { siteIndexable, siteUrl } from '@lib/metadata/metadata';
+import { DEFAULT_POST_CATEGORY_SLUG } from '@features/posts/types/posts.types';
 import { ROUTES } from '@constants/routes';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -14,7 +15,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: new URL(ROUTES.HOME, origin).href },
     { url: new URL(ROUTES.ABOUT, origin).href },
     ...posts.map((post) => ({
-      url: new URL(ROUTES.BLOG.DETAIL(post.slug), origin).href,
+      url: new URL(
+        ROUTES.BLOG.DETAIL(post.category?.slug ?? DEFAULT_POST_CATEGORY_SLUG, post.slug),
+        origin,
+      ).href,
       lastModified: post.updated_at,
     })),
     { url: new URL(ROUTES.PROJECTS.LIST, origin).href },

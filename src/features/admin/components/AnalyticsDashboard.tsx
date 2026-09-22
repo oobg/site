@@ -18,6 +18,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type {
   AnalyticsDashboardData,
   AnalyticsDashboardResult,
+  AnalyticsLocation,
 } from '@features/admin/types/analytics.types';
 import { formatCountryName, getCountryGeo } from './analytics-geo';
 import styles from './AnalyticsDashboard.module.css';
@@ -71,6 +72,10 @@ function formatCompact(value: number) {
 
 function ratio(value: number, total: number) {
   return total > 0 ? Math.round((value / total) * 100) : 0;
+}
+
+function isAdminAnalyticsPath(path: string) {
+  return path === '/admin' || path.startsWith('/admin/');
 }
 
 function MetricSparkline({
@@ -596,11 +601,28 @@ function TechSummary({
   );
 }
 
+function LocationMetricList({ title, items }: { title: string; items: AnalyticsLocation[] }) {
+  return (
+    <div className={styles.locationDetailList}>
+      <h4>{title}</h4>
+      <MetricBarList
+        items={items.slice(0, 8).map((item) => ({
+          label: item.name,
+          value: item.activeUsers,
+          meta: `${formatCompact(item.sessions)} 세션 · ${formatCompact(item.views)}회`,
+        }))}
+        emptyLabel={`${title} 데이터가 아직 없어요.`}
+      />
+    </div>
+  );
+}
+
 function PagesList({ pages }: { pages: AnalyticsDashboardData['pages'] }) {
-  if (!pages.length) return <p className={styles.emptyHint}>페이지 데이터가 아직 없어요.</p>;
+  const publicPages = pages.filter((page) => !isAdminAnalyticsPath(page.path));
+  if (!publicPages.length) return <p className={styles.emptyHint}>페이지 데이터가 아직 없어요.</p>;
   return (
     <ul className={styles.pageList}>
-      {pages.slice(0, 8).map((page) => (
+      {publicPages.slice(0, 8).map((page) => (
         <li key={`${page.path}-${page.title}`}>
           <div>
             <strong>{page.title}</strong>
@@ -679,7 +701,7 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
           <strong>방문 흐름을 한눈에</strong>
         </div>
         <div className={styles.headingMeta}>
-          <span className={styles.liveMark}>GA4 · 15분 갱신</span>
+          <span className={styles.liveMark}>GA4 · 1시간 갱신</span>
           <span>최근 {data.range.days}일</span>
         </div>
       </div>
@@ -760,7 +782,18 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
 
         <article className={`${styles.panel} ${styles.countryPanel}`}>
           <PanelHeader title="국가별 방문" description="상위 국가와 위치" />
-          <CountryGlobe countries={data.countries} />
+          <CountryGlobe countries={data.locations.countries} />
+        </article>
+
+        <article className={`${styles.panel} ${styles.locationDetailPanel}`}>
+          <PanelHeader
+            title="세부 접속 위치"
+            description="지역·도시별 활성 사용자 · 최대 1시간 지연"
+          />
+          <div className={styles.locationDetailGrid}>
+            <LocationMetricList title="지역" items={data.locations.regions} />
+            <LocationMetricList title="도시" items={data.locations.cities} />
+          </div>
         </article>
 
         <article className={`${styles.panel} ${styles.channelPanel}`}>

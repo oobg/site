@@ -12,14 +12,16 @@ export function AdminWorkspace({
   posts,
   categories,
   view = 'overview',
+  avatarBaseUrl,
 }: {
   posts: AdminPostSummary[];
   categories: BlogCategory[];
   view?: 'overview' | 'posts' | 'settings' | 'comments';
+  avatarBaseUrl?: string;
 }) {
   if (view === 'overview' || !view) return <AdminOverview posts={posts} categories={categories} />;
   if (view === 'settings') return <BlogSettings categories={categories} posts={posts} />;
-  if (view === 'comments') return <AdminComments />;
+  if (view === 'comments') return <AdminComments avatarBaseUrl={avatarBaseUrl} />;
   return (
     <div className={styles.workspace}>
       <PostList

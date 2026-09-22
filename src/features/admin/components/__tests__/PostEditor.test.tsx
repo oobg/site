@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PostEditor } from '@features/admin/components/PostEditor';
@@ -32,6 +32,7 @@ describe('PostEditor slug editing', () => {
     window.sessionStorage.clear();
     vi.unstubAllGlobals();
     Reflect.deleteProperty(window, 'navigation');
+    Reflect.deleteProperty(navigator, 'clipboard');
     vi.restoreAllMocks();
   });
 
@@ -232,62 +233,66 @@ describe('PostEditor slug editing', () => {
     expect(body).toHaveValue('## 작성 중인 본문');
   });
 
-  it('keeps the Markdown caret and internal scroll position while typing', () => {
+  it('leaves textarea sizing to CSS while typing and preserves the caret', () => {
     render(<PostEditor action={action} />);
     const body = screen.getByRole('textbox', { name: '본문' }) as HTMLTextAreaElement;
-    body.scrollTop = 180;
 
-    fireEvent.input(body, {
-      target: { value: '앞 문장과 뒤 문장', selectionStart: 5, selectionEnd: 5 },
+    expect(body.style.height).toBe('');
+    expect(body).toHaveAttribute('data-editor-scroll-region');
+    body.focus();
+    body.scrollTop = 240;
+    fireEvent.change(body, { target: { value: '입력 중인 본문' } });
+    body.setSelectionRange(4, 4);
+    fireEvent.compositionStart(body);
+    fireEvent.change(body, {
+      target: { value: '입력 중인 한글 본문', selectionStart: 4, selectionEnd: 4 },
     });
 
-    expect(body).toHaveAttribute('data-editor-scroll-region');
-    expect(body.selectionStart).toBe(5);
-    expect(body.selectionEnd).toBe(5);
-    expect(body.scrollTop).toBe(180);
+    expect(body.style.height).toBe('');
+    expect(body).toHaveFocus();
+    expect(body.selectionStart).toBe(4);
+    expect(body.selectionEnd).toBe(4);
+    expect(body.scrollTop).toBe(240);
   });
 
-  it('keeps the visual editor caret, DOM, and internal scroll position while typing', async () => {
-    vi.useFakeTimers();
+  it('keeps the preview tab open after saving', async () => {
+    const save = vi.fn(async () => ({ status: 'idle' as const, message: '' }));
     render(
       <PostEditor
-        action={action}
+        action={save}
+        categories={[{ id: 'c1', slug: 'dev', name: '개발', sort_order: 0, is_default: true }]}
         post={{
           id: 'p1',
           title: '제목',
           slug: 'title',
           description: '설명',
-          body: '미리보기',
+          body: '본문',
           status: 'draft',
+          category_id: 'c1',
         }}
       />,
     );
+
     fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
-    await act(async () => vi.advanceTimersByTimeAsync(350));
-    const visual = screen.getByRole('textbox', { name: '본문 텍스트 편집' });
-    const visualPanel = visual.closest<HTMLElement>('[role="tabpanel"]');
-    const textNode = visual.querySelector('p')?.firstChild;
-    expect(visualPanel).not.toBeNull();
-    expect(textNode).not.toBeNull();
-    textNode!.textContent = '미리보기 수정';
-    const selection = window.getSelection();
-    const range = document.createRange();
-    range.setStart(textNode!, 6);
-    range.collapse(true);
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-    visualPanel!.scrollTop = 140;
-
-    fireEvent.input(visual);
-
-    expect(visualPanel).toHaveAttribute('data-editor-scroll-region');
-    expect(visual.querySelector('p')?.firstChild).toBe(textNode);
-    expect(window.getSelection()?.anchorNode).toBe(textNode);
-    expect(window.getSelection()?.anchorOffset).toBe(6);
-    expect(visualPanel!.scrollTop).toBe(140);
-    expect(screen.getByRole('textbox', { name: '본문', hidden: true })).toHaveValue(
-      '미리보기 수정',
+    const writePanel = document.getElementById('editor-write-panel');
+    const previewPanel = document.getElementById('editor-preview-panel');
+    expect(writePanel).not.toBeNull();
+    expect(previewPanel).not.toBeNull();
+    expect(screen.getByRole('tab', { name: '텍스트 편집' })).toHaveAttribute(
+      'aria-selected',
+      'true',
     );
+    expect(writePanel).toHaveAttribute('hidden');
+
+    fireEvent.click(screen.getByRole('button', { name: '초안 저장' }));
+    await waitFor(() => expect(save).toHaveBeenCalledOnce());
+
+    expect(screen.getByRole('tab', { name: '텍스트 편집' })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    expect(writePanel).toHaveAttribute('hidden');
+    expect(previewPanel).not.toHaveAttribute('hidden');
   });
 
   it('requests a debounced preview only after opening the preview tab', () => {
@@ -310,6 +315,44 @@ describe('PostEditor slug editing', () => {
       '/api/admin/preview',
       expect.objectContaining({ body: JSON.stringify({ markdown: '## 최신 본문' }) }),
     );
+  });
+
+  it('activates code copy buttons in the rendered visual preview', async () => {
+    vi.useFakeTimers();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText },
+    });
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          html: '<figure data-code><button type="button" data-code-copy><span data-code-copy-status>코드 복사</span></button><pre><code>npm install raven</code></pre></figure>',
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+    render(
+      <PostEditor
+        action={action}
+        post={{
+          id: 'p1',
+          title: '설치',
+          slug: 'install',
+          description: '설명',
+          body: '```sh\nnpm install raven\n```',
+          status: 'draft',
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    await act(async () => vi.advanceTimersByTimeAsync(350));
+    const copy = screen.getByRole('button', { name: '코드 복사' });
+    await act(async () => fireEvent.click(copy));
+
+    expect(writeText).toHaveBeenCalledWith('npm install raven');
+    expect(copy).toHaveAttribute('data-copied');
   });
 
   it('shows the empty-body guidance when opening preview initially', () => {
@@ -336,6 +379,179 @@ describe('PostEditor slug editing', () => {
     await act(async () => vi.advanceTimersByTimeAsync(350));
 
     expect(screen.getByRole('status')).toHaveTextContent('미리보기를 만들지 못했습니다.');
+  });
+
+  it('syncs visual text edits back to the Markdown body and save payload', async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ html: '<h2>제목</h2><p>기존 <strong>본문</strong></p>' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    const save = vi.fn(async (previous: unknown, formData: FormData) => {
+      void previous;
+      void formData;
+      return { status: 'success' as const, message: '저장했습니다.' };
+    });
+    render(
+      <PostEditor
+        action={save}
+        categories={[{ id: 'c1', slug: 'dev', name: '개발', sort_order: 0, is_default: true }]}
+        post={{
+          id: 'p1',
+          title: '제목',
+          slug: 'title',
+          description: '설명',
+          body: '## 제목\n\n기존 **본문**',
+          status: 'draft',
+          category_id: 'c1',
+        }}
+      />,
+    );
+
+    const markdownBody = screen.getByRole('textbox', { name: '본문' });
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    await act(async () => vi.advanceTimersByTimeAsync(350));
+    const visualEditor = screen.getByRole('textbox', { name: '본문 텍스트 편집' });
+    const renderedLink = document.createElement('a');
+    renderedLink.href = '#same-page';
+    renderedLink.textContent = '이동하지 않는 링크';
+    visualEditor.append(renderedLink);
+    expect(
+      renderedLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })),
+    ).toBe(false);
+    visualEditor.innerHTML = '<h2>바뀐 제목</h2><p>수정한 <strong>본문</strong></p>';
+    fireEvent.input(visualEditor);
+
+    expect(markdownBody).toHaveValue('## 바뀐 제목\n\n수정한 **본문**');
+    vi.useRealTimers();
+    fireEvent.click(screen.getByRole('button', { name: '초안 저장' }));
+    await waitFor(() => expect(save).toHaveBeenCalledOnce());
+    expect(save.mock.calls[0]?.[1].get('body')).toBe('## 바뀐 제목\n\n수정한 **본문**');
+  });
+
+  it('keeps the visual editor caret and viewport stable while syncing input', async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(JSON.stringify({ html: '<p>기존 본문</p>' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    );
+    render(
+      <PostEditor
+        action={action}
+        post={{
+          id: 'p1',
+          title: '제목',
+          slug: 'title',
+          description: '설명',
+          body: '기존 본문',
+          status: 'draft',
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    await act(async () => vi.advanceTimersByTimeAsync(350));
+    const panel = screen.getByRole('tabpanel', { name: '텍스트 편집' });
+    const visualEditor = screen.getByRole('textbox', { name: '본문 텍스트 편집' });
+    const textNode = visualEditor.querySelector('p')?.firstChild;
+    expect(textNode).toBeInstanceOf(Text);
+    expect(panel).toHaveAttribute('data-editor-scroll-region');
+
+    panel.scrollTop = 180;
+    const selection = window.getSelection();
+    const range = document.createRange();
+    range.setStart(textNode!, 2);
+    range.collapse(true);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    (textNode as Text).insertData(2, '수정');
+    fireEvent.input(visualEditor);
+
+    expect(textNode?.isConnected).toBe(true);
+    expect(selection?.anchorNode).toBe(textNode);
+    expect(panel.scrollTop).toBe(180);
+    expect(document.querySelector<HTMLTextAreaElement>('textarea[name="body"]')).toHaveValue(
+      '기존수정 본문',
+    );
+  });
+
+  it('keeps edited filetree structure in the Markdown save payload', async () => {
+    vi.useFakeTimers();
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(
+        JSON.stringify({
+          html: `
+            <figure data-filetree>
+              <figcaption>파일 구조</figcaption>
+              <ul role="tree">
+                <li data-kind="folder"><span data-filetree-name>project/</span>
+                  <ul role="group">
+                    <li data-kind="folder"><span data-filetree-name>src/</span>
+                      <ul role="group">
+                        <li data-kind="file"><span data-filetree-name>index.ts</span></li>
+                      </ul>
+                    </li>
+                    <li data-kind="file"><span data-filetree-name>README.md</span></li>
+                  </ul>
+                </li>
+              </ul>
+            </figure>
+          `,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+    const save = vi.fn(async (previous: unknown, formData: FormData) => {
+      void previous;
+      void formData;
+      return { status: 'success' as const, message: '저장했습니다.' };
+    });
+    render(
+      <PostEditor
+        action={save}
+        categories={[{ id: 'c1', slug: 'dev', name: '개발', sort_order: 0, is_default: true }]}
+        post={{
+          id: 'p1',
+          title: '파일 구조',
+          slug: 'file-tree',
+          description: '설명',
+          body: '```filetree\nproject/\n└── README.md\n```',
+          status: 'draft',
+          category_id: 'c1',
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    await act(async () => vi.advanceTimersByTimeAsync(350));
+    const visualEditor = screen.getByRole('textbox', { name: '본문 텍스트 편집' });
+    const rootName = visualEditor.querySelector('[data-filetree-name]');
+    expect(rootName).not.toBeNull();
+    rootName!.textContent = 'workspace/';
+    fireEvent.input(visualEditor);
+
+    expect(document.querySelector<HTMLTextAreaElement>('textarea[name="body"]')).toHaveValue(
+      '```filetree\nworkspace/\n├── src/\n│   └── index.ts\n└── README.md\n```',
+    );
+    vi.useRealTimers();
+    fireEvent.click(screen.getByRole('button', { name: '초안 저장' }));
+    await waitFor(() => expect(save).toHaveBeenCalledOnce());
+    expect(save.mock.calls[0]?.[1].get('body')).toBe(
+      '```filetree\nworkspace/\n├── src/\n│   └── index.ts\n└── README.md\n```',
+    );
+  });
+
+  it('disables Markdown tools while editing rendered text', () => {
+    render(<PostEditor action={action} />);
+
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+
+    expect(screen.getByRole('button', { name: '굵게' })).toBeDisabled();
+    expect(screen.getByText('서식 도구는 마크다운 모드에서 사용할 수 있어요.')).toBeVisible();
   });
 
   it('keeps save success distinct when browser query invalidation fails', async () => {
@@ -419,6 +635,48 @@ describe('PostEditor slug editing', () => {
     const settings = screen.getByRole('complementary', { name: '글 설정' });
 
     expect(body.compareDocumentPosition(settings) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0);
+  });
+
+  it('shows the current cover in an accessible lightbox and restores trigger focus', async () => {
+    render(
+      <PostEditor
+        action={action}
+        post={{
+          id: 'p1',
+          title: '대표 이미지가 있는 글',
+          slug: 'post-with-cover',
+          description: '설명',
+          body: '본문',
+          status: 'draft',
+          cover_image_url: 'https://cdn.raven.kr/cover.png',
+          cover_alt: '절벽 위의 등대',
+        }}
+      />,
+    );
+
+    const trigger = screen.getByRole('button', { name: '크게 보기' });
+    expect(trigger).toHaveAttribute('type', 'button');
+    fireEvent.click(trigger);
+
+    const dialog = await screen.findByRole('dialog', { name: '대표 이미지 크게 보기' });
+    expect(within(dialog).getByRole('img', { name: '절벽 위의 등대' })).toHaveAttribute(
+      'src',
+      'https://cdn.raven.kr/cover.png',
+    );
+    const closeButton = within(dialog).getByRole('button', {
+      name: '대표 이미지 크게 보기 닫기',
+    });
+    await waitFor(() => expect(closeButton).toHaveFocus());
+
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(trigger).toHaveFocus();
+  });
+
+  it('does not show the cover lightbox trigger without a cover image', () => {
+    render(<PostEditor action={action} />);
+
+    expect(screen.queryByRole('button', { name: '크게 보기' })).not.toBeInTheDocument();
   });
 
   it('keeps the secondary action as a draft save even when a draft status select shows public', async () => {

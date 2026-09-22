@@ -6,6 +6,7 @@
   padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--color-border);
   background: var(--color-surface);
+  flex: none;
 }
 
 .copy {
@@ -44,12 +45,13 @@
   gap: var(--space-3);
 }
 
-.signOut {
+.dismiss {
   display: inline-flex;
+  width: 40px;
   min-height: 40px;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
+  justify-content: center;
+  padding: 0;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   background: transparent;
@@ -59,7 +61,7 @@
   cursor: pointer;
 }
 
-.signOut:focus-visible {
+.dismiss:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
 }
@@ -74,11 +76,6 @@
   .actions {
     align-items: stretch;
     flex-direction: column;
-  }
-
-  .signOut {
-    justify-content: center;
-    width: 100%;
   }
 }
 
@@ -97,17 +94,6 @@
 
 .banner[data-state='authorized'] .copy p {
   margin: 0;
-}
-
-.banner[data-state='authorized'] .signOut {
-  width: 40px;
-  min-height: 40px;
-  justify-content: center;
-  padding: 0;
-}
-
-.banner[data-state='authorized'] .signOutLabel {
-  display: none;
 }
 
 @media (max-width: 640px) {

@@ -49,12 +49,22 @@ describe('AnalyticsDashboard', () => {
               },
             ],
             channels: [{ name: 'Direct', sessions: 18 }],
-            pages: [{ path: '/', title: '홈', views: 40, activeUsers: 12 }],
+            pages: [
+              { path: '/admin', title: '관리자', views: 100, activeUsers: 50 },
+              { path: '/', title: '홈', views: 40, activeUsers: 12 },
+            ],
             devices: [
               { name: 'desktop', activeUsers: 8 },
               { name: 'mobile', activeUsers: 3 },
               { name: 'tablet', activeUsers: 1 },
             ],
+            locations: {
+              countries: [{ name: 'Korea, South', activeUsers: 10, sessions: 14, views: 32 }],
+              regions: [{ name: '서울특별시 · 대한민국', activeUsers: 9, sessions: 12, views: 28 }],
+              cities: [
+                { name: '서울 · 서울특별시 · 대한민국', activeUsers: 8, sessions: 10, views: 24 },
+              ],
+            },
             countries: [{ name: 'Korea, South', activeUsers: 10, sessions: 14 }],
             campaigns: [
               {
@@ -125,5 +135,7 @@ describe('AnalyticsDashboard', () => {
     );
     expect(screen.getByText('utm_campaign')).toBeInTheDocument();
     expect(screen.getByText('브라우저와 운영체제')).toBeInTheDocument();
+    expect(screen.queryByText('/admin')).not.toBeInTheDocument();
+    expect(screen.getByText('서울특별시 · 대한민국')).toBeInTheDocument();
   });
 });

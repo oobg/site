@@ -27,7 +27,7 @@ describe('normalizeRouteSlug', () => {
     '%00',
     '\n',
     '\u007f',
-    '‮',
+    '\u202e',
   ])('잘못된 경로 %j는 notFound로 보낸다', (slug) => {
     expect(() => normalizeRouteSlug(slug)).toThrowError(
       expect.objectContaining({ digest: 'NEXT_HTTP_ERROR_FALLBACK;404' }),

@@ -11,7 +11,10 @@ import {
 } from '@features/admin/services/posts-api.schema';
 import { AdminApiError, readLimitedBody } from '@lib/api/admin-http';
 import { createAdminApiClient } from '@lib/auth/admin-api';
-import { refreshPostPaths, refreshPublicPostCache } from '@features/admin/services/posts.refresh';
+import {
+  refreshApiPostPaths,
+  refreshPublicPostCache,
+} from '@features/admin/services/posts.refresh';
 
 type Client = Awaited<ReturnType<typeof createAdminApiClient>>;
 type DatabaseError = { code?: string };
@@ -104,7 +107,7 @@ function valuesFor(input: AdminPostInput, current?: AdminPost | null) {
 
 function refreshPost(post: AdminPost) {
   refreshPublicPostCache(undefined, post.slug);
-  refreshPostPaths(post.slug);
+  refreshApiPostPaths(post.slug);
 }
 
 export async function createAdminApiPost(client: Client, input: AdminPostInput) {

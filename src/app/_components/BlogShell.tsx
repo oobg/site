@@ -104,18 +104,21 @@ export function BlogShell({
   categories,
   activeCategory,
   onNavigate,
-  /** 상세에서는 왼쪽 레일을 주제 내비게이션만 남기고 좁힌다 — 목차는 본문 오른쪽 레일이 맡는다. */
-  detail = false,
+  detailNavigation,
   mobileDetailNavigation,
   children,
 }: {
   categories: BlogCategoryWithCount[];
   activeCategory?: string;
   onNavigate?: (href: string) => void;
-  detail?: boolean;
+  detailNavigation?: React.ReactNode;
   mobileDetailNavigation?: React.ReactNode;
   children: React.ReactNode;
 }) {
+  const mobileCategory = activeCategory
+    ? categories.find((category) => category.slug === activeCategory)?.name
+    : undefined;
+
   return (
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
@@ -124,13 +127,16 @@ export function BlogShell({
           categories={categories}
           activeCategory={activeCategory}
           onNavigate={onNavigate}
-          compact={detail}
+          compact={Boolean(detailNavigation)}
         />
+        {detailNavigation ? (
+          <div className={styles.detailNavigation}>{detailNavigation}</div>
+        ) : null}
       </aside>
       <div className={styles.mobileBar}>
         <Dialog.Root>
           <Dialog.Trigger className={styles.menuButton} aria-label="블로그 카테고리 선택">
-            <strong>기술 블로그</strong>
+            <strong>{mobileCategory ?? '기술 블로그'}</strong>
             <CaretDown aria-hidden size={16} />
           </Dialog.Trigger>
           <Dialog.Portal>
@@ -142,7 +148,7 @@ export function BlogShell({
                 close
                 activeCategory={activeCategory}
                 onNavigate={onNavigate}
-                compact={detail}
+                compact={Boolean(detailNavigation)}
               />
               <Dialog.Close className={styles.close} aria-label="메뉴 닫기">
                 <X aria-hidden size={22} />

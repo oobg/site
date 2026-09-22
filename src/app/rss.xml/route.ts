@@ -5,7 +5,6 @@ import { getPublishedBlogPostsForFeed } from '@features/posts/services/posts.api
 import { renderMarkdown } from '@lib/markdown/render';
 import { siteUrl } from '@lib/metadata/metadata';
 import { absoluteSiteUrl } from '@lib/metadata/structured-data';
-import { encodeRouteSlug } from '@lib/navigation/route-segment';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +20,7 @@ function sanitizeXml(value: string): string {
       (codePoint >= 0x20 && codePoint <= 0xd7ff) ||
       (codePoint >= 0xe000 && codePoint <= 0xfffd) ||
       (codePoint >= 0x10000 && codePoint <= 0x10ffff);
-    result += valid ? character : '�';
+    result += valid ? character : '\ufffd';
   }
   return result;
 }
@@ -114,7 +113,8 @@ export async function GET(): Promise<Response> {
   const posts = await getPublishedBlogPostsForFeed();
   const items = await Promise.all(
     posts.map(async (post) => {
-      const url = absoluteSiteUrl(ROUTES.BLOG.DETAIL(encodeRouteSlug(post.slug)));
+      const path = ROUTES.BLOG.DETAIL(post.category.slug, post.slug);
+      const url = absoluteSiteUrl(path);
       const { html } = await renderFeedMarkdown(post.body_markdown);
       return [
         '    <item>',

@@ -170,10 +170,17 @@ export function BlogHomeContainer({
   const recentPosts = (data?.archive.items ?? [])
     .filter((post) => !featuredSlugs.has(post.slug))
     .slice(0, RECENT_COUNT);
+  const hasOverviewContent = Boolean(
+    data &&
+    (data.archive.totalItems > 0 ||
+      data.featured.length > 0 ||
+      data.sections.some((section) => section.posts.length > 0)),
+  );
 
   return (
     <BlogShell
       categories={categories}
+      activeCategory={category || undefined}
       onNavigate={(href) => window.history.pushState(null, '', href)}
     >
       {overview ? (
@@ -197,7 +204,7 @@ export function BlogHomeContainer({
             errorState
           ) : !data ? (
             <BlogArchiveContentSkeleton showHeading={false} />
-          ) : data.archive.totalItems === 0 ? (
+          ) : !hasOverviewContent ? (
             <div className={styles.state} role="status" aria-live="polite">
               <p>아직 공개한 글이 없어요.</p>
             </div>

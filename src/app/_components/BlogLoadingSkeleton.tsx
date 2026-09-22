@@ -213,7 +213,7 @@ export function BlogArticleDataSkeleton({
     <BlogShell
       categories={categories}
       activeCategory={post.category.slug}
-      detail
+      detailNavigation={<TableOfContents toc={toc} />}
       mobileDetailNavigation={<TableOfContents toc={toc} defaultOpen={false} />}
     >
       <div className={article.page} aria-busy="true" aria-label="글 본문을 불러오는 중">
@@ -231,5 +231,22 @@ export function BlogArticleDataSkeleton({
         </div>
       </div>
     </BlogShell>
+  );
+}
+
+export function BlogArticleLinksSkeleton() {
+  return (
+    <div className={styles.articleLinks} aria-busy="true" aria-label="관련 글을 불러오는 중">
+      <Skeleton width="5rem" height="20px" />
+      <div className={styles.linkRows} aria-hidden="true">
+        <Skeleton width="82%" height="18px" />
+        <Skeleton width="68%" height="18px" />
+        <Skeleton width="76%" height="18px" />
+      </div>
+      <div className={styles.navRows} aria-hidden="true">
+        <Skeleton width="42%" height="18px" />
+        <Skeleton width="42%" height="18px" />
+      </div>
+    </div>
   );
 }

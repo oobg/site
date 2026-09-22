@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { PostListItem } from '@features/posts/types/posts.types';
+import { DEFAULT_POST_CATEGORY_SLUG } from '@features/posts/types/posts.types';
 import { ROUTES } from '@constants/routes';
 import styles from './PostRow.module.css';
 
@@ -14,7 +15,11 @@ export function PostRow({ post }: { post: PostListItem }) {
     // 되면 행 전체를 눌러도 열린다 — .title a::after가 행을 덮는다.
     <article className={styles.row}>
       <h2 className={styles.title}>
-        <Link href={ROUTES.BLOG.DETAIL(post.slug)}>{post.title}</Link>
+        <Link
+          href={ROUTES.BLOG.DETAIL(post.category?.slug ?? DEFAULT_POST_CATEGORY_SLUG, post.slug)}
+        >
+          {post.title}
+        </Link>
       </h2>
       {post.summary ? <p className={styles.summary}>{post.summary}</p> : null}
       <div className={styles.meta}>

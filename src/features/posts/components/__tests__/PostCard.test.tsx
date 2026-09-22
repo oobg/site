@@ -34,6 +34,14 @@ describe('PostCard', () => {
     expect(screen.getByRole('link', { name: '표지가 없는 글' })).toBeInTheDocument();
   });
 
+  it('links both cover and title to the canonical category URL', () => {
+    render(<PostCard post={{ ...post, cover_image_url: '/cover.jpg', slug: 'my-post' }} />);
+    expect(screen.getAllByRole('link', { hidden: true })).toHaveLength(2);
+    for (const link of screen.getAllByRole('link', { hidden: true })) {
+      expect(link).toHaveAttribute('href', '/blog/dev/my-post');
+    }
+  });
+
   it('표지를 별도 프레임 없이 링크 안에 바로 렌더한다', () => {
     const { container } = render(
       <PostCard

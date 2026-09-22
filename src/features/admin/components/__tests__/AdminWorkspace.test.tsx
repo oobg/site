@@ -18,6 +18,11 @@ vi.mock('@features/admin/components/BlogSettings', () => ({
 vi.mock('@features/admin/components/AdminOverview', () => ({
   AdminOverview: ({ posts }: { posts: Array<{ title: string }> }) => <p>개요: {posts[0]?.title}</p>,
 }));
+vi.mock('@features/comments/components/AdminComments', () => ({
+  AdminComments: ({ avatarBaseUrl }: { avatarBaseUrl?: string }) => (
+    <p>댓글 아바타: {avatarBaseUrl ?? 'fallback'}</p>
+  ),
+}));
 
 const posts = [
   {
@@ -43,6 +48,15 @@ describe('AdminWorkspace', () => {
     expect(screen.getByText(/목록: 첫 글/)).toBeVisible();
     rerender(<AdminWorkspace posts={posts} categories={categories} view="settings" />);
     expect(screen.getByText('설정: 개발')).toBeVisible();
+    rerender(
+      <AdminWorkspace
+        posts={posts}
+        categories={categories}
+        view="comments"
+        avatarBaseUrl="https://cdn.example.com/assets/comment-avatars"
+      />,
+    );
+    expect(screen.getByText(/https:\/\/cdn\.example\.com\/assets\/comment-avatars/)).toBeVisible();
   });
 });
 

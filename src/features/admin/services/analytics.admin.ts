@@ -5,6 +5,7 @@ import { unstable_cache } from 'next/cache';
 import { requireOwner } from '@lib/auth/owner';
 import type {
   AnalyticsDashboardData,
+  AnalyticsLocation,
   AnalyticsDashboardResult,
 } from '@features/admin/types/analytics.types';
 
@@ -21,6 +22,47 @@ function range() {
     endDate: 'today',
     days: RANGE_DAYS,
   };
+}
+
+type AnalyticsRow = {
+  dimensionValues?: Array<{ value?: string | null }> | null;
+  metricValues?: Array<{ value?: string | null }> | null;
+};
+
+type AnalyticsReport = { rows?: AnalyticsRow[] | null };
+
+function locationValue(input: string | undefined, fallback = '알 수 없음') {
+  const normalized = input?.trim();
+  return !normalized || normalized === '(not set)' ? fallback : normalized;
+}
+
+function optionalLocationValue(input: string | undefined) {
+  const normalized = input?.trim();
+  return !normalized || normalized === '(not set)' ? '' : normalized;
+}
+
+function mapLocationRows(
+  report: AnalyticsReport | undefined,
+  getName: (dimensions: string[]) => string,
+): AnalyticsLocation[] {
+  return (report?.rows ?? [])
+    .map((row) => {
+      const dimensions = (row.dimensionValues ?? []).map((item) => item.value?.trim() ?? '');
+      if (!dimensions.some(Boolean)) return null;
+      const name = getName(dimensions).trim();
+      if (!name) return null;
+      return {
+        name,
+        activeUsers: value(row.metricValues?.[0]?.value),
+        sessions: value(row.metricValues?.[1]?.value),
+        views: value(row.metricValues?.[2]?.value),
+      };
+    })
+    .filter((item): item is AnalyticsLocation => item !== null);
+}
+
+export function isAdminAnalyticsPath(path: string) {
+  return path === '/admin' || path.startsWith('/admin/');
 }
 
 export function fillDailyRange(
@@ -80,6 +122,33 @@ const fetchAnalyticsDashboard = unstable_cache(
         stringFilter: { matchType: 'EXACT' as const, value: hostname },
       },
     };
+    const publicPageDimensionFilter = {
+      andGroup: {
+        expressions: [
+          dimensionFilter,
+          {
+            notExpression: {
+              orGroup: {
+                expressions: [
+                  {
+                    filter: {
+                      fieldName: 'pagePath',
+                      stringFilter: { matchType: 'EXACT' as const, value: '/admin' },
+                    },
+                  },
+                  {
+                    filter: {
+                      fieldName: 'pagePath',
+                      stringFilter: { matchType: 'BEGINS_WITH' as const, value: '/admin/' },
+                    },
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    };
 
     try {
       const client = new BetaAnalyticsDataClient(
@@ -120,9 +189,9 @@ const fetchAnalyticsDashboard = unstable_cache(
                 dateRanges: [dateRange],
                 dimensions: [{ name: 'pagePath' }, { name: 'pageTitle' }],
                 metrics: ['screenPageViews', 'activeUsers'].map((name) => ({ name })),
-                dimensionFilter,
+                dimensionFilter: publicPageDimensionFilter,
                 orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
-                limit: 10,
+                limit: 20,
               },
               {
                 dateRanges: [dateRange],
@@ -144,7 +213,7 @@ const fetchAnalyticsDashboard = unstable_cache(
               {
                 dateRanges: [dateRange],
                 dimensions: [{ name: 'country' }],
-                metrics: ['activeUsers', 'sessions'].map((name) => ({ name })),
+                metrics: ['activeUsers', 'sessions', 'screenPageViews'].map((name) => ({ name })),
                 dimensionFilter,
                 orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
                 limit: 10,
@@ -201,6 +270,39 @@ const fetchAnalyticsDashboard = unstable_cache(
       const summaryRow = reports[0]?.rows?.[0];
       if (!summaryRow || summaryRow.metricValues?.every((metric) => value(metric.value) === 0))
         return { status: 'empty', range: dateRange };
+      const countries = mapLocationRows(countryReport, ([country]) => locationValue(country));
+      let locationReports: AnalyticsReport[] = [];
+      try {
+        const [locationResponse] = await client.batchRunReports(
+          {
+            property,
+            requests: [
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'country' }, { name: 'region' }],
+                metrics: ['activeUsers', 'sessions', 'screenPageViews'].map((name) => ({ name })),
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+                limit: 8,
+              },
+              {
+                dateRanges: [dateRange],
+                dimensions: [{ name: 'country' }, { name: 'region' }, { name: 'city' }],
+                metrics: ['activeUsers', 'sessions', 'screenPageViews'].map((name) => ({ name })),
+                dimensionFilter,
+                orderBys: [{ metric: { metricName: 'activeUsers' }, desc: true }],
+                limit: 8,
+              },
+            ],
+          },
+          { timeout: 10_000 },
+        );
+        locationReports = (locationResponse.reports ?? []) as AnalyticsReport[];
+      } catch (error) {
+        const code =
+          typeof error === 'object' && error && 'code' in error ? String(error.code) : 'unknown';
+        console.warn(`GA4 location reports unavailable (code: ${code})`);
+      }
       const data: AnalyticsDashboardData = {
         range: dateRange,
         summary: {
@@ -223,20 +325,37 @@ const fetchAnalyticsDashboard = unstable_cache(
           name: row.dimensionValues?.[0]?.value || 'Unassigned',
           sessions: value(row.metricValues?.[0]?.value),
         })),
-        pages: (reports[3]?.rows ?? []).map((row) => ({
-          path: row.dimensionValues?.[0]?.value || '/',
-          title: row.dimensionValues?.[1]?.value || '제목 없음',
-          views: value(row.metricValues?.[0]?.value),
-          activeUsers: value(row.metricValues?.[1]?.value),
-        })),
+        pages: (reports[3]?.rows ?? [])
+          .map((row) => ({
+            path: row.dimensionValues?.[0]?.value || '/',
+            title: row.dimensionValues?.[1]?.value || '제목 없음',
+            views: value(row.metricValues?.[0]?.value),
+            activeUsers: value(row.metricValues?.[1]?.value),
+          }))
+          .filter((page) => !isAdminAnalyticsPath(page.path))
+          .slice(0, 10),
         devices: (reports[4]?.rows ?? []).map((row) => ({
           name: row.dimensionValues?.[0]?.value || 'unknown',
           activeUsers: value(row.metricValues?.[0]?.value),
         })),
-        countries: (countryReport?.rows ?? []).map((row) => ({
-          name: row.dimensionValues?.[0]?.value || '(not set)',
-          activeUsers: value(row.metricValues?.[0]?.value),
-          sessions: value(row.metricValues?.[1]?.value),
+        locations: {
+          countries,
+          regions: mapLocationRows(locationReports[0], ([country, region]) => {
+            const regionName = optionalLocationValue(region);
+            return regionName
+              ? `${regionName} · ${locationValue(country)}`
+              : locationValue(country);
+          }),
+          cities: mapLocationRows(locationReports[1], ([country, region, city]) =>
+            [optionalLocationValue(city), optionalLocationValue(region), locationValue(country)]
+              .filter(Boolean)
+              .join(' · '),
+          ),
+        },
+        countries: countries.map(({ name, activeUsers, sessions }) => ({
+          name,
+          activeUsers,
+          sessions,
         })),
         campaigns: (campaignReport?.rows ?? []).map((row) => ({
           source: row.dimensionValues?.[0]?.value || '(not set)',
@@ -270,7 +389,7 @@ const fetchAnalyticsDashboard = unstable_cache(
     }
   },
   ['admin-ga4-dashboard-v2'],
-  { revalidate: 900 },
+  { revalidate: 3600 },
 );
 
 export async function getAnalyticsDashboard(): Promise<AnalyticsDashboardResult> {

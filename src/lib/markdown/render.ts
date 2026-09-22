@@ -48,10 +48,568 @@ function collectCodeLangs(langs: string[]) {
     visit(tree, 'element', (node: Element, _index, parent) => {
       if (node.tagName !== 'code') return;
       if (!parent || parent.type !== 'element' || parent.tagName !== 'pre') return;
+      if (parent.properties?.['data-mermaid-fallback-code'] !== undefined) return;
       const classes = node.properties?.className;
       const list = Array.isArray(classes) ? classes.map(String) : [];
       const found = list.find((name) => name.startsWith('language-'));
       langs.push(found ? found.slice('language-'.length) : '');
+    });
+  };
+}
+
+const INSTALLER_MANAGERS = ['npm', 'pnpm', 'yarn', 'bun'] as const;
+const INSTALLER_AGENTS = ['codex', 'claude-code', 'grok'] as const;
+const INSTALLER_AGENT_LABELS: Record<(typeof INSTALLER_AGENTS)[number], string> = {
+  codex: 'Codex',
+  'claude-code': 'Claude Code',
+  grok: 'Grok',
+};
+
+const installerText = (maximum: number) => z.string().trim().min(1).max(maximum);
+const installerCode = (maximum: number) =>
+  z
+    .string()
+    .max(maximum)
+    .refine((value) => value.trim().length > 0);
+const installerSchema = z
+  .object({
+    title: installerText(120),
+    intro: installerText(600).optional(),
+    managers: z
+      .object({
+        npm: installerCode(2_000).optional(),
+        pnpm: installerCode(2_000).optional(),
+        yarn: installerCode(2_000).optional(),
+        bun: installerCode(2_000).optional(),
+      })
+      .strict()
+      .refine((managers) => Object.values(managers).some(Boolean))
+      .optional(),
+    agents: z
+      .object({
+        codex: installerCode(2_000).optional(),
+        'claude-code': installerCode(2_000).optional(),
+        grok: installerCode(2_000).optional(),
+      })
+      .strict()
+      .refine((agents) => Object.values(agents).some(Boolean))
+      .optional(),
+    steps: z
+      .array(
+        z
+          .object({
+            title: installerText(120),
+            description: installerText(1_000).optional(),
+            code: installerCode(20_000).optional(),
+            language: z
+              .string()
+              .trim()
+              .regex(/^[a-z0-9][a-z0-9.+#_-]{0,31}$/i)
+              .optional(),
+            note: installerText(1_000).optional(),
+            tip: installerText(1_000).optional(),
+          })
+          .strict(),
+      )
+      .min(1)
+      .max(30),
+  })
+  .strict()
+  .refine(({ managers, agents }) => Boolean(managers || agents));
+
+type Installer = z.infer<typeof installerSchema>;
+type InstallerTab = {
+  kind: 'manager' | 'agent';
+  key: string;
+  label: string;
+  command: string;
+};
+
+function textElement(
+  tagName: string,
+  value: string,
+  properties: Element['properties'] = {},
+): Element {
+  return {
+    type: 'element',
+    tagName,
+    properties,
+    children: [{ type: 'text', value }],
+  };
+}
+
+function sourceStore(kind: 'mermaid' | 'installer', value: string): Element {
+  return textElement('div', value, {
+    [`data-${kind}-source`]: '',
+    hidden: true,
+    'aria-hidden': 'true',
+  });
+}
+
+function installerCodeBlock(value: string, label: string, kind: 'command' | 'step'): Element {
+  return {
+    type: 'element',
+    tagName: 'div',
+    properties: {
+      [kind === 'command' ? 'data-installer-command' : 'data-installer-code']: '',
+    },
+    children: [
+      {
+        type: 'element',
+        tagName: 'pre',
+        properties: {},
+        children: [textElement('code', value, label ? { className: [`language-${label}`] } : {})],
+      },
+    ],
+  };
+}
+
+/** JSON에 한 줄로 적은 셸 continuation 표기를 코드블럭에서 읽기 좋게 펼친다. */
+function formatInstallerCommand(command: string): string {
+  return command.replace(/(^|[ \t])\\[ \t]+(?=\S)/gm, '$1\\\n  ');
+}
+
+function installerKeys<T extends string>(
+  values: Partial<Record<T, string>> | undefined,
+  allowed: readonly T[],
+): T[] {
+  if (!values) return [];
+  return Object.keys(values).filter(
+    (key): key is T => allowed.includes(key as T) && values[key as T] !== undefined,
+  );
+}
+
+function installerView(installer: Installer, source: string, ordinal: number): Element {
+  const managerTabs: InstallerTab[] = installerKeys(installer.managers, INSTALLER_MANAGERS).map(
+    (manager) => ({
+      kind: 'manager' as const,
+      key: manager,
+      label: manager,
+      command: installer.managers![manager]!,
+    }),
+  );
+  const agentTabs: InstallerTab[] = installerKeys(installer.agents, INSTALLER_AGENTS).map(
+    (agent) => ({
+      kind: 'agent' as const,
+      key: agent,
+      label: INSTALLER_AGENT_LABELS[agent],
+      command: installer.agents![agent]!,
+    }),
+  );
+  // managers wins when both forms are present so existing installer documents retain
+  // their package-manager behavior without rendering two competing tab sets.
+  const tabs = installer.managers ? managerTabs : agentTabs;
+  const tabId = (key: string) => `installer-${ordinal}-tab-${key}`;
+  const panelId = (key: string) => `installer-${ordinal}-panel-${key}`;
+
+  return {
+    type: 'element',
+    tagName: 'section',
+    properties: {
+      'data-installer': '',
+      'aria-labelledby': `installer-${ordinal}-title`,
+      contentEditable: 'false',
+    },
+    children: [
+      sourceStore('installer', source),
+      textElement('h3', installer.title, {
+        id: `installer-${ordinal}-title`,
+        'data-installer-title': '',
+      }),
+      ...(installer.intro
+        ? [textElement('p', installer.intro, { 'data-installer-intro': '' })]
+        : []),
+      {
+        type: 'element',
+        tagName: 'div',
+        properties: {
+          role: 'tablist',
+          'aria-label': tabs[0]?.kind === 'agent' ? '에이전트' : '패키지 매니저',
+          'data-installer-tabs': '',
+        },
+        children: tabs.map((tab, index) =>
+          textElement('button', tab.label, {
+            type: 'button',
+            role: 'tab',
+            id: tabId(tab.key),
+            'aria-controls': panelId(tab.key),
+            'aria-selected': index === 0 ? 'true' : 'false',
+            tabIndex: index === 0 ? 0 : -1,
+            ...(tab.kind === 'agent'
+              ? { 'data-installer-agent': tab.key }
+              : { 'data-installer-manager': tab.key }),
+          }),
+        ),
+      },
+      ...tabs.map((tab, index) => ({
+        type: 'element' as const,
+        tagName: 'div',
+        properties: {
+          role: 'tabpanel',
+          id: panelId(tab.key),
+          'aria-labelledby': tabId(tab.key),
+          'data-installer-panel': tab.key,
+          hidden: index === 0 ? undefined : true,
+        },
+        children: [installerCodeBlock(formatInstallerCommand(tab.command), 'sh', 'command')],
+      })),
+      {
+        type: 'element',
+        tagName: 'ol',
+        properties: { 'data-installer-steps': '' },
+        children: installer.steps.map((step) => ({
+          type: 'element',
+          tagName: 'li',
+          properties: {},
+          children: [
+            textElement('h4', step.title),
+            ...(step.description ? [textElement('p', step.description)] : []),
+            ...(step.code ? [installerCodeBlock(step.code, step.language ?? '', 'step')] : []),
+            ...(step.note ? [textElement('p', step.note, { 'data-installer-note': '' })] : []),
+            ...(step.tip ? [textElement('p', step.tip, { 'data-installer-tip': '' })] : []),
+          ],
+        })),
+      },
+    ],
+  };
+}
+
+/** installer JSON is promoted only after strict schema validation; otherwise the pre is untouched. */
+function installerBlocks() {
+  return (tree: Root) => {
+    let ordinal = 0;
+    visit(tree, 'element', (node: Element, index, parent) => {
+      if (node.tagName !== 'pre' || !parent || index === null || index === undefined) return;
+      const code = node.children[0];
+      if (!code || code.type !== 'element' || code.tagName !== 'code') return;
+      const classes = Array.isArray(code.properties?.className)
+        ? code.properties.className.map(String)
+        : [];
+      if (!classes.includes('language-installer')) return;
+
+      const source = nodeText(code as unknown as TextishNode).replace(/\n$/, '');
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(source);
+      } catch {
+        return;
+      }
+      const result = installerSchema.safeParse(parsed);
+      if (!result.success) return;
+
+      ordinal += 1;
+      parent.children[index] = installerView(result.data, source, ordinal);
+      return 'skip';
+    });
+  };
+}
+
+function mermaidBlocks() {
+  return (tree: Root) => {
+    let ordinal = 0;
+    visit(tree, 'element', (node: Element, index, parent) => {
+      if (node.tagName !== 'pre' || !parent || index === null || index === undefined) return;
+      const code = node.children[0];
+      if (!code || code.type !== 'element' || code.tagName !== 'code') return;
+      const classes = Array.isArray(code.properties?.className)
+        ? code.properties.className.map(String)
+        : [];
+      if (!classes.includes('language-mermaid')) return;
+
+      const source = nodeText(code as unknown as TextishNode).replace(/\n$/, '');
+      if (!source.trim()) return;
+      ordinal += 1;
+      parent.children[index] = {
+        type: 'element',
+        tagName: 'section',
+        properties: {
+          'data-mermaid': '',
+          'data-mermaid-state': 'pending',
+          contentEditable: 'false',
+        },
+        children: [
+          sourceStore('mermaid', source),
+          {
+            type: 'element',
+            tagName: 'div',
+            properties: {
+              'data-mermaid-canvas': '',
+              role: 'img',
+              'aria-label': `다이어그램 ${ordinal}`,
+            },
+            children: [],
+          },
+          {
+            type: 'element',
+            tagName: 'figure',
+            properties: { 'data-mermaid-fallback': '', 'data-code': '', hidden: true },
+            children: [
+              appleWindowHeader('mermaid', true),
+              {
+                type: 'element',
+                tagName: 'pre',
+                properties: { 'data-mermaid-fallback-code': '' },
+                children: [textElement('code', source, { className: ['language-mermaid'] })],
+              },
+            ],
+          },
+          textElement('p', '다이어그램을 불러오는 중이에요.', {
+            'data-mermaid-status': '',
+            role: 'status',
+          }),
+        ],
+      };
+      return 'skip';
+    });
+  };
+}
+
+const FILE_TREE_LANGS = new Set(['filetree', 'tree', 'folder']);
+const AUTO_FILE_TREE_LANGS = new Set(['', 'text', 'text/plain']);
+
+type FileTreeEntry = {
+  name: string;
+  kind: 'file' | 'folder';
+  children: FileTreeEntry[];
+};
+
+type FileTreeIconKey =
+  | 'folder'
+  | 'react'
+  | 'ts'
+  | 'js'
+  | 'md'
+  | 'css'
+  | 'json'
+  | 'html'
+  | 'svg'
+  | 'image'
+  | 'config'
+  | 'file';
+
+const CSS_FILE_EXTENSIONS = new Set([
+  '.css',
+  '.less',
+  '.pcss',
+  '.postcss',
+  '.sass',
+  '.scss',
+  '.styl',
+  '.stylus',
+]);
+const JSON_FILE_EXTENSIONS = new Set(['.json', '.json5', '.jsonc', '.jsonl', '.ndjson']);
+const HTML_FILE_EXTENSIONS = new Set(['.astro', '.htm', '.html', '.shtml', '.xht', '.xhtml']);
+const IMAGE_FILE_EXTENSIONS = new Set([
+  '.avif',
+  '.bmp',
+  '.gif',
+  '.heic',
+  '.heif',
+  '.ico',
+  '.jpeg',
+  '.jpg',
+  '.png',
+  '.tif',
+  '.tiff',
+  '.webp',
+]);
+const CONFIGURATION_FILE_EXTENSIONS = new Set([
+  '.cfg',
+  '.conf',
+  '.config',
+  '.env',
+  '.hcl',
+  '.ini',
+  '.plist',
+  '.properties',
+  '.toml',
+  '.xml',
+  '.yaml',
+  '.yml',
+]);
+const CONFIGURATION_FILE_NAMES = new Set([
+  '.dockerignore',
+  '.editorconfig',
+  '.eslintignore',
+  '.gitattributes',
+  '.gitconfig',
+  '.gitignore',
+  '.gitmodules',
+  '.npmignore',
+  '.npmrc',
+  '.nvmrc',
+  '.prettierignore',
+  '.prettierrc',
+  '.stylelintignore',
+  '.stylelintrc',
+  '.yarnrc',
+  'dockerfile',
+  'gemfile',
+  'makefile',
+  'procfile',
+  'rakefile',
+  'vagrantfile',
+]);
+
+function fileTreeIconKey(name: string, kind: FileTreeEntry['kind']): FileTreeIconKey {
+  if (kind === 'folder') return 'folder';
+
+  // Only the derived key is used in the URL. The literal entry name never becomes a path.
+  const filename = name.endsWith('/') ? name.slice(0, -1) : name;
+  const basename = filename.split('/').at(-1)?.toLowerCase() ?? '';
+  if (
+    CONFIGURATION_FILE_NAMES.has(basename) ||
+    basename.startsWith('dockerfile.') ||
+    /^\.env(?:[._-]|$)/.test(basename) ||
+    /(?:^|[._-])(?:config|rc)(?:[._-]|$)/.test(basename)
+  ) {
+    return 'config';
+  }
+
+  const extensionAt = basename.lastIndexOf('.');
+  const extension = extensionAt === -1 ? '' : basename.slice(extensionAt);
+  if (extension === '.tsx' || extension === '.jsx') return 'react';
+  if (extension === '.ts') return 'ts';
+  if (extension === '.js' || extension === '.mjs' || extension === '.cjs') return 'js';
+  if (extension === '.md' || extension === '.mdx') return 'md';
+  if (CSS_FILE_EXTENSIONS.has(extension)) return 'css';
+  if (JSON_FILE_EXTENSIONS.has(extension)) return 'json';
+  if (HTML_FILE_EXTENSIONS.has(extension)) return 'html';
+  if (extension === '.svg' || extension === '.svgz') return 'svg';
+  if (IMAGE_FILE_EXTENSIONS.has(extension)) return 'image';
+  if (CONFIGURATION_FILE_EXTENSIONS.has(extension)) return 'config';
+  return 'file';
+}
+
+function fileTreeIcon(entry: FileTreeEntry): Element {
+  const key = fileTreeIconKey(entry.name, entry.kind);
+  return {
+    type: 'element',
+    tagName: 'img',
+    properties: {
+      'data-filetree-icon': key,
+      src: `/assets/filetree-icons/${key}.png`,
+      alt: '',
+      'aria-hidden': 'true',
+    },
+    children: [],
+  };
+}
+
+/**
+ * 터미널의 tree 출력처럼 생긴 코드펜스만 구조로 바꾼다.
+ *
+ * 들여쓰기는 `tree` 명령의 네 칸 단위(`│   ` 또는 공백 네 칸)만 받는다. 일부만
+ * 해석해 잘못된 계층을 만들기보다, 빈 줄·깊이 점프·낯선 선 문자가 있으면 원래
+ * 코드블럭으로 남기는 쪽이 안전하다.
+ */
+function parseFileTree(value: string, { requireBranch = false } = {}): FileTreeEntry[] | null {
+  const lines = value.replace(/\r\n?/g, '\n').split('\n');
+  // fenced code가 만드는 마지막 개행 하나만 제거한다. 그 밖의 빈 줄은 입력 오류다.
+  if (lines.at(-1) === '') lines.pop();
+  if (lines.length === 0 || lines.some((line) => line.trim() === '')) return null;
+
+  const branchPattern = /^((?:(?:│   )|(?: {4}))*)(?:├── |└── )(.+)$/;
+  const firstBranch = branchPattern.exec(lines[0]);
+  const hasNamedRoot = firstBranch === null;
+  const roots: FileTreeEntry[] = [];
+  const stack: FileTreeEntry[] = [];
+  let hasBranch = false;
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const branch = branchPattern.exec(line);
+    let depth: number;
+    let name: string;
+
+    if (index === 0 && hasNamedRoot) {
+      depth = 0;
+      name = line.trim();
+    } else if (branch) {
+      hasBranch = true;
+      depth = branch[1].length / 4 + (hasNamedRoot ? 1 : 0);
+      name = branch[2].trim();
+    } else {
+      return null;
+    }
+
+    if (!name || depth > stack.length) return null;
+
+    const entry: FileTreeEntry = {
+      name,
+      kind: name.endsWith('/') ? 'folder' : 'file',
+      children: [],
+    };
+
+    if (depth === 0) {
+      roots.push(entry);
+    } else {
+      const parent = stack[depth - 1];
+      if (!parent) return null;
+      if (parent.kind !== 'folder') return null;
+      parent.children.push(entry);
+    }
+
+    stack.length = depth;
+    stack[depth] = entry;
+  }
+
+  return roots.length > 0 && (!requireBranch || hasBranch) ? roots : null;
+}
+
+function fileTreeList(entries: FileTreeEntry[], root = false): Element {
+  return {
+    type: 'element',
+    tagName: 'ul',
+    properties: root ? { role: 'tree', 'aria-label': '파일 트리' } : { role: 'group' },
+    children: entries.map((entry) => ({
+      type: 'element',
+      tagName: 'li',
+      properties: {
+        role: 'treeitem',
+        'data-kind': entry.kind,
+        'aria-label': `${entry.name}, ${entry.kind === 'folder' ? '폴더' : '파일'}`,
+      },
+      children: [
+        fileTreeIcon(entry),
+        {
+          type: 'element',
+          tagName: 'span',
+          properties: { 'data-filetree-name': '' },
+          children: [{ type: 'text', value: entry.name }],
+        },
+        ...(entry.children.length > 0 ? [fileTreeList(entry.children)] : []),
+      ],
+    })),
+  };
+}
+
+/** 명시적 alias와 엄격히 파싱되는 일반 텍스트 트리를 shiki 전에 HAST로 바꾼다. */
+function fileTreeBlocks() {
+  return (tree: Root) => {
+    visit(tree, 'element', (node: Element, index, parent) => {
+      if (node.tagName !== 'pre' || !parent || index === null || index === undefined) return;
+      const code = node.children[0];
+      if (!code || code.type !== 'element' || code.tagName !== 'code') return;
+      const classes = Array.isArray(code.properties?.className)
+        ? code.properties.className.map(String)
+        : [];
+      const languageClass = classes.find((name) => name.startsWith('language-'));
+      const language = languageClass?.slice('language-'.length).toLowerCase() ?? '';
+      if (!FILE_TREE_LANGS.has(language) && !AUTO_FILE_TREE_LANGS.has(language)) return;
+
+      const entries = parseFileTree(nodeText(code as unknown as TextishNode), {
+        requireBranch: AUTO_FILE_TREE_LANGS.has(language),
+      });
+      if (!entries) return;
+
+      parent.children[index] = {
+        type: 'element',
+        tagName: 'figure',
+        properties: { 'data-filetree': '' },
+        children: [appleWindowHeader('파일 구조'), fileTreeList(entries, true)],
+      };
+      return 'skip';
     });
   };
 }
@@ -126,6 +684,37 @@ function copyButton(): Element {
   };
 }
 
+function windowDots(): Element {
+  return {
+    type: 'element',
+    tagName: 'span',
+    properties: { 'data-code-dots': '', 'aria-hidden': 'true' },
+    children: [
+      { type: 'element', tagName: 'i', properties: {}, children: [] },
+      { type: 'element', tagName: 'i', properties: {}, children: [] },
+      { type: 'element', tagName: 'i', properties: {}, children: [] },
+    ],
+  };
+}
+
+function appleWindowHeader(label: string, withCopyButton = false): Element {
+  return {
+    type: 'element',
+    tagName: 'figcaption',
+    properties: { 'data-code-head': '' },
+    children: [
+      windowDots(),
+      {
+        type: 'element',
+        tagName: 'span',
+        properties: { 'data-code-lang': '' },
+        children: label ? [{ type: 'text', value: label }] : [],
+      },
+      ...(withCopyButton ? [copyButton()] : []),
+    ],
+  };
+}
+
 /**
  * 콜아웃. GitHub 표기(`> [!NOTE]`)를 그대로 받는다.
  *
@@ -175,319 +764,6 @@ function calloutBlocks() {
       });
     });
   };
-}
-
-const installerText = (max: number) => z.string().trim().min(1).max(max);
-// Commands and snippets are payload, not labels. Validate them without transforming them so
-// indentation and intentional leading/trailing whitespace reach the rendered <code> verbatim.
-const installerCode = (max: number) =>
-  z
-    .string()
-    .max(max)
-    .refine((value) => value.trim().length > 0);
-const INSTALLER_MANAGERS = ['npm', 'pnpm', 'yarn', 'bun'] as const;
-const INSTALLER_AGENTS = ['codex', 'claude-code', 'grok'] as const;
-const INSTALLER_AGENT_LABELS: Record<(typeof INSTALLER_AGENTS)[number], string> = {
-  codex: 'Codex',
-  'claude-code': 'Claude Code',
-  grok: 'Grok',
-};
-const installerSchema = z
-  .object({
-    title: installerText(120),
-    intro: installerText(600).optional(),
-    managers: z
-      .object({
-        npm: installerCode(2_000).optional(),
-        pnpm: installerCode(2_000).optional(),
-        yarn: installerCode(2_000).optional(),
-        bun: installerCode(2_000).optional(),
-      })
-      .strict()
-      .refine((managers) => INSTALLER_MANAGERS.some((manager) => managers[manager] !== undefined))
-      .optional(),
-    agents: z
-      .object({
-        codex: installerCode(2_000).optional(),
-        'claude-code': installerCode(2_000).optional(),
-        grok: installerCode(2_000).optional(),
-      })
-      .strict()
-      .refine((agents) => INSTALLER_AGENTS.some((agent) => agents[agent] !== undefined))
-      .optional(),
-    steps: z
-      .array(
-        z
-          .object({
-            title: installerText(120),
-            description: installerText(600).optional(),
-            language: z
-              .string()
-              .trim()
-              .regex(/^[a-z0-9_+#.-]{1,32}$/i)
-              .optional(),
-            code: installerCode(20_000).optional(),
-            note: installerText(600).optional(),
-            tip: installerText(600).optional(),
-          })
-          .strict(),
-      )
-      .min(1)
-      .max(20),
-  })
-  .strict()
-  .refine(({ managers, agents }) => Boolean(managers || agents));
-
-type Installer = z.infer<typeof installerSchema>;
-type InstallerTab = {
-  kind: 'manager' | 'agent';
-  key: string;
-  label: string;
-  command: string;
-};
-type HastChild = Element['children'][number];
-
-/** JSON에 한 줄로 적은 셸 continuation 표기를 코드블럭에서 읽기 좋게 펼친다.
- *
- * 명령 사이에 독립적으로 놓인 `\ --flag`만 대상으로 삼아 경로 등에 들어 있는
- * 임의의 backslash는 건드리지 않는다. 이미 `\` 다음에 줄바꿈이 있으면 작성자가
- * 넣은 들여쓰기를 보존하기 위해 그대로 둔다.
- */
-function formatInstallerCommand(command: string): string {
-  return command.replace(/(^|[ \t])\\[ \t]+(?=\S)/gm, '$1\\\n  ');
-}
-
-function textElement(
-  tagName: string,
-  value: string,
-  properties: Element['properties'] = {},
-): Element {
-  return {
-    type: 'element',
-    tagName,
-    properties,
-    children: [{ type: 'text', value }],
-  };
-}
-
-function fencedCode(value: string, language = ''): Element {
-  return {
-    type: 'element',
-    tagName: 'pre',
-    properties: {},
-    children: [
-      {
-        type: 'element',
-        tagName: 'code',
-        properties: language ? { className: [`language-${language}`] } : {},
-        children: [{ type: 'text', value: value.endsWith('\n') ? value : `${value}\n` }],
-      },
-    ],
-  };
-}
-
-function callout(kind: 'note' | 'tip', value: string): Element {
-  return {
-    type: 'element',
-    tagName: 'blockquote',
-    properties: { 'data-callout': kind },
-    children: [
-      textElement('p', kind === 'tip' ? '팁' : '참고', { 'data-callout-label': '' }),
-      textElement('p', value),
-    ],
-  };
-}
-
-function installerFigure(
-  installer: Installer,
-  source: string,
-  tabs: InstallerTab[],
-  id: number,
-): Element {
-  const children: HastChild[] = [
-    textElement('span', source, { 'data-installer-source': '', hidden: true }),
-    {
-      type: 'element',
-      tagName: 'header',
-      properties: { 'data-installer-head': '' },
-      children: [
-        textElement('h3', installer.title),
-        ...(installer.intro ? [textElement('p', installer.intro)] : []),
-      ],
-    },
-  ];
-
-  if (tabs.length) {
-    const renderedTabs: Element[] = [];
-    const panels: Element[] = [];
-    const tabKind = tabs[0].kind;
-    tabs.forEach((tab, index) => {
-      const panelId = `installer-${id}-${tab.key}`;
-      renderedTabs.push(
-        textElement('button', tab.label, {
-          type: 'button',
-          role: 'tab',
-          id: `${panelId}-tab`,
-          'aria-controls': panelId,
-          'aria-selected': index === 0 ? 'true' : 'false',
-          tabIndex: index === 0 ? 0 : -1,
-          ...(tab.kind === 'agent'
-            ? { 'data-installer-agent': tab.key }
-            : { 'data-installer-manager': tab.key }),
-        }),
-      );
-      panels.push({
-        type: 'element',
-        tagName: 'div',
-        properties: {
-          role: 'tabpanel',
-          id: panelId,
-          'aria-labelledby': `${panelId}-tab`,
-          'data-installer-panel': tab.key,
-          hidden: index === 0 ? undefined : true,
-        },
-        children: [fencedCode(tab.command, 'shell')],
-      });
-    });
-    children.push({
-      type: 'element',
-      tagName: 'section',
-      properties: {
-        [tabKind === 'agent' ? 'data-installer-agents' : 'data-installer-managers']: '',
-      },
-      children: [
-        {
-          type: 'element',
-          tagName: 'div',
-          properties: {
-            role: 'tablist',
-            'aria-label': tabKind === 'agent' ? '에이전트' : '패키지 매니저',
-          },
-          children: renderedTabs,
-        },
-        ...panels,
-      ],
-    });
-  }
-
-  children.push({
-    type: 'element',
-    tagName: 'ol',
-    properties: { 'data-installer-steps': '' },
-    children: installer.steps.map((step) => ({
-      type: 'element' as const,
-      tagName: 'li',
-      properties: {},
-      children: [
-        textElement('h4', step.title),
-        ...(step.description ? [textElement('p', step.description)] : []),
-        ...(step.code ? [fencedCode(step.code, step.language)] : []),
-        ...(step.note ? [callout('note', step.note)] : []),
-        ...(step.tip ? [callout('tip', step.tip)] : []),
-      ],
-    })),
-  });
-
-  return {
-    type: 'element',
-    tagName: 'figure',
-    properties: { 'data-installer': '', contentEditable: 'false' },
-    children,
-  };
-}
-
-/** 특수 fence는 먼저 안전한 HAST로 바꾼다. JSON/다이어그램 원문은 텍스트 노드로만
-    보관하므로 마크업으로 실행되지 않고, 일반 코드블럭 장식과 하이라이트는 이후 단계가 맡는다. */
-function expandSpecialCodeBlocks() {
-  return (tree: Root) => {
-    let installerId = 0;
-    visit(tree, 'element', (node: Element, index, parent) => {
-      if (node.tagName !== 'pre' || !parent || index === null || index === undefined) return;
-      const code = node.children.find(
-        (child): child is Element => child.type === 'element' && child.tagName === 'code',
-      );
-      if (!code) return;
-      const classes = Array.isArray(code.properties?.className)
-        ? code.properties.className.map(String)
-        : [];
-      const language = classes
-        .find((name) => name.startsWith('language-'))
-        ?.slice('language-'.length)
-        .toLowerCase();
-      const source = nodeText(code as unknown as TextishNode).replace(/\n$/, '');
-
-      if (language === 'mermaid' && source.trim()) {
-        parent.children[index] = {
-          type: 'element',
-          tagName: 'figure',
-          properties: {
-            'data-mermaid': '',
-            'data-mermaid-state': 'loading',
-            contentEditable: 'false',
-          },
-          children: [
-            textElement('figcaption', '다이어그램'),
-            textElement('span', source, { 'data-mermaid-source': '', hidden: true }),
-            {
-              type: 'element',
-              tagName: 'div',
-              properties: { 'data-mermaid-output': '' },
-              children: [],
-            },
-            {
-              type: 'element',
-              tagName: 'div',
-              properties: { 'data-mermaid-fallback': '' },
-              children: [node],
-            },
-          ],
-        };
-        return 'skip';
-      }
-
-      if (language !== 'installer') return;
-      try {
-        const raw: unknown = JSON.parse(source);
-        const parsed = installerSchema.safeParse(raw);
-        if (!parsed.success) return;
-        const rawObject = typeof raw === 'object' && raw !== null ? raw : null;
-        const rawManagers = rawObject && 'managers' in rawObject ? rawObject.managers : undefined;
-        const rawAgents = rawObject && 'agents' in rawObject ? rawObject.agents : undefined;
-        const managerOrder = installerKeys(rawManagers, INSTALLER_MANAGERS, parsed.data.managers);
-        const agentOrder = installerKeys(rawAgents, INSTALLER_AGENTS, parsed.data.agents);
-        // managers wins when both forms are present so existing installer documents retain
-        // their package-manager behavior without rendering two competing tab sets.
-        const tabs = parsed.data.managers
-          ? managerOrder.map((manager) => ({
-              kind: 'manager' as const,
-              key: manager,
-              label: manager,
-              command: formatInstallerCommand(parsed.data.managers![manager]!),
-            }))
-          : agentOrder.map((agent) => ({
-              kind: 'agent' as const,
-              key: agent,
-              label: INSTALLER_AGENT_LABELS[agent],
-              command: formatInstallerCommand(parsed.data.agents![agent]!),
-            }));
-        parent.children[index] = installerFigure(parsed.data, source, tabs, installerId++);
-        return 'skip';
-      } catch {
-        // JSON이나 스키마가 잘못된 installer는 기존 코드블럭으로 그대로 이어진다.
-      }
-    });
-  };
-}
-
-function installerKeys<T extends string>(
-  rawValues: unknown,
-  allowed: readonly T[],
-  parsedValues: Partial<Record<T, string>> | undefined,
-): T[] {
-  if (typeof rawValues !== 'object' || rawValues === null) return [];
-  return Object.keys(rawValues).filter(
-    (key): key is T => allowed.includes(key as T) && parsedValues?.[key as T] !== undefined,
-  );
 }
 
 function resolveAssetPath(value: string, publicUrl: string): string | null {
@@ -561,36 +837,20 @@ function frameCodeBlocks(langs: string[]) {
     visit(tree, 'element', (node: Element, index, parent) => {
       if (node.tagName !== 'pre') return;
       if (!parent || index === null || index === undefined) return;
+      if (node.properties?.['data-mermaid-fallback-code'] !== undefined) return;
       const lang = langs[at++] ?? '';
-      const head: Element = {
-        type: 'element',
-        tagName: 'figcaption',
-        properties: { 'data-code-head': '' },
-        children: [
-          {
-            type: 'element',
-            tagName: 'span',
-            properties: { 'data-code-dots': '', 'aria-hidden': 'true' },
-            children: [
-              { type: 'element', tagName: 'i', properties: {}, children: [] },
-              { type: 'element', tagName: 'i', properties: {}, children: [] },
-              { type: 'element', tagName: 'i', properties: {}, children: [] },
-            ],
-          },
-          {
-            type: 'element',
-            tagName: 'span',
-            properties: { 'data-code-lang': '' },
-            children: lang ? [{ type: 'text', value: lang }] : [],
-          },
-          copyButton(),
-        ],
-      };
+      if (
+        parent.type === 'element' &&
+        parent.tagName === 'figure' &&
+        parent.properties?.['data-code'] !== undefined
+      ) {
+        return 'skip';
+      }
       parent.children[index] = {
         type: 'element',
         tagName: 'figure',
         properties: { 'data-code': '' },
-        children: [head, node],
+        children: [appleWindowHeader(lang, true), node],
       };
       return 'skip';
     });
@@ -615,7 +875,9 @@ export async function renderMarkdown(
     .use(removeUnsafeResourceUrls)
     .use(rehypeSlug)
     .use(collectToc, toc)
-    .use(expandSpecialCodeBlocks)
+    .use(installerBlocks)
+    .use(mermaidBlocks)
+    .use(fileTreeBlocks)
     .use(collectCodeLangs, langs)
     .use(calloutBlocks)
     /* 어두운 화면이라 어두운 테마를 쓴다. shiki는 pre에 배경색을 인라인으로 박기

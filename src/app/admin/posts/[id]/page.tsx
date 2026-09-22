@@ -5,7 +5,6 @@ import { AdminFrame } from '@features/admin/components/AdminFrame';
 import { AdminEditorWorkspace } from '@features/admin/components/AdminEditorWorkspace';
 import { LoginPanel } from '@features/admin/components/LoginPanel';
 import { PostEditor } from '@features/admin/components/PostEditor';
-import { DeletePostButton } from '@features/admin/components/DeletePostButton';
 import { updatePostAction } from '@features/admin/services/posts.actions';
 import {
   getAdminPost,
@@ -78,7 +77,6 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
             }}
             categories={categories}
           />
-          <DeletePostButton id={post.id} />
         </AdminFrame>
       </div>
     </AdminEditorWorkspace>

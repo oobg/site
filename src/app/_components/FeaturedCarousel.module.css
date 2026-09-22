@@ -2,12 +2,14 @@
   padding-block: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--d0-grey-100);
 }
+
 .section:not([data-with-cover]) {
   margin-top: var(--space-4);
   padding-block: var(--space-7);
   border-top: 1px solid var(--d0-grey-100);
   background: var(--color-surface);
 }
+
 .slide {
   display: grid;
   grid-template-columns: minmax(0, 57fr) minmax(260px, 43fr);
@@ -16,6 +18,7 @@
   touch-action: pan-y;
   animation: featured-slide-in 360ms var(--d0-ease);
 }
+
 .cover {
   display: block;
   width: 100%;
@@ -24,13 +27,16 @@
   background: var(--d0-grey-50);
   object-fit: cover;
 }
+
 .copy {
   max-width: 520px;
 }
+
 .copy:not([data-with-cover]) {
   grid-column: 1/-1;
   max-width: 760px;
 }
+
 .metaRow {
   display: flex;
   align-items: center;
@@ -38,6 +44,7 @@
   gap: var(--space-4);
   min-height: 40px;
 }
+
 .category {
   color: var(--d0-blue-dark);
   font-size: 13px;
@@ -52,18 +59,21 @@
 .copy :is(h2, h3) a:hover {
   color: var(--d0-blue-dark);
 }
+
 .copy p {
   margin-top: var(--space-3);
   color: var(--d0-grey-600);
   font-size: 16px;
   line-height: 1.6;
 }
+
 .copy time {
   display: block;
   margin-top: var(--space-4);
   color: var(--d0-grey-600);
   font-size: 13px;
 }
+
 .controls {
   display: flex;
   align-items: center;
@@ -89,11 +99,13 @@
   color: var(--d0-grey-800);
   cursor: pointer;
 }
+
 .controls button:hover {
   border-color: var(--d0-blue);
   color: var(--d0-blue-dark);
   background: var(--d0-blue-light);
 }
+
 .controls button:focus-visible {
   outline: 2px solid var(--d0-blue);
   outline-offset: 2px;
@@ -177,10 +189,12 @@
     margin-top: var(--space-3);
     font-size: 26px;
   }
+
   .copy p {
     margin-top: var(--space-3);
     font-size: 16px;
   }
+
   .copy time {
     margin-top: var(--space-4);
   }

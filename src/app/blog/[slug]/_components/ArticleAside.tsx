@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { PostListItem } from '@features/posts/types/posts.types';
 import { Eyebrow } from '@components/ui/Eyebrow';
+import { DEFAULT_POST_CATEGORY_SLUG } from '@features/posts/types/posts.types';
 import { ROUTES } from '@constants/routes';
 import { formatDateKo } from '@utils/date';
 import styles from './ArticleAside.module.css';
@@ -16,7 +17,13 @@ export function ArticleAside({ related }: { related: PostListItem[] }) {
           <ul className={styles.related}>
             {related.map((item) => (
               <li key={item.slug}>
-                <Link href={ROUTES.BLOG.DETAIL(item.slug)} className={styles.relatedItem}>
+                <Link
+                  href={ROUTES.BLOG.DETAIL(
+                    item.category?.slug ?? DEFAULT_POST_CATEGORY_SLUG,
+                    item.slug,
+                  )}
+                  className={styles.relatedItem}
+                >
                   <span className={styles.relatedTitle}>{item.title}</span>
                   <span className={styles.relatedMeta}>
                     <time dateTime={item.published_at}>{formatDateKo(item.published_at)}</time>

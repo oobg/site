@@ -54,7 +54,10 @@ export function buildMetadata(input: {
   return {
     title: input.title,
     description: input.description ?? SITE.description,
-    alternates: { ...baseMetadata.alternates, canonical: input.path },
+    alternates: {
+      ...baseMetadata.alternates,
+      canonical: input.path,
+    },
     openGraph: {
       ...baseOg,
       title: input.title,

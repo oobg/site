@@ -12,10 +12,12 @@
    supabase db push
    ```
 
-   적용할 SQL은 순서대로 `supabase/migrations/20260907000000_create_posts.sql`과
-   `supabase/migrations/20260910000000_add_blog_taxonomy_and_featured_posts.sql`이다.
+   적용할 SQL은 순서대로 `supabase/migrations/20260907000000_create_posts.sql`,
+   `supabase/migrations/20260910000000_add_blog_taxonomy_and_featured_posts.sql`,
+   `supabase/migrations/20260911100000_use_korean_category_slugs.sql`이다.
    첫 마이그레이션은 `posts`, `cms_owners`, RLS 정책과 `updated_at` 트리거를 만들고,
-   두 번째는 카테고리·태그·커버 메타데이터·대표 글 순서를 추가한다.
+   두 번째는 카테고리·태그·커버 메타데이터·대표 글 순서를 추가한다. 세 번째는 카테고리
+   이름에서 한국어 canonical slug를 만들고, 기존 영문 slug를 이전 URL용 alias로 보존한다.
 
 3. SQL Editor에서 로그인할 Google 계정을 소문자로 등록한다.
 
@@ -35,7 +37,9 @@ SQL Editor에서 검토해 수동 적용한다. 이 rollback은 데이터 손실
 카테고리는 관리자에서 만들고 순서를 정한다. 글에는 하나의 카테고리를 지정하며,
 카테고리를 삭제하면 연결된 글은 기본 카테고리 `미분류`로 이동한다. 기본 카테고리
 자체는 삭제하거나 이름·slug를 바꿀 수 없다. 태그는 글별 자유 입력값이며 저장 시
-소문자로 정규화한다.
+소문자로 정규화한다. 카테고리 URL에는 카테고리 slug가 사용되며, 새 canonical slug는
+`디자인-시스템`처럼 한글·소문자·숫자와 하이픈으로 구성한다. taxonomy migration 전의
+영문 slug는 `legacy_slug`로 남아 기존 게시글 URL이 새 주소로 308 redirect 되도록 한다.
 
 대표 글은 공개 상태인 글만 최대 5개까지 선택하고 순서를 저장한다. 고정된 글이
 있으면 그 순서를 사용하며, 없을 때 공개 화면은 카테고리별 최신 글을 자동으로
@@ -71,6 +75,18 @@ SQL Editor에서 검토해 수동 적용한다. 이 rollback은 데이터 손실
 업로드 object key는 `assets/posts/<YYYY-MM-DD>/<uuid>.<ext>`이고 에디터에는 같은 키의 root-relative 경로 `/assets/posts/...`가 들어간다. 공개 Markdown renderer는 이를 `${R2_PUBLIC_URL}/assets/posts/...`로 바꾼다. 외부 URL과 `/images/...` 같은 다른 경로는 바꾸지 않으며, `..`, 역슬래시, 잘못된 percent encoding이 포함된 자산 경로는 CDN에 연결하지 않는다.
 
 dev에서는 R2 대신 local backend를 사용한다. 동일한 Markdown 경로를 유지하되 `ASSET_PUBLIC_URL=https://cdn-dev.raven.kr`로 공개 URL을 만든다. CDN nginx가 `/assets/` prefix를 제거해 `/srv/assets` alias를 조회하므로 앱은 mount root 아래 `posts/...`에 기록한다. local backend에는 production R2 credentials를 설정하지 않는다.
+
+댓글 아바타는 CDN-only 자산이다. Cloudflare R2 custom domain `https://cdn.raven.kr`의
+`assets/comment-avatars/clay-01.webp`부터 `clay-64.webp`까지 64개 object를 사용하며,
+각 object는 `image/webp`로 제공되고, 캐시는 Cloudflare custom-domain의 활성 cache
+policy(`Cache-Control: max-age=14400`)를 따른다. 이 저장소와 dev local asset volume에는
+댓글 아바타 사본을 두지 않는다.
+
+공개·관리자 댓글 UI는 production `R2_PUBLIC_URL`을 기준으로
+`${R2_PUBLIC_URL}/assets/comment-avatars`를 사용한다. 기존 선택적 avatar base prop이
+없거나 `R2_PUBLIC_URL`이 비어 있으면 런타임은 안전한 production CDN 주소
+`https://cdn.raven.kr/assets/comment-avatars`를 사용한다. `ASSET_PUBLIC_URL`은 dev의
+게시물 이미지 backend 공개 주소이며 댓글 아바타 URL에는 사용하지 않는다.
 
 ## 4. 환경변수
 

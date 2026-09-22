@@ -167,7 +167,12 @@ export function BlogSettings({
         ))}
         <form action={createAction} className={styles.categoryForm}>
           <input name="name" placeholder="새 카테고리" aria-label="새 카테고리 이름" required />
-          <input name="slug" placeholder="category-slug" aria-label="새 카테고리 slug" required />
+          <input
+            name="slug"
+            placeholder="예: 디자인-시스템"
+            aria-label="새 카테고리 slug"
+            required
+          />
           <input name="sort_order" type="number" min="0" defaultValue="0" aria-label="정렬 순서" />
           <button type="submit" disabled={creating}>
             추가

@@ -13,6 +13,7 @@ const post = (slug: string, title: string): PostListItem => ({
   cover_image_url: null,
   reading_time_min: 3,
   status: 'published',
+  category: { slug: 'engineering' },
 });
 
 describe('PostNav', () => {
@@ -26,11 +27,11 @@ describe('PostNav', () => {
     );
     expect(within(navigation).getByRole('link', { name: /이전 글.*이전 제목/ })).toHaveAttribute(
       'href',
-      '/blog/prev',
+      '/blog/engineering/prev',
     );
     expect(within(navigation).getByRole('link', { name: /다음 글.*다음 제목/ })).toHaveAttribute(
       'href',
-      '/blog/next',
+      '/blog/engineering/next',
     );
   });
 

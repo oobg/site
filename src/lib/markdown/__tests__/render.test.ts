@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { renderMarkdown } from '@lib/markdown/render';
 import { env } from '@configs/env';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 describe('renderMarkdown', () => {
   it('헤딩에 id를 부여하고 toc를 추출한다', async () => {
@@ -168,58 +170,208 @@ describe('renderMarkdown', () => {
     expect(html).not.toContain('<script>');
   });
 
-  describe('문서 컴포넌트 fence', () => {
-    it('mermaid 원문을 실행 가능한 HTML이 아닌 텍스트 fallback과 뷰어 대상으로 만든다', async () => {
+  describe('파일 트리', () => {
+    it.each(['filetree', 'tree', 'folder'])('%s 펜스를 전용 계층으로 렌더한다', async (lang) => {
       const { html } = await renderMarkdown(
-        '```mermaid\ngraph TD\n  A["<img src=x onerror=alert(1)>"] --> B\n```',
+        `\`\`\`${lang}\nproject/\n├── src/\n│   ├── index.ts\n│   └── ui/\n│       └── Button.tsx\n└── package.json\n\`\`\``,
       );
 
-      expect(html).toContain('<figure data-mermaid="" data-mermaid-state="loading"');
-      expect(html).toContain('data-mermaid-output');
-      expect(html).toContain('data-mermaid-fallback');
-      expect(html).toContain('&#x3C;img src=x onerror=alert(1)>');
-      expect(html).not.toContain('<img src=x');
-      expect(html).toContain('data-code-lang="">mermaid</span>');
+      expect(html).toContain('<figure data-filetree="">');
+      expect(html).toContain('role="tree" aria-label="파일 트리"');
+      expect(html).toContain('data-kind="folder"');
+      expect(html).toContain('data-kind="file"');
+      expect(html).toContain('aria-label="Button.tsx, 파일"');
+      expect(html).toMatch(/src\/[\s\S]*index\.ts[\s\S]*ui\/[\s\S]*Button\.tsx/);
+      expect(html).not.toContain('data-code-copy');
+      expect(html).not.toContain('class="shiki');
+      expect(html).not.toContain('<pre');
     });
 
-    it('빈 mermaid fence는 기존 일반 코드블럭으로 남긴다', async () => {
-      const { html } = await renderMarkdown('```mermaid\n\n```');
-      expect(html).not.toContain('data-mermaid=""');
+    it('파일명에서 안전한 아이콘 키를 고르고 장식 접근성을 보장한다', async () => {
+      const { html } = await renderMarkdown(
+        '```filetree\n' +
+          'project/\n' +
+          '├── Component.tsx\n' +
+          '├── view.jsx\n' +
+          '├── types.ts\n' +
+          '├── script.mjs\n' +
+          '├── guide.mdx\n' +
+          '├── theme.scss\n' +
+          '├── data.jsonc\n' +
+          '├── index.html\n' +
+          '├── icon.svg\n' +
+          '├── photo.webp\n' +
+          '├── Dockerfile\n' +
+          '├── vite.config.ts\n' +
+          '└── unknown.bin\n' +
+          '```',
+      );
+
+      for (const key of [
+        'folder',
+        'react',
+        'ts',
+        'js',
+        'md',
+        'css',
+        'json',
+        'html',
+        'svg',
+        'image',
+        'config',
+        'file',
+      ]) {
+        expect(html).toContain(`data-filetree-icon="${key}"`);
+        expect(html).toContain(`src="/assets/filetree-icons/${key}.png"`);
+      }
+
+      expect(html.match(/data-filetree-icon="/g)).toHaveLength(14);
+      expect(html).toMatch(
+        /<img data-filetree-icon="folder" src="\/assets\/filetree-icons\/folder\.png" alt="" aria-hidden="true">/,
+      );
+      expect(html).toContain(
+        '<figcaption data-code-head=""><span data-code-dots="" aria-hidden="true"><i></i><i></i><i></i></span><span data-code-lang="">파일 구조</span></figcaption>',
+      );
+      expect(html).not.toContain('data-code-copy');
+    });
+
+    it.each(['filetree', 'tree', 'folder'])(
+      '%s 펜스의 단일 named root도 전용 계층으로 렌더한다',
+      async (lang) => {
+        const { html } = await renderMarkdown(`\`\`\`${lang}\nproject/\n\`\`\``);
+
+        expect(html).toContain('<figure data-filetree="">');
+        expect(html).toContain('aria-label="project/, 폴더"');
+        expect(html).not.toContain('data-code-copy');
+        expect(html).not.toContain('<pre');
+      },
+    );
+
+    it('파일명은 HAST stringify가 escape한다', async () => {
+      const { html } = await renderMarkdown('```tree\nroot/\n└── <script>.ts\n```');
+      expect(html).toContain('&#x3C;script>.ts');
+      expect(html).not.toContain('<span data-filetree-name=""><script>');
+    });
+
+    it.each(['text', 'text/plain', ''])(
+      '%s 펜스의 실제 폴더 트리는 자동으로 전용 계층으로 렌더한다',
+      async (lang) => {
+        const { html } = await renderMarkdown(
+          `\`\`\`${lang}\nproject/\n├── src/\n│   └── index.ts\n└── package.json\n\`\`\``,
+        );
+
+        expect(html).toContain('<figure data-filetree="">');
+        expect(html).toContain('aria-label="index.ts, 파일"');
+        expect(html).not.toContain('data-code-copy');
+        expect(html).not.toContain('<pre');
+      },
+    );
+
+    it.each([
+      ['text', '이 블록은 폴더 트리가 아닌 일반 문장입니다.'],
+      ['text/plain', 'root 디렉터리에서 파일을 확인하세요.'],
+      ['', 'plain code without a language'],
+    ])('%s 펜스의 일반 문장은 기존 코드 창으로 남긴다', async (lang, content) => {
+      const { html } = await renderMarkdown(
+        `\`\`\`js\nconst highlighted = true;\n\`\`\`\n\n\`\`\`${lang}\n${content}\n\`\`\``,
+      );
+
       expect(html).toContain('<figure data-code');
+      expect(html).toContain('data-code-copy');
+      expect(html).not.toContain('data-filetree');
+      expect(html).toContain(content);
+      expect(html.match(/<figure data-code/g)).toHaveLength(2);
     });
 
-    it('검증된 installer JSON을 패키지 매니저 탭과 단계 문서로 만든다', async () => {
-      const source = JSON.stringify({
-        title: 'SDK 설치',
-        intro: '프로젝트에 맞는 명령을 고르세요.',
-        managers: { pnpm: 'pnpm add raven', npm: 'npm install raven' },
-        steps: [
-          {
-            title: '환경 설정',
-            description: '키를 추가합니다.',
-            language: 'bash',
-            code: 'export RAVEN_KEY="<secret>"',
-            tip: '비밀 값은 커밋하지 마세요.',
-          },
-        ],
-      });
-      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
+    it.each([
+      '',
+      'root/\n\n└── file.ts',
+      'root/\n│ └── file.ts',
+      'root/\n        └── lost.ts',
+      'root\n└── file.ts',
+      'root/\n└── src\n    └── index.ts',
+    ])('비었거나 잘못된 트리는 오류 없이 원래 코드블럭으로 남긴다', async (tree) => {
+      const { html } = await renderMarkdown(`\`\`\`filetree\n${tree}\n\`\`\``);
+      expect(html).toContain('<figure data-code');
+      expect(html).toContain('data-code-copy');
+      expect(html).not.toContain('data-filetree');
+    });
+  });
 
-      expect(html).toContain('<figure data-installer=""');
-      expect(html).toContain('data-installer-manager="pnpm"');
-      expect(html).toContain('aria-label="패키지 매니저"');
-      expect(html).toMatch(/aria-selected="true"[^>]*data-installer-manager="pnpm"/);
-      expect(html).toMatch(/aria-selected="false"[^>]*data-installer-manager="npm"/);
-      expect(html).toContain('data-installer-steps');
-      expect(html).toContain('data-callout="tip"');
-      expect(html).toContain('data-code-lang="">bash</span>');
-      expect(html).toContain('&#x3C;secret>');
+  it('ArticleBody 코드와 파일 트리는 사이트 고정폭 글꼴을 우선한다', () => {
+    const css = readFileSync(resolve('src/components/content/ArticleBody.module.css'), 'utf8');
+    expect(css).toMatch(/\.prose pre \{[\s\S]*?font-family: var\(--font-mono\)/);
+    expect(css).toMatch(
+      /\.prose figure\[data-filetree\] \{[\s\S]*?font-family: var\(--font-mono\)/,
+    );
+    expect(css).toMatch(
+      /\.prose figure\[data-code\] figcaption,[\s\S]*?\.prose figure\[data-filetree\] figcaption/,
+    );
+    expect(css).toMatch(
+      /\.prose figure\[data-filetree\] img\[data-filetree-icon\] \{[\s\S]*?width: var\(--space-4\)[\s\S]*?height: var\(--space-4\)/,
+    );
+  });
+
+  describe('Mermaid', () => {
+    it('mermaid 펜스를 실행되지 않는 원문과 클라이언트 캔버스로 분리한다', async () => {
+      const source = 'flowchart LR\n  A[입력] --> B[출력]';
+      const { html } = await renderMarkdown(`\`\`\`mermaid\n${source}\n\`\`\``);
+
+      expect(html).toContain('<section data-mermaid="" data-mermaid-state="pending"');
+      expect(html).toContain('data-mermaid-canvas="" role="img"');
+      expect(html).toContain(`data-mermaid-source="" hidden aria-hidden="true">${source}`);
+      expect(html).toContain('data-mermaid-fallback="" data-code="" hidden');
+      expect(html).not.toContain('<figure data-code=""><figure');
+    });
+
+    it('비어 있는 mermaid 펜스는 기존 코드블럭으로 남긴다', async () => {
+      const { html } = await renderMarkdown('```mermaid\n\n```');
+      expect(html).toContain('<figure data-code');
+      expect(html).not.toContain('data-mermaid-state');
+    });
+  });
+
+  describe('설치 안내', () => {
+    const valid = {
+      title: 'SDK 설치',
+      intro: '사용하는 패키지 매니저를 고르세요.',
+      managers: { npm: 'npm install @raven/sdk', pnpm: 'pnpm add @raven/sdk' },
+      steps: [
+        {
+          title: '환경 변수 추가',
+          description: '프로젝트 루트에 값을 추가합니다.',
+          code: 'RAVEN_TOKEN=<token>',
+          language: 'dotenv',
+          tip: '토큰은 저장소에 커밋하지 마세요.',
+        },
+      ],
+    };
+
+    it('검증된 installer JSON을 탭과 순서형 문서로 렌더한다', async () => {
+      const { html } = await renderMarkdown(
+        `\`\`\`installer\n${JSON.stringify(valid, null, 2)}\n\`\`\``,
+      );
+
+      expect(html).toContain('<section data-installer=""');
+      expect(html).toContain('role="tablist" aria-label="패키지 매니저"');
+      expect(html).toContain('data-installer-manager="npm"');
+      expect(html).toContain(
+        'aria-selected="true" tabindex="0" data-installer-manager="npm">npm</button>',
+      );
+      expect(html).toContain(
+        'aria-selected="false" tabindex="-1" data-installer-manager="pnpm">pnpm</button>',
+      );
+      expect(html).toContain('data-installer-panel="pnpm" hidden');
+      expect(html).toContain('data-installer-steps=""');
+      expect(html).toMatch(/data-installer-command=""><figure data-code="">[\s\S]*?<pre/);
+      expect(html).toMatch(/data-installer-code=""><figure data-code="">[\s\S]*?<pre/);
       expect(html.match(/data-code-copy=""/g)).toHaveLength(3);
-      expect(html.match(/<figure data-code/g)).toHaveLength(3);
+      expect(html).toContain('RAVEN_TOKEN=&#x3C;token>');
+      expect(html).not.toContain('<script');
     });
 
-    it('검증된 installer agents를 에이전트 탭과 명령 코드로 만든다', async () => {
-      const source = JSON.stringify({
+    it('패키지 매니저 없이 에이전트별 설치 명령을 탭으로 렌더한다', async () => {
+      const source = {
         title: '에이전트 설치',
         agents: {
           codex: 'raven install --agent codex',
@@ -227,129 +379,95 @@ describe('renderMarkdown', () => {
           grok: 'raven install --agent grok',
         },
         steps: [{ title: '설치 확인', code: 'raven doctor' }],
-      });
-      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
-      const root = document.createElement('div');
-      root.innerHTML = html;
+      };
+      const { html } = await renderMarkdown(`\`\`\`installer\n${JSON.stringify(source)}\n\`\`\``);
 
-      expect(root.querySelector('[data-installer-agents]')).toBeTruthy();
-      expect(root.querySelector('[aria-label="에이전트"]')).toBeTruthy();
-      expect(root.querySelector('button[data-installer-agent="codex"]')).toHaveTextContent('Codex');
-      expect(root.querySelector('button[data-installer-agent="claude-code"]')).toHaveTextContent(
-        'Claude Code',
-      );
-      expect(root.querySelector('button[data-installer-agent="grok"]')).toHaveTextContent('Grok');
-      expect(root.querySelector('[data-installer-manager]')).toBeNull();
-      expect(root.querySelector('pre code')).toHaveTextContent('raven install --agent codex');
+      expect(html).toContain('role="tablist" aria-label="에이전트"');
+      expect(html).toContain('data-installer-agent="codex">Codex</button>');
+      expect(html).toContain('data-installer-agent="claude-code">Claude Code</button>');
+      expect(html).toContain('data-installer-agent="grok">Grok</button>');
+      expect(html).toContain('data-installer-panel="claude-code" hidden');
+      expect(html).toContain('raven install --agent codex');
     });
 
-    it('managers와 agents가 함께 있으면 기존 managers 탭을 우선한다', async () => {
-      const source = JSON.stringify({
-        title: 'SDK 설치',
-        managers: { pnpm: 'pnpm add raven' },
+    it('managers와 agents를 함께 적으면 기존 패키지 매니저 탭을 우선한다', async () => {
+      const source = {
+        ...valid,
         agents: { codex: 'raven install --agent codex' },
-        steps: [{ title: '실행' }],
-      });
-      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
+      };
+      const { html } = await renderMarkdown(`\`\`\`installer\n${JSON.stringify(source)}\n\`\`\``);
 
-      expect(html).toContain('aria-label="패키지 매니저"');
-      expect(html).not.toContain('aria-label="에이전트"');
-      expect(html).toContain('data-installer-manager="pnpm"');
-      expect(html).not.toContain('data-installer-agent="codex"');
+      expect(html).toContain('role="tablist" aria-label="패키지 매니저"');
+      expect(html).toContain('data-installer-manager="npm"');
+      expect(html).not.toContain('data-installer-agent=');
     });
 
-    it('탭 명령의 compact continuation을 줄바꿈하고 복사 대상 텍스트에도 보존한다', async () => {
-      const command = 'npx skills add oobg/agent-skills \\ --global \\ --skill ux-writing \\ --yes';
-      const literalBackslashCommand = 'echo C:\\tools\\bin';
-      const stepCode = 'echo one \\ --two';
-      const source = JSON.stringify({
-        title: '스킬 설치',
-        managers: { npm: command, pnpm: literalBackslashCommand },
-        steps: [{ title: '확인', language: 'shell', code: stepCode }],
-      });
-      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
-      const root = document.createElement('div');
-      root.innerHTML = html;
-
-      const commandFigure = root.querySelector('[data-installer-panel="npm"] figure[data-code]')!;
-      const formattedCommand =
-        'npx skills add oobg/agent-skills \\\n  --global \\\n  --skill ux-writing \\\n  --yes';
-      expect(commandFigure.querySelector('code')?.textContent).toBe(formattedCommand);
-      expect(commandFigure.querySelector('button[data-code-copy]')).toBeTruthy();
-      expect(
-        root.querySelector('[data-installer-panel="pnpm"] figure[data-code] code')?.textContent,
-      ).toBe(literalBackslashCommand);
-
-      // 단계 code는 installer 탭 명령과 달리 원문 backslash 표기를 유지한다.
-      expect(root.querySelector('[data-installer-steps] figure[data-code] code')?.textContent).toBe(
-        stepCode,
-      );
-      expect(root.querySelector('[data-installer-source]')?.textContent).toBe(source);
-    });
-
-    it('에이전트 탭 명령의 기존 continuation 줄바꿈과 들여쓰기를 보존한다', async () => {
-      const command = 'raven install \\\n    --agent codex \\\n  --yes';
-      const source = JSON.stringify({
+    it('에이전트 명령의 compact continuation은 읽기 좋은 줄바꿈으로 펼친다', async () => {
+      const source = {
         title: '에이전트 설치',
-        agents: { codex: command },
+        agents: { codex: 'raven install \\ --agent codex' },
         steps: [{ title: '설치 확인' }],
-      });
-      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
+      };
+      const { html } = await renderMarkdown(`\`\`\`installer\n${JSON.stringify(source)}\n\`\`\``);
       const root = document.createElement('div');
       root.innerHTML = html;
 
-      expect(
-        root.querySelector('[data-installer-panel="codex"] figure[data-code] code')?.textContent,
-      ).toBe(command);
-      expect(root.querySelector('[data-installer-source]')?.textContent).toBe(source);
-    });
-
-    it('패키지 매니저 명령과 단계 코드를 실제 pre/code로 만들고 공백을 보존한다', async () => {
-      const source = JSON.stringify({
-        title: 'SDK 설치',
-        managers: { pnpm: '  pnpm add raven  ' },
-        steps: [{ title: '설정', language: 'text', code: '  first\n    second  ' }],
-      });
-      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
-      const root = document.createElement('div');
-      root.innerHTML = html;
-      const codes = Array.from(
-        root.querySelectorAll<HTMLElement>('[data-installer] figure[data-code] pre code'),
-        (code) => code.textContent,
+      expect(root.querySelector('[data-installer-command] code')?.textContent).toBe(
+        'raven install \\\n  --agent codex',
       );
-
-      expect(codes).toEqual(['  pnpm add raven  ', '  first\n    second  ']);
-      expect(root.querySelectorAll('[data-installer] button[data-code-copy]')).toHaveLength(2);
     });
 
     it.each([
-      ['깨진 JSON', '{"title":'],
-      ['필수 단계 누락', '{"title":"SDK","steps":[]}'],
-      ['패키지 매니저 누락', '{"title":"SDK","steps":[{"title":"실행"}]}'],
-      ['빈 패키지 매니저 객체', '{"title":"SDK","managers":{},"steps":[{"title":"실행"}]}'],
-      [
-        '공백뿐인 패키지 매니저 명령',
-        '{"title":"SDK","managers":{"npm":"   "},"steps":[{"title":"실행"}]}',
-      ],
-      ['빈 agents 객체', '{"title":"SDK","agents":{},"steps":[{"title":"실행"}]}'],
-      [
-        '공백뿐인 agent 명령',
-        '{"title":"SDK","agents":{"codex":"   "},"steps":[{"title":"실행"}]}',
-      ],
-      [
-        '허용하지 않은 agent',
-        '{"title":"SDK","agents":{"openai":"raven install --agent openai"},"steps":[{"title":"실행"}]}',
-      ],
-      [
-        '허용하지 않은 필드',
-        '{"title":"SDK","steps":[{"title":"실행","code":"ok"}],"href":"javascript:alert(1)"}',
-      ],
-    ])('%s installer는 예외 없이 기존 코드블럭으로 남긴다', async (_name, source) => {
-      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
-      expect(html).not.toContain('data-installer=""');
+      '{broken',
+      JSON.stringify({ ...valid, managers: {} }),
+      JSON.stringify({ ...valid, managers: { npm: '   \n' } }),
+      JSON.stringify({ title: valid.title, steps: valid.steps }),
+      JSON.stringify({ ...valid, managers: { npm: 'npm i x', curl: 'javascript:alert(1)' } }),
+      JSON.stringify({ ...valid, managers: undefined, agents: {} }),
+      JSON.stringify({ ...valid, managers: undefined, agents: { codex: '   ' } }),
+      JSON.stringify({
+        ...valid,
+        managers: undefined,
+        agents: { openai: 'raven install --agent openai' },
+      }),
+      JSON.stringify({ ...valid, steps: [] }),
+      JSON.stringify({ ...valid, steps: [{ title: '단계', language: 'bad language' }] }),
+    ])('잘못된 JSON이나 스키마는 오류 없이 installer 코드블럭으로 남긴다', async (value) => {
+      const { html } = await renderMarkdown(`\`\`\`installer\n${value}\n\`\`\``);
       expect(html).toContain('<figure data-code');
       expect(html).toContain('data-code-lang="">installer</span>');
-      expect(html.toLowerCase()).not.toContain('href="javascript:');
+      expect(html).not.toContain('data-installer=""');
+    });
+
+    it('JSON 문자열을 HTML로 실행하지 않고 텍스트로 escape한다', async () => {
+      const unsafe = {
+        ...valid,
+        title: '<img src=x onerror=alert(1)>',
+        managers: { npm: '<script>alert(1)</script>' },
+      };
+      const { html } = await renderMarkdown(`\`\`\`installer\n${JSON.stringify(unsafe)}\n\`\`\``);
+      expect(html).toContain('&#x3C;img src=x onerror=alert(1)>');
+      expect(html).toContain('&#x3C;script>alert(1)&#x3C;/script>');
+      expect(html).not.toContain('<script>');
+      expect(html).not.toContain('<img src=x');
+    });
+
+    it('명령과 단계 코드의 의미 있는 공백을 보존한다', async () => {
+      const source = JSON.stringify({
+        ...valid,
+        managers: { npm: '  npm install raven  ' },
+        steps: [{ title: '설정', code: '  first\n    second\n  ', language: 'sh' }],
+      });
+      const { html } = await renderMarkdown(`\`\`\`installer\n${source}\n\`\`\``);
+      const root = document.createElement('div');
+      root.innerHTML = html;
+
+      expect(root.querySelector('[data-installer-command] code')?.textContent).toBe(
+        '  npm install raven  ',
+      );
+      expect(root.querySelector('[data-installer-code] code')?.textContent).toBe(
+        '  first\n    second\n  ',
+      );
     });
   });
 

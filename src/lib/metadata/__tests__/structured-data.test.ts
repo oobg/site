@@ -55,7 +55,7 @@ describe('structured data', () => {
       vi.resetModules();
       const structuredData = await import('@lib/metadata/structured-data');
       const { baseMetadata, buildArticleMetadata } = await import('@lib/metadata/metadata');
-      const path = '/blog/my-post';
+      const path = '/blog/dev/my-post';
       const metadata = buildArticleMetadata({
         title: post.title,
         path,
@@ -90,11 +90,11 @@ describe('structured data', () => {
     },
   );
 
-  it('한 세그먼트 canonical URL로 BlogPosting을 만든다', () => {
-    expect(buildBlogPostingStructuredData(post, '/blog/my-post')).toMatchObject({
+  it('가시 게시글 메타와 canonical URL로 BlogPosting을 만든다', () => {
+    expect(buildBlogPostingStructuredData(post, '/blog/dev/my-post')).toMatchObject({
       '@type': 'BlogPosting',
-      '@id': 'https://raven.kr/blog/my-post#article',
-      url: 'https://raven.kr/blog/my-post',
+      '@id': 'https://raven.kr/blog/dev/my-post#article',
+      url: 'https://raven.kr/blog/dev/my-post',
       headline: '보이는 글 제목',
       description: '보이는 글 요약',
       datePublished: '2026-09-01T00:00:00.000Z',
@@ -107,7 +107,7 @@ describe('structured data', () => {
   it('커버·요약이 없으면 해당 필드를 아예 내보내지 않는다', () => {
     const data = buildBlogPostingStructuredData(
       { ...post, summary: null, cover_image_url: null, tags: [] },
-      '/blog/my-post',
+      '/blog/dev/my-post',
     );
     expect(data).not.toHaveProperty('description');
     expect(data).not.toHaveProperty('image');

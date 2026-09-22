@@ -1,21 +1,31 @@
 'use client';
 
-import { useActionState, useEffect, useRef, useState } from 'react';
-import { Code, ImageSquare, LinkSimple, Quotes, TextB, UploadSimple } from '@phosphor-icons/react';
+import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
+import { Dialog } from '@base-ui/react/dialog';
+import {
+  Code,
+  ImageSquare,
+  LinkSimple,
+  Quotes,
+  TextB,
+  UploadSimple,
+  X,
+} from '@phosphor-icons/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useQueryClient } from '@tanstack/react-query';
 import { ROUTES } from '@constants/routes';
 import articleStyles from '@components/content/ArticleBody.module.css';
 import { CodeCopy } from '@components/content/CodeCopy';
-import { MarkdownWidgets } from '@components/content/MarkdownWidgets';
+import { ContentEnhancements } from '@components/content/ContentEnhancements';
 import { normalizeSlug } from '@features/admin/services/slug';
+import { htmlToMarkdown } from '@features/admin/utils/htmlToMarkdown';
 import type { PostActionState, PostStatus } from '@features/admin/types/posts-admin.types';
 import type { BlogCategory } from '@features/posts/types/posts.types';
 import { initialPostActionState } from '@features/admin/types/posts-admin.types';
-import { htmlToMarkdown } from '@features/admin/utils/htmlToMarkdown';
 import styles from './PostEditor.module.css';
 import { useAdminNavigationGuard } from './AdminNavigationProvider';
+import { DeletePostButton } from './DeletePostButton';
 
 type PostDraft = {
   id?: string;
@@ -180,7 +190,6 @@ export function PostEditor({
     'restored' | 'saving' | 'saved' | 'error' | null
   >(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
-  const visualEditorRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLInputElement>(null);
   const statusInputRef = useRef<HTMLInputElement>(null);
   const bodyValueRef = useRef(body);
@@ -321,21 +330,40 @@ export function PostEditor({
     bodyValueRef.current = body;
   }, [body]);
 
+  const syncVisualEditor = useCallback(
+    (editor: HTMLDivElement | null) => {
+      if (editor && editor.innerHTML !== previewHtml) editor.innerHTML = previewHtml;
+    },
+    [previewHtml],
+  );
+
   useEffect(() => {
     titleRef.current?.focus();
   }, [post?.id]);
 
+  const focusCoverLightboxClose = useCallback((element: HTMLButtonElement | null) => {
+    if (!element) return;
+    queueMicrotask(() => {
+      if (element.isConnected) {
+        element.focus({ preventScroll: true });
+      }
+    });
+  }, []);
+
   useEffect(() => {
     const sequence = ++previewSequenceRef.current;
-    if (editorTab !== 'preview') return;
-    if (!body.trim()) {
-      previewSourceRef.current = '';
-      visualEditorRef.current?.replaceChildren();
+    if (editorTab !== 'preview' || !body.trim()) {
       return;
     }
-    if (previewSourceRef.current === body) return;
-
-    visualEditorRef.current?.replaceChildren();
+    if (previewHtml && previewSourceRef.current === body) {
+      setPreviewMessage('');
+      return;
+    }
+    if (previewHtml && previewSourceRef.current !== body) {
+      setPreviewHtml('');
+      setPreviewMessage('미리보기를 업데이트하는 중이에요.');
+      return;
+    }
 
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
@@ -354,7 +382,6 @@ export function PostEditor({
           throw new Error(errorMessage(result) ?? '미리보기를 만들지 못했습니다.');
         }
         previewSourceRef.current = body;
-        if (visualEditorRef.current) visualEditorRef.current.innerHTML = html;
         setPreviewHtml(html);
         setPreviewMessage('');
       } catch (error) {
@@ -367,7 +394,7 @@ export function PostEditor({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [body, editorTab]);
+  }, [body, editorTab, previewHtml]);
 
   async function upload(file: File) {
     if (!file.type.startsWith('image/')) {
@@ -568,17 +595,10 @@ export function PostEditor({
             type="submit"
             data-status={secondaryStatus}
             disabled={busy}
-            onClick={() => setEditorTab('write')}
           >
             {pending ? '저장 중...' : secondaryLabel}
           </button>
-          <button
-            className={styles.submit}
-            type="submit"
-            data-status="published"
-            disabled={busy}
-            onClick={() => setEditorTab('write')}
-          >
+          <button className={styles.submit} type="submit" data-status="published" disabled={busy}>
             공개하기
           </button>
         </div>
@@ -768,11 +788,11 @@ export function PostEditor({
             <textarea
               ref={bodyRef}
               id="post-body"
+              data-editor-scroll-region
               aria-label="본문"
               aria-describedby="body-help"
               aria-invalid={Boolean(fieldError(state, 'body'))}
               className={styles.body}
-              data-editor-scroll-region
               name="body"
               value={body}
               onChange={(event) => {
@@ -791,17 +811,17 @@ export function PostEditor({
           </div>
           <section
             id="editor-preview-panel"
+            data-editor-scroll-region
             role="tabpanel"
             aria-labelledby="editor-preview-tab"
             hidden={editorTab !== 'preview'}
             className={styles.preview}
-            data-editor-scroll-region
             onClick={(event) => {
               if ((event.target as Element).closest('a')) event.preventDefault();
             }}
           >
             <div
-              ref={visualEditorRef}
+              ref={syncVisualEditor}
               className={`${articleStyles.prose} ${styles.visualEditor}`}
               contentEditable={!busy}
               suppressContentEditableWarning
@@ -810,12 +830,10 @@ export function PostEditor({
               aria-multiline="true"
               aria-readonly={busy}
               aria-describedby="body-help visual-editor-help"
-              data-empty={!previewHtml ? 'true' : undefined}
+              data-empty={!body.trim() ? 'true' : undefined}
               onInput={(event) => {
-                const html = event.currentTarget.innerHTML;
                 const markdown = htmlToMarkdown(event.currentTarget);
                 previewSourceRef.current = markdown;
-                setPreviewHtml(markdown ? html : '');
                 bodyValueRef.current = markdown;
                 setBody(markdown);
                 editRevisionRef.current += 1;
@@ -831,9 +849,9 @@ export function PostEditor({
             <span id="visual-editor-help" className={styles.visuallyHidden}>
               렌더링된 본문을 직접 수정할 수 있습니다. 변경 내용은 마크다운 원문에 반영됩니다.
             </span>
-            <CodeCopy />
-            <MarkdownWidgets />
           </section>
+          <CodeCopy />
+          <ContentEnhancements contentKey={previewHtml} />
         </div>
         <p id="body-help" className={styles.helper} aria-live="polite">
           {fieldError(state, 'body') ||
@@ -922,16 +940,47 @@ export function PostEditor({
         </h2>
         <section className={`${styles.field} ${styles.coverField}`} aria-labelledby="cover-heading">
           {coverUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- owner-selected CDN URL is not a configured image host
-            <img
-              src={coverUrl}
-              alt={coverAlt || ''}
-              style={{
-                objectPosition: `${coverX * 100}% ${coverY * 100}%`,
-                aspectRatio: '16 / 9',
-                objectFit: 'cover',
-              }}
-            />
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element -- owner-selected CDN URL is not a configured image host */}
+              <img
+                src={coverUrl}
+                alt={coverAlt || ''}
+                style={{
+                  objectPosition: `${coverX * 100}% ${coverY * 100}%`,
+                  aspectRatio: '16 / 9',
+                  objectFit: 'cover',
+                }}
+              />
+              <Dialog.Root>
+                <Dialog.Trigger className={styles.coverZoomButton} type="button">
+                  크게 보기
+                </Dialog.Trigger>
+                <Dialog.Portal>
+                  <Dialog.Backdrop className={styles.coverLightboxBackdrop} />
+                  <Dialog.Viewport className={styles.coverLightboxViewport}>
+                    <Dialog.Popup className={styles.coverLightbox} initialFocus={false}>
+                      <Dialog.Title className={styles.coverLightboxTitle}>
+                        대표 이미지 크게 보기
+                      </Dialog.Title>
+                      <Dialog.Close
+                        ref={focusCoverLightboxClose}
+                        className={styles.coverLightboxClose}
+                        type="button"
+                        aria-label="대표 이미지 크게 보기 닫기"
+                      >
+                        <X aria-hidden size={22} />
+                      </Dialog.Close>
+                      {/* eslint-disable-next-line @next/next/no-img-element -- owner-selected CDN URL is not a configured image host */}
+                      <img
+                        className={styles.coverLightboxImage}
+                        src={coverUrl}
+                        alt={coverAlt || ''}
+                      />
+                    </Dialog.Popup>
+                  </Dialog.Viewport>
+                </Dialog.Portal>
+              </Dialog.Root>
+            </>
           ) : (
             <div className={styles.coverPlaceholder} aria-hidden>
               <ImageSquare size={24} />
@@ -994,6 +1043,7 @@ export function PostEditor({
             <p>공개 주소는 URL 값으로 만들고 검색 설명은 상단 설명을 사용해요.</p>
           </div>
         </details>
+        {post?.id ? <DeletePostButton id={post.id} /> : null}
       </aside>
     </form>
   );

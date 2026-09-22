@@ -1,11 +1,45 @@
-import { SignOut, WarningCircle } from '@phosphor-icons/react/dist/ssr';
+'use client';
+
+import { useSyncExternalStore } from 'react';
+import { WarningCircle, X } from '@phosphor-icons/react';
 import { GoogleLoginButton } from '@features/admin/components/GoogleLoginButton';
-import { signOutAction } from '@features/admin/services/auth.actions';
 import type { OwnerAccess } from '@lib/auth/owner';
 import styles from './AdminAccessBanner.module.css';
 
+export const ADMIN_BANNER_DISMISSED_KEY = 'raven:admin-access-banner-dismissed';
+const ADMIN_BANNER_DISMISSED_EVENT = 'raven:admin-access-banner-dismissed-change';
+let dismissedWithoutStorage = false;
+
+function subscribeToDismissal(onStoreChange: () => void) {
+  window.addEventListener('storage', onStoreChange);
+  window.addEventListener(ADMIN_BANNER_DISMISSED_EVENT, onStoreChange);
+  return () => {
+    window.removeEventListener('storage', onStoreChange);
+    window.removeEventListener(ADMIN_BANNER_DISMISSED_EVENT, onStoreChange);
+  };
+}
+
+function getDismissedSnapshot() {
+  try {
+    return sessionStorage.getItem(ADMIN_BANNER_DISMISSED_KEY) === '1';
+  } catch {
+    return dismissedWithoutStorage;
+  }
+}
+
+function getServerDismissedSnapshot() {
+  return false;
+}
+
 export function AdminAccessBanner({ access }: { access: OwnerAccess }) {
+  const dismissed = useSyncExternalStore(
+    subscribeToDismissal,
+    getDismissedSnapshot,
+    getServerDismissedSnapshot,
+  );
   const state = access.authorized ? 'authorized' : access.authenticated ? 'denied' : 'signed-out';
+
+  if (access.authorized && dismissed) return null;
 
   return (
     <section className={styles.banner} data-state={state} aria-labelledby="admin-access-title">
@@ -30,13 +64,23 @@ export function AdminAccessBanner({ access }: { access: OwnerAccess }) {
       <div className={styles.actions}>
         {!access.authenticated && access.configured ? <GoogleLoginButton /> : null}
         {access.authenticated && !access.authorized ? <GoogleLoginButton /> : null}
-        {access.authenticated ? (
-          <form action={signOutAction}>
-            <button className={styles.signOut} type="submit" aria-label="로그아웃">
-              <SignOut aria-hidden size={16} weight="bold" />
-              <span className={styles.signOutLabel}>로그아웃</span>
-            </button>
-          </form>
+        {access.authorized ? (
+          <button
+            className={styles.dismiss}
+            type="button"
+            aria-label="관리자 안내 닫기"
+            onClick={() => {
+              try {
+                sessionStorage.setItem(ADMIN_BANNER_DISMISSED_KEY, '1');
+              } catch {
+                // The current page can still dismiss the notice when storage is unavailable.
+                dismissedWithoutStorage = true;
+              }
+              window.dispatchEvent(new Event(ADMIN_BANNER_DISMISSED_EVENT));
+            }}
+          >
+            <X aria-hidden size={16} weight="bold" />
+          </button>
         ) : null}
       </div>
     </section>

@@ -16,6 +16,11 @@ export interface AnalyticsDashboardData {
   channels: Array<{ name: string; sessions: number }>;
   pages: Array<{ path: string; title: string; views: number; activeUsers: number }>;
   devices: Array<{ name: string; activeUsers: number }>;
+  locations: {
+    countries: AnalyticsLocation[];
+    regions: AnalyticsLocation[];
+    cities: AnalyticsLocation[];
+  };
   countries: Array<{ name: string; activeUsers: number; sessions: number }>;
   campaigns: Array<{
     source: string;
@@ -27,6 +32,13 @@ export interface AnalyticsDashboardData {
   browsers: Array<{ name: string; activeUsers: number; sessions: number }>;
   operatingSystems: Array<{ name: string; activeUsers: number; sessions: number }>;
   visitorTypes: Array<{ name: string; activeUsers: number; sessions: number }>;
+}
+
+export interface AnalyticsLocation {
+  name: string;
+  activeUsers: number;
+  sessions: number;
+  views: number;
 }
 
 export type AnalyticsDashboardResult =

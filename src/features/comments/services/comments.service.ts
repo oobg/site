@@ -2,16 +2,34 @@ import 'server-only';
 import { createHmac } from 'node:crypto';
 import { createServiceClient } from '@lib/supabase/service';
 import type { AdminComment, Comment, CommentPage } from '@features/comments/types/comments.types';
-import type { CommentInput } from '@features/comments/services/comments.schema';
+import type { AuthorReplyInput, CommentInput } from '@features/comments/services/comments.schema';
 
 const PAGE_SIZE = 20;
-const columns = 'id,nickname,avatar_id,body,created_at';
+const REPLY_BATCH_SIZE = 200;
+
+// Fetch every reply even when a thread exceeds the PostgREST row limit.
+async function collectReplies<T>(
+  fetchBatch: (offset: number) => PromiseLike<{ data: T[] | null; error: unknown }>,
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (let offset = 0; ; offset += REPLY_BATCH_SIZE) {
+    const { data, error } = await fetchBatch(offset);
+    if (error) throw error;
+    rows.push(...(data ?? []));
+    if (!data || data.length < REPLY_BATCH_SIZE) return rows;
+  }
+}
+const columns = 'id,parent_id,is_author,nickname,avatar_id,body,created_at';
 
 export class CommentNotFoundError extends Error {}
 export class CommentRateLimitError extends Error {}
+export class CommentParentNotFoundError extends Error {}
+export class CommentNestedReplyError extends Error {}
 
 export const encodeCommentCursor = (comment: Pick<Comment, 'created_at' | 'id'>) =>
-  Buffer.from(JSON.stringify(comment)).toString('base64url');
+  Buffer.from(JSON.stringify({ created_at: comment.created_at, id: comment.id })).toString(
+    'base64url',
+  );
 
 export const hashCommentFingerprint = (value: string) => {
   const secret = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
@@ -50,13 +68,15 @@ export async function listComments(
     .from('post_comments')
     .select('id', { count: 'exact', head: true })
     .eq('post_id', postId)
-    .eq('moderation_status', 'visible');
+    .eq('moderation_status', 'visible')
+    .is('parent_id', null);
   if (countError) throw countError;
   let query = client
     .from('post_comments')
     .select(columns)
     .eq('post_id', postId)
     .eq('moderation_status', 'visible')
+    .is('parent_id', null)
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
     .limit(PAGE_SIZE + 1);
@@ -67,7 +87,23 @@ export async function listComments(
   const { data, error } = await query;
   if (error) throw error;
   const rows = (data ?? []) as Comment[];
-  return buildCommentPage(rows, count ?? 0);
+  const page = buildCommentPage(rows, count ?? 0);
+  if (!page.items.length) return page;
+  const replies = await collectReplies((offset) =>
+    client
+      .from('post_comments')
+      .select(columns)
+      .eq('post_id', postId)
+      .eq('moderation_status', 'visible')
+      .in(
+        'parent_id',
+        page.items.map((parent) => parent.id),
+      )
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
+      .range(offset, offset + REPLY_BATCH_SIZE - 1),
+  );
+  return { ...page, items: joinCommentThreads(page.items, (replies ?? []) as Comment[]) };
 }
 
 export async function createComment(
@@ -88,28 +124,83 @@ export async function createComment(
   if (error?.message.includes('comment_post_not_found')) throw new CommentNotFoundError();
   if (error?.message.includes('comment_rate_limited')) throw new CommentRateLimitError();
   if (error) throw error;
+  return {
+    ...(data as Omit<Comment, 'parent_id' | 'is_author'>),
+    parent_id: null,
+    is_author: false,
+  };
+}
+
+/** Parents keep their page order; replies are chronological with an ID tie-break. */
+export function joinCommentThreads<T extends Comment>(parents: T[], replies: T[]): T[] {
+  return parents.flatMap((parent) => [
+    parent,
+    ...replies
+      .filter((reply) => reply.parent_id === parent.id)
+      .sort(
+        (a, b) => Date.parse(a.created_at) - Date.parse(b.created_at) || a.id.localeCompare(b.id),
+      ),
+  ]);
+}
+
+export async function createAuthorReply(input: AuthorReplyInput): Promise<Comment> {
+  const client = createServiceClient();
+  const { data: parent, error: parentError } = await client
+    .from('post_comments')
+    .select('id,post_id,parent_id')
+    .eq('id', input.parent_id)
+    .maybeSingle();
+  if (parentError) throw parentError;
+  if (!parent) throw new CommentParentNotFoundError();
+  if (parent.parent_id !== null) throw new CommentNestedReplyError();
+  const { data, error } = await client
+    .from('post_comments')
+    .insert({
+      parent_id: parent.id,
+      post_id: parent.post_id,
+      nickname: 'raven',
+      avatar_id: 'clay-64',
+      body: input.body,
+      is_author: true,
+      fingerprint_hash: hashCommentFingerprint('owner-reply:v1'),
+    })
+    .select(columns)
+    .single();
+  if (error?.code === '23503') throw new CommentParentNotFoundError();
+  if (error?.message.includes('comment_nested_reply')) throw new CommentNestedReplyError();
+  if (error) throw error;
   return data as Comment;
 }
 
 export async function listCommentsForOwner(): Promise<AdminComment[]> {
-  const { data, error } = await createServiceClient()
+  const client = createServiceClient();
+  const selection = `${columns},moderation_status,posts!inner(slug)`;
+  const { data, error } = await client
     .from('post_comments')
-    .select(`${columns},moderation_status,posts!inner(slug)`)
+    .select(selection)
+    .is('parent_id', null)
     .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
     .limit(200);
   if (error) throw error;
-  return (data ?? []).map((row) => {
-    const post = row.posts as unknown as { slug: string };
-    return {
-      id: row.id,
-      nickname: row.nickname,
-      avatar_id: row.avatar_id,
-      body: row.body,
-      created_at: row.created_at,
-      moderation_status: row.moderation_status,
-      post_slug: post.slug,
-    } as AdminComment;
-  });
+  if (!data?.length) return [];
+  const replies = await collectReplies((offset) =>
+    client
+      .from('post_comments')
+      .select(selection)
+      .in(
+        'parent_id',
+        data.map((parent) => parent.id),
+      )
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
+      .range(offset, offset + REPLY_BATCH_SIZE - 1),
+  );
+  const mapRow = (row: (typeof data)[number]) => {
+    const { posts, ...comment } = row;
+    return { ...comment, post_slug: (posts as unknown as { slug: string }).slug } as AdminComment;
+  };
+  return joinCommentThreads(data.map(mapRow), (replies ?? []).map(mapRow));
 }
 
 export async function setCommentModeration(id: string, status: 'visible' | 'hidden') {

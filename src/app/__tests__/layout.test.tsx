@@ -1,29 +1,35 @@
-import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('@styles/fonts', () => ({
   sans: { variable: 'sans' },
   mono: { variable: 'mono' },
 }));
-vi.mock('@components/providers/AppProviders', () => ({
-  AppProviders: ({ children }: { children: React.ReactNode }) => children,
-}));
 vi.mock('@components/analytics/ProductionGoogleAnalytics', () => ({
   ProductionGoogleAnalytics: () => null,
 }));
+vi.mock('@components/providers/AppProviders', () => ({
+  AppProviders: ({ children }: { children: React.ReactNode }) => children,
+}));
 vi.mock('@/app/_components/PublicChrome', () => ({
-  PublicChrome: ({ children }: { children: React.ReactNode }) => children,
+  PublicChrome: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
 }));
 
 import RootLayout from '@/app/layout';
 
-describe('RootLayout', () => {
-  it('모든 공개 화면에 WebSite·Person 그래프를 싣는다', () => {
-    const html = renderToStaticMarkup(<RootLayout>본문</RootLayout>);
+describe('RootLayout structured data', () => {
+  it('정적 HTML에 WebSite와 Raven Person을 함께 내보낸다', () => {
+    const html = renderToStaticMarkup(
+      <RootLayout>
+        <p>본문</p>
+      </RootLayout>,
+    );
     const document = new DOMParser().parseFromString(html, 'text/html');
     const script = document.querySelector('script[type="application/ld+json"]');
-    const data = JSON.parse(script?.textContent ?? '') as { '@graph': Record<string, unknown>[] };
-
+    expect(script).not.toBeNull();
+    const data = JSON.parse(script?.textContent ?? '') as {
+      '@graph': Array<Record<string, unknown>>;
+    };
     expect(data['@graph']).toEqual([
       expect.objectContaining({
         '@type': 'WebSite',

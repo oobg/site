@@ -8,7 +8,6 @@
   border-bottom: 1px solid var(--d0-grey-200);
   background: var(--color-surface);
 }
-
 /* Container와 같은 공식이다. 헤더만 자기 폭 공식을 갖고 있으면 워드마크가
    본문 왼쪽 끝과 어긋나고, 그 차이가 페이지마다 달라 스크롤 중에 축이 흔들린다. */
 .inner {
@@ -17,7 +16,6 @@
   margin-inline: auto;
   padding-inline: var(--outer);
 }
-
 .pill {
   position: relative;
   display: flex;
@@ -30,7 +28,6 @@
   background: transparent;
   box-shadow: none;
 }
-
 .wordmark {
   display: inline-flex;
   min-height: 44px;
@@ -46,32 +43,26 @@
     color var(--d0-dur-fast) var(--d0-ease),
     transform var(--d0-dur-slow) var(--d0-ease-in-out);
 }
-
 .wordmark:hover {
   color: var(--d0-blue-dark);
 }
-
 .wordmark:active {
   transform: scale(0.96);
 }
-
 .wordmark:focus-visible {
   outline: 2px solid var(--d0-blue);
   outline-offset: 2px;
   border-radius: var(--d0-radius-sm);
 }
-
 /* 900·640의 폭 축소는 --w-container와 --outer가 맡는다. 여기서는 높이만 줄인다. */
 @media (max-width: 640px) {
   .header {
     height: 60px;
   }
-
   .pill {
     min-height: 60px;
   }
 }
-
 @media (prefers-reduced-motion: reduce) {
   .wordmark {
     transition-duration: 0ms;

@@ -7,6 +7,7 @@ import type {
 import { comparePostSeriesOrder } from '@features/posts/utils/series';
 
 const MAX_FEATURED_POSTS = 5;
+const DEFAULT_SECTION_POSTS = 3;
 
 function compareNewest(a: BlogPostSummary, b: BlogPostSummary): number {
   const byDate = Date.parse(b.published_at) - Date.parse(a.published_at);
@@ -54,6 +55,15 @@ export function selectFeaturedPosts(
   }
 
   return [...newestByCategory.values()].sort(compareNewest).slice(0, boundedLimit);
+}
+
+/** 홈 카테고리 section에 노출할 최초 공개 글을 안정적으로 고른다. */
+export function selectCategorySectionPosts(
+  posts: readonly BlogPostSelectionCandidate[],
+  limit = DEFAULT_SECTION_POSTS,
+): BlogPostSummary[] {
+  const boundedLimit = Math.max(0, Math.min(DEFAULT_SECTION_POSTS, Math.trunc(limit)));
+  return publicPosts(posts).sort(comparePostSeriesOrder).slice(0, boundedLimit);
 }
 
 /** 최신 글 archive는 대표 글을 제외하지 않고 전체 공개 글을 안정적으로 정렬한다. */

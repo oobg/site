@@ -12,6 +12,7 @@ import {
   House,
 } from '@phosphor-icons/react';
 import { ROUTES } from '@constants/routes';
+import { AdminAccountMenu } from './AdminAccountMenu';
 import styles from './AdminShell.module.css';
 
 export function AdminShell({
@@ -39,9 +40,9 @@ export function AdminShell({
     pathname === ROUTES.ADMIN.HOME && (view === 'posts' || (view === null && hasPostFilter));
   const overview = pathname === ROUTES.ADMIN.HOME && !settings && !comments && !posts;
   const analytics = pathname === ROUTES.ADMIN.ANALYTICS;
-  const initial = userEmail?.trim().charAt(0).toUpperCase() || 'R';
   return (
     <div className={styles.shell}>
+      {banner}
       {authorized ? (
         <a className={styles.skip} href="#main">
           본문으로 건너뛰기
@@ -54,13 +55,10 @@ export function AdminShell({
         <div className={styles.search}>{search}</div>
         {authorized ? (
           <div className={styles.account}>
-            <span className={styles.avatar} title={userEmail}>
-              {initial}
-            </span>
+            <AdminAccountMenu userEmail={userEmail} />
           </div>
         ) : null}
       </header>
-      {banner}
       {authorized ? (
         <div className={styles.layout}>
           <nav className={styles.nav} aria-label="관리자 메뉴">

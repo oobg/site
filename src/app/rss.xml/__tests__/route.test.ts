@@ -16,7 +16,7 @@ vi.mock('next/cache', () => ({
 import { GET } from '@/app/rss.xml/route';
 
 const post = {
-  slug: '공개-글',
+  slug: '공개 & 글',
   title: 'A & <B>\u0000',
   summary: '요약 ]]> & <tag>',
   body_markdown: '# 본문',
@@ -28,7 +28,7 @@ const post = {
   frontmatter: {},
   category: {
     id: 'category',
-    slug: 'dev',
+    slug: '개발 & 설계',
     name: '개발',
     sort_order: 1,
     is_default: false,
@@ -49,7 +49,7 @@ describe('GET /rss.xml', () => {
     });
   });
 
-  it('최신 공개 글의 한 세그먼트 canonical·메타·전체 HTML을 유효한 RSS로 반환한다', async () => {
+  it('최신 공개 글의 category/slug canonical·메타·전체 HTML을 유효한 RSS로 반환한다', async () => {
     const response = await GET();
     const xml = await response.text();
     const document = new DOMParser().parseFromString(xml, 'application/xml');
@@ -71,10 +71,10 @@ describe('GET /rss.xml', () => {
     expect(selfLink?.getAttribute('rel')).toBe('self');
     expect(document.querySelector('item > title')?.textContent).toBe('A & <B>�');
     expect(document.querySelector('item > link')?.textContent).toBe(
-      'https://raven.kr/blog/%EA%B3%B5%EA%B0%9C-%EA%B8%80',
+      'https://raven.kr/blog/%EA%B0%9C%EB%B0%9C%20%26%20%EC%84%A4%EA%B3%84/%EA%B3%B5%EA%B0%9C%20%26%20%EA%B8%80',
     );
     expect(document.querySelector('item > guid')?.textContent).toBe(
-      'https://raven.kr/blog/%EA%B3%B5%EA%B0%9C-%EA%B8%80',
+      'https://raven.kr/blog/%EA%B0%9C%EB%B0%9C%20%26%20%EC%84%A4%EA%B3%84/%EA%B3%B5%EA%B0%9C%20%26%20%EA%B8%80',
     );
     expect(document.querySelector('item > description')?.textContent).toBe('요약 ]]> & <tag>');
     expect(document.querySelector('item > pubDate')?.textContent).toBe(
@@ -84,11 +84,6 @@ describe('GET /rss.xml', () => {
       '<p><a href="https://raven.kr/blog/other?x=1&amp;y=2">링크</a><img src="https://raven.kr/images/x.png" />본문� ]]> </content:encoded><script>alert(1)</script></p>',
     );
     expect(mocks.markdown).toHaveBeenCalledWith('# 본문');
-  });
-
-  it('카테고리 세그먼트가 남지 않는다', async () => {
-    const xml = await (await GET()).text();
-    expect(xml).not.toContain('/blog/dev/');
   });
 
   it('글이 없어도 유효한 빈 채널을 만든다', async () => {

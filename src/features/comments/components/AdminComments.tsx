@@ -10,7 +10,8 @@ import {
   Trash,
 } from '@phosphor-icons/react/dist/ssr';
 import { ROUTES } from '@constants/routes';
-import type { AdminComment } from '@features/comments/types/comments.types';
+import { getCommentAvatarUrl } from '@features/comments/utils/comment-avatar';
+import type { AdminComment, Comment } from '@features/comments/types/comments.types';
 import styles from './AdminComments.module.css';
 
 type Filter = 'all' | 'visible' | 'hidden';
@@ -30,7 +31,7 @@ const formatDate = (value: string) =>
     minute: '2-digit',
   }).format(new Date(value));
 
-export function AdminComments() {
+export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
   const [items, setItems] = useState<AdminComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -38,6 +39,10 @@ export function AdminComments() {
   const [filter, setFilter] = useState<Filter>('all');
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<Sort>('newest');
+  const [replyTo, setReplyTo] = useState<string | null>(null);
+  const [replyBody, setReplyBody] = useState('');
+  const [replyError, setReplyError] = useState('');
+  const [replyPending, setReplyPending] = useState(false);
 
   const load = async () => {
     setLoading(true);
@@ -80,7 +85,7 @@ export function AdminComments() {
         body: JSON.stringify({ id }),
       });
       if (!response.ok) throw new Error();
-      setItems((current) => current.filter((item) => item.id !== id));
+      setItems((current) => current.filter((item) => item.id !== id && item.parent_id !== id));
     } catch {
       setError('댓글을 삭제하지 못했어요. 다시 시도해 주세요.');
     } finally {
@@ -112,6 +117,46 @@ export function AdminComments() {
     }
   };
 
+  const submitReply = async (event: React.FormEvent, parent: AdminComment) => {
+    event.preventDefault();
+    const content = replyBody.trim();
+    if (
+      replyPending ||
+      pendingId ||
+      !content ||
+      content.length > 1000 ||
+      content.includes('\u0000')
+    )
+      return;
+    setReplyPending(true);
+    setReplyError('');
+    try {
+      const response = await fetch('/api/admin/comments', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ parent_id: parent.id, body: content }),
+      });
+      const payload = (await response.json()) as {
+        comment?: Comment;
+        error?: { message?: string };
+      };
+      if (!response.ok || !payload.comment)
+        throw new Error(payload.error?.message || '답글을 등록하지 못했어요. 다시 시도해 주세요.');
+      const reply: AdminComment = {
+        ...payload.comment,
+        post_slug: parent.post_slug,
+        moderation_status: 'visible',
+      };
+      setItems((current) => [...current, reply]);
+      setReplyTo(null);
+      setReplyBody('');
+    } catch (reason) {
+      setReplyError(reason instanceof Error ? reason.message : '답글을 등록하지 못했어요.');
+    } finally {
+      setReplyPending(false);
+    }
+  };
+
   const counts = useMemo(
     () => ({
       all: items.length,
@@ -138,6 +183,22 @@ export function AdminComments() {
         return sort === 'newest' ? -difference : difference;
       });
   }, [filter, items, query, sort]);
+
+  const orderedItems = useMemo(
+    () =>
+      filteredItems
+        .filter((item) => !item.parent_id)
+        .flatMap((parent) => [
+          parent,
+          ...filteredItems
+            .filter((item) => item.parent_id === parent.id)
+            .sort(
+              (a, b) =>
+                Date.parse(a.created_at) - Date.parse(b.created_at) || a.id.localeCompare(b.id),
+            ),
+        ]),
+    [filteredItems],
+  );
 
   if (loading)
     return (
@@ -194,14 +255,25 @@ export function AdminComments() {
       </div>
       {filteredItems.length ? (
         <ul className={styles.list}>
-          {filteredItems.map((item) => (
-            <li key={item.id} className={styles.item}>
+          {orderedItems.map((item) => (
+            <li
+              key={item.id}
+              className={styles.item}
+              data-reply={Boolean(item.parent_id)}
+              aria-label={item.parent_id ? `${item.nickname} 답글` : `${item.nickname} 댓글`}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/images/comment-avatars/${item.avatar_id}.webp`} alt="" />
+              <img src={getCommentAvatarUrl(item.avatar_id, avatarBaseUrl)} alt="" />
               <div className={styles.content}>
                 <div className={styles.meta}>
+                  {item.parent_id ? <span aria-hidden="true">ㄴ&gt;</span> : null}
                   <strong>{item.nickname}</strong>
-                  <a href={ROUTES.BLOG.DETAIL(item.post_slug)} target="_blank" rel="noreferrer">
+                  {item.is_author ? <span className={styles.authorBadge}>작성자</span> : null}
+                  <a
+                    href={ROUTES.BLOG.LEGACY_DETAIL(item.post_slug)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     /{item.post_slug}
                   </a>
                   <time dateTime={item.created_at}>{formatDate(item.created_at)}</time>
@@ -212,9 +284,24 @@ export function AdminComments() {
                 <p>{item.body}</p>
               </div>
               <div className={styles.actions}>
+                {!item.parent_id ? (
+                  <button
+                    type="button"
+                    disabled={Boolean(pendingId) || replyPending}
+                    aria-expanded={replyTo === item.id}
+                    aria-controls={`reply-form-${item.id}`}
+                    onClick={() => {
+                      setReplyTo(item.id);
+                      setReplyBody('');
+                      setReplyError('');
+                    }}
+                  >
+                    답글
+                  </button>
+                ) : null}
                 <button
                   type="button"
-                  disabled={pendingId === item.id}
+                  disabled={Boolean(pendingId) || replyPending}
                   onClick={() => toggleVisibility(item)}
                   aria-label={`${item.nickname} 댓글 ${item.moderation_status === 'visible' ? '숨기기' : '공개'}`}
                 >
@@ -227,13 +314,64 @@ export function AdminComments() {
                 </button>
                 <button
                   type="button"
-                  disabled={pendingId === item.id}
+                  disabled={Boolean(pendingId) || replyPending}
                   onClick={() => remove(item.id)}
                   aria-label={`${item.nickname} 댓글 삭제`}
                 >
                   <Trash aria-hidden size={17} />
                 </button>
               </div>
+              {replyTo === item.id && !item.parent_id ? (
+                <form
+                  id={`reply-form-${item.id}`}
+                  className={styles.replyForm}
+                  onSubmit={(event) => submitReply(event, item)}
+                  aria-busy={replyPending}
+                >
+                  <label htmlFor={`reply-body-${item.id}`}>{item.nickname}님에게 답글</label>
+                  <textarea
+                    id={`reply-body-${item.id}`}
+                    value={replyBody}
+                    maxLength={1000}
+                    rows={3}
+                    required
+                    autoFocus
+                    disabled={replyPending}
+                    onChange={(event) => setReplyBody(event.target.value)}
+                    aria-describedby={replyError ? `reply-error-${item.id}` : undefined}
+                  />
+                  {replyError ? (
+                    <p id={`reply-error-${item.id}`} role="alert">
+                      {replyError}
+                    </p>
+                  ) : null}
+                  <div className={styles.actions}>
+                    <button
+                      type="button"
+                      disabled={replyPending}
+                      onClick={() => {
+                        setReplyTo(null);
+                        setReplyBody('');
+                        setReplyError('');
+                      }}
+                    >
+                      취소
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={
+                        replyPending ||
+                        Boolean(pendingId) ||
+                        !replyBody.trim() ||
+                        replyBody.trim().length > 1000 ||
+                        replyBody.includes('\u0000')
+                      }
+                    >
+                      {replyPending ? '등록 중…' : '답글 등록'}
+                    </button>
+                  </div>
+                </form>
+              ) : null}
             </li>
           ))}
         </ul>

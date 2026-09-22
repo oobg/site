@@ -6,7 +6,7 @@ const comments = [
   {
     id: 'c1',
     nickname: '민지',
-    avatar_id: 'default',
+    avatar_id: 'clay-01',
     body: '좋은 글 잘 읽었습니다.',
     created_at: '2026-09-18T09:30:00.000Z',
     post_slug: 'design-notes',
@@ -15,7 +15,7 @@ const comments = [
   {
     id: 'c2',
     nickname: '준호',
-    avatar_id: 'default',
+    avatar_id: 'clay-02',
     body: '확인 후 다시 질문할게요.',
     created_at: '2026-09-17T09:30:00.000Z',
     post_slug: 'product-log',

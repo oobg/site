@@ -1,6 +1,6 @@
 name: deploy-production
 
-run-name: "production 후보 배포 ${{ inputs.sha }} by @${{ github.actor }}"
+run-name: 'production 후보 배포 ${{ inputs.sha }} by @${{ github.actor }}'
 
 on:
   workflow_dispatch:
