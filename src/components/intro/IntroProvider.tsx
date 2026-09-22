@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useLayoutEffect,
   useState,
   type ReactNode,
@@ -57,6 +58,20 @@ export function IntroProvider({ children }: { children: ReactNode }) {
       if (background) background.inert = false;
     };
   }, [state.playing]);
+
+  useEffect(() => {
+    if (!state.playing) return;
+    const background = document.querySelector<HTMLElement>('[data-intro-background]');
+    const finishOnTab = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      // Release inert synchronously so the browser can honor this Tab keypress.
+      if (background) background.inert = false;
+      finish();
+    };
+    window.addEventListener('keydown', finishOnTab, true);
+    return () => window.removeEventListener('keydown', finishOnTab, true);
+  }, [finish, state.playing]);
+
   return (
     <IntroContext.Provider value={{ playing: state.playing, revealed: state.revealed, finish }}>
       {children}

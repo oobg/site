@@ -1,7 +1,20 @@
-/* 공통 shell의 오른쪽 열에서 본문 읽기 폭을 고정한다. */
+/* 상세는 두 레일 사이에 읽기 열을 둔다. 왼쪽 레일(셸의 주제 내비게이션)은 사이트 안
+   위치를, 오른쪽 레일은 글 안 위치를 알린다. 읽기 열의 왼쪽 끝은 목록 화면의 콘텐츠
+   왼쪽 끝과 같은 선이라, 목록에서 상세로 들어와도 x축이 움직이지 않는다.
+   읽기 폭을 트랙 자체에 걸어 두므로 목차가 있든 없든 본문 폭이 같다. */
 .page {
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, var(--w-reading)) minmax(176px, 1fr);
+  column-gap: var(--space-5);
+  align-items: start;
   padding-bottom: var(--space-7);
+}
+
+/* 본문·댓글·관련 글·이전 다음은 전부 읽기 열에 선다. */
+.page > * {
+  grid-column: 1;
+  min-width: 0;
 }
 
 .main {
@@ -11,8 +24,38 @@
   margin-inline: 0 auto;
 }
 
+/* 본문과 같은 행에 두어 글을 읽는 동안만 따라온다. 댓글 구간까지 내려가면
+   더 가리킬 제목이 없으므로 같이 흘러 나간다. */
+.tocRail {
+  grid-column: 2;
+  grid-row: 1;
+  position: sticky;
+  top: var(--rail-top);
+  align-self: start;
+  max-height: calc(100dvh - var(--rail-top) - var(--space-5));
+  /* 스크롤포트가 좌우 끝에 닿은 링크의 focus outline을 잘라내지 않도록 남기는 여백. */
+  padding-inline: var(--space-1);
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
 .shareRail {
   display: flex;
   justify-content: flex-end;
   margin-top: var(--space-7);
+}
+
+/* 오른쪽 레일이 본문을 700px 아래로 밀어내기 시작하는 1200px 이하에서는
+   읽기 열을 먼저 지키고 목차를 본문 위 접이식 하나로 바꾼다. 900px 이하에서는
+   셸도 한 열로 접힌다. 두 벌을 동시에 두면 같은 목차가 화면에 두 번 뜬다. */
+@media (max-width: 1200px) {
+  .page {
+    display: block;
+  }
+
+  .tocRail {
+    display: none;
+  }
 }

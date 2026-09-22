@@ -86,19 +86,53 @@ describe('AnalyticsDashboard', () => {
     expect(screen.getByText('디바이스 유형별 방문')).toBeInTheDocument();
     const deviceList = screen.getByLabelText('디바이스 유형별 활성 사용자');
     expect(deviceList).toBeInTheDocument();
+    const deviceStage = screen.getByTestId('device-stage');
     const desktopButton = screen.getByRole('button', { name: /데스크톱/ });
     const mobileButton = screen.getByRole('button', { name: /모바일/ });
+    const tabletButton = screen.getByRole('button', { name: /태블릿/ });
     expect(desktopButton).toHaveAttribute('aria-pressed', 'true');
     expect(mobileButton).toHaveAttribute('aria-pressed', 'false');
-    fireEvent.focus(mobileButton);
+    expect(deviceStage).toHaveAttribute('data-active-device', 'desktop');
+
+    fireEvent.pointerEnter(mobileButton);
+    expect(deviceStage).toHaveAttribute('data-active-device', 'mobile');
+    expect(desktopButton).toHaveAttribute('aria-pressed', 'true');
+    expect(mobileButton).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.pointerLeave(deviceList);
+    expect(deviceStage).toHaveAttribute('data-active-device', 'desktop');
+
+    fireEvent.pointerEnter(mobileButton, { pointerType: 'touch' });
+    expect(deviceStage).toHaveAttribute('data-active-device', 'desktop');
+    fireEvent.click(mobileButton);
     expect(mobileButton).toHaveAttribute('aria-pressed', 'true');
     expect(desktopButton).toHaveAttribute('aria-pressed', 'false');
-    fireEvent.click(desktopButton);
+    expect(deviceStage).toHaveAttribute('data-active-device', 'mobile');
+
+    fireEvent.keyDown(document, { key: 'Tab' });
+    fireEvent.focus(tabletButton);
+    expect(deviceStage).toHaveAttribute('data-active-device', 'tablet');
+    expect(tabletButton).toHaveAttribute('aria-pressed', 'false');
+    expect(mobileButton).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.keyDown(tabletButton, { key: 'Escape' });
+    expect(deviceStage).toHaveAttribute('data-active-device', 'mobile');
+    fireEvent.keyDown(tabletButton, { key: 'Enter' });
+    expect(tabletButton).toHaveAttribute('aria-pressed', 'true');
+    expect(deviceStage).toHaveAttribute('data-active-device', 'tablet');
+    fireEvent.focus(desktopButton);
+    fireEvent.keyDown(desktopButton, { key: ' ' });
     expect(desktopButton).toHaveAttribute('aria-pressed', 'true');
+    expect(deviceStage).toHaveAttribute('data-active-device', 'desktop');
+
     expect(screen.getByText('전체 활성 사용자')).toBeInTheDocument();
     expect(
       screen.getByRole('img', { name: '국가별 활성 사용자를 표시한 지구본' }),
     ).toBeInTheDocument();
+    const globeControl = screen.getByRole('button', { name: '회전 멈춤' });
+    fireEvent.click(globeControl);
+    expect(screen.getByRole('button', { name: '회전 시작' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
     expect(screen.getByText('utm_campaign')).toBeInTheDocument();
     expect(screen.getByText('브라우저와 운영체제')).toBeInTheDocument();
     expect(screen.queryByText('/admin')).not.toBeInTheDocument();

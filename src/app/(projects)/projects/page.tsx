@@ -4,7 +4,7 @@ import { ProjectCard } from '@features/projects/components/ProjectCard';
 import { getProjects } from '@features/projects/services/projects.api';
 import { buildMetadata } from '@lib/metadata/metadata';
 import { ROUTES } from '@constants/routes';
-import styles from './projects.module.css';
+import styles from '@/app/projects/projects.module.css';
 
 export const metadata: Metadata = buildMetadata({
   title: '프로젝트',

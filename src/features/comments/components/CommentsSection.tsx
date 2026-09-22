@@ -219,6 +219,10 @@ function randomIdentity() {
 
 const NICKNAME_STEP_MS = 40;
 
+function identityNoticeFor(nickname: string) {
+  return `닉네임과 아이콘을 새로 골랐어요. ${nickname}`;
+}
+
 function prefersReducedMotion() {
   return (
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -237,8 +241,13 @@ function formatDate(value: string) {
 }
 
 export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarBaseUrl?: string }) {
+  /* 제출에 쓰는 값(identity)과 화면에 드러나는 값(revealedNickname)을 나눈다. 한 글자씩
+     드러나는 40ms 동안에도 identity.nickname은 이미 완성돼 있어야, 전환 연출 때문에
+     등록 버튼이 공회전으로 잠기지 않는다. */
   const [identity, setIdentity] = useState({ nickname: '', avatarId: 'clay-01' });
+  const [revealedNickname, setRevealedNickname] = useState('');
   const [identityRevision, setIdentityRevision] = useState(0);
+  const [identityNotice, setIdentityNotice] = useState('');
   const [body, setBody] = useState('');
   const [comments, setComments] = useState<Comment[]>([]);
   const [total, setTotal] = useState(0);
@@ -278,31 +287,51 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
     [endpoint],
   );
 
+  /* 최초 로드와 재시도가 같은 경로를 쓴다. 갈라두면 재시도만 상태를 덜 되돌려
+     실패 표시가 남은 채 목록이 그려지는 조합이 생긴다.
+     상태 초기화는 호출부가 맡는다 — 이 함수가 동기적으로 setState를 하면
+     마운트 이펙트가 곧장 연쇄 렌더를 일으킨다. */
+  const loadFirstPage = useCallback(
+    (signal?: AbortSignal) =>
+      load(undefined, signal)
+        .catch((reason: unknown) => {
+          if ((reason as Error).name === 'AbortError') return;
+          setLoadError(true);
+          // 복구 블록이 같은 실패를 설명한다. status에는 두 번째 문구를 겹쳐 읽히게 하지 않는다.
+          setError('');
+        })
+        .finally(() => {
+          if (!signal?.aborted) setLoading(false);
+        }),
+    [load],
+  );
+
+  const retryLoad = () => {
+    setLoading(true);
+    setLoadError(false);
+    setError('');
+    void loadFirstPage();
+  };
+
   useEffect(() => {
     const controller = new AbortController();
-    queueMicrotask(() => setIdentity(randomIdentity()));
-    void fetch(`${endpoint}?limit=20`, { signal: controller.signal })
-      .then(async (response) => {
-        const payload = (await response.json()) as CommentPage | { error?: { message?: string } };
-        if (!response.ok || !('items' in payload)) throw new Error();
-        setComments(payload.items);
-        setTotal(payload.total);
-        setNextCursor(payload.nextCursor);
-      })
-      .catch((reason) => {
-        if ((reason as Error).name !== 'AbortError') {
-          setError('댓글을 불러오지 못했어요. 다시 시도해 주세요.');
-          setLoadError(true);
-        }
-      })
-      .finally(() => !controller.signal.aborted && setLoading(false));
+    /* 마운트 직후 상태를 동기로 건드리면 연쇄 렌더가 된다. 아이덴티티 추첨도
+       첫 로드도 마이크로태스크로 미뤄 첫 렌더를 서버 출력 그대로 둔다. */
+    queueMicrotask(() => {
+      const next = randomIdentity();
+      setIdentity(next);
+      setRevealedNickname(next.nickname);
+      void loadFirstPage(controller.signal);
+    });
     return () => controller.abort();
-  }, [endpoint]);
+  }, [loadFirstPage]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     const content = body.trim();
+    const nickname = identity.nickname.trim();
     if (!content) return setError('댓글 내용을 입력해 주세요.');
+    if (!nickname) return setError('닉네임을 입력해 주세요.');
     setSubmitting(true);
     setError('');
     try {
@@ -310,7 +339,7 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          nickname: identity.nickname.trim(),
+          nickname,
           avatar_id: identity.avatarId,
           body: content,
         }),
@@ -351,41 +380,29 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
     }
   };
 
-  const retryLoad = async () => {
-    setLoading(true);
-    setLoadError(false);
-    setError('');
-    try {
-      await load();
-    } catch {
-      setError('댓글을 불러오지 못했어요. 다시 시도해 주세요.');
-      setLoadError(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const randomizeIdentity = () => {
     cancelNicknameAnimation();
     const nextIdentity = randomIdentity();
+    setIdentity(nextIdentity);
     setIdentityRevision((current) => current + 1);
+    setIdentityNotice('');
 
     if (prefersReducedMotion()) {
-      setIdentity(nextIdentity);
+      setRevealedNickname(nextIdentity.nickname);
+      setIdentityNotice(identityNoticeFor(nextIdentity.nickname));
       return;
     }
 
-    setIdentity({ ...nextIdentity, nickname: '' });
+    setRevealedNickname('');
     let visibleLength = 0;
     nicknameTimerRef.current = setInterval(() => {
       visibleLength += 1;
-      setIdentity((current) => ({
-        ...current,
-        nickname: nextIdentity.nickname.slice(0, visibleLength),
-      }));
+      setRevealedNickname(nextIdentity.nickname.slice(0, visibleLength));
 
       if (visibleLength >= nextIdentity.nickname.length) {
         cancelNicknameAnimation();
+        /* 전환이 끝난 뒤에만 알린다. 한 글자씩 읽히면 낭독이 소음이 된다. */
+        setIdentityNotice(identityNoticeFor(nextIdentity.nickname));
       }
     }, NICKNAME_STEP_MS);
   };
@@ -402,6 +419,9 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
             src={getCommentAvatarUrl(identity.avatarId, avatarBaseUrl)}
             alt=""
             key={identityRevision}
+            width={44}
+            height={44}
+            decoding="async"
             className={styles.avatar}
             data-randomized={identityRevision > 0}
           />
@@ -410,26 +430,36 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
               <span key={identityRevision} className={styles.nicknameRipple} aria-hidden="true" />
             ) : null}
             <span className={styles.visuallyHidden}>닉네임</span>
+            {/* required를 두면 전환 중 빈 입력이 브라우저 기본 검증에 걸린다.
+                값 보증은 disabled 조건과 submit의 명시 검사가 맡는다. */}
             <input
-              value={identity.nickname}
+              value={revealedNickname}
               maxLength={20}
+              name="nickname"
+              autoComplete="nickname"
+              aria-required="true"
               onChange={(event) => {
                 cancelNicknameAnimation();
+                setIdentityNotice('');
                 setIdentity((current) => ({ ...current, nickname: event.target.value }));
+                setRevealedNickname(event.target.value);
               }}
-              required
             />
           </label>
           <button type="button" className={styles.randomButton} onClick={randomizeIdentity}>
             랜덤 변경
           </button>
         </div>
+        <p className={styles.visuallyHidden} role="status" aria-live="polite">
+          {identityNotice}
+        </p>
         <label>
           <span className={styles.visuallyHidden}>댓글 내용</span>
           <textarea
             value={body}
             maxLength={1000}
             rows={4}
+            name="body"
             placeholder="댓글을 남겨 주세요."
             onChange={(event) => setBody(event.target.value)}
             required
@@ -448,18 +478,20 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
       <p className={styles.status} role="status" aria-live="polite">
         {error}
       </p>
-      {loadError ? (
-        <button className={styles.more} type="button" onClick={retryLoad}>
-          다시 시도
-        </button>
-      ) : null}
       {loading ? (
         <div className={styles.loading} aria-label="댓글을 불러오는 중" aria-busy="true">
           <span />
           <span />
           <span />
         </div>
-      ) : loadError ? null : comments.length ? (
+      ) : loadError ? (
+        <div className={styles.recovery}>
+          <p className={styles.empty}>댓글은 잠시 쉬고 있어요.</p>
+          <button className={styles.more} type="button" onClick={retryLoad}>
+            다시 불러오기
+          </button>
+        </div>
+      ) : comments.length ? (
         <ul className={styles.list}>
           {comments
             .filter((comment) => !comment.parent_id)
@@ -481,7 +513,9 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
             ))}
         </ul>
       ) : (
-        <p className={styles.empty}>첫 댓글을 남겨 보세요.</p>
+        <p className={styles.empty} role="status" aria-live="polite">
+          첫 댓글을 남겨 보세요.
+        </p>
       )}
       {nextCursor ? (
         <button className={styles.more} type="button" disabled={loadingMore} onClick={loadMore}>
@@ -505,6 +539,9 @@ function CommentContent({ comment, avatarBaseUrl }: { comment: Comment; avatarBa
         <img
           src={getCommentAvatarUrl(comment.avatar_id, avatarBaseUrl)}
           alt=""
+          width={34}
+          height={34}
+          decoding="async"
           className={styles.commentAvatar}
         />
         <strong>{comment.nickname}</strong>

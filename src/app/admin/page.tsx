@@ -13,17 +13,32 @@ import { env } from '@configs/env';
 import { getCommentAvatarBaseUrl } from '@features/comments/utils/comment-avatar';
 import styles from './admin.module.css';
 
-export const metadata = { title: '글 관리' };
+export const metadata = { title: '관리자' };
 
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; view?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    view?: string;
+    status?: string;
+    category?: string;
+    query?: string;
+  }>;
 }) {
   const [access, query] = await Promise.all([getOwnerAccess(), searchParams]);
   const authError = getAuthMessage(query.error);
+  const hasPostFilter = Boolean(
+    query.status?.trim() || query.category?.trim() || query.query?.trim(),
+  );
   const view =
-    query.view === 'settings' ? 'settings' : query.view === 'comments' ? 'comments' : 'posts';
+    query.view === 'settings'
+      ? 'settings'
+      : query.view === 'comments'
+        ? 'comments'
+        : query.view === 'posts' || hasPostFilter
+          ? 'posts'
+          : 'overview';
 
   if (!access.configured || !access.authenticated) {
     return (
@@ -59,18 +74,30 @@ export default async function AdminPage({
   return (
     <div className={styles.page}>
       <AdminFrame
-        title={view === 'settings' ? '블로그 설정' : view === 'comments' ? '댓글 관리' : '글 관리'}
+        title={
+          view === 'overview'
+            ? '개요'
+            : view === 'settings'
+              ? '블로그 설정'
+              : view === 'comments'
+                ? '댓글 관리'
+                : '글 관리'
+        }
         description={
-          view === 'settings'
-            ? '분류와 대표 글 노출 순서를 관리합니다.'
-            : view === 'comments'
-              ? '방문자가 남긴 댓글을 관리합니다.'
-              : `${posts.length}개의 글이 있어요.`
+          view === 'overview'
+            ? '최근 콘텐츠와 운영 상태를 한곳에서 확인합니다.'
+            : view === 'settings'
+              ? '분류와 대표 글 노출 순서를 관리합니다.'
+              : view === 'comments'
+                ? '방문자가 남긴 댓글을 관리합니다.'
+                : `${posts.length}개의 글이 있어요.`
         }
         actions={
-          <Link className={styles.newLink} href={ROUTES.ADMIN.NEW_POST}>
-            <Plus aria-hidden size={18} weight="bold" />새 글
-          </Link>
+          view === 'overview' || view === 'posts' ? (
+            <Link className={styles.newLink} href={ROUTES.ADMIN.NEW_POST}>
+              <Plus aria-hidden size={18} weight="bold" />새 글
+            </Link>
+          ) : undefined
         }
       >
         <AdminWorkspace

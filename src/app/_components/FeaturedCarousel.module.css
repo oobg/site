@@ -4,7 +4,10 @@
 }
 
 .section:not([data-with-cover]) {
+  margin-top: var(--space-4);
   padding-block: var(--space-7);
+  border-top: 1px solid var(--d0-grey-100);
+  background: var(--color-surface);
 }
 
 .slide {
@@ -17,37 +20,12 @@
 }
 
 .cover {
-  position: relative;
-  aspect-ratio: 1.9;
-  overflow: hidden;
-  border-radius: var(--d0-radius-card);
-  background: var(--d0-grey-50);
-}
-
-.cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.progressTrack {
-  position: absolute;
-  bottom: clamp(12px, 2vw, 18px);
-  left: clamp(12px, 2vw, 18px);
-  width: clamp(72px, 18%, 112px);
-  height: 2px;
-  overflow: hidden;
-  border-radius: var(--radius-pill);
-  background: rgb(255 255 255 / 38%);
-}
-
-.progressBar {
   display: block;
-  width: 0;
-  height: 100%;
-  border-radius: inherit;
-  background: rgb(255 255 255 / 92%);
-  transition: width 80ms linear;
+  width: 100%;
+  aspect-ratio: 1.9;
+  border-radius: var(--d0-radius-control);
+  background: var(--d0-grey-50);
+  object-fit: cover;
 }
 
 .copy {
@@ -56,6 +34,7 @@
 
 .copy:not([data-with-cover]) {
   grid-column: 1/-1;
+  max-width: 760px;
 }
 
 .metaRow {
@@ -71,15 +50,13 @@
   font-size: 13px;
   font-weight: 600;
 }
-
-.copy h2 {
+.copy :is(h2, h3) {
   margin-top: var(--space-3);
   font-size: clamp(24px, 2.3vw, 30px);
   line-height: var(--d0-leading-display);
   letter-spacing: var(--d0-tracking-display);
 }
-
-.copy h2 a:hover {
+.copy :is(h2, h3) a:hover {
   color: var(--d0-blue-dark);
 }
 
@@ -101,12 +78,16 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--space-3);
+  gap: var(--space-4);
   color: var(--d0-grey-600);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
 }
-
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
 .controls button {
   display: grid;
   width: 36px;
@@ -129,18 +110,82 @@
   outline: 2px solid var(--d0-blue);
   outline-offset: 2px;
 }
-
+.controls button[aria-pressed='true'] {
+  border-color: var(--d0-blue);
+  color: var(--d0-blue-dark);
+}
+.autoplayControl {
+  position: relative;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+}
+.autoplayButton {
+  position: relative;
+  width: 44px !important;
+  height: 44px !important;
+}
+.progressStatus {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.announcer {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.progressRing {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+.progressRingTrack {
+  stroke: var(--d0-grey-200);
+}
+.progressRingValue {
+  stroke: var(--d0-blue);
+  transition: stroke-dashoffset 1000ms linear;
+}
+.section[data-paused] .progressRingValue {
+  transition-duration: 0ms;
+}
+.autoplayIcon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+}
 @media (max-width: 640px) {
   .section {
     padding-top: var(--space-6);
   }
-
+  .section:not([data-with-cover]) {
+    padding-block: var(--space-6);
+  }
   .slide {
     grid-template-columns: 1fr;
     gap: var(--space-5);
   }
-
-  .copy h2 {
+  .copy :is(h2, h3) {
     margin-top: var(--space-3);
     font-size: 26px;
   }
@@ -171,8 +216,7 @@
   .slide {
     animation: none;
   }
-
-  .progressBar {
-    transition: none;
+  .progressRingValue {
+    transition-duration: 0ms;
   }
 }

@@ -206,7 +206,9 @@ export function CommandPalette() {
                 </p>
               ) : null}
               {!isLoading && !isError && query.trim() === debouncedQuery && items.length === 0 ? (
-                <p className={styles.state}>검색 결과가 없습니다.</p>
+                <p className={styles.state} role="status">
+                  검색 결과가 없습니다.
+                </p>
               ) : null}
               <div id={listboxId} role="listbox" aria-label="검색 결과">
                 {items.map((item, index) => {
@@ -224,6 +226,7 @@ export function CommandPalette() {
                       id={`${listboxId}-${item.id}`}
                       className={styles.result}
                       role="option"
+                      tabIndex={-1}
                       aria-selected={index === safeActiveIndex}
                       data-active={index === safeActiveIndex || undefined}
                       onMouseMove={() => setActiveIndex(index)}

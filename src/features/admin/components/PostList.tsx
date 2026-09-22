@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { parseAsString, parseAsStringLiteral, useQueryStates } from 'nuqs';
+import { DotsThreeVertical } from '@phosphor-icons/react/dist/ssr';
 import { ROUTES } from '@constants/routes';
 import type { BlogCategory } from '@features/posts/types/posts.types';
 import { updatePostStatusAction } from '@features/admin/services/posts.actions';
@@ -26,6 +27,7 @@ const PAGE_SIZE = 10;
 const postListFilterParsers = {
   status: parseAsStringLiteral(['all', 'draft', 'published'] as const).withDefault('all'),
   category: parseAsString.withDefault(''),
+  query: parseAsString.withDefault(''),
 };
 type SortKey = 'title' | 'createdAt' | 'updatedAt';
 type SortDirection = 'asc' | 'desc';
@@ -59,8 +61,7 @@ export function PostList({
   const tableRef = useRef<HTMLDivElement>(null);
   const compactListRef = useRef<HTMLUListElement>(null);
   const [overrides, setOverrides] = useState<Record<string, Partial<AdminPostListItem>>>({});
-  const [query, setQuery] = useState('');
-  const [{ status, category }, setFilters] = useQueryStates(postListFilterParsers, {
+  const [{ status, category, query }, setFilters] = useQueryStates(postListFilterParsers, {
     history: 'push',
   });
   const [sortKey, setSortKey] = useState<SortKey>('createdAt');
@@ -69,10 +70,21 @@ export function PostList({
   const [pendingIds, setPendingIds] = useState<Set<string>>(() => new Set());
   const [message, setMessage] = useState('');
   const [, startTransition] = useTransition();
+  const postsWithOverrides = useMemo(
+    () => posts.map((post) => withFreshOverride(post, overrides[post.id])),
+    [overrides, posts],
+  );
+  const statusCounts = useMemo(
+    () => ({
+      all: postsWithOverrides.length,
+      draft: postsWithOverrides.filter((post) => post.status === 'draft').length,
+      published: postsWithOverrides.filter((post) => post.status === 'published').length,
+    }),
+    [postsWithOverrides],
+  );
   const visiblePosts = useMemo(
     () =>
-      posts
-        .map((post) => withFreshOverride(post, overrides[post.id]))
+      postsWithOverrides
         .filter(
           (post) =>
             (status === 'all' || post.status === status) &&
@@ -87,7 +99,7 @@ export function PostList({
               : new Date(a[sortKey]).getTime() - new Date(b[sortKey]).getTime();
           return sortDirection === 'asc' ? comparison : -comparison;
         }),
-    [category, overrides, posts, query, sortDirection, sortKey, status],
+    [category, postsWithOverrides, query, sortDirection, sortKey, status],
   );
   const totalPages = Math.max(1, Math.ceil(visiblePosts.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -97,6 +109,7 @@ export function PostList({
     const search = new URLSearchParams();
     if (status !== 'all') search.set('status', status);
     if (category) search.set('category', category);
+    if (query) search.set('query', query);
     const queryString = search.toString();
     return `${ROUTES.ADMIN.POST(id)}${queryString ? `?${queryString}` : ''}`;
   };
@@ -124,7 +137,9 @@ export function PostList({
         windowScrollY?: number;
       };
       requestAnimationFrame(() => {
-        setQuery(saved.query ?? '');
+        if (saved.query !== undefined && saved.query !== query) {
+          void setFilters({ query: saved.query });
+        }
         requestAnimationFrame(() => {
           (compact ? compactListRef.current : tableRef.current)?.scrollTo({
             top: saved.scrollTop ?? 0,
@@ -137,7 +152,7 @@ export function PostList({
     } catch {
       // Storage failure must not block the list.
     }
-  }, [compact]);
+  }, [compact, query, setFilters]);
 
   const rememberContext = () => {
     try {
@@ -201,7 +216,10 @@ export function PostList({
                 setPage(1);
               }}
             >
-              {label}
+              <span>{label}</span>
+              <span className={styles.filterCount} aria-hidden="true">
+                {statusCounts[value]}
+              </span>
             </button>
           ))}
         </div>
@@ -230,7 +248,7 @@ export function PostList({
             type="search"
             value={query}
             onChange={(event) => {
-              setQuery(event.target.value);
+              void setFilters({ query: event.target.value });
               setPage(1);
             }}
             placeholder="제목 검색"
@@ -345,7 +363,7 @@ export function PostList({
                       href={postHref(post.id)}
                       aria-label={`${post.title} 편집`}
                     >
-                      •••
+                      <DotsThreeVertical aria-hidden size={18} weight="bold" />
                     </Link>
                   </td>
                 </tr>
@@ -425,7 +443,7 @@ export function PostList({
                   href={postHref(post.id)}
                   aria-label={`${post.title} 편집`}
                 >
-                  •••
+                  <DotsThreeVertical aria-hidden size={18} weight="bold" />
                 </Link>
               </div>
             </li>

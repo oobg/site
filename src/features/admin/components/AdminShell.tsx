@@ -3,7 +3,14 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { FileText, Gear, ArrowSquareOut, ChatCircle, ChartLine } from '@phosphor-icons/react';
+import {
+  ArrowSquareOut,
+  ChartLine,
+  ChatCircle,
+  FileText,
+  Gear,
+  House,
+} from '@phosphor-icons/react';
 import { ROUTES } from '@constants/routes';
 import { AdminAccountMenu } from './AdminAccountMenu';
 import styles from './AdminShell.module.css';
@@ -23,9 +30,15 @@ export function AdminShell({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const view = searchParams.get('view');
   const settings = pathname === ROUTES.ADMIN.HOME && searchParams.get('view') === 'settings';
   const comments = pathname === ROUTES.ADMIN.HOME && searchParams.get('view') === 'comments';
-  const posts = pathname === ROUTES.ADMIN.HOME && !settings && !comments;
+  const hasPostFilter = ['status', 'category', 'query'].some((key) =>
+    searchParams.get(key)?.trim(),
+  );
+  const posts =
+    pathname === ROUTES.ADMIN.HOME && (view === 'posts' || (view === null && hasPostFilter));
+  const overview = pathname === ROUTES.ADMIN.HOME && !settings && !comments && !posts;
   const analytics = pathname === ROUTES.ADMIN.ANALYTICS;
   return (
     <div className={styles.shell}>
@@ -49,41 +62,58 @@ export function AdminShell({
       {authorized ? (
         <div className={styles.layout}>
           <nav className={styles.nav} aria-label="관리자 메뉴">
-            <Link
-              href={ROUTES.ADMIN.HOME}
-              aria-current={posts ? 'page' : undefined}
-              data-active={posts || undefined}
-            >
-              <FileText aria-hidden size={19} />글
-            </Link>
-            <Link
-              href={ROUTES.ADMIN.ANALYTICS}
-              aria-current={analytics ? 'page' : undefined}
-              data-active={analytics || undefined}
-            >
-              <ChartLine aria-hidden size={19} />
-              방문 통계
-            </Link>
-            <Link
-              href={`${ROUTES.ADMIN.HOME}?view=comments`}
-              aria-current={comments ? 'page' : undefined}
-              data-active={comments || undefined}
-            >
-              <ChatCircle aria-hidden size={19} />
-              댓글
-            </Link>
-            <Link
-              href={`${ROUTES.ADMIN.HOME}?view=settings`}
-              aria-current={settings ? 'page' : undefined}
-              data-active={settings || undefined}
-            >
-              <Gear aria-hidden size={19} />
-              블로그 설정
-            </Link>
-            <Link href={ROUTES.HOME}>
-              <ArrowSquareOut aria-hidden size={19} />
-              사이트 보기
-            </Link>
+            <div className={styles.navGroup}>
+              <span className={styles.navLabel}>워크스페이스</span>
+              <Link
+                href={ROUTES.ADMIN.HOME}
+                aria-current={overview ? 'page' : undefined}
+                data-active={overview || undefined}
+              >
+                <House aria-hidden size={19} />
+                개요
+              </Link>
+              <Link
+                href={ROUTES.ADMIN.POSTS}
+                aria-current={posts ? 'page' : undefined}
+                data-active={posts || undefined}
+              >
+                <FileText aria-hidden size={19} />글
+              </Link>
+              <Link
+                href={`${ROUTES.ADMIN.HOME}?view=comments`}
+                aria-current={comments ? 'page' : undefined}
+                data-active={comments || undefined}
+              >
+                <ChatCircle aria-hidden size={19} />
+                댓글
+              </Link>
+            </div>
+            <div className={styles.navGroup}>
+              <span className={styles.navLabel}>분석</span>
+              <Link
+                href={ROUTES.ADMIN.ANALYTICS}
+                aria-current={analytics ? 'page' : undefined}
+                data-active={analytics || undefined}
+              >
+                <ChartLine aria-hidden size={19} />
+                방문 통계
+              </Link>
+            </div>
+            <div className={`${styles.navGroup} ${styles.navFooter}`}>
+              <span className={styles.navLabel}>관리</span>
+              <Link
+                href={`${ROUTES.ADMIN.HOME}?view=settings`}
+                aria-current={settings ? 'page' : undefined}
+                data-active={settings || undefined}
+              >
+                <Gear aria-hidden size={19} />
+                블로그 설정
+              </Link>
+              <Link href={ROUTES.HOME}>
+                <ArrowSquareOut aria-hidden size={19} />
+                사이트 보기
+              </Link>
+            </div>
           </nav>
           <main className={styles.main} id="main" tabIndex={-1}>
             {children}

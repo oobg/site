@@ -7,6 +7,7 @@ export const ROUTES = {
     LIST: '/blog',
     DETAIL: (category: string, slug: string) =>
       `/blog/${encodeRouteSlug(category)}/${encodeRouteSlug(slug)}`,
+    LEGACY_DETAIL: (slug: string) => `/blog/${encodeRouteSlug(slug)}`,
   },
   PROJECTS: {
     LIST: '/projects',
@@ -14,6 +15,7 @@ export const ROUTES = {
   },
   ADMIN: {
     HOME: '/admin',
+    POSTS: '/admin?view=posts',
     ANALYTICS: '/admin/analytics',
     NEW_POST: '/admin/posts/new',
     POST: (id: string) => `/admin/posts/${id}`,

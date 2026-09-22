@@ -15,6 +15,9 @@ vi.mock('@features/admin/components/BlogSettings', () => ({
     <p>설정: {categories[0]?.name}</p>
   ),
 }));
+vi.mock('@features/admin/components/AdminOverview', () => ({
+  AdminOverview: ({ posts }: { posts: Array<{ title: string }> }) => <p>개요: {posts[0]?.title}</p>,
+}));
 vi.mock('@features/comments/components/AdminComments', () => ({
   AdminComments: ({ avatarBaseUrl }: { avatarBaseUrl?: string }) => (
     <p>댓글 아바타: {avatarBaseUrl ?? 'fallback'}</p>
@@ -40,6 +43,8 @@ const categories = [{ id: 'c1', slug: 'dev', name: '개발', sort_order: 0, is_d
 describe('AdminWorkspace', () => {
   it('URL이 선택한 관리 화면만 렌더한다', () => {
     const { rerender } = render(<AdminWorkspace posts={posts} categories={categories} />);
+    expect(screen.getByText(/개요: 첫 글/)).toBeVisible();
+    rerender(<AdminWorkspace posts={posts} categories={categories} view="posts" />);
     expect(screen.getByText(/목록: 첫 글/)).toBeVisible();
     rerender(<AdminWorkspace posts={posts} categories={categories} view="settings" />);
     expect(screen.getByText('설정: 개발')).toBeVisible();

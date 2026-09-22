@@ -12,7 +12,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { Desktop, DeviceMobile, DeviceTablet, Question } from '@phosphor-icons/react';
+import { Desktop, DeviceMobile, DeviceTablet, Pause, Play, Question } from '@phosphor-icons/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type {
   AnalyticsDashboardData,
@@ -148,39 +149,50 @@ function MetricBarList({
 
 type DeviceKind = (typeof deviceOrder)[number];
 
-function DeviceGlyph({ kind }: { kind: DeviceKind }) {
-  if (kind === 'desktop') {
-    return (
-      <svg className={styles.deviceGlyph} viewBox="0 0 240 160" aria-hidden="true">
-        <rect className={styles.deviceShell} x="18" y="12" width="204" height="112" rx="10" />
-        <rect className={styles.deviceScreen} x="30" y="24" width="180" height="88" rx="5" />
-        <path className={styles.deviceDetail} d="M94 137h52M80 148h80" />
-      </svg>
-    );
-  }
+type DeviceInputMode = 'pointer' | 'keyboard';
+type DevicePosition = 'front' | 'left' | 'right';
 
-  if (kind === 'tablet') {
-    return (
-      <svg className={styles.deviceGlyph} viewBox="0 0 240 160" aria-hidden="true">
-        <rect className={styles.deviceShell} x="43" y="8" width="154" height="144" rx="18" />
-        <rect className={styles.deviceScreen} x="53" y="20" width="134" height="112" rx="11" />
-        <circle className={styles.deviceDetailFill} cx="120" cy="142" r="3" />
-      </svg>
-    );
-  }
+const deviceAngles: Record<DeviceKind, number> = {
+  desktop: 0,
+  tablet: -120,
+  mobile: 120,
+};
+const activeAngles: Record<DeviceKind, number> = {
+  desktop: 0,
+  tablet: 120,
+  mobile: -120,
+};
 
-  return (
-    <svg className={styles.deviceGlyph} viewBox="0 0 240 160" aria-hidden="true">
-      <rect className={styles.deviceShell} x="78" y="7" width="84" height="146" rx="20" />
-      <rect className={styles.deviceScreen} x="87" y="23" width="66" height="111" rx="10" />
-      <path className={styles.deviceDetail} d="M111 15h18" />
-      <circle className={styles.deviceDetailFill} cx="120" cy="143" r="3" />
-    </svg>
+function normalizeAngle(angle: number) {
+  return ((((angle + 180) % 360) + 360) % 360) - 180;
+}
+
+function nearestEquivalentAngle(current: number, target: number) {
+  return [target - 360, target, target + 360].reduce((nearest, candidate) =>
+    Math.abs(candidate - current) < Math.abs(nearest - current) ? candidate : nearest,
   );
 }
 
+function getDevicePosition(kind: DeviceKind, activeDevice: DeviceKind): DevicePosition {
+  const angle = normalizeAngle(deviceAngles[kind] + activeAngles[activeDevice]);
+  if (Math.abs(angle) < 1) return 'front';
+  return angle < 0 ? 'left' : 'right';
+}
+
+function DeviceGlyph({ kind }: { kind: DeviceKind }) {
+  const Icon = deviceIcons[kind];
+  return <Icon className={styles.deviceGlyph} aria-hidden weight="thin" />;
+}
+
 function DevicePerspective({ devices }: { devices: AnalyticsDashboardData['devices'] }) {
-  const [activeDevice, setActiveDevice] = useState<string>('desktop');
+  const reduceMotion = useReducedMotion();
+  const [selectedDevice, setSelectedDevice] = useState<DeviceKind>('desktop');
+  const [hoveredDevice, setHoveredDevice] = useState<DeviceKind | null>(null);
+  const [focusedDevice, setFocusedDevice] = useState<DeviceKind | null>(null);
+  const [inputMode, setInputMode] = useState<DeviceInputMode>('pointer');
+  const [previewSuppressed, setPreviewSuppressed] = useState(false);
+  const [carouselPhase, setCarouselPhase] = useState(0);
+  const inputModeRef = useRef<DeviceInputMode>('pointer');
   const knownDevices = deviceOrder.map((name) => ({
     name,
     activeUsers: devices.find((item) => item.name.toLowerCase() === name)?.activeUsers ?? 0,
@@ -190,64 +202,174 @@ function DevicePerspective({ devices }: { devices: AnalyticsDashboardData['devic
   );
   const items = [...knownDevices, ...otherDevices];
   const total = items.reduce((sum, item) => sum + item.activeUsers, 0);
-  const deviceClasses: Record<DeviceKind, string> = {
-    desktop: styles.deviceDesktop,
-    tablet: styles.deviceTablet,
-    mobile: styles.deviceMobile,
+  const activeDevice = previewSuppressed
+    ? selectedDevice
+    : inputMode === 'keyboard' && focusedDevice
+      ? focusedDevice
+      : inputMode === 'pointer' && hoveredDevice
+        ? hoveredDevice
+        : selectedDevice;
+
+  useEffect(() => {
+    const useKeyboard = (event: KeyboardEvent) => {
+      if (!['Tab', 'ArrowDown', 'ArrowUp', 'Enter', ' ', 'Escape'].includes(event.key)) return;
+      inputModeRef.current = 'keyboard';
+      setInputMode('keyboard');
+    };
+    document.addEventListener('keydown', useKeyboard, true);
+    return () => document.removeEventListener('keydown', useKeyboard, true);
+  }, []);
+
+  const rotateToDevice = (kind: DeviceKind) => {
+    setCarouselPhase((current) => nearestEquivalentAngle(current, activeAngles[kind]));
   };
+
+  const activatePointerMode = () => {
+    inputModeRef.current = 'pointer';
+    setInputMode('pointer');
+    setPreviewSuppressed(false);
+  };
+
+  const transition = reduceMotion
+    ? { duration: 0 }
+    : { duration: 0.32, ease: [0.4, 0, 0.2, 1] as [number, number, number, number] };
 
   return (
     <div className={styles.devicePerspective}>
-      <div className={styles.deviceStage} data-active-device={activeDevice} aria-hidden="true">
+      <div
+        className={styles.deviceStage}
+        data-active-device={activeDevice}
+        data-testid="device-stage"
+        aria-hidden="true"
+      >
         <div className={styles.deviceStageSummary}>
           <span>전체 활성 사용자</span>
           <strong>{formatCompact(total)}</strong>
         </div>
-        {knownDevices.map((item, index) => {
-          const kind = item.name as DeviceKind;
-          return (
-            <div
-              className={`${styles.deviceUnit} ${deviceClasses[kind]}`}
-              data-active={activeDevice === kind}
-              data-depth={index}
-              data-device={kind}
-              key={item.name}
-            >
-              <DeviceGlyph kind={kind} />
-            </div>
-          );
-        })}
+        <motion.div
+          className={styles.deviceCarousel}
+          animate={{ rotateX: -6, rotateY: carouselPhase }}
+          transition={transition}
+        >
+          {knownDevices.map((item) => {
+            const kind = item.name as DeviceKind;
+            const position = getDevicePosition(kind, activeDevice);
+            const facingAngle = -normalizeAngle(deviceAngles[kind] + activeAngles[activeDevice]);
+            return (
+              <div
+                className={styles.deviceUnit}
+                data-device={kind}
+                data-position={position}
+                key={item.name}
+                style={{
+                  transform: `rotateY(${deviceAngles[kind]}deg) translateZ(var(--device-radius, 136px))`,
+                }}
+              >
+                <motion.div
+                  className={styles.deviceFace}
+                  animate={{ rotateX: 6, rotateY: facingAngle }}
+                  transition={transition}
+                >
+                  <DeviceGlyph kind={kind} />
+                </motion.div>
+              </div>
+            );
+          })}
+        </motion.div>
       </div>
-      <ul className={styles.deviceLegend} aria-label="디바이스 유형별 활성 사용자">
+      <ul
+        className={styles.deviceLegend}
+        aria-label="디바이스 유형별 활성 사용자"
+        onBlur={(event) => {
+          if (event.currentTarget.contains(event.relatedTarget)) return;
+          setFocusedDevice(null);
+          setPreviewSuppressed(false);
+          rotateToDevice(selectedDevice);
+        }}
+        onPointerLeave={() => {
+          setHoveredDevice(null);
+          setPreviewSuppressed(false);
+          rotateToDevice(selectedDevice);
+        }}
+      >
         {items.map((item) => {
-          const DeviceIcon =
-            deviceIcons[item.name.toLowerCase() as keyof typeof deviceIcons] ?? Question;
-          const label = deviceNames[item.name.toLowerCase()] ?? item.name;
           const deviceKey = item.name.toLowerCase();
+          const isKnownDevice = deviceOrder.includes(deviceKey as DeviceKind);
+          const kind = isKnownDevice ? (deviceKey as DeviceKind) : null;
+          const DeviceIcon = kind ? deviceIcons[kind] : Question;
+          const label = deviceNames[deviceKey] ?? item.name;
+          const content = (
+            <>
+              <div className={styles.deviceLegendLabel}>
+                <span className={styles.deviceIcon} data-device={deviceKey}>
+                  <DeviceIcon aria-hidden size={17} weight="regular" />
+                </span>
+                <span>{label}</span>
+              </div>
+              <div className={styles.deviceLegendValue}>
+                <strong>{formatCompact(item.activeUsers)}</strong>
+                <span>{ratio(item.activeUsers, total)}%</span>
+              </div>
+              <div className={styles.deviceLegendBar} aria-hidden="true">
+                <span style={{ width: `${ratio(item.activeUsers, total)}%` }} />
+              </div>
+            </>
+          );
           return (
             <li key={item.name}>
-              <button
-                type="button"
-                className={styles.deviceButton}
-                aria-pressed={activeDevice === deviceKey}
-                onClick={() => setActiveDevice(deviceKey)}
-                onFocus={() => setActiveDevice(deviceKey)}
-                onMouseEnter={() => setActiveDevice(deviceKey)}
-              >
-                <div className={styles.deviceLegendLabel}>
-                  <span className={styles.deviceIcon} data-device={deviceKey}>
-                    <DeviceIcon aria-hidden size={17} weight="bold" />
-                  </span>
-                  <span>{label}</span>
-                </div>
-                <div className={styles.deviceLegendValue}>
-                  <strong>{formatCompact(item.activeUsers)}</strong>
-                  <span>{ratio(item.activeUsers, total)}%</span>
-                </div>
-                <div className={styles.deviceLegendBar} aria-hidden="true">
-                  <span style={{ width: `${ratio(item.activeUsers, total)}%` }} />
-                </div>
-              </button>
+              {kind ? (
+                <button
+                  type="button"
+                  className={styles.deviceButton}
+                  aria-label={`${label} ${number.format(item.activeUsers)}명 ${ratio(item.activeUsers, total)}%`}
+                  aria-pressed={selectedDevice === kind}
+                  data-previewed={activeDevice === kind && selectedDevice !== kind ? '' : undefined}
+                  onClick={() => {
+                    setSelectedDevice(kind);
+                    setPreviewSuppressed(false);
+                    rotateToDevice(kind);
+                  }}
+                  onFocus={() => {
+                    if (inputModeRef.current === 'keyboard') {
+                      setFocusedDevice(kind);
+                      setPreviewSuppressed(false);
+                      rotateToDevice(kind);
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                      event.preventDefault();
+                      setPreviewSuppressed(true);
+                      rotateToDevice(selectedDevice);
+                      return;
+                    }
+                    setFocusedDevice(kind);
+                    setPreviewSuppressed(false);
+                    rotateToDevice(kind);
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault();
+                      setSelectedDevice(kind);
+                    }
+                  }}
+                  onPointerDown={activatePointerMode}
+                  onPointerEnter={(event) => {
+                    if (event.pointerType === 'touch') return;
+                    activatePointerMode();
+                    setHoveredDevice(kind);
+                    rotateToDevice(kind);
+                  }}
+                  onPointerMove={(event) => {
+                    if (event.pointerType === 'touch') return;
+                    activatePointerMode();
+                    setHoveredDevice(kind);
+                    rotateToDevice(kind);
+                  }}
+                >
+                  {content}
+                </button>
+              ) : (
+                <div className={styles.deviceStatic}>{content}</div>
+              )}
             </li>
           );
         })}
@@ -257,8 +379,12 @@ function DevicePerspective({ devices }: { devices: AnalyticsDashboardData['devic
 }
 
 function CountryGlobe({ countries }: { countries: AnalyticsDashboardData['countries'] }) {
+  const reduceMotion = useReducedMotion();
+  const [rotationPaused, setRotationPaused] = useState(false);
   const max = Math.max(...countries.map((country) => country.activeUsers), 0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rotationEnabledRef = useRef(true);
+  const syncRotationRef = useRef<() => void>(() => undefined);
   const markers = useMemo(
     () =>
       countries.flatMap((country) => {
@@ -275,48 +401,104 @@ function CountryGlobe({ countries }: { countries: AnalyticsDashboardData['countr
   );
 
   useEffect(() => {
+    rotationEnabledRef.current = !rotationPaused && !reduceMotion;
+    syncRotationRef.current();
+  }, [reduceMotion, rotationPaused]);
+
+  useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     let phi = 0;
     let frame = 0;
+    let lastTime = 0;
+    let isIntersecting = true;
+    let isPageVisible = document.visibilityState === 'visible';
     let globe: ReturnType<typeof createGlobe> | undefined;
+    const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+    const renderSize = Math.max(360, Math.round(canvas.clientWidth * pixelRatio));
+
+    const stopRotation = () => {
+      if (!frame) return;
+      cancelAnimationFrame(frame);
+      frame = 0;
+      lastTime = 0;
+    };
+
+    const animate = (time: number) => {
+      if (lastTime) {
+        const delta = Math.min((time - lastTime) / 1000, 0.1);
+        phi += delta * 0.03;
+        globe?.update({ phi });
+      }
+      lastTime = time;
+      frame = requestAnimationFrame(animate);
+    };
+
+    const syncRotation = () => {
+      if (rotationEnabledRef.current && isIntersecting && isPageVisible) {
+        if (!frame) frame = requestAnimationFrame(animate);
+        return;
+      }
+      stopRotation();
+    };
+
+    syncRotationRef.current = syncRotation;
+
     try {
       globe = createGlobe(canvas, {
-        devicePixelRatio: 2,
-        width: 720,
-        height: 720,
+        devicePixelRatio: pixelRatio,
+        width: renderSize,
+        height: renderSize,
         phi,
-        theta: 0.16,
+        theta: 0.14,
         dark: 0,
-        diffuse: 1.2,
-        scale: 1,
+        diffuse: 1.05,
+        scale: 0.96,
         mapSamples: 16000,
-        mapBrightness: 2.1,
-        mapBaseBrightness: 0.16,
-        baseColor: [0.72, 0.78, 0.86],
-        markerColor: [0.95, 0.48, 0.16],
-        glowColor: [0.94, 0.96, 0.98],
+        mapBrightness: 1.25,
+        mapBaseBrightness: 0.08,
+        baseColor: [0.96, 0.97, 0.99],
+        markerColor: [0.24, 0.49, 0.9],
+        glowColor: [0.98, 0.99, 1],
         markers,
       });
-      const reducedMotion =
-        typeof window !== 'undefined' &&
-        typeof window.matchMedia === 'function' &&
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (!reducedMotion) {
-        const animate = () => {
-          phi += 0.0025;
-          globe?.update({ phi });
-          frame = requestAnimationFrame(animate);
-        };
-        frame = requestAnimationFrame(animate);
-      }
+      syncRotation();
     } catch (error) {
       console.warn('Cobe globe could not be initialized.', error);
     }
 
+    const handleVisibility = () => {
+      isPageVisible = document.visibilityState === 'visible';
+      syncRotation();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    const intersectionObserver =
+      typeof IntersectionObserver === 'undefined'
+        ? null
+        : new IntersectionObserver(([entry]) => {
+            isIntersecting = entry?.isIntersecting ?? true;
+            syncRotation();
+          });
+    intersectionObserver?.observe(canvas);
+
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(([entry]) => {
+            const width = entry?.contentRect.width ?? canvas.clientWidth;
+            const size = Math.max(360, Math.round(width * pixelRatio));
+            globe?.update({ width: size, height: size });
+          });
+    resizeObserver?.observe(canvas);
+
     return () => {
-      cancelAnimationFrame(frame);
+      syncRotationRef.current = () => undefined;
+      stopRotation();
+      document.removeEventListener('visibilitychange', handleVisibility);
+      intersectionObserver?.disconnect();
+      resizeObserver?.disconnect();
       globe?.destroy();
     };
   }, [markers]);
@@ -333,6 +515,20 @@ function CountryGlobe({ countries }: { countries: AnalyticsDashboardData['countr
           aria-label="국가별 활성 사용자를 표시한 지구본"
         />
         <span className={styles.globeCaption}>상위 국가 위치</span>
+        <button
+          type="button"
+          className={styles.globeControl}
+          aria-pressed={rotationPaused}
+          disabled={Boolean(reduceMotion)}
+          onClick={() => setRotationPaused((paused) => !paused)}
+        >
+          {rotationPaused || reduceMotion ? (
+            <Play aria-hidden size={14} weight="bold" />
+          ) : (
+            <Pause aria-hidden size={14} weight="bold" />
+          )}
+          {reduceMotion ? '동작 줄이기 사용 중' : rotationPaused ? '회전 시작' : '회전 멈춤'}
+        </button>
       </div>
       <MetricBarList
         items={countries.slice(0, 8).map((country) => ({

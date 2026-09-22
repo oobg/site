@@ -26,6 +26,8 @@ export function buildSiteStructuredData() {
         '@id': WEBSITE_ID,
         url: absoluteSiteUrl('/'),
         name: SITE.name,
+        description: SITE.description,
+        inLanguage: 'ko-KR',
         author: { '@id': AUTHOR_ID },
       },
       {
@@ -37,6 +39,7 @@ export function buildSiteStructuredData() {
   };
 }
 
+/** path는 현재 canonical인 카테고리·글 경로(`/blog/{category}/{slug}`)를 그대로 받는다. */
 export function buildBlogPostingStructuredData(post: BlogPost, path: string) {
   const url = absoluteSiteUrl(path);
   const image = post.cover_image_url ? absoluteSiteUrl(post.cover_image_url) : undefined;
@@ -51,6 +54,7 @@ export function buildBlogPostingStructuredData(post: BlogPost, path: string) {
     datePublished: post.published_at,
     dateModified: post.updated_at,
     ...(image ? { image } : {}),
+    ...(post.tags.length > 0 ? { keywords: post.tags } : {}),
     author: { '@id': AUTHOR_ID },
     publisher: { '@id': AUTHOR_ID },
     isPartOf: { '@id': WEBSITE_ID },

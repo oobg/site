@@ -10,10 +10,10 @@
   display: none;
 }
 
-@media (min-width: 1900px) {
+@media (min-width: 1440px) {
   .workspace {
     display: grid;
-    grid-template-columns: 360px minmax(0, 1fr);
+    grid-template-columns: minmax(280px, 300px) minmax(0, 1fr);
     gap: var(--space-5);
     max-width: 1920px;
     margin-inline: auto;
@@ -23,6 +23,7 @@
   .listPane {
     display: block;
     min-width: 0;
+    overflow: hidden;
     padding-top: var(--space-8);
     border-right: 1px solid var(--d0-grey-100);
     padding-right: var(--space-5);
@@ -77,6 +78,7 @@
 
   .editorPane {
     min-width: 0;
+    overflow: hidden;
     padding-right: var(--space-6);
   }
 }

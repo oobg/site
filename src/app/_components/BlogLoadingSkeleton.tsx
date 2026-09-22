@@ -1,4 +1,10 @@
 import { Skeleton } from '@components/ui/Skeleton';
+import { BlogShell } from '@/app/_components/BlogShell';
+import { ArticleHeader } from '@/app/blog/[slug]/_components/ArticleHeader';
+import { TableOfContents } from '@/app/blog/[slug]/_components/TableOfContents';
+import { ShareButtons } from '@/app/blog/[slug]/_components/ShareButtons';
+import type { BlogCategoryWithCount, BlogPost } from '@features/posts/types/posts.types';
+import type { TocEntry } from '@lib/markdown/toc.types';
 import shell from './BlogShell.module.css';
 import featured from './FeaturedCarousel.module.css';
 import home from '@/app/_container/BlogHomeContainer.module.css';
@@ -27,7 +33,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className={shell.shell} aria-busy="true" aria-label="불러오는 중">
       <aside className={shell.sidebar} aria-hidden="true">
-        <Skeleton width="7rem" height="24px" />
+        <Skeleton width="5rem" height="18px" />
         <div className={shell.navigation}>
           <Skeleton width="72%" height="42px" />
           <Skeleton width="84%" height="42px" />
@@ -51,6 +57,9 @@ export function BlogHomeSkeleton() {
           <Skeleton width="6rem" height="24px" />
           <Skeleton width="5rem" height="20px" />
         </div>
+        <div className={home.sectionLabel}>
+          <Skeleton width="4rem" height="18px" />
+        </div>
         <section className={featured.section} data-with-cover="">
           <div className={featured.slide}>
             <Skeleton className={featured.cover} height="auto" radius="var(--d0-radius-card)" />
@@ -67,6 +76,9 @@ export function BlogHomeSkeleton() {
             <Skeleton width="40px" height="40px" radius="var(--d0-radius-sm)" />
           </div>
         </section>
+        <div className={home.sectionLabel}>
+          <Skeleton width="4rem" height="18px" />
+        </div>
         <div className={home.recentGrid}>
           <PostCardSkeletons />
         </div>
@@ -183,6 +195,42 @@ function ArticleFooterSkeleton({ showShare = true }: { showShare?: boolean }) {
         <Skeleton width="100%" height="120px" />
       </div>
     </div>
+  );
+}
+
+export function BlogArticleDataSkeleton({
+  post,
+  categories,
+  readingMin,
+  toc,
+}: {
+  post: BlogPost;
+  categories: BlogCategoryWithCount[];
+  readingMin: number;
+  toc: TocEntry[];
+}) {
+  return (
+    <BlogShell
+      categories={categories}
+      activeCategory={post.category.slug}
+      detailNavigation={<TableOfContents toc={toc} />}
+      mobileDetailNavigation={<TableOfContents toc={toc} defaultOpen={false} />}
+    >
+      <div className={article.page} aria-busy="true" aria-label="글 본문을 불러오는 중">
+        <article className={article.main}>
+          <ArticleHeader post={post} readingMin={readingMin} />
+          <ArticleBodySkeleton compact />
+          <div className={article.shareRail} aria-label="글 공유">
+            <ShareButtons title={post.title} />
+          </div>
+          <ArticleFooterSkeleton showShare={false} />
+        </article>
+        {/* 로딩에서도 오른쪽 레일을 같이 그린다 — 여기서 빠지면 본문이 뜨는 순간 목차만큼 폭이 튄다. */}
+        <div className={article.tocRail}>
+          <TableOfContents toc={toc} />
+        </div>
+      </div>
+    </BlogShell>
   );
 }
 

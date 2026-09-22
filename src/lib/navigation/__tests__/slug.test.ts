@@ -7,7 +7,7 @@ describe('normalizeRouteSlug', () => {
   });
 
   it('분해된 유니코드를 콘텐츠 키와 같은 NFC로 정규화한다', () => {
-    expect(normalizeRouteSlug('공개-글')).toBe('공개-글');
+    expect(normalizeRouteSlug('공개-글')).toBe('공개-글');
   });
 
   it.each([

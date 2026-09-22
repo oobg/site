@@ -67,6 +67,7 @@ export function buildMetadata(input: {
   };
 }
 
+/** 글 상세는 OG type을 article로 바꾸고 발행·수정 시각을 함께 노출한다. */
 export function buildArticleMetadata(input: {
   title: string;
   description?: string;

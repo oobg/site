@@ -1,6 +1,3 @@
-.sentinel {
-  height: 1px;
-}
 .header {
   position: sticky;
   top: 0;
@@ -10,14 +7,14 @@
   align-items: center;
   border-bottom: 1px solid var(--d0-grey-200);
   background: var(--color-surface);
-  transition:
-    border-color var(--d0-dur-slow) var(--d0-ease-in-out),
-    background var(--d0-dur-slow) var(--d0-ease-in-out);
 }
+/* Container와 같은 공식이다. 헤더만 자기 폭 공식을 갖고 있으면 워드마크가
+   본문 왼쪽 끝과 어긋나고, 그 차이가 페이지마다 달라 스크롤 중에 축이 흔들린다. */
 .inner {
-  width: min(100% - 40px, var(--w-container));
+  width: 100%;
+  max-width: var(--w-container);
   margin-inline: auto;
-  transition: width var(--d0-dur-slow) var(--d0-ease-in-out);
+  padding-inline: var(--outer);
 }
 .pill {
   position: relative;
@@ -26,37 +23,10 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  padding-inline: var(--space-6);
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  transition:
-    min-height var(--d0-dur-slow) var(--d0-ease-in-out),
-    padding var(--d0-dur-slow) var(--d0-ease-in-out),
-    border-color var(--d0-dur-slow) var(--d0-ease-in-out),
-    border-radius var(--d0-dur-slow) var(--d0-ease-in-out),
-    background var(--d0-dur-slow) var(--d0-ease-in-out),
-    box-shadow var(--d0-dur-slow) var(--d0-ease-in-out),
-    -webkit-backdrop-filter var(--d0-dur-slow) var(--d0-ease-in-out),
-    backdrop-filter var(--d0-dur-slow) var(--d0-ease-in-out);
-}
-.header[data-stuck] {
-  border-bottom-color: transparent;
-  background: transparent;
-}
-.header[data-stuck] .inner {
-  width: min(100% - 40px, var(--w-container));
-}
-.header[data-stuck] .pill {
-  min-height: 56px;
-  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
-  border: 1px solid var(--d0-grey-300);
-  border-radius: var(--radius-pill);
-  background: rgb(255 255 255 / 0.72);
-  box-shadow: var(--d0-shadow-overlay);
-  -webkit-backdrop-filter: blur(14px) saturate(120%);
-  backdrop-filter: blur(14px) saturate(120%);
 }
 .wordmark {
   display: inline-flex;
@@ -84,40 +54,16 @@
   outline-offset: 2px;
   border-radius: var(--d0-radius-sm);
 }
-@media (max-width: 900px) {
-  .inner {
-    width: min(100% - 32px, 780px);
-  }
-  .pill {
-    padding-inline: var(--space-5);
-  }
-  .header[data-stuck] .inner {
-    width: min(100% - 32px, 780px);
-  }
-}
+/* 900·640의 폭 축소는 --w-container와 --outer가 맡는다. 여기서는 높이만 줄인다. */
 @media (max-width: 640px) {
   .header {
     height: 60px;
   }
-  .inner {
-    width: min(100% - 24px, 780px);
-  }
   .pill {
     min-height: 60px;
-    padding-inline: var(--space-5);
-  }
-  .header[data-stuck] .inner {
-    width: min(100% - 24px, 780px);
-  }
-  .header[data-stuck] .pill {
-    min-height: 52px;
-    padding: var(--space-1) var(--space-2) var(--space-1) var(--space-4);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .header,
-  .inner,
-  .pill,
   .wordmark {
     transition-duration: 0ms;
   }

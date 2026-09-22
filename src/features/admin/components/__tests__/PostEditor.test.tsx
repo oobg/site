@@ -29,6 +29,7 @@ describe('PostEditor slug editing', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    window.sessionStorage.clear();
     vi.unstubAllGlobals();
     Reflect.deleteProperty(window, 'navigation');
     Reflect.deleteProperty(navigator, 'clipboard');
@@ -95,6 +96,122 @@ describe('PostEditor slug editing', () => {
     fireEvent.click(screen.getByRole('button', { name: '재생성' }));
     expect(screen.getByRole('textbox', { name: 'URL' })).toHaveValue('나의-첫-글');
     expect(screen.getByText('저장하지 않은 변경이 있어요.')).toBeInTheDocument();
+  });
+
+  it('debounces a new-post snapshot and exposes its saved state inline', () => {
+    vi.useFakeTimers();
+    render(<PostEditor action={action} />);
+
+    fireEvent.change(screen.getByRole('textbox', { name: '제목' }), {
+      target: { value: '임시 제목' },
+    });
+    expect(screen.getByText('임시 저장 중…')).toBeInTheDocument();
+    expect(window.sessionStorage.getItem('admin-post-editor-draft:new')).toBeNull();
+
+    act(() => vi.advanceTimersByTime(499));
+    expect(window.sessionStorage.getItem('admin-post-editor-draft:new')).toBeNull();
+    act(() => vi.advanceTimersByTime(1));
+
+    expect(JSON.parse(window.sessionStorage.getItem('admin-post-editor-draft:new')!)).toMatchObject(
+      {
+        version: 1,
+        title: '임시 제목',
+        slug: '임시-제목',
+      },
+    );
+    expect(screen.getByText('임시 저장됨')).toBeInTheDocument();
+  });
+
+  it('restores an existing-post snapshot and can discard it without a modal', async () => {
+    window.sessionStorage.setItem(
+      'admin-post-editor-draft:p1',
+      JSON.stringify({
+        version: 1,
+        title: '복구된 제목',
+        slug: 'restored-title',
+        description: '복구된 설명',
+        body: '복구된 본문',
+        status: 'draft',
+        categoryId: '',
+        tags: '',
+        coverKey: '',
+        coverUrl: '',
+        coverAlt: '',
+        coverX: 0.5,
+        coverY: 0.5,
+        slugEdited: true,
+        savedAt: new Date().toISOString(),
+      }),
+    );
+
+    render(
+      <PostEditor
+        action={action}
+        post={{
+          id: 'p1',
+          title: '서버 제목',
+          slug: 'server-title',
+          description: '서버 설명',
+          body: '서버 본문',
+          status: 'draft',
+        }}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: '제목' })).toHaveValue('복구된 제목'),
+    );
+    expect(
+      screen.getByText('이 기기에서 작성하던 임시 저장 내용을 복구했어요.'),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: '임시 저장 버리기' }));
+
+    expect(screen.getByRole('textbox', { name: '제목' })).toHaveValue('서버 제목');
+    expect(screen.queryByText('이 기기에서 작성하던 임시 저장 내용을 복구했어요.')).toBeNull();
+    expect(window.sessionStorage.getItem('admin-post-editor-draft:p1')).toBeNull();
+  });
+
+  it('removes the snapshot after a successful server save', async () => {
+    const save = vi.fn(async () => ({ status: 'success' as const, message: '저장했습니다.' }));
+    window.sessionStorage.setItem(
+      'admin-post-editor-draft:p1',
+      JSON.stringify({
+        version: 1,
+        title: '복구된 제목',
+        slug: 'restored-title',
+        description: '설명',
+        body: '본문',
+        status: 'draft',
+        categoryId: 'c1',
+        tags: '',
+        coverKey: '',
+        coverUrl: '',
+        coverAlt: '',
+        coverX: 0.5,
+        coverY: 0.5,
+        slugEdited: true,
+        savedAt: new Date().toISOString(),
+      }),
+    );
+    render(
+      <PostEditor
+        action={save}
+        categories={[{ id: 'c1', slug: 'dev', name: '개발', sort_order: 0, is_default: true }]}
+        post={{
+          id: 'p1',
+          title: '서버 제목',
+          slug: 'server-title',
+          description: '설명',
+          body: '본문',
+          status: 'draft',
+          category_id: 'c1',
+        }}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: '초안 저장' }));
+    await screen.findByText('저장했습니다.');
+    expect(window.sessionStorage.getItem('admin-post-editor-draft:p1')).toBeNull();
   });
 
   it('keeps the Markdown body while switching editor tabs', () => {

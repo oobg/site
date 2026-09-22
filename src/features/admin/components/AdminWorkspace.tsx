@@ -2,6 +2,7 @@
 
 import type { BlogCategory } from '@features/posts/types/posts.types';
 import type { AdminPostSummary } from '@features/admin/services/posts.admin';
+import { AdminOverview } from './AdminOverview';
 import { BlogSettings } from './BlogSettings';
 import { PostList } from './PostList';
 import { AdminComments } from '@features/comments/components/AdminComments';
@@ -10,14 +11,15 @@ import styles from './AdminWorkspace.module.css';
 export function AdminWorkspace({
   posts,
   categories,
-  view = 'posts',
+  view = 'overview',
   avatarBaseUrl,
 }: {
   posts: AdminPostSummary[];
   categories: BlogCategory[];
-  view?: 'posts' | 'settings' | 'comments';
+  view?: 'overview' | 'posts' | 'settings' | 'comments';
   avatarBaseUrl?: string;
 }) {
+  if (view === 'overview' || !view) return <AdminOverview posts={posts} categories={categories} />;
   if (view === 'settings') return <BlogSettings categories={categories} posts={posts} />;
   if (view === 'comments') return <AdminComments avatarBaseUrl={avatarBaseUrl} />;
   return (

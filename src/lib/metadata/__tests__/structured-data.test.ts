@@ -99,18 +99,27 @@ describe('structured data', () => {
       description: '보이는 글 요약',
       datePublished: '2026-09-01T00:00:00.000Z',
       dateModified: '2026-09-02T00:00:00.000Z',
-      image: 'https://raven.kr/assets/cover.webp',
-      author: { '@id': AUTHOR_ID },
-      publisher: { '@id': AUTHOR_ID },
-      isPartOf: { '@id': WEBSITE_ID },
+      keywords: ['nextjs'],
+      inLanguage: 'ko-KR',
     });
   });
 
-  it('inline script 종료·HTML 해석 문자를 이스케이프하고 JSON 값은 보존한다', () => {
-    const value = { text: '</script><script>&\u2028\u2029' };
-    const serialized = serializeJsonLd(value);
-    expect(serialized).not.toContain('</script>');
+  it('커버·요약이 없으면 해당 필드를 아예 내보내지 않는다', () => {
+    const data = buildBlogPostingStructuredData(
+      { ...post, summary: null, cover_image_url: null, tags: [] },
+      '/blog/dev/my-post',
+    );
+    expect(data).not.toHaveProperty('description');
+    expect(data).not.toHaveProperty('image');
+    expect(data).not.toHaveProperty('keywords');
+  });
+
+  it('inline script를 끊을 수 있는 문자를 이스케이프한다', () => {
+    const serialized = serializeJsonLd({ title: '</script><b>&', sep: '\u2028' });
     expect(serialized).not.toContain('<');
-    expect(JSON.parse(serialized)).toEqual(value);
+    expect(serialized).not.toContain('>');
+    expect(serialized).not.toContain('&');
+    expect(serialized).not.toContain('\u2028');
+    expect(JSON.parse(serialized)).toEqual({ title: '</script><b>&', sep: '\u2028' });
   });
 });

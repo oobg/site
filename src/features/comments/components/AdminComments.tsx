@@ -1,20 +1,48 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  ArrowClockwise,
+  Check,
+  Eye,
+  EyeSlash,
+  MagnifyingGlass,
+  Trash,
+} from '@phosphor-icons/react/dist/ssr';
+import { ROUTES } from '@constants/routes';
 import { getCommentAvatarUrl } from '@features/comments/utils/comment-avatar';
+import type { AdminComment, Comment } from '@features/comments/types/comments.types';
 import styles from './AdminComments.module.css';
 
-import type { AdminComment, Comment } from '@features/comments/types/comments.types';
+type Filter = 'all' | 'visible' | 'hidden';
+type Sort = 'newest' | 'oldest';
+
+const filterLabels: Record<Filter, string> = {
+  all: '전체',
+  visible: '공개',
+  hidden: '숨김',
+};
+
+const formatDate = (value: string) =>
+  new Intl.DateTimeFormat('ko-KR', {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value));
 
 export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
   const [items, setItems] = useState<AdminComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>('all');
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<Sort>('newest');
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [replyBody, setReplyBody] = useState('');
   const [replyError, setReplyError] = useState('');
   const [replyPending, setReplyPending] = useState(false);
-  const [pendingId, setPendingId] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -129,16 +157,48 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
     }
   };
 
-  const orderedItems = items
-    .filter((item) => !item.parent_id)
-    .flatMap((parent) => [
-      parent,
-      ...items
-        .filter((item) => item.parent_id === parent.id)
-        .sort(
-          (a, b) => Date.parse(a.created_at) - Date.parse(b.created_at) || a.id.localeCompare(b.id),
-        ),
-    ]);
+  const counts = useMemo(
+    () => ({
+      all: items.length,
+      visible: items.filter((item) => item.moderation_status === 'visible').length,
+      hidden: items.filter((item) => item.moderation_status === 'hidden').length,
+    }),
+    [items],
+  );
+
+  const filteredItems = useMemo(() => {
+    const normalizedQuery = query.trim().toLocaleLowerCase('ko-KR');
+    return items
+      .filter((item) => {
+        const matchesFilter = filter === 'all' || item.moderation_status === filter;
+        const matchesQuery =
+          !normalizedQuery ||
+          [item.nickname, item.body, item.post_slug].some((value) =>
+            value.toLocaleLowerCase('ko-KR').includes(normalizedQuery),
+          );
+        return matchesFilter && matchesQuery;
+      })
+      .sort((a, b) => {
+        const difference = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+        return sort === 'newest' ? -difference : difference;
+      });
+  }, [filter, items, query, sort]);
+
+  const orderedItems = useMemo(
+    () =>
+      filteredItems
+        .filter((item) => !item.parent_id)
+        .flatMap((parent) => [
+          parent,
+          ...filteredItems
+            .filter((item) => item.parent_id === parent.id)
+            .sort(
+              (a, b) =>
+                Date.parse(a.created_at) - Date.parse(b.created_at) || a.id.localeCompare(b.id),
+            ),
+        ]),
+    [filteredItems],
+  );
 
   if (loading)
     return (
@@ -154,11 +214,46 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
         <div className={styles.error} role="alert">
           <span>{error}</span>
           <button type="button" onClick={load}>
+            <ArrowClockwise aria-hidden size={16} />
             다시 시도
           </button>
         </div>
       ) : null}
-      {items.length ? (
+      <div className={styles.toolbar}>
+        <div className={styles.tabs} role="tablist" aria-label="댓글 상태">
+          {(Object.keys(filterLabels) as Filter[]).map((value) => (
+            <button
+              key={value}
+              type="button"
+              role="tab"
+              aria-selected={filter === value}
+              className={filter === value ? styles.activeTab : undefined}
+              onClick={() => setFilter(value)}
+            >
+              {filterLabels[value]}
+              <span>{counts[value]}</span>
+            </button>
+          ))}
+        </div>
+        <label className={styles.search}>
+          <MagnifyingGlass aria-hidden size={17} />
+          <span className={styles.visuallyHidden}>댓글 검색</span>
+          <input
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="닉네임, 내용, 게시글 slug 검색"
+          />
+        </label>
+        <label className={styles.sort}>
+          <span>정렬</span>
+          <select value={sort} onChange={(event) => setSort(event.target.value as Sort)}>
+            <option value="newest">최신순</option>
+            <option value="oldest">오래된순</option>
+          </select>
+        </label>
+      </div>
+      {filteredItems.length ? (
         <ul className={styles.list}>
           {orderedItems.map((item) => (
             <li
@@ -169,13 +264,22 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={getCommentAvatarUrl(item.avatar_id, avatarBaseUrl)} alt="" />
-              <div>
+              <div className={styles.content}>
                 <div className={styles.meta}>
                   {item.parent_id ? <span aria-hidden="true">ㄴ&gt;</span> : null}
                   <strong>{item.nickname}</strong>
                   {item.is_author ? <span className={styles.authorBadge}>작성자</span> : null}
-                  <span>/{item.post_slug}</span>
-                  {item.moderation_status === 'hidden' ? <em>숨김</em> : null}
+                  <a
+                    href={ROUTES.BLOG.LEGACY_DETAIL(item.post_slug)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    /{item.post_slug}
+                  </a>
+                  <time dateTime={item.created_at}>{formatDate(item.created_at)}</time>
+                  <span className={styles.status} data-status={item.moderation_status}>
+                    {filterLabels[item.moderation_status]}
+                  </span>
                 </div>
                 <p>{item.body}</p>
               </div>
@@ -199,8 +303,14 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
                   type="button"
                   disabled={Boolean(pendingId) || replyPending}
                   onClick={() => toggleVisibility(item)}
+                  aria-label={`${item.nickname} 댓글 ${item.moderation_status === 'visible' ? '숨기기' : '공개'}`}
                 >
-                  {item.moderation_status === 'visible' ? '숨기기' : '다시 표시'}
+                  {item.moderation_status === 'visible' ? (
+                    <EyeSlash aria-hidden size={17} />
+                  ) : (
+                    <Eye aria-hidden size={17} />
+                  )}
+                  <span>{item.moderation_status === 'visible' ? '숨기기' : '공개'}</span>
                 </button>
                 <button
                   type="button"
@@ -208,7 +318,7 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
                   onClick={() => remove(item.id)}
                   aria-label={`${item.nickname} 댓글 삭제`}
                 >
-                  삭제
+                  <Trash aria-hidden size={17} />
                 </button>
               </div>
               {replyTo === item.id && !item.parent_id ? (
@@ -266,7 +376,15 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
           ))}
         </ul>
       ) : (
-        <p className={styles.empty}>아직 댓글이 없어요.</p>
+        <div className={styles.empty} role="status">
+          <Check aria-hidden size={24} />
+          <strong>{items.length ? '조건에 맞는 댓글이 없어요.' : '아직 댓글이 없어요.'}</strong>
+          <span>
+            {items.length
+              ? '다른 상태 탭을 선택하거나 검색어를 바꿔 보세요.'
+              : '새 댓글이 등록되면 이곳에서 바로 관리할 수 있어요.'}
+          </span>
+        </div>
       )}
     </div>
   );

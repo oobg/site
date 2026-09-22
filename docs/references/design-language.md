@@ -68,9 +68,25 @@
 | `--color-accent-hover`   | `var(--d0-grey-900)`       | 링크 hover            |
 | `--w-container`          | `1200px`                   | wide 콘텐츠           |
 | `--w-reading`            | `700px`                    | 읽기 열               |
+| `--rail-top`             | `92px`                     | sticky 레일 정지선    |
 | `--radius`               | `var(--d0-radius-card)`    | 기존 카드 별칭        |
 | `--radius-control`       | `var(--d0-radius-control)` | 기존 컨트롤 별칭      |
 | `--radius-sm`            | `var(--d0-radius-sm)`      | 기존 작은 radius 별칭 |
+
+### 축 하나 · 레일 둘
+
+공개 화면의 좌우 정렬은 공식 하나로 통일한다. `width: 100%` · `max-width: var(--w-container)`
+· `margin-inline: auto` · `padding-inline: var(--outer)`. SiteHeader의 inner, BlogShell의 shell,
+Container(SiteFooter 포함)가 모두 이 공식을 쓴다. 자기 폭 공식을 따로 갖던 시절에는 목록에서
+상세로 이동할 때 워드마크와 본문 왼쪽 끝이 서로 다른 선에 서서 x축이 눈에 띄게 튀었다.
+
+900 이하에서는 셸이 한 열로 접히므로 `--w-container`를 `calc(780px + var(--outer) * 2)`로
+좁힌다. 폭을 각 컴포넌트가 아니라 토큰이 정하므로 헤더·셸·푸터가 함께 따라온다.
+
+글 상세는 읽기 열을 가운데 두고 레일을 둘 쓴다. 왼쪽은 셸의 주제 내비게이션(사이트 안 위치),
+오른쪽은 목차(글 안 위치)다. 목차는 1200px 초과 데스크톱에서 오른쪽 레일에 있고, 그 이하에서는
+본문 위 접이식 하나만 남는다. 900 이하에서는 셸도 한 열로 접힌다 — 두 벌을 동시에 두지 않는다.
+두 레일의 sticky 정지선은 `--rail-top`이다.
 
 ## 컴포넌트 계약
 

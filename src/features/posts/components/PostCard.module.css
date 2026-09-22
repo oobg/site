@@ -11,25 +11,14 @@
   border-radius: var(--d0-radius-control);
   background: var(--d0-grey-50);
 }
+.coverPlaceholder {
+  aspect-ratio: 1.9;
+}
 .cover img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform var(--d0-dur) var(--d0-ease);
-}
-.coverFallback {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: var(--space-2);
-  padding: var(--space-5);
-  color: var(--d0-grey-700);
-  background: var(--d0-blue-light);
-}
-.coverFallback span {
-  color: var(--d0-blue-dark);
-  font-size: var(--d0-meta);
-  font-weight: 650;
 }
 .card:hover .cover img {
   transform: scale(1.02);
@@ -42,14 +31,14 @@
   font-size: var(--d0-meta);
   font-weight: 600;
 }
-.body h2 {
+.body :is(h2, h3) {
   margin-top: var(--space-2);
   color: var(--d0-grey-900);
   font-size: 18px;
   line-height: var(--d0-leading-title);
   letter-spacing: var(--d0-tracking-title);
 }
-.body h2 a:hover {
+.body :is(h2, h3) a:hover {
   color: var(--d0-blue-dark);
 }
 .body p {

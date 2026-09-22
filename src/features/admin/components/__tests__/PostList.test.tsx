@@ -218,6 +218,9 @@ describe('PostList table', () => {
     renderPostList(<PostList posts={posts} />);
 
     expect(screen.getByRole('button', { name: '전체' })).toHaveAttribute('data-active', 'true');
+    expect(screen.getByRole('button', { name: '전체' })).toHaveTextContent('전체11');
+    expect(screen.getByRole('button', { name: '초안' })).toHaveTextContent('초안6');
+    expect(screen.getByRole('button', { name: '공개' })).toHaveTextContent('공개5');
     expect(screen.getByRole('combobox', { name: '카테고리 필터' })).toHaveValue('');
   });
 
@@ -277,6 +280,14 @@ describe('PostList table', () => {
     await waitFor(() => expect(onUrlUpdate).toHaveBeenCalledTimes(3));
     expect(onUrlUpdate.mock.calls[2]?.[0].searchParams.toString()).toBe('view=posts&category=dev');
     expect(onUrlUpdate.mock.calls[2]?.[0].options.history).toBe('push');
+
+    fireEvent.change(screen.getByRole('searchbox', { name: '제목 검색' }), {
+      target: { value: '글 01' },
+    });
+    await waitFor(() => expect(onUrlUpdate).toHaveBeenCalledTimes(4));
+    expect(onUrlUpdate.mock.calls[3]?.[0].searchParams.toString()).toBe(
+      'view=posts&category=dev&query=%EA%B8%80+01',
+    );
   });
 });
 

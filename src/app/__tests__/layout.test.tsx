@@ -1,7 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@styles/fonts', () => ({ sans: { variable: 'sans' }, mono: { variable: 'mono' } }));
+vi.mock('@styles/fonts', () => ({
+  sans: { variable: 'sans' },
+  mono: { variable: 'mono' },
+}));
 vi.mock('@components/analytics/ProductionGoogleAnalytics', () => ({
   ProductionGoogleAnalytics: () => null,
 }));
@@ -31,7 +34,9 @@ describe('RootLayout structured data', () => {
       expect.objectContaining({
         '@type': 'WebSite',
         '@id': 'https://raven.kr/#website',
+        url: 'https://raven.kr/',
         name: 'raven.kr',
+        author: { '@id': 'https://raven.kr/#author' },
       }),
       expect.objectContaining({
         '@type': 'Person',

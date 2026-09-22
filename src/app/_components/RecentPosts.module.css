@@ -65,19 +65,13 @@
   font-size: var(--fs-15);
 }
 
-/* hover는 광원이 그 행을 스치는 것이다 — 히어로의 빛이 여기까지 이어진다.
-   배경을 칠하면 어두운 바탕이 탁해지고, 이 페이지는 빛으로 말한다. */
+/* hover는 편집형 목록의 면을 흐리지 않는 단색 accent로만 표시한다. */
 .row::after {
   content: '';
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(
-    16rem 8rem at 50% 50%,
-    rgb(var(--color-accent-rgb) / 0.12) 0%,
-    rgb(var(--color-accent-deep-rgb) / 0.05) 42%,
-    transparent 72%
-  );
+  background: var(--d0-blue-light);
   opacity: 0;
   transition: opacity var(--dur) linear;
 }
@@ -90,7 +84,7 @@
   bottom: var(--space-3);
   width: 2px;
   border-radius: 2px;
-  background: linear-gradient(180deg, var(--color-accent), var(--color-accent-deep));
+  background: var(--color-accent);
   transform: scaleY(0);
   transition:
     transform var(--dur) var(--ease),

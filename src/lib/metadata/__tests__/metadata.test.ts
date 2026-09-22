@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { buildArticleMetadata, buildMetadata } from '@lib/metadata/metadata';
+import { baseMetadata, buildArticleMetadata, buildMetadata } from '@lib/metadata/metadata';
 
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -45,7 +45,32 @@ describe('buildMetadata', () => {
   });
 });
 
+describe('buildArticleMetadata', () => {
+  it('OG type을 article로 바꾸고 발행·수정 시각을 덧붙인다', async () => {
+    const { buildArticleMetadata } = await import('@lib/metadata/metadata');
+    const meta = buildArticleMetadata({
+      title: '글제목',
+      path: '/blog/dev/my-post',
+      publishedTime: '2026-09-01T00:00:00.000Z',
+      modifiedTime: '2026-09-02T00:00:00.000Z',
+    });
+    expect(meta.alternates?.canonical).toBe('/blog/dev/my-post');
+    expect(meta.openGraph).toMatchObject({
+      type: 'article',
+      url: '/blog/dev/my-post',
+      publishedTime: '2026-09-01T00:00:00.000Z',
+      modifiedTime: '2026-09-02T00:00:00.000Z',
+    });
+  });
+});
+
 describe('baseMetadata', () => {
+  it('RSS 피드를 alternate 링크로 알린다', () => {
+    expect(baseMetadata.alternates?.types).toEqual({
+      'application/rss+xml': [{ url: '/rss.xml', title: 'raven.kr RSS' }],
+    });
+  });
+
   it('SITE_URL이 없으면 production origin과 검색 허용을 사용한다', async () => {
     vi.stubEnv('SITE_URL', '');
     const { baseMetadata } = await import('@lib/metadata/metadata');

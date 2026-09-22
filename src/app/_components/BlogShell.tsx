@@ -5,6 +5,7 @@ import { Dialog } from '@base-ui/react/dialog';
 import { CaretDown, X } from '@phosphor-icons/react';
 import { useSearchParams } from 'next/navigation';
 import type { BlogCategoryWithCount } from '@features/posts/types/posts.types';
+import { Eyebrow } from '@components/ui/Eyebrow';
 import { homeSearchHref, ROUTES } from '@constants/routes';
 import styles from './BlogShell.module.css';
 
@@ -121,7 +122,7 @@ export function BlogShell({
   return (
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
-        <strong className={styles.title}>기술 블로그</strong>
+        <Eyebrow className={styles.title}>기술 블로그</Eyebrow>
         <Navigation
           categories={categories}
           activeCategory={activeCategory}
