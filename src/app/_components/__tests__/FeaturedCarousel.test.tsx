@@ -145,16 +145,21 @@ describe('FeaturedCarousel', () => {
   it('does not render a broken image when a cover is missing', () => {
     const { container } = render(<FeaturedCarousel posts={[post(2)]} />);
     expect(container.querySelector('img')).toBeNull();
-    expect(container.querySelector('[data-media-frame]')).toBeNull();
+    expect(container.querySelector('[data-thumbnail]')).toBeNull();
   });
 
-  it('renders the featured image inset inside a separate media frame', () => {
-    const { container } = render(<FeaturedCarousel posts={[post(1)]} />);
-    const frame = container.querySelector('[data-media-frame]');
+  it('renders the featured thumbnail directly without a separate media frame', () => {
+    const featured = { ...post(1), cover_position: { x: 0.25, y: 0.75 } };
+    const { container } = render(<FeaturedCarousel posts={[featured]} />);
+    const thumbnail = container.querySelector('[data-thumbnail]');
 
-    expect(frame).toBeInTheDocument();
-    expect(frame?.firstElementChild).not.toBe(container.querySelector('img'));
-    expect(frame?.firstElementChild?.querySelector('img')).toHaveAttribute('src', '/cover-1.jpg');
+    expect(container.querySelector('[data-media-frame]')).toBeNull();
+    expect(thumbnail?.parentElement?.firstElementChild).toBe(thumbnail);
+    expect(thumbnail?.nextElementSibling).toBeTruthy();
+    expect(thumbnail).toHaveAttribute('src', '/cover-1.jpg');
+    expect(thumbnail).toHaveAttribute('alt', '추천 글 1 표지');
+    expect(thumbnail).toHaveAttribute('loading', 'eager');
+    expect(thumbnail).toHaveStyle({ objectPosition: '25% 75%' });
   });
 
   it('announces only the slides the reader moved to, not the automatic ones', () => {

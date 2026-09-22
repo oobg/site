@@ -132,26 +132,23 @@ export function FeaturedCarousel({
         }}
       >
         {post.cover_image_url && (
-          <div className={styles.mediaFrame} data-media-frame="">
-            <div className={styles.cover}>
-              <img
-                src={post.cover_image_url}
-                alt={post.cover_alt ?? ''}
-                /* .mediaFrame이 aspect-ratio로 자리를 잡지만, 이미지 자체에 비율이 없으면
-                   CSS가 오기 전 첫 프레임에서 높이가 0이라 레이아웃이 한 번 튄다. */
-                width={COVER_WIDTH}
-                height={COVER_HEIGHT}
-                /* 첫 슬라이드는 접힘 위 LCP 후보다. 나머지는 이미 화면에 있으니
-                   지연 로드가 오히려 빈 칸을 만든다. */
-                loading="eager"
-                decoding="async"
-                fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
-                style={{
-                  objectPosition: `${post.cover_position.x * 100}% ${post.cover_position.y * 100}%`,
-                }}
-              />
-            </div>
-          </div>
+          <img
+            className={styles.cover}
+            data-thumbnail=""
+            src={post.cover_image_url}
+            alt={post.cover_alt ?? ''}
+            /* CSS와 같은 1.9 비율로, 스타일이 오기 전에도 이미지 자리를 잡는다. */
+            width={COVER_WIDTH}
+            height={COVER_HEIGHT}
+            /* 첫 슬라이드는 접힘 위 LCP 후보다. 나머지는 이미 화면에 있으니
+               지연 로드가 오히려 빈 칸을 만든다. */
+            loading="eager"
+            decoding="async"
+            fetchPriority={activeIndex === 0 ? 'high' : 'auto'}
+            style={{
+              objectPosition: `${post.cover_position.x * 100}% ${post.cover_position.y * 100}%`,
+            }}
+          />
         )}
         <div className={styles.copy} data-with-cover={post.cover_image_url ? '' : undefined}>
           <div className={styles.metaRow}>

@@ -21,29 +21,36 @@ const post: BlogPostSummary = {
 };
 
 describe('PostCard', () => {
-  it('표지 없는 글은 요청된 목록에서만 비어 있는 미디어 프레임을 보존한다', () => {
+  it('표지 없는 글은 요청된 목록에서만 비어 있는 1.9 자리를 보존한다', () => {
     const { container, rerender } = render(<PostCard post={post} />);
-    expect(container.querySelector('[data-media-frame]')).toBeNull();
+    expect(container.querySelector('[data-cover-placeholder]')).toBeNull();
 
     rerender(<PostCard post={post} reserveCoverSpace />);
-    const frame = container.querySelector('[data-media-frame]');
-    expect(frame).toHaveAttribute('data-empty');
-    expect(frame).toHaveAttribute('aria-hidden', 'true');
-    expect(frame?.querySelector('a, img')).toBeNull();
+    const placeholder = container.querySelector('[data-cover-placeholder]');
+    expect(placeholder).toHaveAttribute('aria-hidden', 'true');
+    expect(placeholder?.querySelector('a, img')).toBeNull();
     expect(container.querySelector('article')).toHaveAttribute('data-reserved');
     expect(container.querySelector('article')).toHaveAttribute('data-no-cover');
     expect(screen.getByRole('link', { name: '표지가 없는 글' })).toBeInTheDocument();
   });
 
-  it('표지를 부드러운 바깥 프레임 안쪽의 링크로 렌더한다', () => {
-    const { container } = render(<PostCard post={{ ...post, cover_image_url: '/cover.jpg' }} />);
-    const frame = container.querySelector('[data-media-frame]');
-    const coverLink = frame?.querySelector('a');
+  it('표지를 별도 프레임 없이 링크 안에 바로 렌더한다', () => {
+    const { container } = render(
+      <PostCard
+        post={{ ...post, cover_image_url: '/cover.jpg', cover_position: { x: 0.25, y: 0.75 } }}
+      />,
+    );
+    const coverLink = container.querySelector('article > a');
+    const image = coverLink?.querySelector('img');
 
-    expect(frame).toBeInTheDocument();
-    expect(frame).not.toHaveAttribute('data-empty');
+    expect(container.querySelector('[data-media-frame]')).toBeNull();
     expect(coverLink).toHaveAttribute('aria-hidden', 'true');
     expect(coverLink).toHaveAttribute('tabindex', '-1');
-    expect(coverLink?.querySelector('img')).toHaveAttribute('src', '/cover.jpg');
+    expect(image).toHaveAttribute('src', '/cover.jpg');
+    expect(image).toHaveAttribute('width', '760');
+    expect(image).toHaveAttribute('height', '400');
+    expect(image).toHaveAttribute('loading', 'lazy');
+    expect(image).toHaveAttribute('decoding', 'async');
+    expect(image).toHaveStyle({ objectPosition: '25% 75%' });
   });
 });

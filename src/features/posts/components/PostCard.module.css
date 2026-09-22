@@ -1,24 +1,15 @@
 .card {
   min-width: 0;
 }
-.mediaFrame {
-  box-sizing: border-box;
-  aspect-ratio: 1.9;
-  padding: var(--space-2);
-  border-radius: var(--d0-radius-control);
-  background: var(--d0-grey-50);
-  box-shadow: var(--d0-shadow-card);
-}
 .cover {
   display: block;
   aspect-ratio: 1.9;
   overflow: hidden;
-  border-radius: var(--d0-radius-sm);
+  border-radius: var(--d0-radius-control);
+  background: var(--d0-grey-50);
 }
-.mediaFrame > .cover {
-  width: 100%;
-  height: 100%;
-  aspect-ratio: auto;
+.coverPlaceholder {
+  aspect-ratio: 1.9;
 }
 .cover img {
   width: 100%;
