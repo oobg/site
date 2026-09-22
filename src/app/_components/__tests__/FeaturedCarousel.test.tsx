@@ -145,6 +145,16 @@ describe('FeaturedCarousel', () => {
   it('does not render a broken image when a cover is missing', () => {
     const { container } = render(<FeaturedCarousel posts={[post(2)]} />);
     expect(container.querySelector('img')).toBeNull();
+    expect(container.querySelector('[data-media-frame]')).toBeNull();
+  });
+
+  it('renders the featured image inset inside a separate media frame', () => {
+    const { container } = render(<FeaturedCarousel posts={[post(1)]} />);
+    const frame = container.querySelector('[data-media-frame]');
+
+    expect(frame).toBeInTheDocument();
+    expect(frame?.firstElementChild).not.toBe(container.querySelector('img'));
+    expect(frame?.firstElementChild?.querySelector('img')).toHaveAttribute('src', '/cover-1.jpg');
   });
 
   it('announces only the slides the reader moved to, not the automatic ones', () => {

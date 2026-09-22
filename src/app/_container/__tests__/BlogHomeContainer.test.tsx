@@ -309,6 +309,76 @@ describe('BlogHomeContainer', () => {
     ).toEqual(['최근 글', '가', '나', '다']);
   });
 
+  it('reserves empty media frames when every recent post has no cover', () => {
+    const featured = makePost('featured', '추천된 글');
+    render(
+      <BlogHomeContainer
+        initialData={{
+          ...empty,
+          featured: [featured],
+          archive: {
+            ...empty.archive,
+            items: [featured, makePost('a', '가'), makePost('b', '나')],
+            totalItems: 3,
+            totalPages: 1,
+          },
+        }}
+        initialFilters={{ page: 1, pageSize: 12 }}
+      />,
+    );
+
+    const recent = screen.getByRole('region', { name: '최근 글' });
+    const cards = recent.querySelectorAll('article');
+    expect(cards).toHaveLength(2);
+    expect([...cards].every((card) => card.hasAttribute('data-reserved'))).toBe(true);
+    expect(recent.querySelectorAll('[data-media-frame][data-empty]')).toHaveLength(2);
+  });
+
+  it('reserves empty media frames when every archive post has no cover', () => {
+    mocks.search = new URLSearchParams('view=all');
+    const archivePosts = [makePost('a', '가'), makePost('b', '나')];
+    const { container } = render(
+      <BlogHomeContainer
+        initialData={{
+          ...empty,
+          archive: {
+            ...empty.archive,
+            items: archivePosts,
+            totalItems: archivePosts.length,
+            totalPages: 1,
+          },
+        }}
+        initialFilters={{ page: 1, pageSize: 12 }}
+      />,
+    );
+
+    expect(container.querySelectorAll('article[data-reserved]')).toHaveLength(2);
+    expect(container.querySelectorAll('[data-media-frame][data-empty]')).toHaveLength(2);
+  });
+
+  it('reserves empty media frames when every topic post has no cover', () => {
+    const topicPosts = [makePost('topic-a', '주제 가'), makePost('topic-b', '주제 나')];
+    render(
+      <BlogHomeContainer
+        initialData={{
+          ...empty,
+          archive: {
+            ...empty.archive,
+            items: [makePost('recent', '최근 글 하나')],
+            totalItems: 1,
+            totalPages: 1,
+          },
+          sections: [{ category: empty.categories[0], posts: topicPosts }],
+        }}
+        initialFilters={{ page: 1, pageSize: 12 }}
+      />,
+    );
+
+    const topic = screen.getByRole('heading', { name: '개발' }).closest('section');
+    expect(topic?.querySelectorAll('article[data-reserved]')).toHaveLength(2);
+    expect(topic?.querySelectorAll('[data-media-frame][data-empty]')).toHaveLength(2);
+  });
+
   it('replaces the overview with the failure instead of stacking it on stale posts', () => {
     mocks.isError = true;
     const featured = makePost('featured', '추천된 글');

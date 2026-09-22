@@ -23,32 +23,42 @@ export function PostCard({
   headingLevel?: 2 | 3;
 }) {
   const Heading = headingLevel === 3 ? 'h3' : 'h2';
+  const showMediaFrame = Boolean(post.cover_image_url) || reserveCoverSpace;
   return (
     <article
       className={styles.card}
       data-no-cover={!post.cover_image_url || undefined}
       data-reserved={reserveCoverSpace || undefined}
     >
-      {post.cover_image_url && (
-        <Link
-          className={styles.cover}
-          href={ROUTES.BLOG.DETAIL(post.slug)}
-          tabIndex={-1}
-          aria-hidden="true"
+      {showMediaFrame ? (
+        <div
+          className={styles.mediaFrame}
+          data-media-frame=""
+          data-empty={!post.cover_image_url || undefined}
+          aria-hidden={!post.cover_image_url || undefined}
         >
-          <img
-            src={post.cover_image_url}
-            alt=""
-            width={COVER_WIDTH}
-            height={COVER_HEIGHT}
-            loading="lazy"
-            decoding="async"
-            style={{
-              objectPosition: `${post.cover_position.x * 100}% ${post.cover_position.y * 100}%`,
-            }}
-          />
-        </Link>
-      )}
+          {post.cover_image_url ? (
+            <Link
+              className={styles.cover}
+              href={ROUTES.BLOG.DETAIL(post.slug)}
+              tabIndex={-1}
+              aria-hidden="true"
+            >
+              <img
+                src={post.cover_image_url}
+                alt=""
+                width={COVER_WIDTH}
+                height={COVER_HEIGHT}
+                loading="lazy"
+                decoding="async"
+                style={{
+                  objectPosition: `${post.cover_position.x * 100}% ${post.cover_position.y * 100}%`,
+                }}
+              />
+            </Link>
+          ) : null}
+        </div>
+      ) : null}
       <div className={styles.body}>
         {showCategory ? <span className={styles.category}>{post.category.name}</span> : null}
         <Heading>

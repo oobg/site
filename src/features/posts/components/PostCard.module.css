@@ -1,12 +1,24 @@
 .card {
   min-width: 0;
 }
+.mediaFrame {
+  box-sizing: border-box;
+  aspect-ratio: 1.9;
+  padding: var(--space-2);
+  border-radius: var(--d0-radius-control);
+  background: var(--d0-grey-50);
+  box-shadow: var(--d0-shadow-card);
+}
 .cover {
   display: block;
   aspect-ratio: 1.9;
   overflow: hidden;
-  border-radius: var(--d0-radius-control);
-  background: var(--d0-grey-50);
+  border-radius: var(--d0-radius-sm);
+}
+.mediaFrame > .cover {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
 }
 .cover img {
   width: 100%;
@@ -19,13 +31,6 @@
 }
 .body {
   padding-top: var(--space-3);
-}
-.card[data-no-cover][data-reserved] {
-  padding-top: 62.5%;
-}
-.card[data-no-cover][data-reserved] .body {
-  padding-top: var(--space-3);
-  border-top: 1px solid var(--d0-grey-100);
 }
 .category {
   color: var(--d0-blue-dark);

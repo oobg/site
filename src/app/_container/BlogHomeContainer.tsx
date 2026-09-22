@@ -218,7 +218,12 @@ export function BlogHomeContainer({
                   </h2>
                   <div className={styles.recentGrid}>
                     {recentPosts.map((post) => (
-                      <PostCard key={post.slug} post={post} headingLevel={3} />
+                      <PostCard
+                        key={post.slug}
+                        post={post}
+                        headingLevel={3}
+                        reserveCoverSpace={true}
+                      />
                     ))}
                   </div>
                 </section>
@@ -248,9 +253,7 @@ export function BlogHomeContainer({
                             post={post}
                             headingLevel={3}
                             showCategory={false}
-                            reserveCoverSpace={section.posts.some((item) =>
-                              Boolean(item.cover_image_url),
-                            )}
+                            reserveCoverSpace={true}
                           />
                         ))}
                       </div>
@@ -313,13 +316,7 @@ export function BlogHomeContainer({
                   aria-busy={result.isFetching}
                 >
                   {data.archive.items.map((post) => (
-                    <PostCard
-                      key={post.slug}
-                      post={post}
-                      reserveCoverSpace={data.archive.items.some((item) =>
-                        Boolean(item.cover_image_url),
-                      )}
-                    />
+                    <PostCard key={post.slug} post={post} reserveCoverSpace={true} />
                   ))}
                 </div>
                 {data.archive.totalPages > 1 && (

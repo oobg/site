@@ -16,12 +16,24 @@
   touch-action: pan-y;
   animation: featured-slide-in 360ms var(--d0-ease);
 }
-.cover {
-  position: relative;
+.mediaFrame {
+  box-sizing: border-box;
   aspect-ratio: 1.9;
-  overflow: hidden;
+  padding: var(--space-3);
   border-radius: var(--d0-radius-card);
   background: var(--d0-grey-50);
+  box-shadow: var(--d0-shadow-card);
+}
+.cover {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1.9;
+  overflow: hidden;
+  border-radius: var(--d0-radius-control);
+}
+.mediaFrame > .cover {
+  aspect-ratio: auto;
 }
 .cover img {
   width: 100%;
