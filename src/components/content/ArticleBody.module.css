@@ -177,19 +177,29 @@
   margin-block: 0;
 }
 
-/* 코드. shiki가 인라인 색을 넣으므로 여기서는 면·보더·여백만 맡는다. */
+/* 코드. shiki가 인라인 색을 넣으므로 여기서는 면·보더·여백만 맡는다.
+   인라인 코드는 무채색 면에 둔다. 파랑은 링크 하나에만 쓴다 — 코드까지 파랗면
+   UI 문자열을 인용한 문단에서 무엇이 눌리는지 가려지지 않는다.
+   Plex Mono에는 한글 글리프가 없으므로 한글은 시스템 폰트가 아니라 Pretendard로 받는다. */
 .prose :not(pre) > code {
   padding: 0.15em 0.4em;
-  border: 1px solid var(--d0-blue-light);
+  border: 1px solid var(--d0-grey-100);
   border-radius: var(--radius-sm);
-  background: var(--d0-blue-light);
+  background: var(--d0-grey-50);
+  font-family: var(--font-mono), ui-monospace, var(--d0-font);
   font-size: 0.9em;
-  color: var(--d0-blue-dark);
+  color: var(--d0-grey-800);
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: normal;
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
+}
+
+/* 링크 안의 코드는 링크의 색을 따른다. 면은 남아도 글자가 파랗고 밑줄이 있어야
+   눌리는 것으로 읽힌다. */
+.prose a > code {
+  color: inherit;
 }
 
 /* 코드블럭은 창틀이 감싼다. 테두리·라운딩·여백은 창틀이 갖고 pre는 내용만 맡는다. */
