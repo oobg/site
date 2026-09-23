@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { afterEach, describe, it, expect, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { SiteHeader } from '@/app/_components/SiteHeader';
 
@@ -13,6 +13,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 afterEach(() => {
+  vi.unstubAllGlobals();
   pathname.current = '/';
   Object.defineProperty(navigator, 'platform', {
     configurable: true,
@@ -46,6 +47,50 @@ describe('SiteHeader', () => {
     expect(screen.getByRole('button', { name: /검색/ })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: '프로젝트' })).not.toBeInTheDocument();
     expect(screen.queryByRole('link', { name: /projects/i })).not.toBeInTheDocument();
+  });
+
+  it('센티넬이 뷰포트를 벗어나면 data-stuck을 달고, 돌아오면 뗀다', () => {
+    // 다른 컴포넌트도 IO를 쓰므로, 헤더 센티넬을 관찰하는 인스턴스의 콜백만 집는다.
+    const observers: { target?: Element; callback: IntersectionObserverCallback }[] = [];
+    const disconnect = vi.fn();
+    vi.stubGlobal(
+      'IntersectionObserver',
+      vi.fn(function (this: unknown, callback: IntersectionObserverCallback) {
+        const record: (typeof observers)[number] = { callback };
+        observers.push(record);
+        return {
+          observe: (target: Element) => {
+            record.target = target;
+          },
+          disconnect,
+          unobserve: vi.fn(),
+          takeRecords: () => [],
+        };
+      }),
+    );
+    const { container, unmount } = renderHeader();
+    const header = container.querySelector('header')!;
+    const sentinel = header.previousElementSibling!;
+    expect(sentinel).toHaveAttribute('aria-hidden', 'true');
+    const observer = observers.find((o) => o.target === sentinel);
+    expect(observer).toBeDefined();
+    const report = (isIntersecting: boolean) =>
+      act(() =>
+        observer!.callback(
+          [{ isIntersecting } as IntersectionObserverEntry],
+          {} as IntersectionObserver,
+        ),
+      );
+    expect(header).not.toHaveAttribute('data-stuck');
+
+    report(false);
+    expect(header).toHaveAttribute('data-stuck');
+
+    report(true);
+    expect(header).not.toHaveAttribute('data-stuck');
+
+    unmount();
+    expect(disconnect).toHaveBeenCalled();
   });
 
   it('내비게이션은 검색 trigger보다 앞에 온다', () => {

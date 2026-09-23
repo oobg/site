@@ -103,8 +103,11 @@ Container(SiteFooter 포함)가 모두 이 공식을 쓴다. 자기 폭 공식�
 
 ## 후속 화면 규칙
 
-공개 목록은 개별 카드 스택 대신 plain grid나 행과 디바이더를 사용한다. sticky 헤더의
-blur는 유지한다. 관리자 compact 테이블 헤더의 uppercase는 허용한다. 실제 화면별 레이아웃,
+공개 목록은 개별 카드 스택 대신 plain grid나 행과 디바이더를 사용한다. sticky 헤더는
+최상단에서 평평하게 두고, 스크롤해 고정된 뒤에만 반투명 blur 면으로 바꾼다(`data-stuck`).
+면의 색·blur·테두리·그림자는 `--glass-*` 토큰이 정하고, 전환은 `--d0-dur-slow`와
+`--d0-ease-in-out`이며 reduced motion에서는 즉시 바뀐다. 고정된 pill은 안쪽 여백만큼
+바깥으로 넓혀 워드마크가 고정 전과 같은 x축에 선다. 관리자 compact 테이블 헤더의 uppercase는 허용한다. 실제 화면별 레이아웃,
 캐러셀, 검색, 관리자 편집 UI는 구현과 함께 이 문서에 추가한다.
 
 ### 홈

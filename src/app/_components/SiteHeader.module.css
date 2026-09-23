@@ -1,3 +1,9 @@
+/* 헤더 바로 위 1px. 이 선이 뷰포트 밖으로 나가면 헤더가 고정된 것이다(data-stuck).
+   음수 margin으로 문서 흐름에서는 자리를 차지하지 않는다. */
+.sentinel {
+  height: 1px;
+  margin-bottom: -1px;
+}
 .header {
   position: sticky;
   top: 0;
@@ -7,6 +13,14 @@
   align-items: center;
   border-bottom: 1px solid var(--d0-grey-200);
   background: var(--color-surface);
+  transition:
+    border-color var(--d0-dur-slow) var(--d0-ease-in-out),
+    background var(--d0-dur-slow) var(--d0-ease-in-out);
+}
+/* 고정되면 헤더 띠는 비우고 pill 하나만 반투명 blur 면으로 뜬다. */
+.header[data-stuck] {
+  border-bottom-color: transparent;
+  background: transparent;
 }
 /* Container와 같은 공식이다. 헤더만 자기 폭 공식을 갖고 있으면 워드마크가
    본문 왼쪽 끝과 어긋나고, 그 차이가 페이지마다 달라 스크롤 중에 축이 흔들린다. */
@@ -24,6 +38,30 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  transition:
+    min-height var(--d0-dur-slow) var(--d0-ease-in-out),
+    padding var(--d0-dur-slow) var(--d0-ease-in-out),
+    margin var(--d0-dur-slow) var(--d0-ease-in-out),
+    background var(--d0-dur-slow) var(--d0-ease-in-out),
+    box-shadow var(--d0-dur-slow) var(--d0-ease-in-out),
+    -webkit-backdrop-filter var(--d0-dur-slow) var(--d0-ease-in-out),
+    backdrop-filter var(--d0-dur-slow) var(--d0-ease-in-out);
+}
+/* 면의 색·blur·그림자는 글래스 토큰이 정한다. 안쪽 여백만큼 바깥으로 넓혀(음수 margin)
+   워드마크와 검색 버튼이 고정 전과 같은 x축에 선다 — 스크롤하는 순간 축이 튀지 않게. */
+.header[data-stuck] .pill {
+  min-height: 52px;
+  margin-inline: calc(var(--space-3) * -1);
+  padding-inline: var(--space-3);
+  background: var(--glass-tint);
+  /* 테두리는 inset 그림자로 긋는다. border를 쓰면 1px만큼 내용이 밀린다. */
+  box-shadow:
+    inset 0 0 0 1px var(--glass-rim),
+    var(--glass-shadow);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
 }
 .wordmark {
   display: inline-flex;
@@ -98,6 +136,9 @@
     min-height: 60px;
     gap: var(--space-3);
   }
+  .header[data-stuck] .pill {
+    min-height: 48px;
+  }
   .actions {
     gap: var(--space-2);
   }
@@ -106,6 +147,8 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
+  .header,
+  .pill,
   .wordmark,
   .navLink {
     transition-duration: 0ms;
