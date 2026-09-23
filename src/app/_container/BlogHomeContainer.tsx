@@ -9,6 +9,7 @@ import { BlogShell } from '@/app/_components/BlogShell';
 import { BlogArchiveContentSkeleton } from '@/app/_components/BlogLoadingSkeleton';
 import { PostCard } from '@features/posts/components/PostCard';
 import { useBlogPosts } from '@features/posts/services/use-blog-posts';
+import { planHomeSections } from '@features/posts/utils/home-sections';
 import type { BlogHomeData, BlogPostFilters } from '@features/posts/types/posts.types';
 import { homeSearchHref } from '@constants/routes';
 import styles from './BlogHomeContainer.module.css';
@@ -164,12 +165,14 @@ export function BlogHomeContainer({
     </div>
   );
 
-  const featuredSlugs = new Set(data?.featured.map((post) => post.slug));
-  /* 추천에 이미 올린 글이 바로 아래 카드로 또 나오면 최근 글 세 칸 중 한둘이
-     같은 말을 반복한다. 빼고 나서 뒤의 글로 세 칸을 채운다. */
-  const recentPosts = (data?.archive.items ?? [])
-    .filter((post) => !featuredSlugs.has(post.slug))
-    .slice(0, RECENT_COUNT);
+  /* 추천·최근·카테고리 섹션이 같은 글을 되풀이하지 않도록 그리는 순서대로 한 번씩만
+     배정한다. 추천 글과 목록이 따로 있으면 같은 글이 두 번 보인다 — 글이 하나뿐일 때도. */
+  const home = data
+    ? planHomeSections(
+        { featured: data.featured, latest: data.archive.items, sections: data.sections },
+        { recentCount: RECENT_COUNT },
+      )
+    : { featured: [], recent: [], sections: [] };
   const hasOverviewContent = Boolean(
     data &&
     (data.archive.totalItems > 0 ||
@@ -210,21 +213,21 @@ export function BlogHomeContainer({
             </div>
           ) : (
             <>
-              {data.featured.length > 0 ? (
+              {home.featured.length > 0 ? (
                 <>
                   <h2 className={styles.sectionLabel} id={FEATURED_HEADING_ID}>
                     추천 글
                   </h2>
-                  <FeaturedCarousel posts={data.featured} headingId={FEATURED_HEADING_ID} />
+                  <FeaturedCarousel posts={home.featured} headingId={FEATURED_HEADING_ID} />
                 </>
               ) : null}
-              {recentPosts.length > 0 ? (
+              {home.recent.length > 0 ? (
                 <section className={styles.recent} aria-labelledby="home-recent-heading">
                   <h2 className={styles.sectionLabel} id="home-recent-heading">
                     최근 글
                   </h2>
                   <div className={styles.recentGrid}>
-                    {recentPosts.map((post) => (
+                    {home.recent.map((post) => (
                       <PostCard
                         key={post.slug}
                         post={post}
@@ -236,36 +239,34 @@ export function BlogHomeContainer({
                 </section>
               ) : null}
               <div className={styles.sections}>
-                {data.sections
-                  .filter((section) => section.posts.length)
-                  .map((section) => (
-                    <section className={styles.topic} key={section.category.id}>
-                      <div className={styles.topicHeading}>
-                        <h2>{section.category.name}</h2>
-                        <Link
-                          href={homeSearchHref({ category: section.category.slug })}
-                          onClick={(event) => {
-                            if (opensElsewhere(event)) return;
-                            event.preventDefault();
-                            navigate({ ...filters, category: section.category.slug, page: 1 });
-                          }}
-                        >
-                          모두 보기
-                        </Link>
-                      </div>
-                      <div className={styles.topicGrid}>
-                        {section.posts.map((post) => (
-                          <PostCard
-                            key={post.slug}
-                            post={post}
-                            headingLevel={3}
-                            showCategory={false}
-                            reserveCoverSpace={true}
-                          />
-                        ))}
-                      </div>
-                    </section>
-                  ))}
+                {home.sections.map((section) => (
+                  <section className={styles.topic} key={section.category.id}>
+                    <div className={styles.topicHeading}>
+                      <h2>{section.category.name}</h2>
+                      <Link
+                        href={homeSearchHref({ category: section.category.slug })}
+                        onClick={(event) => {
+                          if (opensElsewhere(event)) return;
+                          event.preventDefault();
+                          navigate({ ...filters, category: section.category.slug, page: 1 });
+                        }}
+                      >
+                        모두 보기
+                      </Link>
+                    </div>
+                    <div className={styles.topicGrid}>
+                      {section.posts.map((post) => (
+                        <PostCard
+                          key={post.slug}
+                          post={post}
+                          headingLevel={3}
+                          showCategory={false}
+                          reserveCoverSpace={true}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                ))}
               </div>
             </>
           )}
@@ -323,7 +324,14 @@ export function BlogHomeContainer({
                   aria-busy={result.isFetching}
                 >
                   {data.archive.items.map((post) => (
-                    <PostCard key={post.slug} post={post} reserveCoverSpace={true} />
+                    <PostCard
+                      key={post.slug}
+                      post={post}
+                      reserveCoverSpace={true}
+                      /* 한 카테고리만 보는 목록에서는 제목·사이드바·필터가 이미 그 이름을
+                         말한다. 카드마다 같은 이름을 또 달면 열 번 넘게 반복된다. */
+                      showCategory={!filters.category}
+                    />
                   ))}
                 </div>
                 {data.archive.totalPages > 1 && (

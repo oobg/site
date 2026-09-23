@@ -261,6 +261,10 @@ function legacyToBlogPostSummary(item: ContentListItem): BlogPostSummary {
   };
 }
 
+/* 홈은 추천(최대 5)·최근 글(3)에 이미 나온 글을 카테고리 섹션에서 빼고 남은 글로 3칸을 채운다.
+   카테고리마다 그 합(5 + 3 + 3)만큼 읽어야 앞 섹션과 겹쳐도 섹션이 비지 않는다. */
+const HOME_SECTION_CANDIDATES = 11;
+
 async function getSupabaseBlogShellUncached(): Promise<
   Pick<BlogHomeData, 'featured' | 'categories' | 'sections'>
 > {
@@ -306,7 +310,7 @@ async function getSupabaseBlogShellUncached(): Promise<
         .eq('status', 'published')
         .eq('category_id', category.id)
         .order('slug', { ascending: true })
-        .limit(3),
+        .limit(HOME_SECTION_CANDIDATES),
     ),
   );
   const sections = sectionResults

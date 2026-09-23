@@ -52,19 +52,22 @@ function makePost(slug: string, title: string) {
 
 describe('BlogHomeContainer', () => {
   it('links home featured and category section posts to their canonical URL', () => {
+    const sectionPost = makePost('two', '섹션 글');
     render(
       <BlogHomeContainer
         initialData={{
           ...empty,
           featured: [item],
-          sections: [{ category: empty.categories[0], posts: [item] }],
+          sections: [{ category: empty.categories[0], posts: [sectionPost] }],
         }}
         initialFilters={{ page: 1, pageSize: 12 }}
       />,
     );
-    const links = screen.getAllByRole('link', { name: item.title });
-    expect(links.length).toBeGreaterThanOrEqual(2);
-    for (const link of links) expect(link).toHaveAttribute('href', '/blog/dev/one');
+    expect(screen.getByRole('link', { name: item.title })).toHaveAttribute('href', '/blog/dev/one');
+    expect(screen.getByRole('link', { name: sectionPost.title })).toHaveAttribute(
+      'href',
+      '/blog/dev/two',
+    );
   });
   beforeEach(() => {
     mocks.search = new URLSearchParams();
@@ -322,6 +325,63 @@ describe('BlogHomeContainer', () => {
         .getAllByRole('heading')
         .map((heading) => heading.textContent),
     ).toEqual(['최근 글', '가', '나', '다']);
+  });
+
+  it('shows each post once across the overview and drops a section with nothing new', () => {
+    const skills = { ...empty.categories[0], id: 'c2', slug: 'skills', name: '에이전트 스킬' };
+    const featured = { ...makePost('question', '질문 설계'), category: skills };
+    const writing = { ...makePost('writing', 'UX 라이팅'), category: skills };
+    const devPosts = [makePost('a', '가'), makePost('b', '나'), makePost('c', '다')];
+    render(
+      <BlogHomeContainer
+        initialData={{
+          ...empty,
+          categories: [empty.categories[0], skills],
+          featured: [featured],
+          archive: {
+            ...empty.archive,
+            items: [featured, writing, devPosts[0], devPosts[1], devPosts[2], makePost('d', '라')],
+            totalItems: 6,
+            totalPages: 1,
+          },
+          sections: [
+            { category: empty.categories[0], posts: devPosts },
+            { category: skills, posts: [featured, writing] },
+          ],
+        }}
+        initialFilters={{ page: 1, pageSize: 12 }}
+      />,
+    );
+    for (const title of ['질문 설계', 'UX 라이팅', '가', '나', '다', '라'])
+      expect(screen.getAllByRole('link', { name: title })).toHaveLength(1);
+    const topic = screen.getByRole('heading', { level: 2, name: '개발' }).closest('section');
+    expect(
+      within(topic as HTMLElement)
+        .getAllByRole('heading', { level: 3 })
+        .map((heading) => heading.textContent),
+    ).toEqual(['다', '라']);
+    expect(screen.queryByRole('heading', { level: 2, name: '에이전트 스킬' })).toBeNull();
+  });
+
+  it('hides the per-card category on a single-category list but keeps it on mixed lists', () => {
+    const posts = [makePost('a', '가'), makePost('b', '나')];
+    const data = {
+      ...empty,
+      archive: { ...empty.archive, items: posts, totalItems: 2, totalPages: 1 },
+    };
+    mocks.search = new URLSearchParams('category=dev');
+    const { container, unmount } = render(
+      <BlogHomeContainer initialData={data} initialFilters={{ category: 'dev', page: 1 }} />,
+    );
+    expect(container.querySelectorAll('article')).toHaveLength(2);
+    for (const card of container.querySelectorAll('article'))
+      expect(within(card as HTMLElement).queryByText('개발')).toBeNull();
+    unmount();
+
+    mocks.search = new URLSearchParams('view=all');
+    const all = render(<BlogHomeContainer initialData={data} initialFilters={{ page: 1 }} />);
+    for (const card of all.container.querySelectorAll('article'))
+      expect(within(card as HTMLElement).getByText('개발')).toBeInTheDocument();
   });
 
   it('reserves unframed placeholders when every recent post has no cover', () => {

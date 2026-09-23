@@ -14,8 +14,8 @@ const PROGRESS_TICK_MS = 1_000;
 const PROGRESS_RING_RADIUS = 19;
 const PROGRESS_RING_CIRCUMFERENCE = 2 * Math.PI * PROGRESS_RING_RADIUS;
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
-/* .cover의 aspect-ratio 1.9와 같은 비율. 실제 표시 크기는 CSS가 정하고,
-   이 값은 로드 전에 자리를 잡기 위한 비율 힌트로만 쓴다. */
+/* 넓은 화면 .cover의 aspect-ratio 1.9와 같은 비율. 실제 표시 크기는 CSS가 정하고
+   (height: auto), 이 값은 로드 전에 자리를 잡기 위한 비율 힌트로만 쓴다. */
 const COVER_WIDTH = 1140;
 const COVER_HEIGHT = 600;
 
@@ -114,8 +114,9 @@ export function FeaturedCarousel({
       <span className={styles.announcer} aria-live="polite" aria-atomic="true">
         {announcement}
       </span>
+      {/* 슬라이드 틀은 두고 내용만 바꾼다. 틀째 key로 다시 만들면 안쪽의 이전·다음 버튼도
+          새로 생겨, 누른 버튼의 포커스가 문서 맨 앞으로 튄다. */}
       <div
-        key={post.slug}
         className={styles.slide}
         onTouchStart={(event) => {
           const touch = event.touches[0];
@@ -133,6 +134,7 @@ export function FeaturedCarousel({
       >
         {post.cover_image_url && (
           <img
+            key={post.slug}
             className={styles.cover}
             data-thumbnail=""
             src={post.cover_image_url}
@@ -151,82 +153,84 @@ export function FeaturedCarousel({
           />
         )}
         <div className={styles.copy} data-with-cover={post.cover_image_url ? '' : undefined}>
-          <div className={styles.metaRow}>
+          <div key={post.slug} className={styles.copyText}>
             <span className={styles.category}>{post.category.name}</span>
-            {posts.length > 1 ? (
-              <div className={styles.controls}>
-                <div className={styles.autoplayControl}>
-                  <span
-                    className={styles.progressStatus}
-                    role="progressbar"
-                    aria-label="다음 추천 글 전환까지"
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    aria-valuenow={Math.round(progress * 100)}
-                    aria-valuetext={paused ? '일시정지' : `${remainingSeconds}초 후 전환`}
-                  />
-                  <button
-                    type="button"
-                    className={styles.autoplayButton}
-                    onClick={toggleAutoplay}
-                    aria-pressed={stopped}
-                    aria-label={stopped ? '자동 전환 재생' : '자동 전환 일시정지'}
-                  >
-                    <svg className={styles.progressRing} viewBox="0 0 44 44" aria-hidden="true">
-                      <circle
-                        className={styles.progressRingTrack}
-                        cx="22"
-                        cy="22"
-                        r={PROGRESS_RING_RADIUS}
-                        fill="none"
-                        strokeWidth="2"
-                      />
-                      <circle
-                        className={styles.progressRingValue}
-                        cx="22"
-                        cy="22"
-                        r={PROGRESS_RING_RADIUS}
-                        fill="none"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeDasharray={PROGRESS_RING_CIRCUMFERENCE}
-                        strokeDashoffset={PROGRESS_RING_CIRCUMFERENCE * (1 - progress)}
-                      />
-                    </svg>
-                    <span className={styles.autoplayIcon}>
-                      {stopped ? (
-                        <Play aria-hidden size={15} weight="fill" />
-                      ) : (
-                        <Pause aria-hidden size={15} weight="fill" />
-                      )}
-                    </span>
-                  </button>
-                </div>
-                <div className={styles.nav} role="group" aria-label="추천 글 탐색">
-                  <button type="button" onClick={() => move(-1)} aria-label="이전 추천 글">
-                    <CaretLeft aria-hidden size={17} weight="bold" />
-                  </button>
-                  {/* 읽을 수는 있게 두되 live는 아니다 — 지금 몇 번째인지는 언제든
-                      확인할 수 있어야 하고, 자동 전환이 그것을 소리내서는 안 된다. */}
-                  <span>
-                    {activeIndex + 1} / {posts.length}
-                  </span>
-                  <button type="button" onClick={() => move(1)} aria-label="다음 추천 글">
-                    <CaretRight aria-hidden size={17} weight="bold" />
-                  </button>
-                </div>
-              </div>
-            ) : null}
+            <h3>
+              <Link href={ROUTES.BLOG.DETAIL(post.category.slug, post.slug)}>{post.title}</Link>
+            </h3>
+            {post.summary && <p>{post.summary}</p>}
+            <time dateTime={post.published_at}>
+              {new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' }).format(
+                new Date(post.published_at),
+              )}
+            </time>
           </div>
-          <h3>
-            <Link href={ROUTES.BLOG.DETAIL(post.category.slug, post.slug)}>{post.title}</Link>
-          </h3>
-          {post.summary && <p>{post.summary}</p>}
-          <time dateTime={post.published_at}>
-            {new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' }).format(
-              new Date(post.published_at),
-            )}
-          </time>
+          {/* 조작은 글 아래에 둔다. 제목보다 먼저 읽히면 무엇을 넘기는지 알기 전에
+              넘기는 법부터 보게 된다. */}
+          {posts.length > 1 ? (
+            <div className={styles.controls}>
+              <div className={styles.autoplayControl}>
+                <span
+                  className={styles.progressStatus}
+                  role="progressbar"
+                  aria-label="다음 추천 글 전환까지"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={Math.round(progress * 100)}
+                  aria-valuetext={paused ? '일시정지' : `${remainingSeconds}초 후 전환`}
+                />
+                <button
+                  type="button"
+                  className={styles.autoplayButton}
+                  onClick={toggleAutoplay}
+                  aria-pressed={stopped}
+                  aria-label={stopped ? '자동 전환 재생' : '자동 전환 일시정지'}
+                >
+                  <svg className={styles.progressRing} viewBox="0 0 44 44" aria-hidden="true">
+                    <circle
+                      className={styles.progressRingTrack}
+                      cx="22"
+                      cy="22"
+                      r={PROGRESS_RING_RADIUS}
+                      fill="none"
+                      strokeWidth="2"
+                    />
+                    <circle
+                      className={styles.progressRingValue}
+                      cx="22"
+                      cy="22"
+                      r={PROGRESS_RING_RADIUS}
+                      fill="none"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeDasharray={PROGRESS_RING_CIRCUMFERENCE}
+                      strokeDashoffset={PROGRESS_RING_CIRCUMFERENCE * (1 - progress)}
+                    />
+                  </svg>
+                  <span className={styles.autoplayIcon}>
+                    {stopped ? (
+                      <Play aria-hidden size={15} weight="fill" />
+                    ) : (
+                      <Pause aria-hidden size={15} weight="fill" />
+                    )}
+                  </span>
+                </button>
+              </div>
+              <div className={styles.nav} role="group" aria-label="추천 글 탐색">
+                <button type="button" onClick={() => move(-1)} aria-label="이전 추천 글">
+                  <CaretLeft aria-hidden size={17} weight="bold" />
+                </button>
+                {/* 읽을 수는 있게 두되 live는 아니다 — 지금 몇 번째인지는 언제든
+                    확인할 수 있어야 하고, 자동 전환이 그것을 소리내서는 안 된다. */}
+                <span>
+                  {activeIndex + 1} / {posts.length}
+                </span>
+                <button type="button" onClick={() => move(1)} aria-label="다음 추천 글">
+                  <CaretRight aria-hidden size={17} weight="bold" />
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
