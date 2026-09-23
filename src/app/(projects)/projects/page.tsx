@@ -2,15 +2,19 @@ import type { Metadata } from 'next';
 import { Container } from '@components/layout/Container';
 import { ProjectCard } from '@features/projects/components/ProjectCard';
 import { getProjects } from '@features/projects/services/projects.api';
+import { projectsRobotsMetadata } from '@features/projects/constants/projects.visibility';
 import { buildMetadata } from '@lib/metadata/metadata';
 import { ROUTES } from '@constants/routes';
 import styles from '@/app/projects/projects.module.css';
 
-export const metadata: Metadata = buildMetadata({
-  title: '프로젝트',
-  description: '만들어 온 것들.',
-  path: ROUTES.PROJECTS.LIST,
-});
+export const metadata: Metadata = {
+  ...buildMetadata({
+    title: '프로젝트',
+    description: '만들어 온 것들.',
+    path: ROUTES.PROJECTS.LIST,
+  }),
+  ...projectsRobotsMetadata,
+};
 
 export default async function ProjectsListPage() {
   const projects = await getProjects({ sort: '-published_at' });

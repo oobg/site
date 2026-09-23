@@ -37,26 +37,28 @@ export function ProjectHeader({ project }: { project: Project }) {
       <h1 className={styles.title}>{project.title}</h1>
       <dl className={styles.meta}>
         <div className={styles.row}>
-          <dt className={styles.label}>Date</dt>
+          <dt className={styles.label}>날짜</dt>
           <dd>
-            <time dateTime={project.published_at}>{formatDate(project.published_at)}</time>
+            <time className={styles.date} dateTime={project.published_at}>
+              {formatDate(project.published_at)}
+            </time>
           </dd>
         </div>
         {role ? (
           <div className={styles.row}>
-            <dt className={styles.label}>Role</dt>
+            <dt className={styles.label}>역할</dt>
             <dd>{role}</dd>
           </div>
         ) : null}
         {period ? (
           <div className={styles.row}>
-            <dt className={styles.label}>Period</dt>
+            <dt className={styles.label}>기간</dt>
             <dd>{period}</dd>
           </div>
         ) : null}
         {stack.length > 0 ? (
           <div className={styles.row}>
-            <dt className={styles.label}>Stack</dt>
+            <dt className={styles.label}>기술</dt>
             <dd className={styles.stack}>
               {stack.map((s) => (
                 <span key={s} className={styles.chip}>
@@ -68,7 +70,7 @@ export function ProjectHeader({ project }: { project: Project }) {
         ) : null}
         {repo || live ? (
           <div className={styles.row}>
-            <dt className={styles.label}>Links</dt>
+            <dt className={styles.label}>링크</dt>
             <dd className={styles.links}>
               {repo ? (
                 <a href={repo} target="_blank" rel="noreferrer">

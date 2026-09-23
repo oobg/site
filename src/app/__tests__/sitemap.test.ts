@@ -7,11 +7,12 @@ vi.mock('@features/posts/services/posts.api', () => ({
       { slug: 'my-post', category: { slug: 'dev' }, updated_at: '2026-09-10T00:00:00.000Z' },
     ]),
 }));
-vi.mock('@features/projects/services/projects.api', () => ({
+const { getProjects } = vi.hoisted(() => ({
   getProjects: vi
     .fn()
     .mockResolvedValue([{ slug: 'project', updated_at: '2026-09-09T00:00:00.000Z' }]),
 }));
+vi.mock('@features/projects/services/projects.api', () => ({ getProjects }));
 
 describe('sitemap', () => {
   it('includes public index and detail URLs without duplicates', async () => {
@@ -21,9 +22,16 @@ describe('sitemap', () => {
 
     expect(urls).toContain('https://raven.kr/');
     expect(urls).toContain('https://raven.kr/blog/dev/my-post');
-    expect(urls).toContain('https://raven.kr/projects/project');
     expect(urls).not.toContain('https://raven.kr/blog');
     expect(new Set(urls).size).toBe(urls.length);
     expect(urls.some((url) => url.includes('/admin'))).toBe(false);
+  });
+
+  it('keeps hidden project URLs out while projects are not indexable', async () => {
+    const { default: sitemap } = await import('@/app/sitemap');
+    const urls = (await sitemap()).map((entry) => entry.url);
+
+    expect(urls.some((url) => url.includes('/projects'))).toBe(false);
+    expect(getProjects).not.toHaveBeenCalled();
   });
 });

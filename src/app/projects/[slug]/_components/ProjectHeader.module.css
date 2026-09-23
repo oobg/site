@@ -10,27 +10,35 @@
   letter-spacing: var(--ls-title);
 }
 
-/* 메타는 표가 아니라 가로로 흐르는 항목들이다. 항목 수가 글마다 달라
-   격자로 세우면 빈 칸이 생긴다. */
+/* 메타는 레이블 열과 값 열로 세운 정의 목록이다. 항목이 없으면 행 자체를 그리지 않으므로
+   빈 칸이 생기지 않는다. 가로로 흘리면 값 길이에 따라 행이 줄을 바꿔 레이블 시작점이
+   제각각 어긋난다(2026-09 '링크' 행이 오른쪽으로 떠 있던 원인). */
 .meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-4) var(--space-7);
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: var(--space-3) var(--space-6);
+  align-items: baseline;
   margin-top: var(--space-6);
   font-size: var(--d0-text-control);
 }
 
+/* dt·dd를 격자의 칸으로 직접 올린다. div는 조건부 행을 묶는 용도로만 남는다. */
 .row {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-3);
+  display: contents;
 }
 
+/* 레이블은 자연어 한글이라 sans로 쓴다 — IBM Plex Mono에는 한글 글리프가 없다.
+   서체 값은 Eyebrow와 같게 맞춘다. */
 .label {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--d0-label);
-  letter-spacing: var(--d0-label-tracking);
-  color: var(--d0-grey-600);
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: var(--ls-eyebrow);
+  line-height: var(--lh-lead);
+  color: var(--color-text-secondary);
+}
+
+.date {
+  font-variant-numeric: tabular-nums;
 }
 
 .row dd {
@@ -55,8 +63,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2) var(--space-5);
-  margin-top: var(--space-5);
-  font-size: var(--d0-text-control);
 }
 
 .links a {

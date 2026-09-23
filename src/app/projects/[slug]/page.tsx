@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Container } from '@components/layout/Container';
 import { getProject, getProjects } from '@features/projects/services/projects.api';
+import { projectsRobotsMetadata } from '@features/projects/constants/projects.visibility';
 import { renderMarkdown } from '@lib/markdown/render';
 import { buildMetadata } from '@lib/metadata/metadata';
 import { normalizeRouteSlug } from '@lib/navigation/slug';
@@ -25,11 +26,14 @@ export async function generateMetadata({
   const { slug } = await params;
   const key = normalizeRouteSlug(slug);
   const project = await getProject(key);
-  return buildMetadata({
-    title: project.title,
-    description: project.summary ?? undefined,
-    path: ROUTES.PROJECTS.DETAIL(project.slug),
-  });
+  return {
+    ...buildMetadata({
+      title: project.title,
+      description: project.summary ?? undefined,
+      path: ROUTES.PROJECTS.DETAIL(project.slug),
+    }),
+    ...projectsRobotsMetadata,
+  };
 }
 
 export default async function ProjectDetailPage({ params }: { params: Promise<{ slug: string }> }) {
