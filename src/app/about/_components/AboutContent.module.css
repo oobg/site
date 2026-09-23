@@ -28,126 +28,28 @@
   color: var(--reading-color);
 }
 
-/* 제목 아래 붙는 한두 줄 설명. 읽는 문단이 아니라 항목의 부연이라 한 단 작다.
-   이 둘을 .body 하나로 쓰던 것이 About 본문이 16px에 머문 이유였다. */
-.itemBody {
-  margin-top: var(--space-2);
-  font-size: var(--fs-16);
-  line-height: var(--lh-body);
-  color: var(--color-text-secondary);
+/* 강조는 굵기만 올린다. 색을 바꾸면 링크로 읽힌다. */
+.body strong {
+  font-weight: 650;
+  color: var(--d0-grey-900);
 }
 
+/* 섹션은 1px 디바이더로만 나눈다. 레이블(h2)은 Eyebrow가 조판한다. */
 .block {
   margin-top: var(--space-8);
   padding-top: var(--space-6);
   border-top: 1px solid var(--d0-grey-100);
 }
 
-/* 일하는 방식과 파고 있는 것은 성격이 달라 골격도 다르다.
-   앞은 문단이 긴 서술, 뒤는 짧은 항목이라 번호를 세운다. */
-.focusList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-  margin-top: var(--space-5);
+/* 소제목 묶음. 섹션 안의 서술이라 선을 긋지 않고 간격으로만 띄운다. */
+.item {
+  margin-top: var(--space-6);
 }
 
-.focusTitle {
+.itemTitle {
   font-size: var(--fs-18);
   font-weight: 650;
+  line-height: var(--lh-title);
   letter-spacing: var(--ls-body);
-}
-
-/* 01·02·03 번호를 두었다가 뺐다. 이 목록은 순서가 없는 열거인데 순서 기호를 쓰면
-   읽는 사람이 없는 우선순위를 찾는다. 색을 낮춰 눌러 둔 것은 증상 완화였지,
-   순서가 정보를 나르지 않는다는 사실은 그대로였다. 구분은 선이 이미 하고 있다. */
-.exploreList {
-  display: flex;
-  flex-direction: column;
-  margin-top: var(--space-5);
-}
-
-.exploreItem {
-  padding-block: var(--space-4);
-  border-top: 1px solid var(--d0-grey-100);
-}
-
-.exploreItem:last-child {
-  border-bottom: 1px solid var(--d0-grey-100);
-}
-
-/* 경력은 시간이 축이라 표로 세운다 — 여기서는 격자가 맞는 도구다. */
-.expList {
-  display: flex;
-  flex-direction: column;
-  margin-top: var(--space-5);
-}
-
-.expItem {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-  gap: var(--space-2) var(--space-4);
-  align-items: baseline;
-  padding-block: var(--space-4);
-  border-top: 1px solid var(--d0-grey-100);
-}
-
-.expItem:last-child {
-  border-bottom: 1px solid var(--d0-grey-100);
-}
-
-@media (max-width: 640px) {
-  .expItem {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.expCompany {
-  font-size: var(--d0-text-control);
   color: var(--d0-grey-900);
-}
-
-.expRole {
-  font-size: var(--fs-14);
-  color: var(--color-text-secondary);
-}
-
-.expPeriod {
-  font-family: var(--font-mono), monospace;
-  font-size: var(--fs-13);
-  font-variant-numeric: tabular-nums;
-  color: var(--d0-grey-600);
-  white-space: nowrap;
-}
-
-.stack {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-top: var(--space-5);
-}
-
-.tag {
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--d0-radius-sm);
-  background: var(--d0-blue-light);
-  font-size: var(--d0-text-compact);
-  color: var(--d0-blue-dark);
-}
-
-.connect {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-3) var(--space-6);
-  margin-top: var(--space-5);
-  font-size: var(--d0-text-control);
-}
-
-.link {
-  color: var(--d0-blue-dark);
-  transition: color var(--d0-dur-fast) var(--d0-ease);
-}
-
-.link:hover {
-  color: var(--d0-blue);
 }

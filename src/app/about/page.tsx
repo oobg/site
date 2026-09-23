@@ -5,8 +5,9 @@ import { ROUTES } from '@constants/routes';
 import { AboutContent } from '@/app/about/_components/AboutContent';
 
 export const metadata: Metadata = buildMetadata({
-  title: 'About',
-  description: '생각을 시스템과 제품으로 옮기는 과정을 기록하는 사람.',
+  title: '소개',
+  description:
+    '프론트엔드 개발을 하고 있습니다. 화면을 만드는 일을 좋아하지만, 화면만 잘 만드는 것으로는 충분하지 않다고 생각합니다.',
   path: ROUTES.ABOUT,
 });
 
