@@ -80,6 +80,31 @@ for (const file of globSync(`${SRC}/**/*.tsx`)) {
   }
 }
 
+/* 2b. 메타 레이블도 같은 규칙이다. 2026-09 프로젝트 상세의 `<dt>Date / Role / Period /
+   Stack / Links</dt>`가 Eyebrow를 거치지 않아 위 검사를 빠져나갔다.
+   대상: `<dt>`와 className이 styles.*label·*eyebrow·*kicker인 요소의 리터럴 자식.
+   영어 낱말로만 된 것만 잡는다 — `raven.kr`·`RAVEN.KR / GA4`처럼 점·숫자·슬래시가 섞인
+   것은 도메인·제품명이라 번역 대상이 아니다. `{metric.label}`처럼 값이 들어오는 것은 제외. */
+const ENGLISH_WORDS_ONLY = /^[A-Za-z]+(?:[ &-]+[A-Za-z]+)*$/;
+const META_LABEL = /<(dt|[A-Za-z]\w*)\b([^>]*)>([^<{}]+)<\/\1>/g;
+const LABEL_CLASS = /className=\{styles\.\w*(?:[lL]abel|[eE]yebrow|[kK]icker)\w*\}/;
+
+for (const file of globSync(`${SRC}/**/*.tsx`)) {
+  if (file.includes('__tests__')) continue;
+  const source = readFileSync(file, 'utf8');
+  for (const [, tag, attrs, text] of source.matchAll(META_LABEL)) {
+    if (tag === 'Eyebrow') continue; // 위 검사가 본다.
+    if (tag !== 'dt' && !LABEL_CLASS.test(attrs)) continue;
+    const label = text.trim();
+    if (ENGLISH_WORDS_ONLY.test(label)) {
+      findings.push({
+        file,
+        message: `메타 레이블 "${label}" — 자연어 한글로 쓴다(한글 내비게이션과 레지스터가 갈린다)`,
+      });
+    }
+  }
+}
+
 /* ── 3. 토큰 밖 색 ────────────────────────────────────────────────────────
    tokens.css가 색의 정의 자리이므로 거기서만 hex를 허용한다. */
 for (const file of globSync(`${SRC}/**/*.css`)) {

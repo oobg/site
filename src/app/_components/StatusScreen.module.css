@@ -17,6 +17,13 @@
   letter-spacing: var(--d0-tracking-title);
 }
 
+/* 제목은 스크린리더가 화면 전환을 읽도록 코드로만 포커스를 받는다(tabIndex=-1).
+   사용자가 옮긴 포커스가 아니므로 전역 포커스 링을 그리지 않는다. */
+.title:focus,
+.title:focus-visible {
+  outline: none;
+}
+
 .description {
   margin-top: var(--space-4);
   font-size: var(--d0-text-control);

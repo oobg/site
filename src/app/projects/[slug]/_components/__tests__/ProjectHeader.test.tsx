@@ -39,6 +39,12 @@ describe('ProjectHeader', () => {
     );
   });
 
+  it('메타 레이블은 자연어 한글로 쓴다', () => {
+    render(<ProjectHeader project={base} />);
+    const labels = screen.getAllByRole('term').map((term) => term.textContent);
+    expect(labels).toEqual(['날짜', '역할', '기간', '기술', '링크']);
+  });
+
   it('frontmatter가 비면 고유 필드·링크를 생략한다', () => {
     render(<ProjectHeader project={{ ...base, frontmatter: {} }} />);
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(base.title);
@@ -61,8 +67,8 @@ describe('ProjectHeader', () => {
       />,
     );
 
-    expect(screen.queryByText('Role')).toBeNull();
-    expect(screen.queryByText('Period')).toBeNull();
+    expect(screen.queryByText('역할')).toBeNull();
+    expect(screen.queryByText('기간')).toBeNull();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
     expect(screen.getByText('NestJS')).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Repo' })).toBeNull();
@@ -76,10 +82,10 @@ describe('ProjectHeader', () => {
     const { rerender } = render(
       <ProjectHeader project={{ ...base, frontmatter: null as never }} />,
     );
-    expect(screen.queryByText('Role')).toBeNull();
+    expect(screen.queryByText('역할')).toBeNull();
 
     rerender(<ProjectHeader project={{ ...base, frontmatter: [] as never }} />);
-    expect(screen.queryByText('Stack')).toBeNull();
+    expect(screen.queryByText('기술')).toBeNull();
     expect(screen.queryByRole('link')).toBeNull();
   });
 });

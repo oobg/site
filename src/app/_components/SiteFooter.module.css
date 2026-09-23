@@ -103,6 +103,19 @@
   color: var(--color-accent);
 }
 
+/* 문의 레이블과 주소는 점이 아니라 간격으로 나눈다. */
+.contact {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+/* 한글 레이블은 mono에 글리프가 없으므로 Pretendard로 되돌린다. 주소는 mono로 남는다. */
+.contactLabel {
+  font-family: var(--d0-font);
+  letter-spacing: var(--d0-tracking-body);
+}
+
 @media (max-width: 640px) {
   .top {
     display: grid;

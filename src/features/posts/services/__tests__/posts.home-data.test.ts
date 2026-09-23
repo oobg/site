@@ -108,7 +108,7 @@ describe('getBlogHomeDataUncached supabase', () => {
     expect(section.eq).toHaveBeenCalledWith('status', 'published');
     expect(section.eq).toHaveBeenCalledWith('category_id', category.id);
     expect(section.order).toHaveBeenCalledWith('slug', { ascending: true });
-    expect(section.limit).toHaveBeenCalledWith(3);
+    expect(section.limit).toHaveBeenCalledWith(11);
     expect(result.archive).toMatchObject({ page: 2, pageSize: 6, totalItems: 13, totalPages: 3 });
     expect(result.featured.map(({ slug }) => slug)).toEqual(['public-post']);
     expect(result.featured[0].cover_image_url).toBe('/assets/posts/cover.webp');
@@ -205,8 +205,8 @@ describe('getBlogHomeDataUncached supabase', () => {
     expect(result.featured.map(({ slug }) => slug)).toEqual(['design-new', 'backend-new']);
     expect(backend.order).toHaveBeenCalledWith('slug', { ascending: true });
     expect(design.order).toHaveBeenCalledWith('slug', { ascending: true });
-    expect(backend.limit).toHaveBeenCalledWith(3);
-    expect(design.limit).toHaveBeenCalledWith(3);
+    expect(backend.limit).toHaveBeenCalledWith(11);
+    expect(design.limit).toHaveBeenCalledWith(11);
     expect(backendFeatured.order).toHaveBeenNthCalledWith(1, 'published_at', {
       ascending: false,
       nullsFirst: false,

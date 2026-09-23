@@ -84,6 +84,22 @@ describe('FeaturedCarousel', () => {
     expect(screen.getByText('2 / 2')).toBeInTheDocument();
   });
 
+  it('reads the post before its controls and keeps focus on the button that was pressed', () => {
+    render(<FeaturedCarousel posts={[1, 2, 3].map(post)} />);
+    const heading = screen.getByRole('heading', { name: '추천 글 1' });
+    const next = screen.getByRole('button', { name: '다음 추천 글' });
+    expect(heading.compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(
+      screen.getByText('요약 1').compareDocumentPosition(next) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    next.focus();
+    fireEvent.click(next);
+    expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '다음 추천 글' })).toBe(next);
+    expect(next).toHaveFocus();
+  });
+
   it('moves to the next post every ten seconds and pauses while it is being read', () => {
     vi.useFakeTimers();
     render(<FeaturedCarousel posts={[1, 2, 3].map(post)} />);

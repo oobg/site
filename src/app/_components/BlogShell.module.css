@@ -175,15 +175,14 @@
 .menuButton:hover {
   color: var(--d0-blue-dark);
 }
-/* 상세 오른쪽 레일이 접히는 구간에서도 본문 위 목차는 남긴다. 카테고리 목록에는
-   이 슬롯이 없으므로 목록 화면에는 영향을 주지 않는다. */
-@media (max-width: 1200px) {
+/* 목차는 사이드바가 사라지는 900 이하에서만 본문 위 접이식으로 옮긴다. 사이드바가
+   남아 있는 동안 여기서도 띄우면 목차가 두 벌 보인다. 카테고리 목록에는 이 슬롯이
+   없으므로 목록 화면에는 영향을 주지 않는다. */
+@media (max-width: 900px) {
   .mobileDetailNavigation {
     display: block;
     margin-bottom: var(--space-5);
   }
-}
-@media (max-width: 900px) {
   .shell {
     display: block;
     padding-top: 0;
@@ -200,15 +199,9 @@
     border-bottom: 1px solid var(--d0-grey-100);
   }
 }
+/* 640 이하의 좌우 여백은 --outer가 줄어서 낸다. 여기서 셸 폭을 다시 깎으면
+   padding-inline 위에 거터가 한 겹 더 붙어 본문이 헤더 워드마크보다 안쪽에 선다. */
 @media (max-width: 640px) {
-  .shell {
-    width: min(100% - 40px, 780px);
-    padding-top: 0;
-  }
-  .mobileBar {
-    margin-inline: -20px;
-    padding-inline: 20px;
-  }
   .menu {
     inset: auto 0 0;
     width: 100%;

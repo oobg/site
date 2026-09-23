@@ -38,12 +38,13 @@ describe('SiteFooter', () => {
 
   it('브랜드 설명과 저작권 정보를 유지한다', () => {
     render(<SiteFooter />);
-    expect(screen.getByRole('link', { name: 'raven.kr' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'raven' })).toHaveAttribute('href', '/');
     expect(screen.getByText('제품과 소프트웨어를 만들며 남긴 기록이에요.')).toBeInTheDocument();
     expect(screen.getByText('© 2026 raven.kr')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: '문의 · dev@raven.kr' })).toHaveAttribute(
-      'href',
-      'mailto:dev@raven.kr',
-    );
+    const contact = screen.getByRole('link', { name: '문의 dev@raven.kr' });
+    expect(contact).toHaveAttribute('href', 'mailto:dev@raven.kr');
+    // 한글 레이블만 sans로 떼어 낸다. 구분은 가운뎃점이 아니라 간격이 맡는다.
+    expect(screen.getByText('문의')).toHaveClass(styles.contactLabel);
+    expect(contact).not.toHaveTextContent('·');
   });
 });
