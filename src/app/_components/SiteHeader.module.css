@@ -16,6 +16,7 @@
   margin-inline: auto;
   padding-inline: var(--outer);
 }
+/* 워드마크는 왼쪽, 내비게이션과 검색은 오른쪽 한 묶음이다. */
 .pill {
   position: relative;
   display: flex;
@@ -23,10 +24,6 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  box-shadow: none;
 }
 .wordmark {
   display: inline-flex;
@@ -49,10 +46,48 @@
 .wordmark:active {
   transform: scale(0.96);
 }
-.wordmark:focus-visible {
+.wordmark:focus-visible,
+.navLink:focus-visible {
   outline: 2px solid var(--d0-blue);
   outline-offset: 2px;
   border-radius: var(--d0-radius-sm);
+}
+.actions {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-3);
+}
+.navList {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+/* 터치 목표는 44px 아래로 줄이지 않는다. 좁은 폭에서도 메뉴로 숨기지 않고 짧은 글자 링크로 둔다. */
+.navLink {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--space-2);
+  color: var(--d0-grey-600);
+  font-family: var(--d0-font);
+  font-size: var(--fs-15);
+  font-weight: 600;
+  line-height: var(--lh-body);
+  letter-spacing: var(--d0-tracking-body);
+  white-space: nowrap;
+  transition: color var(--d0-dur-fast) var(--d0-ease);
+}
+.navLink:hover {
+  color: var(--d0-grey-900);
+}
+.navLink[aria-current='page'] {
+  color: var(--d0-grey-900);
 }
 /* 900·640의 폭 축소는 --w-container와 --outer가 맡는다. 여기서는 높이만 줄인다. */
 @media (max-width: 640px) {
@@ -61,10 +96,18 @@
   }
   .pill {
     min-height: 60px;
+    gap: var(--space-3);
+  }
+  .actions {
+    gap: var(--space-2);
+  }
+  .navList {
+    gap: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .wordmark {
+  .wordmark,
+  .navLink {
     transition-duration: 0ms;
   }
 }

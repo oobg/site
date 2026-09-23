@@ -12,7 +12,7 @@ export function SiteFooter() {
           {/* 푸터는 사이트의 성격과 이동할 곳만 짧게 안내한다. */}
           <div>
             <Link className={styles.wordmark} href={ROUTES.HOME}>
-              raven.kr
+              raven
             </Link>
             <p className={styles.tagline}>제품과 소프트웨어를 만들며 남긴 기록이에요.</p>
           </div>
@@ -35,7 +35,9 @@ export function SiteFooter() {
         </div>
         <div className={styles.bottom}>
           <span>© 2026 raven.kr</span>
-          <a href="mailto:dev@raven.kr">문의 · dev@raven.kr</a>
+          <a className={styles.contact} href="mailto:dev@raven.kr">
+            <span className={styles.contactLabel}>문의</span> <span>dev@raven.kr</span>
+          </a>
         </div>
       </footer>
     </Container>
