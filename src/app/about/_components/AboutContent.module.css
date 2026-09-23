@@ -34,11 +34,27 @@
   color: var(--d0-grey-900);
 }
 
-/* 섹션은 1px 디바이더로만 나눈다. 레이블(h2)은 Eyebrow가 조판한다. */
+/* 섹션은 1px 디바이더로만 나눈다. */
 .block {
   margin-top: var(--space-8);
   padding-top: var(--space-6);
   border-top: 1px solid var(--d0-grey-100);
+}
+
+/* 섹션 제목(h2)은 소제목(h3)보다 한 단계 크고 굵다. 12px 회색 Eyebrow로 두면
+   h3가 더 커서 위계가 뒤집혀 읽혔다. 크기는 h1(30) > h2(22) > h3(18, 본문과 같은 크기를 굵기로 가름). */
+.sectionTitle {
+  font-size: 22px;
+  font-weight: var(--fw-title);
+  line-height: var(--lh-title);
+  letter-spacing: var(--ls-title);
+  color: var(--d0-grey-900);
+}
+
+/* 섹션 제목 바로 아래 첫 소제목은 제목에 붙여 한 묶음으로 읽히게 한다.
+   소제목 사이(space-6)보다 좁게 둔다. */
+.sectionTitle + .item {
+  margin-top: var(--space-4);
 }
 
 /* 소제목 묶음. 섹션 안의 서술이라 선을 긋지 않고 간격으로만 띄운다. */
@@ -48,7 +64,7 @@
 
 .itemTitle {
   font-size: var(--fs-18);
-  font-weight: 650;
+  font-weight: 600;
   line-height: var(--lh-title);
   letter-spacing: var(--ls-body);
   color: var(--d0-grey-900);

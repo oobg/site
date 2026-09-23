@@ -1,4 +1,3 @@
-import { Eyebrow } from '@components/ui/Eyebrow';
 import styles from './AboutContent.module.css';
 
 /* 소개 본문. 주인이 확정한 원고를 그대로 옮긴다 — 문장을 다듬거나 줄이지 않는다.
@@ -31,9 +30,9 @@ export function AboutContent() {
       </p>
 
       <section className={styles.block} aria-labelledby="about-work">
-        <Eyebrow as="h2" id="about-work">
+        <h2 id="about-work" className={styles.sectionTitle}>
           일하는 방식
-        </Eyebrow>
+        </h2>
 
         <div className={styles.item}>
           <h3 className={styles.itemTitle}>실제로 어떻게 쓰이는지부터 봅니다</h3>
@@ -103,9 +102,9 @@ export function AboutContent() {
       </section>
 
       <section className={styles.block} aria-labelledby="about-interests">
-        <Eyebrow as="h2" id="about-interests">
+        <h2 id="about-interests" className={styles.sectionTitle}>
           요즘 관심 있는 것
-        </Eyebrow>
+        </h2>
 
         <div className={styles.item}>
           <h3 className={styles.itemTitle}>디자인 시스템</h3>
@@ -148,9 +147,9 @@ export function AboutContent() {
       </section>
 
       <section className={styles.block} aria-labelledby="about-stack">
-        <Eyebrow as="h2" id="about-stack">
+        <h2 id="about-stack" className={styles.sectionTitle}>
           다루는 기술
-        </Eyebrow>
+        </h2>
         <p className={styles.body}>주로 TypeScript와 React를 사용합니다.</p>
         <p className={styles.body}>
           Next.js, Node.js를 함께 사용하고 있고, 일반적인 웹 UI 외에도 Canvas 기반 인터랙션이나
@@ -163,9 +162,9 @@ export function AboutContent() {
       </section>
 
       <section className={styles.block} aria-labelledby="about-record">
-        <Eyebrow as="h2" id="about-record">
+        <h2 id="about-record" className={styles.sectionTitle}>
           이곳에 남기는 것
-        </Eyebrow>
+        </h2>
         <p className={styles.body}>
           이 블로그에는 주로 제가 직접 만들거나 고민하면서 배운 것을 기록합니다.
         </p>
