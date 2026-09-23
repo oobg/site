@@ -225,10 +225,6 @@ export function BlogArticleDataSkeleton({
           </div>
           <ArticleFooterSkeleton showShare={false} />
         </article>
-        {/* 로딩에서도 오른쪽 레일을 같이 그린다 — 여기서 빠지면 본문이 뜨는 순간 목차만큼 폭이 튄다. */}
-        <div className={article.tocRail}>
-          <TableOfContents toc={toc} />
-        </div>
       </div>
     </BlogShell>
   );
