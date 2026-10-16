@@ -11,7 +11,16 @@ export type InputProps = ComponentProps<typeof BaseInput> & {
 };
 
 export const Input = forwardRef<HTMLElement, InputProps>(function Input(
-  { label, description, error, id: suppliedId, className, ...props },
+  {
+    label,
+    description,
+    error,
+    id: suppliedId,
+    className,
+    'aria-describedby': describedBy,
+    'aria-invalid': invalid,
+    ...props
+  },
   ref,
 ) {
   const generatedId = useId();
@@ -27,8 +36,10 @@ export const Input = forwardRef<HTMLElement, InputProps>(function Input(
         ref={ref}
         id={id}
         className={[styles.input, className].filter(Boolean).join(' ')}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={[descriptionId, errorId].filter(Boolean).join(' ') || undefined}
+        aria-invalid={error ? true : invalid}
+        aria-describedby={
+          [descriptionId, errorId, describedBy].filter(Boolean).join(' ') || undefined
+        }
         {...props}
       />
       {description && (

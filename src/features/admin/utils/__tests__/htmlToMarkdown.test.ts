@@ -192,3 +192,17 @@ describe('htmlToMarkdown', () => {
     expect(markdown).not.toContain('data:image');
   });
 });
+
+describe('format preservation regressions', () => {
+  it('keeps hard line breaks and code trailing spaces', async () => {
+    const source = '첫 줄  \n둘째 줄\n\n```txt\nvalue  \n```';
+    const { html } = await renderMarkdown(source);
+    expect(htmlToMarkdown(root(html))).toBe(source);
+  });
+
+  it('preserves an ordered list start and indentation at double digit markers', async () => {
+    const source = '10. 첫 항목\n    - 하위 항목\n11. 둘째 항목';
+    const { html } = await renderMarkdown(source);
+    expect(htmlToMarkdown(root(html))).toBe(source);
+  });
+});

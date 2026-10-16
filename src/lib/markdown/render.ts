@@ -629,7 +629,24 @@ function highlightCodeBlocks(this: Processor, langs: string[]) {
       langs: supportedLangs,
       colorReplacements: { '#fff': 'var(--color-canvas-2)' },
     }) as (tree: Root) => Root | undefined | Promise<Root | undefined>;
-    await highlight(tree);
+    // Shiki shares loaded grammars across documents. A previously loaded Mermaid
+    // grammar must not replace the fallback pre and discard its skip marker.
+    const fallbackCodes: Array<{
+      code: Element;
+      className: Element['properties']['className'];
+    }> = [];
+    visit(tree, 'element', (node: Element) => {
+      if (node.properties?.['data-mermaid-fallback-code'] === undefined) return;
+      const code = node.children[0];
+      if (code?.type !== 'element' || code.tagName !== 'code') return;
+      fallbackCodes.push({ code, className: code.properties.className });
+      delete code.properties.className;
+    });
+    try {
+      await highlight(tree);
+    } finally {
+      for (const { code, className } of fallbackCodes) code.properties.className = className;
+    }
   };
 }
 
@@ -838,7 +855,6 @@ function frameCodeBlocks(langs: string[]) {
       if (node.tagName !== 'pre') return;
       if (!parent || index === null || index === undefined) return;
       if (node.properties?.['data-mermaid-fallback-code'] !== undefined) return;
-      const lang = langs[at++] ?? '';
       if (
         parent.type === 'element' &&
         parent.tagName === 'figure' &&
@@ -846,6 +862,7 @@ function frameCodeBlocks(langs: string[]) {
       ) {
         return 'skip';
       }
+      const lang = langs[at++] ?? '';
       parent.children[index] = {
         type: 'element',
         tagName: 'figure',

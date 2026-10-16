@@ -8,6 +8,7 @@ import { FeaturedCarousel } from '@/app/_components/FeaturedCarousel';
 import { BlogShell } from '@/app/_components/BlogShell';
 import { BlogArchiveContentSkeleton } from '@/app/_components/BlogLoadingSkeleton';
 import { PostCard } from '@features/posts/components/PostCard';
+import { normalizeBlogPostFilters } from '@features/posts/services/posts.query';
 import { useBlogPosts } from '@features/posts/services/use-blog-posts';
 import { planHomeSections } from '@features/posts/utils/home-sections';
 import type { BlogHomeData, BlogPostFilters } from '@features/posts/types/posts.types';
@@ -46,7 +47,7 @@ export function BlogHomeContainer({
   const category = searchParams.get('category') ?? '';
   const tag = searchParams.get('tag') ?? '';
   const filters = useMemo<Filters>(
-    () => ({ q, category, tag, page, pageSize: 12 }),
+    () => normalizeBlogPostFilters({ q, category, tag, page, pageSize: 12 }),
     [category, page, q, tag],
   );
   const result = useBlogPosts(filters);
@@ -183,7 +184,7 @@ export function BlogHomeContainer({
   return (
     <BlogShell
       categories={categories}
-      activeCategory={category || undefined}
+      activeCategory={filters.category || undefined}
       onNavigate={(href) => window.history.pushState(null, '', href)}
     >
       {overview ? (
@@ -311,10 +312,25 @@ export function BlogHomeContainer({
             ) : data.archive.items.length === 0 ? (
               <div className={styles.state} role="status" aria-live="polite">
                 <p>
-                  {activeFilters.length > 0
-                    ? '조건에 맞는 글이 없어요.'
-                    : '아직 공개한 글이 없어요.'}
+                  {data.archive.totalItems > 0
+                    ? '이 페이지에 글이 없어요.'
+                    : activeFilters.length > 0
+                      ? '조건에 맞는 글이 없어요.'
+                      : '아직 공개한 글이 없어요.'}
                 </p>
+                {data.archive.totalItems > 0 ? (
+                  <Link
+                    href={hrefFor({ ...filters, page: 1 })}
+                    onClick={(event) => {
+                      if (opensElsewhere(event)) return;
+                      event.preventDefault();
+                      navigate({ ...filters, page: 1 });
+                      scrollToResults();
+                    }}
+                  >
+                    첫 페이지로 이동
+                  </Link>
+                ) : null}
               </div>
             ) : (
               <>

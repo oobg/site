@@ -14,7 +14,11 @@ async function fetchProjects(params: ListParams): Promise<ContentListItem[]> {
       ? mockProjectList.filter((p) => p.tags.includes(params.tag!))
       : mockProjectList;
     const sorted = sortContentItems(filtered, params.sort ?? '-published_at');
-    return typeof params.limit === 'number' ? sorted.slice(0, params.limit) : sorted;
+    if (typeof params.limit === 'number') {
+      const from = ((params.page ?? 1) - 1) * params.limit;
+      return sorted.slice(from, from + params.limit);
+    }
+    return sorted;
   }
   return apiGet<ContentListItem[]>('/content/projects', {
     tags: ['projects'],

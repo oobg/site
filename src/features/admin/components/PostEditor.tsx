@@ -204,11 +204,11 @@ export function PostEditor({
 
   useEffect(() => {
     if (loadedSnapshotKeyRef.current === snapshotKey) return;
-    loadedSnapshotKeyRef.current = snapshotKey;
     const snapshot = readEditorSnapshot(snapshotKey);
     if (!snapshot) return;
 
     const timer = window.setTimeout(() => {
+      loadedSnapshotKeyRef.current = snapshotKey;
       setTitle(snapshot.title);
       setSlug(snapshot.slug);
       setDescription(snapshot.description);
@@ -404,6 +404,7 @@ export function PostEditor({
 
     setUploading(true);
     setUploadMessage('이미지를 올리는 중이에요.');
+    const sourceBody = bodyValueRef.current;
     const selectionStart = bodyRef.current?.selectionStart;
     const selectionEnd = bodyRef.current?.selectionEnd;
     try {
@@ -418,8 +419,14 @@ export function PostEditor({
 
       const textarea = bodyRef.current;
       const currentBody = bodyValueRef.current;
-      const start = Math.min(selectionStart ?? currentBody.length, currentBody.length);
-      const end = Math.min(selectionEnd ?? currentBody.length, currentBody.length);
+      // Typing during an upload invalidates the old selection; append without replacing new text.
+      const unchanged = currentBody === sourceBody;
+      const start = unchanged
+        ? Math.min(selectionStart ?? currentBody.length, currentBody.length)
+        : currentBody.length;
+      const end = unchanged
+        ? Math.min(selectionEnd ?? currentBody.length, currentBody.length)
+        : currentBody.length;
       const alt =
         file.name
           .replace(/\.[^.]+$/, '')
@@ -432,6 +439,7 @@ export function PostEditor({
       const next = `${currentBody.slice(0, start)}${prefix}${markdown}${suffix}${currentBody.slice(end)}`;
       bodyValueRef.current = next;
       setBody(next);
+      editRevisionRef.current += 1;
       setDirty(true);
       setUploadMessage('본문에 이미지 링크를 넣었어요.');
       requestAnimationFrame(() => {
@@ -453,17 +461,22 @@ export function PostEditor({
       const payload = new FormData();
       payload.set('file', file);
       const response = await fetch('/api/admin/uploads', { method: 'POST', body: payload });
-      const result = (await response.json()) as {
-        path?: unknown;
-        publicUrl?: unknown;
-        error?: unknown;
-      };
-      if (!response.ok || typeof result.path !== 'string' || typeof result.publicUrl !== 'string') {
+      const result: unknown = await response.json();
+      if (
+        !response.ok ||
+        typeof result !== 'object' ||
+        result === null ||
+        !('path' in result) ||
+        typeof result.path !== 'string' ||
+        !('publicUrl' in result) ||
+        typeof result.publicUrl !== 'string'
+      ) {
         throw new Error(errorMessage(result) ?? '대표 이미지를 업로드하지 못했습니다.');
       }
       setCoverKey(result.path.replace(/^\//, ''));
       setCoverUrl(result.publicUrl);
       if (!coverAlt) setCoverAlt(file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '));
+      editRevisionRef.current += 1;
       setDirty(true);
       setUploadMessage('대표 이미지를 올렸어요.');
     } catch (error) {
@@ -555,7 +568,7 @@ export function PostEditor({
       onSubmit={(event) => {
         if (uploading) event.preventDefault();
         const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
-        const submittedStatus = submitter?.dataset.status as PostStatus | undefined;
+        const submittedStatus = (submitter?.dataset.status ?? secondaryStatus) as PostStatus;
         if (submittedStatus && statusInputRef.current) {
           statusInputRef.current.value = submittedStatus;
         }
@@ -924,6 +937,7 @@ export function PostEditor({
               onClick={() => {
                 setSlugEdited(true);
                 setSlug(normalizeSlug(title));
+                editRevisionRef.current += 1;
                 setDirty(true);
               }}
             >

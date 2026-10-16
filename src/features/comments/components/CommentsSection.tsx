@@ -241,6 +241,10 @@ function formatDate(value: string) {
 }
 
 export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarBaseUrl?: string }) {
+  return <PostCommentsSection key={slug} slug={slug} avatarBaseUrl={avatarBaseUrl} />;
+}
+
+function PostCommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarBaseUrl?: string }) {
   /* 제출에 쓰는 값(identity)과 화면에 드러나는 값(revealedNickname)을 나눈다. 한 글자씩
      드러나는 40ms 동안에도 identity.nickname은 이미 완성돼 있어야, 전환 연출 때문에
      등록 버튼이 공회전으로 잠기지 않는다. */
@@ -258,6 +262,8 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
   const [error, setError] = useState('');
   const [loadError, setLoadError] = useState(false);
   const nicknameTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const requestControllerRef = useRef<AbortController | null>(null);
+  const submittingRef = useRef(false);
   const endpoint = `/api/posts/${encodeURIComponent(slug)}/comments`;
 
   const cancelNicknameAnimation = useCallback(() => {
@@ -270,6 +276,7 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
 
   const load = useCallback(
     async (cursor?: string, signal?: AbortSignal) => {
+      signal ??= requestControllerRef.current?.signal;
       const response = await fetch(
         cursor
           ? `${endpoint}?cursor=${encodeURIComponent(cursor)}&limit=20`
@@ -277,6 +284,7 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
         { signal },
       );
       const payload = (await response.json()) as CommentPage | { error?: { message?: string } };
+      if (signal?.aborted) return;
       if (!response.ok || !('items' in payload)) {
         throw new Error('error' in payload ? payload.error?.message : undefined);
       }
@@ -292,10 +300,10 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
      상태 초기화는 호출부가 맡는다 — 이 함수가 동기적으로 setState를 하면
      마운트 이펙트가 곧장 연쇄 렌더를 일으킨다. */
   const loadFirstPage = useCallback(
-    (signal?: AbortSignal) =>
+    (signal = requestControllerRef.current?.signal) =>
       load(undefined, signal)
         .catch((reason: unknown) => {
-          if ((reason as Error).name === 'AbortError') return;
+          if (signal?.aborted || (reason as Error).name === 'AbortError') return;
           setLoadError(true);
           // 복구 블록이 같은 실패를 설명한다. status에는 두 번째 문구를 겹쳐 읽히게 하지 않는다.
           setError('');
@@ -315,9 +323,11 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
 
   useEffect(() => {
     const controller = new AbortController();
+    requestControllerRef.current = controller;
     /* 마운트 직후 상태를 동기로 건드리면 연쇄 렌더가 된다. 아이덴티티 추첨도
        첫 로드도 마이크로태스크로 미뤄 첫 렌더를 서버 출력 그대로 둔다. */
     queueMicrotask(() => {
+      if (controller.signal.aborted) return;
       const next = randomIdentity();
       setIdentity(next);
       setRevealedNickname(next.nickname);
@@ -328,16 +338,21 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (submittingRef.current || loading) return;
     const content = body.trim();
     const nickname = identity.nickname.trim();
     if (!content) return setError('댓글 내용을 입력해 주세요.');
     if (!nickname) return setError('닉네임을 입력해 주세요.');
+    submittingRef.current = true;
+    const signal = requestControllerRef.current?.signal;
+    const submittedBody = body;
     setSubmitting(true);
     setError('');
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
+        signal,
         body: JSON.stringify({
           nickname,
           avatar_id: identity.avatarId,
@@ -348,6 +363,7 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
         comment?: Comment;
         error?: { message?: string };
       };
+      if (signal?.aborted) return;
       if (!response.ok || !payload.comment) {
         throw new Error(
           response.status === 429
@@ -357,26 +373,30 @@ export function CommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarB
       }
       setComments((current) => [payload.comment as Comment, ...current]);
       setTotal((current) => current + 1);
-      setBody('');
+      setBody((current) => (current === submittedBody ? '' : current));
     } catch (reason) {
+      if (signal?.aborted) return;
       setError(
         reason instanceof Error ? reason.message : '댓글을 등록하지 못했어요. 다시 시도해 주세요.',
       );
     } finally {
-      setSubmitting(false);
+      submittingRef.current = false;
+      if (!signal?.aborted) setSubmitting(false);
     }
   };
 
   const loadMore = async () => {
     if (!nextCursor || loadingMore) return;
+    const signal = requestControllerRef.current?.signal;
     setLoadingMore(true);
     setError('');
     try {
-      await load(nextCursor);
+      await load(nextCursor, signal);
     } catch {
+      if (signal?.aborted) return;
       setError('댓글을 더 불러오지 못했어요. 다시 시도해 주세요.');
     } finally {
-      setLoadingMore(false);
+      if (!signal?.aborted) setLoadingMore(false);
     }
   };
 

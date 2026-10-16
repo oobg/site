@@ -22,29 +22,62 @@ function formatPostDate(value?: string) {
     : new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium' }).format(date);
 }
 
+async function runSettingsAction(
+  action: typeof updateCategoryAction,
+  state: PostActionState,
+  data: FormData,
+  invalidate: () => Promise<unknown>,
+  failureMessage: string,
+): Promise<PostActionState> {
+  let result: PostActionState;
+  try {
+    result = await action(state, data);
+  } catch {
+    return { status: 'error', message: failureMessage };
+  }
+  if (result.status === 'success') {
+    try {
+      await invalidate();
+    } catch {
+      return { ...result, message: `${result.message} 최신 내용을 보려면 새로고침해 주세요.` };
+    }
+  }
+  return result;
+}
+
 function CategoryRow({ category }: { category: BlogCategory }) {
   const queryClient = useQueryClient();
+  const [lastAction, setLastAction] = useState<'update' | 'delete'>('update');
   const withInvalidation =
-    (action: typeof updateCategoryAction) => async (state: PostActionState, data: FormData) => {
-      const result = await action(state, data);
-      if (result.status === 'success') {
-        await queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
-        await queryClient.invalidateQueries({ queryKey: ['post'] });
-      }
-      return result;
-    };
+    (action: typeof updateCategoryAction, failureMessage: string) =>
+    (state: PostActionState, data: FormData) =>
+      runSettingsAction(
+        action,
+        state,
+        data,
+        () =>
+          Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['blog-posts'] }),
+            queryClient.invalidateQueries({ queryKey: ['post'] }),
+          ]),
+        failureMessage,
+      );
   const [updateState, updateAction, updating] = useActionState(
-    withInvalidation(updateCategoryAction),
+    withInvalidation(updateCategoryAction, '카테고리를 저장하지 못했어요. 다시 시도해 주세요.'),
     initialPostActionState,
   );
   const [deleteState, deleteAction, deleting] = useActionState(
-    withInvalidation(deleteCategoryAction),
+    withInvalidation(deleteCategoryAction, '카테고리를 삭제하지 못했어요. 다시 시도해 주세요.'),
     initialPostActionState,
   );
-  const state = deleteState.status !== 'idle' ? deleteState : updateState;
+  const state = lastAction === 'delete' ? deleteState : updateState;
   return (
     <div className={styles.row}>
-      <form action={updateAction} className={styles.categoryForm}>
+      <form
+        action={updateAction}
+        onSubmit={() => setLastAction('update')}
+        className={styles.categoryForm}
+      >
         <input type="hidden" name="id" value={category.id} />
         <input
           name="name"
@@ -65,19 +98,22 @@ function CategoryRow({ category }: { category: BlogCategory }) {
           defaultValue={category.sort_order}
           aria-label="정렬 순서"
         />
-        <button type="submit" disabled={updating || category.is_default}>
+        <button type="submit" disabled={updating || deleting || category.is_default}>
           저장
         </button>
       </form>
       <form
         action={deleteAction}
         onSubmit={(event) => {
-          if (!window.confirm('이 카테고리의 글을 미분류로 옮기고 삭제할까요?'))
+          if (!window.confirm('이 카테고리의 글을 미분류로 옮기고 삭제할까요?')) {
             event.preventDefault();
+            return;
+          }
+          setLastAction('delete');
         }}
       >
         <input type="hidden" name="id" value={category.id} />
-        <button type="submit" disabled={deleting || category.is_default}>
+        <button type="submit" disabled={updating || deleting || category.is_default}>
           삭제
         </button>
       </form>
@@ -98,14 +134,18 @@ export function BlogSettings({
 }) {
   const queryClient = useQueryClient();
   const [createState, createAction, creating] = useActionState(
-    async (state: PostActionState, data: FormData) => {
-      const result = await createCategoryAction(state, data);
-      if (result.status === 'success') {
-        await queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
-        await queryClient.invalidateQueries({ queryKey: ['post'] });
-      }
-      return result;
-    },
+    (state: PostActionState, data: FormData) =>
+      runSettingsAction(
+        createCategoryAction,
+        state,
+        data,
+        () =>
+          Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['blog-posts'] }),
+            queryClient.invalidateQueries({ queryKey: ['post'] }),
+          ]),
+        '카테고리를 추가하지 못했어요. 다시 시도해 주세요.',
+      ),
     initialPostActionState,
   );
   const published = posts.filter((post) => post.status === 'published');
@@ -118,12 +158,14 @@ export function BlogSettings({
   const [postQuery, setPostQuery] = useState('');
   const [postCategory, setPostCategory] = useState('');
   const [pinState, pinAction, pinning] = useActionState(
-    async (state: PostActionState, data: FormData) => {
-      const result = await reorderPinnedPostsAction(state, data);
-      if (result.status === 'success')
-        await queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
-      return result;
-    },
+    (state: PostActionState, data: FormData) =>
+      runSettingsAction(
+        reorderPinnedPostsAction,
+        state,
+        data,
+        () => queryClient.invalidateQueries({ queryKey: ['blog-posts'] }),
+        '대표 글 순서를 저장하지 못했어요. 다시 시도해 주세요.',
+      ),
     initialPostActionState,
   );
 

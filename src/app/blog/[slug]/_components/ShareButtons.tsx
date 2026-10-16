@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Check, LinkSimple, ShareNetwork } from '@phosphor-icons/react';
+import { Toast } from '@lib/toast';
 import { createBlogShareUrl } from '@lib/analytics/share-url';
 import styles from './ShareButtons.module.css';
 
@@ -34,7 +35,10 @@ export function ShareButtons({ title }: { title: string }) {
       window.clearTimeout(resetTimer.current);
       resetTimer.current = window.setTimeout(() => setCopied(false), 2000);
     } catch {
-      if (mounted.current) setCopied(false);
+      if (mounted.current) {
+        setCopied(false);
+        Toast.error('링크를 복사하지 못했어요. 다시 시도해 주세요.');
+      }
     }
   }
 
@@ -44,8 +48,15 @@ export function ShareButtons({ title }: { title: string }) {
         title,
         url: createBlogShareUrl(window.location.href, 'native_share'),
       });
-    } catch {
-      /* 사용자가 공유 시트를 닫은 경우 */
+    } catch (error) {
+      const cancelled =
+        typeof error === 'object' &&
+        error !== null &&
+        'name' in error &&
+        error.name === 'AbortError';
+      if (mounted.current && !cancelled) {
+        Toast.error('공유하지 못했어요. 다시 시도해 주세요.');
+      }
     }
   }
 

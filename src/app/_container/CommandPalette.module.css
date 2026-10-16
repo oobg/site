@@ -50,6 +50,10 @@
 .backdrop[data-ending-style] {
   opacity: 0;
 }
+.backdrop[data-ending-style],
+.backdrop[data-closed] {
+  pointer-events: none;
+}
 .viewport {
   position: fixed;
   inset: 0;

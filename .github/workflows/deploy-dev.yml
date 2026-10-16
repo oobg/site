@@ -92,6 +92,14 @@ jobs:
           show_log lint "$lint_rc" "$logs/lint.log"
           test "$typecheck_rc" -eq 0 && test "$lint_rc" -eq 0
 
+      # 호스트를 바꾸는 첫 step(Access 설정 반영)보다 앞에 둔다. ledger를 읽기만 하고
+      # migration을 적용하지 않는다. 빠진 파일이 있으면 앱을 바꾸기 전에 실패한다.
+      - name: dev DB migration 적용 여부 확인
+        env:
+          RAVEN_DEV_DB_CONTAINER: raven-supabase-dev-db
+          RAVEN_DEV_DB_NAME: postgres
+        run: node scripts/check-applied-migrations.mjs supabase/migrations
+
       - name: dev Access 설정 반영
         env:
           CLOUDFLARE_ACCESS_TEAM_DOMAIN: ${{ vars.CLOUDFLARE_ACCESS_TEAM_DOMAIN }}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { Toast } from '@lib/toast';
 
 /** 복사됨 표시를 되돌리기까지. 짧으면 못 보고, 길면 다음 블록을 복사할 때 겹친다. */
 const RESET_MS = 1600;
@@ -29,8 +30,9 @@ export function CodeCopy() {
       try {
         await navigator.clipboard.writeText(code.textContent ?? '');
       } catch {
-        /* 권한이 없거나 보안 컨텍스트가 아니면 아무 표시도 하지 않는다.
-           복사되지 않았는데 복사됨이라고 하는 것이 가장 나쁘다. */
+        if (active && button.isConnected) {
+          Toast.error('코드를 복사하지 못했어요. 다시 시도해 주세요.');
+        }
         return;
       }
 

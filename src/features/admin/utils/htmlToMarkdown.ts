@@ -52,13 +52,21 @@ function inlineCode(value: string) {
 }
 
 function inline(node: Node): string {
-  if (node.nodeType === Node.TEXT_NODE) return escapeText(node.textContent ?? '');
+  if (node.nodeType === Node.TEXT_NODE) {
+    const value = node.textContent ?? '';
+    // Serialized HTML adds a newline after <br>; the break already emits its Markdown newline.
+    return escapeText(
+      node.previousSibling instanceof Element && node.previousSibling.tagName === 'BR'
+        ? value.replace(/^\n/, '')
+        : value,
+    );
+  }
   if (!(node instanceof Element) || ignoredElement(node)) return '';
 
   const content = () => Array.from(node.childNodes, inline).join('');
   switch (node.tagName) {
     case 'BR':
-      return '\n';
+      return '  \n';
     case 'STRONG':
     case 'B':
       return `**${content()}**`;
@@ -203,24 +211,23 @@ function table(element: Element) {
 }
 
 function listItem(element: Element, ordered: boolean, index: number) {
-  const nested = Array.from(element.children).filter((child) =>
-    child.matches(':scope > ul, :scope > ol'),
-  );
+  const nested = Array.from(element.children).filter((child) => child.matches('ul, ol'));
   const bodyNodes = Array.from(element.childNodes).filter(
     (node) => !(node instanceof Element && (node.tagName === 'UL' || node.tagName === 'OL')),
   );
   const body = blocks(bodyNodes).trim() || '';
-  const marker = ordered ? `${index + 1}. ` : '- ';
+  const marker = ordered ? `${index}. ` : '- ';
+  const indentation = ' '.repeat(marker.length);
   const lines = body.split('\n');
   const own = `${marker}${lines[0] ?? ''}${lines
     .slice(1)
-    .map((line) => `\n  ${line}`)
+    .map((line) => `\n${indentation}${line}`)
     .join('')}`;
   const children = nested
     .map((child) =>
       block(child)
         .split('\n')
-        .map((line) => `  ${line}`)
+        .map((line) => `${indentation}${line}`)
         .join('\n'),
     )
     .join('\n');
@@ -259,9 +266,10 @@ function block(element: Element): string {
   }
   if (tag === 'UL' || tag === 'OL') {
     const ordered = tag === 'OL';
+    const start = ordered ? (element as HTMLOListElement).start : 1;
     return Array.from(element.children)
       .filter((child) => child.tagName === 'LI')
-      .map((item, index) => listItem(item, ordered, index))
+      .map((item, index) => listItem(item, ordered, start + index))
       .join('\n');
   }
   if (tag === 'TABLE') return table(element);
@@ -293,7 +301,5 @@ function blocks(nodes: Node[]) {
 
 /** 렌더링된 글 DOM을 저장 계약인 Markdown 원문으로 보수적으로 되돌린다. */
 export function htmlToMarkdown(root: ParentNode) {
-  return blocks(Array.from(root.childNodes))
-    .replace(/[ \t]+$/gm, '')
-    .trim();
+  return blocks(Array.from(root.childNodes)).trim();
 }

@@ -84,6 +84,34 @@ describe('FeaturedCarousel', () => {
     expect(screen.getByText('2 / 2')).toBeInTheDocument();
   });
 
+  it('keeps rotating after the current index is clamped by a smaller result set', () => {
+    vi.useFakeTimers();
+    const { rerender } = render(<FeaturedCarousel posts={[1, 2, 3, 4, 5].map(post)} />);
+    fireEvent.click(screen.getByRole('button', { name: '이전 추천 글' }));
+    rerender(<FeaturedCarousel posts={[post(1), post(2)]} />);
+    act(() => vi.advanceTimersByTime(10000));
+    expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+  });
+
+  it('keeps focus pause when the pointer leaves, and hover pause when focus leaves', () => {
+    vi.useFakeTimers();
+    render(<FeaturedCarousel posts={[post(1), post(2)]} />);
+    const section = screen.getByRole('region', { name: '추천 글' });
+    const next = screen.getByRole('button', { name: '다음 추천 글' });
+    fireEvent.focus(next);
+    fireEvent.mouseEnter(section);
+    fireEvent.mouseLeave(section);
+    act(() => vi.advanceTimersByTime(10000));
+    expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+    fireEvent.mouseEnter(section);
+    fireEvent.blur(next, { relatedTarget: document.body });
+    act(() => vi.advanceTimersByTime(10000));
+    expect(screen.getByRole('heading', { name: '추천 글 1' })).toBeInTheDocument();
+    fireEvent.mouseLeave(section);
+    act(() => vi.advanceTimersByTime(10000));
+    expect(screen.getByRole('heading', { name: '추천 글 2' })).toBeInTheDocument();
+  });
+
   it('reads the post before its controls and keeps focus on the button that was pressed', () => {
     render(<FeaturedCarousel posts={[1, 2, 3].map(post)} />);
     const heading = screen.getByRole('heading', { name: '추천 글 1' });

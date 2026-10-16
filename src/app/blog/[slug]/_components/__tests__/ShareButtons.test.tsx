@@ -2,11 +2,15 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ShareButtons } from '@/app/blog/[slug]/_components/ShareButtons';
 
+const feedback = vi.hoisted(() => ({ error: vi.fn() }));
+vi.mock('@lib/toast', () => ({ Toast: feedback }));
+
 describe('ShareButtons', () => {
   const writeText = vi.fn();
 
   beforeEach(() => {
     vi.useFakeTimers();
+    feedback.error.mockReset();
     writeText.mockReset().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
     Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
@@ -31,6 +35,7 @@ describe('ShareButtons', () => {
     render(<ShareButtons title="테스트 글" />);
     await act(async () => fireEvent.click(screen.getByRole('button', { name: '링크 복사' })));
     expect(screen.getByRole('button', { name: '링크 복사' })).toBeInTheDocument();
+    expect(feedback.error).toHaveBeenCalledWith('링크를 복사하지 못했어요. 다시 시도해 주세요.');
   });
 
   it('지원 환경에서만 네이티브 공유를 노출하고 제목과 주소를 전달한다', async () => {
@@ -42,6 +47,17 @@ describe('ShareButtons', () => {
       title: '테스트 글',
       url: 'http://localhost:3000/blog/dev/my-post?utm_source=raven&utm_medium=share&utm_campaign=blog&utm_content=native_share',
     });
+  });
+
+  it('reports native share failure while keeping user cancellation quiet', async () => {
+    const share = vi.fn().mockRejectedValueOnce(new Error('failed'));
+    Object.defineProperty(navigator, 'share', { configurable: true, value: share });
+    render(<ShareButtons title="테스트 글" />);
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: '공유하기' })));
+    expect(feedback.error).toHaveBeenCalledTimes(1);
+    share.mockRejectedValueOnce(new DOMException('cancelled', 'AbortError'));
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: '공유하기' })));
+    expect(feedback.error).toHaveBeenCalledTimes(1);
   });
 
   it('연속 복사하면 가장 최근 클릭부터 2초 동안 상태를 유지한다', async () => {

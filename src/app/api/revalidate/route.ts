@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { revalidateTag } from 'next/cache';
 import { z } from 'zod';
 import { env } from '@configs/env';
+import { AdminApiError, readLimitedBody } from '@lib/api/admin-http';
 
 const MAX_BODY_SIZE = 64 * 1024;
 const payloadSchema = z.object({
@@ -27,15 +28,7 @@ export async function POST(req: Request): Promise<NextResponse> {
   }
 
   try {
-    const declaredLength = Number(req.headers.get('content-length'));
-    if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_SIZE) {
-      return NextResponse.json({ error: 'payload too large' }, { status: 413 });
-    }
-
-    const raw = await req.text();
-    if (raw.length > MAX_BODY_SIZE) {
-      return NextResponse.json({ error: 'payload too large' }, { status: 413 });
-    }
+    const raw = new TextDecoder().decode(await readLimitedBody(req, MAX_BODY_SIZE));
 
     let input: unknown;
     try {
@@ -68,6 +61,9 @@ export async function POST(req: Request): Promise<NextResponse> {
 
     return NextResponse.json({ revalidated: true, count: changed.length });
   } catch (error) {
+    if (error instanceof AdminApiError && error.status === 413) {
+      return NextResponse.json({ error: 'payload too large' }, { status: 413 });
+    }
     console.error('Cache revalidation failed', {
       kind: error instanceof Error ? error.name : 'UnknownError',
     });

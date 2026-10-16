@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { AdminApiError, readLimitedBody } from '@lib/api/admin-http';
 import {
   commentCursorSchema,
   commentInputSchema,
@@ -13,6 +14,7 @@ import {
 
 export const runtime = 'nodejs';
 const headers = { 'Cache-Control': 'no-store' };
+const MAX_BODY_SIZE = 16 * 1024;
 const fail = (status: number, code: string, message: string, extraHeaders?: HeadersInit) =>
   NextResponse.json(
     { error: { code, message } },
@@ -31,7 +33,8 @@ function decodeCursor(value: string | null) {
 }
 
 export async function GET(request: Request, { params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = rawSlug.normalize('NFC');
   if (!validSlug(slug)) return fail(400, 'INVALID_SLUG', '글 주소가 올바르지 않습니다.');
   const cursor = decodeCursor(new URL(request.url).searchParams.get('cursor'));
   if (cursor === null) return fail(400, 'INVALID_CURSOR', '댓글 페이지 정보가 올바르지 않습니다.');
@@ -48,7 +51,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ slug
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params;
+  const { slug: rawSlug } = await params;
+  const slug = rawSlug.normalize('NFC');
   if (!validSlug(slug)) return fail(400, 'INVALID_SLUG', '글 주소가 올바르지 않습니다.');
   const expectedOrigin = process.env.SITE_URL?.trim().replace(/\/$/, '');
   if (!expectedOrigin || request.headers.get('origin') !== expectedOrigin)
@@ -60,8 +64,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
     return fail(415, 'UNSUPPORTED_MEDIA_TYPE', 'JSON 요청만 지원합니다.');
   let json: unknown;
   try {
-    json = await request.json();
-  } catch {
+    const body = await readLimitedBody(request, MAX_BODY_SIZE);
+    json = JSON.parse(new TextDecoder().decode(body));
+  } catch (error) {
+    if (error instanceof AdminApiError) return fail(error.status, error.code, error.message);
     return fail(400, 'INVALID_JSON', '요청 형식이 올바르지 않습니다.');
   }
   const parsed = commentInputSchema.safeParse(json);

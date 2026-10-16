@@ -103,6 +103,56 @@ describe('POST /api/revalidate', () => {
     expect(revalidateTag).not.toHaveBeenCalled();
   });
 
+  it.each([undefined, '1'])('checks actual UTF-8 bytes with Content-Length %s', async (length) => {
+    const { POST } = await import('@/app/api/revalidate/route');
+    const headers: Record<string, string> = { 'x-revalidate-secret': 'test-secret' };
+    if (length !== undefined) headers['content-length'] = length;
+    const response = await POST(post(headers, { changed: [], padding: '가'.repeat(22_000) }));
+
+    expect(response.status).toBe(413);
+    await expect(response.json()).resolves.toEqual({ error: 'payload too large' });
+    expect(revalidateTag).not.toHaveBeenCalled();
+  });
+
+  it('accepts a body exactly at the byte limit', async () => {
+    const { POST } = await import('@/app/api/revalidate/route');
+    const response = await POST(
+      new Request('http://localhost/api/revalidate', {
+        method: 'POST',
+        headers: { 'x-revalidate-secret': 'test-secret', 'content-type': 'application/json' },
+        body: JSON.stringify({ changed: [] }).padEnd(64 * 1024, ' '),
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toEqual({ revalidated: true, count: 0 });
+  });
+
+  it('cancels an oversized stream before consuming the remaining body', async () => {
+    const { POST } = await import('@/app/api/revalidate/route');
+    const cancel = vi.fn();
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new Uint8Array(64 * 1024));
+        controller.enqueue(new Uint8Array(1));
+        controller.enqueue(new Uint8Array(32));
+        controller.close();
+      },
+      cancel,
+    });
+    const init = {
+      method: 'POST',
+      headers: { 'x-revalidate-secret': 'test-secret', 'content-type': 'application/json' },
+      body,
+      duplex: 'half',
+    };
+    const response = await POST(new Request('http://localhost/api/revalidate', init));
+
+    expect(response.status).toBe(413);
+    expect(cancel).toHaveBeenCalledOnce();
+    expect(revalidateTag).not.toHaveBeenCalled();
+  });
+
   it('returns a traceable safe error when cache invalidation fails', async () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     revalidateTag.mockImplementationOnce(() => {

@@ -67,7 +67,11 @@ async function fetchPosts(params: ListParams): Promise<PostListItem[]> {
       ? mockPostList.filter((p) => p.tags.includes(params.tag!))
       : mockPostList;
     const sorted = sortContentItems(filtered, params.sort ?? '-published_at');
-    return typeof params.limit === 'number' ? sorted.slice(0, params.limit) : sorted;
+    if (typeof params.limit === 'number') {
+      const from = ((params.page ?? 1) - 1) * params.limit;
+      return sorted.slice(from, from + params.limit);
+    }
+    return sorted;
   }
   if (env.CONTENT_SOURCE === 'supabase') {
     const supabase = createPublicClient();

@@ -59,22 +59,27 @@ app/ → features/ → components/ → hooks/, lib/, utils/
 ```ts
 ROUTES.HOME; // '/'
 ROUTES.BLOG.LIST; // '/blog'
-ROUTES.BLOG.DETAIL(slug); // '/blog/:slug'
+ROUTES.BLOG.DETAIL(category, slug); // '/blog/:category/:slug'
+ROUTES.BLOG.LEGACY_DETAIL(slug); // '/blog/:slug' → canonical로 리다이렉트
 ROUTES.PROJECTS.LIST; // '/projects'
 ROUTES.PROJECTS.DETAIL(slug);
 ```
 
 ## 공개 글 주소와 404 (검색 노출 SSOT)
 
-canonical은 **한 세그먼트**다: `/blog/{slug}`. 카테고리는 주소에 넣지 않는다.
+canonical은 **카테고리와 글 키 두 세그먼트**다: `/blog/{category}/{slug}`.
 
-- 색인에 남은 옛 두 세그먼트 주소는 `app/blog/[slug]/[legacySlug]/page.tsx`가 308로 canonical에
-  넘긴다. 부모가 이미 `[slug]`라 Next가 같은 자리에 다른 이름을 허용하지 않아, 이 라우트에서는
-  `params.slug`가 **옛 카테고리**, `params.legacySlug`가 **글 키**다. 이름만 보고 바꾸지 말 것.
+- 색인에 남은 옛 한 세그먼트 주소는 `app/blog/[category]/page.tsx`가 308로 canonical에
+  넘긴다. canonical과 첫 세그먼트 디렉터리를 공유하므로 이 legacy 라우트의 `params.category`는
+  **옛 글 키**다. 이름만 보고 카테고리 조회로 바꾸지 말 것.
+- `app/blog/[category]/[slug]/page.tsx`는 현재 카테고리와 글 키로 본문을 조회한다.
+  예전 카테고리 별칭(`legacy_slug`)은 현재 카테고리 주소로 308 리다이렉트하고, 그 밖의 카테고리
+  불일치는 404로 처리한다.
 - 라우트 세그먼트는 `@lib/navigation/slug`의 `normalizeRouteSlug`로만 받는다. NFC 정규화와
   경로 이탈(`..`·`/`·`%00`·제어문자) 차단이 여기 한 곳에 있다.
-- 절대 URL(canonical·RSS·JSON-LD)을 만들 때는 `@lib/navigation/route-segment`의 `encodeRouteSlug`를
-  통과시킨다. 화면 링크용 `ROUTES.BLOG.DETAIL(slug)`는 인코딩하지 않는 지금 형태를 유지한다.
+- 화면 링크와 절대 URL(canonical·RSS·JSON-LD) 모두 `ROUTES.BLOG.DETAIL(category, slug)`를 쓴다.
+  이 헬퍼가 두 세그먼트를 각각 `@lib/navigation/route-segment`의 `encodeRouteSlug`로 인코딩하므로
+  호출 전에 중복 인코딩하지 않는다.
 
 ### `loading.tsx`는 글 상세 위에 두지 않는다
 
@@ -83,13 +88,15 @@ canonical은 **한 세그먼트**다: `/blog/{slug}`. 카테고리는 주소에 
 200 + 빈 셸(soft 404)로 나간다. 검색엔진에는 "사라진 글이 계속 살아 있는 것"으로 보인다.
 
 그래서 홈 스켈레톤은 `app/(home)/loading.tsx`로 홈 세그먼트 안에만 둔다. 루트 `app/loading.tsx`,
-`app/blog/loading.tsx`, `app/blog/[slug]/loading.tsx`, `app/projects/[slug]/loading.tsx`를
+`app/blog/loading.tsx`, `app/blog/[category]/loading.tsx`,
+`app/blog/[category]/[slug]/loading.tsx`, `app/projects/[slug]/loading.tsx`를
 **되살리지 않는다**. 공개 상세의 부분 로딩은 페이지 안 `<Suspense>`로만 한다(데이터를 이미 읽은
 뒤라 상태 코드에 영향이 없다). 목록인 `app/projects/loading.tsx`는 목록 셸을 위한 경계라 이 규칙의
 대상이 아니다. Projects 목록의 로딩은 `app/(projects)/projects/loading.tsx`처럼 목록 route group
 안에 두어 상세 경로의 404 상태를 가리지 않게 한다.
 
-검증: 프로덕션 빌드 뒤 `.next/standalone/server.js`로 `/blog/{없는-slug}`가 404인지 본다.
+검증: 프로덕션 빌드 뒤 `.next/standalone/server.js`로 `/blog/{category}/{없는-slug}`와
+legacy `/blog/{없는-slug}`가 모두 404인지 본다.
 `next dev`나 `next start`가 아니라 standalone이 실제 배포 경로다.
 
 ## 검색 노출 산출물

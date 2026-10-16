@@ -69,6 +69,9 @@ export async function renderMermaidFigures(
   const figures = Array.from(
     root.querySelectorAll<HTMLElement>('[data-mermaid][data-mermaid-state="pending"]'),
   );
+  if (root instanceof HTMLElement && root.matches('[data-mermaid][data-mermaid-state="pending"]')) {
+    figures.unshift(root);
+  }
   if (!figures.length) return;
 
   for (const figure of figures) figure.dataset.mermaidState = 'loading';
@@ -87,6 +90,9 @@ export async function renderMermaidFigures(
       mermaid.initialize({
         startOnLoad: false,
         securityLevel: 'strict',
+        // The SVG sanitizer deliberately removes foreignObject. Ask Mermaid to
+        // render labels as SVG text so nodes and edges retain their labels.
+        htmlLabels: false,
         suppressErrorRendering: true,
         theme: 'base',
         themeVariables: {
@@ -108,15 +114,20 @@ export async function renderMermaidFigures(
 
   await Promise.all(
     figures.map(async (figure) => {
+      if (!figure.isConnected) return;
       const source = figure.querySelector<HTMLElement>('[data-mermaid-source]')?.textContent ?? '';
       const canvas = figure.querySelector<HTMLElement>('[data-mermaid-canvas]');
       const fallback = figure.querySelector<HTMLElement>('[data-mermaid-fallback]');
       const status = figure.querySelector<HTMLElement>('[data-mermaid-status]');
-      if (!source || !canvas || !fallback) return;
+      if (!source.trim() || !canvas || !fallback) {
+        showMermaidFallback(figure);
+        return;
+      }
 
       try {
         const id = `mermaid-diagram-${++mermaidSequence}`;
         const rendered = await mermaid.render(id, source);
+        if (!figure.isConnected) return;
         const svg = safeSvg(rendered.svg);
         if (!svg) throw new Error('Unsafe Mermaid output');
         canvas.replaceChildren(svg);
@@ -125,7 +136,7 @@ export async function renderMermaidFigures(
         if (status) status.textContent = '';
         figure.dataset.mermaidState = 'ready';
       } catch {
-        showMermaidFallback(figure);
+        if (figure.isConnected) showMermaidFallback(figure);
       }
     }),
   );
@@ -162,7 +173,13 @@ export function ContentEnhancements({ contentKey = '' }: { contentKey?: string }
   useEffect(() => {
     void renderMermaidFigures(document);
 
-    const observer = new MutationObserver(() => void renderMermaidFigures(document));
+    const observer = new MutationObserver((records) => {
+      for (const record of records) {
+        for (const node of record.addedNodes) {
+          if (node instanceof HTMLElement) void renderMermaidFigures(node);
+        }
+      }
+    });
     observer.observe(document.body, { childList: true, subtree: true });
 
     const onClick = (event: MouseEvent) => {

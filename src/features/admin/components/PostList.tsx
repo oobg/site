@@ -59,6 +59,7 @@ export function PostList({
   categories?: BlogCategory[];
 }) {
   const tableRef = useRef<HTMLDivElement>(null);
+  const restoredContextRef = useRef(false);
   const compactListRef = useRef<HTMLUListElement>(null);
   const [overrides, setOverrides] = useState<Record<string, Partial<AdminPostListItem>>>({});
   const [{ status, category, query }, setFilters] = useQueryStates(postListFilterParsers, {
@@ -130,14 +131,16 @@ export function PostList({
     sortKey === key ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none';
 
   useEffect(() => {
+    if (restoredContextRef.current) return;
     try {
       const saved = JSON.parse(sessionStorage.getItem('raven:admin-list-context') ?? '{}') as {
         query?: string;
         scrollTop?: number;
         windowScrollY?: number;
       };
-      requestAnimationFrame(() => {
-        if (saved.query !== undefined && saved.query !== query) {
+      const frame = requestAnimationFrame(() => {
+        restoredContextRef.current = true;
+        if (!query && typeof saved.query === 'string' && saved.query !== query) {
           void setFilters({ query: saved.query });
         }
         requestAnimationFrame(() => {
@@ -149,6 +152,7 @@ export function PostList({
           }
         });
       });
+      return () => cancelAnimationFrame(frame);
     } catch {
       // Storage failure must not block the list.
     }

@@ -329,6 +329,22 @@ describe('renderMarkdown', () => {
       expect(html).toContain('<figure data-code');
       expect(html).not.toContain('data-mermaid-state');
     });
+
+    it('Mermaid 문법이 이미 캐시되어도 뒤 코드블럭의 언어 라벨을 밀지 않는다', async () => {
+      await renderMarkdown('```mermaid\n\n```');
+      const { html } = await renderMarkdown(
+        '```mermaid\nflowchart LR\nA --> B\n```\n\n```ts\nconst value = 1;\n```\n\n```js\nlet next = 2;\n```',
+      );
+      const root = document.createElement('div');
+      root.innerHTML = html;
+
+      expect(
+        Array.from(
+          root.querySelectorAll('figure[data-code] [data-code-lang]'),
+          (label) => label.textContent,
+        ),
+      ).toEqual(['mermaid', 'ts', 'js']);
+    });
   });
 
   describe('설치 안내', () => {

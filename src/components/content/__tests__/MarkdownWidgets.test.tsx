@@ -54,6 +54,7 @@ describe('MarkdownWidgets', () => {
       'graph TD\nA --> B',
     );
     expect(output.innerHTML).toContain('안전한 라벨');
+    expect(initialize).toHaveBeenCalledWith(expect.objectContaining({ htmlLabels: false }));
     expect(output.innerHTML).not.toMatch(
       /script|foreignObject|iframe|onload|javascript:|data:image|\/\/evil|@import|evil\.example/i,
     );

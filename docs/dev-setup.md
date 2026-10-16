@@ -66,7 +66,42 @@ RLS policy와 함께 `anon`, `authenticated`의 table grant도 확인한다. sec
 
 2026-09-10에는 앱 배포 뒤 `20260910000000_add_blog_taxonomy_and_featured_posts.sql`이 Raven dev DB에 적용되지 않아 공개 글 API가 500을 반환하고 관리자 데이터 조회가 실패했다. 대상이 `raven-supabase-dev-db`의 `postgres` DB임을 확인하고 백업한 뒤 해당 migration 하나만 트랜잭션으로 적용했다. 기존 `posts`는 0행이었고 RLS와 네 정책을 보존했으며, 적용 뒤 taxonomy 필드의 비로그인 REST 조회가 200을 반환했다.
 
-dev 자동 배포 workflow는 앱 이미지만 배포하며 database migration을 실행하지 않는다. 새 migration이 포함된 배포는 Raven 전용 DB와 백업을 확인하고 migration을 별도 적용한 뒤 앱 API를 검증해야 한다.
+2026-09-23에는 dev.raven.kr 홈이 `column post_categories.legacy_slug does not exist` 오류로 렌더링되지 않았다. 2026-09-22 dev에 배포한 origin/main 통합 커밋 `48394c9`가 `20260911020000_add_comment_replies.sql`과 `20260911100000_use_korean_category_slugs.sql`을 요구했지만, dev 배포 workflow는 앱 이미지만 바꾸고 두 migration은 적용되지 않았다. owner가 `raven-supabase-dev-db`의 `postgres` DB를 `/home/woong/.local/backups/raven-supabase-dev/pre-migration-20260923-153431.dump`로 백업한 뒤 두 파일만 위 순서대로 적용했고 PostgREST schema cache를 다시 읽혔다. 적용 뒤 `raven-web-dev` 컨테이너 내부에서 홈이 200을 반환했고 `legacy_slug` 오류는 더 나오지 않았다. Cloudflare Access 뒤 외부 경로 확인은 아직 남아 있다. 이 migration으로 dev 카테고리 slug는 한글 이름으로 바뀌었고, 기존 영문 slug는 redirect용으로 `legacy_slug`에 남았다.
+
+### migration ledger와 배포 gate
+
+dev 자동 배포 workflow는 앱 이미지만 배포하며 database migration을 실행하지 않는다. 대신 호스트를 바꾸기 전에 `dev DB migration 적용 여부 확인` step이 [`scripts/check-applied-migrations.mjs`](../scripts/check-applied-migrations.mjs)를 실행한다. 이 script는 `docker exec raven-supabase-dev-db psql -U postgres -d postgres`로 `public.raven_schema_migrations` ledger를 읽기만 하고, 배포할 SHA의 `supabase/migrations/` 파일 중 ledger에 없는 이름이 있으면 목록을 출력하고 배포를 중단한다. ledger 표가 없거나 DB에 접속하지 못해도 중단한다. container와 DB 이름은 `RAVEN_DEV_DB_CONTAINER`, `RAVEN_DEV_DB_NAME`으로 바꿀 수 있다. gate는 migration을 적용하지 않는다.
+
+ledger는 [`20260923000000_create_raven_schema_migrations.sql`](../supabase/migrations/20260923000000_create_raven_schema_migrations.sql)이 만든다. RLS를 켜고 정책을 두지 않으며 `anon`, `authenticated` 권한을 회수해 PostgREST로 노출되지 않으므로 schema cache reload도 필요 없다. migration 파일 이름은 `^[0-9]{14}_[a-z0-9_]+\.sql$` 형식이어야 하며, 형식이 다르면 ledger insert와 gate가 모두 실패한다.
+
+ledger는 한 번만 수동으로 만들고 backfill한다. 2026-09-23 기준 dev DB에는 `20260911100000`까지의 모든 migration이 적용돼 있다. 이 gate가 들어간 커밋을 dev에 push하기 전에 홈서버에서 DB를 백업하고 아래를 실행한다. push를 먼저 하면 gate가 ledger 없음으로 배포를 중단하며 앱은 바뀌지 않는다. 그때는 아래를 실행한 뒤 같은 SHA로 `workflow_dispatch`를 다시 실행한다.
+
+```bash
+docker exec -i raven-supabase-dev-db psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 --single-transaction <<'SQL'
+create table if not exists public.raven_schema_migrations (
+  name text primary key check (name ~ '^[0-9]{14}_[a-z0-9_]+\.sql$'),
+  applied_at timestamptz not null default now()
+);
+alter table public.raven_schema_migrations enable row level security;
+revoke all on table public.raven_schema_migrations from anon, authenticated;
+
+insert into public.raven_schema_migrations (name) values
+  ('20260907000000_create_posts.sql'),
+  ('20260910000000_add_blog_taxonomy_and_featured_posts.sql'),
+  ('20260911000000_create_post_comments.sql'),
+  ('20260911010000_add_post_cover_image.sql'),
+  ('20260911020000_add_comment_replies.sql'),
+  ('20260911100000_use_korean_category_slugs.sql'),
+  ('20260923000000_create_raven_schema_migrations.sql')
+on conflict (name) do nothing;
+SQL
+```
+
+앞 세 문장은 ledger migration 파일과 같다. 이후 확인은 `docker exec raven-supabase-dev-db psql -X -U postgres -d postgres -At -c "select name from public.raven_schema_migrations order by name"`로 한다.
+
+새 migration이 포함된 배포는 다음 순서를 따른다. Raven 전용 DB인지 확인하고 백업한 뒤 migration 파일을 적용한다. 같은 트랜잭션에서 그 파일 이름을 ledger에 insert한다. 예를 들어 `{ cat supabase/migrations/<파일>.sql; echo "insert into public.raven_schema_migrations (name) values ('<파일>.sql');"; } | docker exec -i raven-supabase-dev-db psql -X -U postgres -d postgres -v ON_ERROR_STOP=1 --single-transaction`처럼 실행한다. migration에 `notify pgrst, 'reload schema'`가 없으면 schema cache를 따로 다시 읽힌다. 그다음 배포하고 앱 API를 검증한다. ledger에 이름만 넣고 migration을 적용하지 않으면 gate가 통과하므로 insert는 반드시 적용과 같은 트랜잭션에서 한다.
+
+production 배포 workflow(`deploy-production.yml`)에는 아직 이 gate가 없다. production DB에 같은 ledger와 gate를 두는 일은 후속 작업이다.
 
 ## 앱 설정과 배포 준비
 
