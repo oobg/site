@@ -3,7 +3,6 @@ import { SITE } from '@constants/site';
 import { ROUTES } from '@constants/routes';
 import { getPublishedBlogPostsForFeed } from '@features/posts/services/posts.api';
 import { renderMarkdown } from '@lib/markdown/render';
-import { siteUrl } from '@lib/metadata/metadata';
 import { absoluteSiteUrl } from '@lib/metadata/structured-data';
 
 export const dynamic = 'force-dynamic';
@@ -43,20 +42,29 @@ function escapeXml(value: string): string {
 }
 
 function decodeHtmlAttribute(value: string): string {
-  return value.replace(/&(?:amp|quot|apos|lt|gt);/g, (entity) => {
-    switch (entity) {
-      case '&quot;':
-        return '"';
-      case '&apos;':
-        return "'";
-      case '&lt;':
-        return '<';
-      case '&gt;':
-        return '>';
-      default:
-        return '&';
-    }
-  });
+  return value.replace(
+    /&(?:#x([\da-f]+)|#(\d+)|amp|quot|apos|lt|gt);/gi,
+    (entity, hex, decimal) => {
+      if (hex !== undefined || decimal !== undefined) {
+        const codePoint = Number.parseInt(hex ?? decimal, hex === undefined ? 10 : 16);
+        return codePoint > 0 && codePoint <= 0x10ffff && (codePoint < 0xd800 || codePoint > 0xdfff)
+          ? String.fromCodePoint(codePoint)
+          : '\ufffd';
+      }
+      switch (entity.toLowerCase()) {
+        case '&quot;':
+          return '"';
+        case '&apos;':
+          return "'";
+        case '&lt;':
+          return '<';
+        case '&gt;':
+          return '>';
+        default:
+          return '&';
+      }
+    },
+  );
 }
 
 function escapeHtmlAttribute(value: string): string {
@@ -68,27 +76,30 @@ function escapeHtmlAttribute(value: string): string {
 }
 
 /** 피드 리더는 본문 HTML의 상대 링크를 raven.kr 기준으로 해석하지 않을 수 있다. */
-function absoluteFeedResource(value: string): string {
+function absoluteFeedResource(value: string, articleUrl: string): string {
   const decoded = decodeHtmlAttribute(value);
-  if (
-    !decoded ||
-    decoded.startsWith('#') ||
-    decoded.startsWith('//') ||
-    /^[a-z][a-z\d+.-]*:/i.test(decoded)
-  ) {
+  if (!decoded || decoded.startsWith('#') || /^[a-z][a-z\d+.-]*:/i.test(decoded)) {
     return value;
   }
   try {
-    return escapeHtmlAttribute(new URL(decoded, siteUrl).href);
+    return escapeHtmlAttribute(new URL(decoded, articleUrl).href);
   } catch {
     return value;
   }
 }
 
-function absolutizeFeedHtml(html: string): string {
-  return html.replace(/\b(href|src)=(['"])(.*?)\2/gi, (_match, attribute, quote, value) => {
-    return `${attribute}=${quote}${absoluteFeedResource(value)}${quote}`;
-  });
+function absolutizeFeedHtml(html: string, articleUrl: string): string {
+  // Only actual attributes are resources. Code samples and quoted values in
+  // other attributes may themselves contain text such as href="/example".
+  return html.replace(/<[a-z][a-z\d:-]*(?:[^"'<>]|"[^"]*"|'[^']*')*>/gi, (tag) =>
+    tag.replace(
+      /(\s+)([^\s="'<>/]+)(\s*=\s*)(['"])([\s\S]*?)\4/g,
+      (attribute, whitespace, name, equals, quote, value) =>
+        /^(?:href|src)$/i.test(name)
+          ? `${whitespace}${name}${equals}${quote}${absoluteFeedResource(value, articleUrl)}${quote}`
+          : attribute,
+    ),
+  );
 }
 
 /* 본문 Shiki 결과도 글 목록과 같은 60초 캐시 수명으로 묶어 RSS 요청마다 재렌더하지 않는다. */
@@ -123,7 +134,7 @@ export async function GET(): Promise<Response> {
         `      <guid isPermaLink="true">${escapeXml(url)}</guid>`,
         `      <description>${cdata(post.summary || post.title)}</description>`,
         `      <pubDate>${rssDate(post.published_at)}</pubDate>`,
-        `      <content:encoded>${cdata(absolutizeFeedHtml(html))}</content:encoded>`,
+        `      <content:encoded>${cdata(absolutizeFeedHtml(html, url))}</content:encoded>`,
         '    </item>',
       ].join('\n');
     }),

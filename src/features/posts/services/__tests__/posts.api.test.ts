@@ -40,6 +40,37 @@ describe('posts.api', () => {
     expect(posts[0].slug).toBe('rsc-우선-데이터-패칭');
   });
 
+  it('mock 목록은 페이지와 페이지 크기를 함께 적용한다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'mock');
+    const { getPosts } = await import('@features/posts/services/posts.api');
+
+    const first = await getPosts({ limit: 1 });
+    const second = await getPosts({ page: 2, limit: 1 });
+    const afterLast = await getPosts({ page: 3, limit: 1 });
+
+    expect(first.map((post) => post.slug)).toEqual(['rsc-우선-데이터-패칭']);
+    expect(second.map((post) => post.slug)).toEqual(['가벼운-헥사고날로-nestjs-나누기']);
+    expect(afterLast).toEqual([]);
+  });
+
+  it('mock 목록은 정렬을 적용한 다음 페이지를 자른다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'mock');
+    const { getPosts } = await import('@features/posts/services/posts.api');
+
+    const second = await getPosts({ sort: 'published_at', page: 2, limit: 1 });
+
+    expect(second.map((post) => post.slug)).toEqual(['rsc-우선-데이터-패칭']);
+  });
+
+  it('mock 목록은 태그 필터를 적용한 결과에서 페이지를 계산한다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'mock');
+    const { getPosts } = await import('@features/posts/services/posts.api');
+
+    const posts = await getPosts({ tag: 'nestjs', page: 2, limit: 1 });
+
+    expect(posts).toEqual([]);
+  });
+
   it('mock RSS 조회는 최신 공개 글의 상세 본문을 반환한다', async () => {
     vi.stubEnv('CONTENT_SOURCE', 'mock');
     const { getPublishedBlogPostsForFeed } = await import('@features/posts/services/posts.api');

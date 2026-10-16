@@ -151,6 +151,36 @@ describe('BlogHomeContainer', () => {
     expect(history).toHaveBeenCalledWith(null, '', '/?view=all');
   });
 
+  it('offers a way back when a bookmarked page no longer contains posts', () => {
+    mocks.search = new URLSearchParams('view=all&page=9');
+    const history = vi.spyOn(window.history, 'pushState');
+    render(
+      <BlogHomeContainer
+        initialData={{
+          ...empty,
+          archive: { ...empty.archive, page: 9, totalItems: 2, totalPages: 1 },
+        }}
+        initialFilters={{ page: 9, pageSize: 12 }}
+      />,
+    );
+    expect(screen.getByText('이 페이지에 글이 없어요.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('link', { name: '첫 페이지로 이동' }));
+    expect(history).toHaveBeenCalledWith(null, '', '/?view=all');
+  });
+
+  it('normalizes URL filters like the server so initial results and category names match', () => {
+    mocks.search = new URLSearchParams('category=DEV&q=%20react%20');
+    render(
+      <BlogHomeContainer
+        initialData={empty}
+        initialFilters={{ category: 'dev', q: 'react', page: 1 }}
+      />,
+    );
+    expect(screen.getByText('카테고리: 개발')).toBeInTheDocument();
+    expect(screen.getByText('조건에 맞는 글이 없어요.')).toBeInTheDocument();
+    expect(screen.queryByLabelText('글 목록을 불러오는 중')).not.toBeInTheDocument();
+  });
+
   it('offers pagination as real links and leaves no clickable dead end', () => {
     mocks.search = new URLSearchParams('view=all&page=2');
     render(

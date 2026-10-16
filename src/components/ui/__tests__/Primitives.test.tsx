@@ -15,6 +15,24 @@ describe('Day0 UI primitives', () => {
     expect(input).toHaveAccessibleDescription('글에 표시되는 제목이에요. 제목을 입력해 주세요.');
   });
 
+  it('preserves field descriptions and error state alongside caller ARIA props', () => {
+    render(
+      <>
+        <p id="external-help">외부 도움말</p>
+        <Input
+          label="제목"
+          description="설명"
+          error="필수 입력"
+          aria-describedby="external-help"
+          aria-invalid={false}
+        />
+      </>,
+    );
+    const input = screen.getByRole('textbox', { name: '제목' });
+    expect(input).toHaveAttribute('aria-invalid', 'true');
+    expect(input).toHaveAccessibleDescription('설명 필수 입력 외부 도움말');
+  });
+
   it('moves category tab focus and selection with the keyboard', async () => {
     const onValueChange = vi.fn();
     render(

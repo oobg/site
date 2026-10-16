@@ -2,6 +2,9 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CodeCopy } from '@components/content/CodeCopy';
 
+const feedback = vi.hoisted(() => ({ error: vi.fn() }));
+vi.mock('@lib/toast', () => ({ Toast: feedback }));
+
 function CodeFixture() {
   return (
     <>
@@ -23,6 +26,7 @@ describe('CodeCopy', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    feedback.error.mockReset();
     writeText.mockReset().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
   });
@@ -39,6 +43,7 @@ describe('CodeCopy', () => {
     act(() => vi.advanceTimersByTime(1600));
     expect(button).not.toHaveAttribute('data-copied');
     expect(screen.getByText('코드 복사')).toBeInTheDocument();
+    expect(feedback.error).not.toHaveBeenCalled();
   });
 
   it('클립보드 권한 실패를 성공 상태로 표시하지 않는다', async () => {
@@ -48,6 +53,7 @@ describe('CodeCopy', () => {
     await act(async () => fireEvent.click(button));
     expect(button).not.toHaveAttribute('data-copied');
     expect(screen.getByText('코드 복사')).toBeInTheDocument();
+    expect(feedback.error).toHaveBeenCalledWith('코드를 복사하지 못했어요. 다시 시도해 주세요.');
   });
 
   it('코드 블록 밖의 클릭은 무시한다', () => {
@@ -75,5 +81,21 @@ describe('CodeCopy', () => {
     await act(async () => resolveCopy?.());
     expect(button).not.toHaveAttribute('data-copied');
     expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('페이지를 떠난 뒤 도착한 복사 실패 알림은 띄우지 않는다', async () => {
+    let rejectCopy: ((reason: Error) => void) | undefined;
+    writeText.mockReturnValueOnce(
+      new Promise<void>((_resolve, reject) => {
+        rejectCopy = reject;
+      }),
+    );
+    const { unmount } = render(<CodeFixture />);
+    fireEvent.click(screen.getByRole('button'));
+    unmount();
+
+    await act(async () => rejectCopy?.(new Error('clipboard denied')));
+
+    expect(feedback.error).not.toHaveBeenCalled();
   });
 });

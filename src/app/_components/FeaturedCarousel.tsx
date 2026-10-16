@@ -38,6 +38,7 @@ export function FeaturedCarousel({
   /* 정지 이유를 둘로 나눈다. hover/focus는 읽는 동안만 붙는 일시적 정지고,
      버튼은 사용자가 명시한 상태라 포인터가 떠나도 유지된다. */
   const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
   const [choice, setChoice] = useState<boolean | null>(null);
   const [progress, setProgress] = useState(0);
   /* 자동 전환까지 읽어 주면 10초마다 스크린리더가 말을 끊는다. 사람이 직접 넘긴
@@ -54,7 +55,7 @@ export function FeaturedCarousel({
     () => false,
   );
   const stopped = choice ?? prefersReducedMotion;
-  const paused = hovered || stopped;
+  const paused = hovered || focused || stopped;
 
   useEffect(() => {
     if (posts.length <= 1) {
@@ -71,7 +72,7 @@ export function FeaturedCarousel({
       if (elapsed >= AUTOPLAY_MS) {
         elapsedRef.current = 0;
         setProgress(0);
-        setIndex((current) => (current + 1) % posts.length);
+        setIndex((activeIndex + 1) % posts.length);
       }
     }, PROGRESS_TICK_MS);
     return () => window.clearInterval(timer);
@@ -91,7 +92,10 @@ export function FeaturedCarousel({
   const toggleAutoplay = () => {
     const next = !stopped;
     setChoice(next);
-    if (!next) setHovered(false);
+    if (!next) {
+      setHovered(false);
+      setFocused(false);
+    }
   };
   const remainingSeconds = Math.max(1, Math.ceil((AUTOPLAY_MS * (1 - progress)) / 1000));
 
@@ -104,9 +108,9 @@ export function FeaturedCarousel({
       data-paused={paused || undefined}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      onFocus={() => setHovered(true)}
+      onFocus={() => setFocused(true)}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setHovered(false);
+        if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false);
       }}
     >
       {/* 슬라이드 바깥에 둔다. 안에 두면 슬라이드가 바뀔 때 이 노드까지 새로 만들어져,

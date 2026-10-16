@@ -109,6 +109,44 @@ describe('IntroProvider / useIntro', () => {
     expect(screen.getByTestId('revealed')).toHaveTextContent('true');
   });
 
+  it('재생 도중 모션 축소를 켜면 콘텐츠의 inert를 즉시 해제한다', () => {
+    document.documentElement.dataset.intro = 'pending';
+    const media = Object.assign(new EventTarget(), { matches: false });
+    vi.stubGlobal('matchMedia', vi.fn().mockReturnValue(media));
+    render(
+      <IntroProvider>
+        <div data-intro-background />
+        <Probe />
+      </IntroProvider>,
+    );
+    const background = document.querySelector<HTMLElement>('[data-intro-background]')!;
+    expect(background.inert).toBe(true);
+
+    act(() => media.dispatchEvent(Object.assign(new Event('change'), { matches: true })));
+
+    expect(background.inert).toBe(false);
+    expect(screen.getByTestId('playing')).toHaveTextContent('false');
+    expect(screen.getByTestId('revealed')).toHaveTextContent('true');
+  });
+
+  it('재생 중 떠났던 페이지를 BFCache에서 복원하면 바로 콘텐츠를 공개한다', () => {
+    document.documentElement.dataset.intro = 'pending';
+    mockReducedMotion(false);
+    render(
+      <IntroProvider>
+        <div data-intro-background />
+        <Probe />
+      </IntroProvider>,
+    );
+    const background = document.querySelector<HTMLElement>('[data-intro-background]')!;
+
+    fireEvent(window, Object.assign(new Event('pageshow'), { persisted: true }));
+
+    expect(background.inert).toBe(false);
+    expect(screen.getByTestId('playing')).toHaveTextContent('false');
+    expect(screen.getByTestId('revealed')).toHaveTextContent('true');
+  });
+
   it('reduced motion의 pending 상태는 즉시 shown으로 정리한다', () => {
     document.documentElement.dataset.intro = 'pending';
     mockReducedMotion(true);

@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ROUTES } from '@constants/routes';
 import { useQueryClient } from '@tanstack/react-query';
 import { deletePostAction } from '@features/admin/services/posts.actions';
 import {
@@ -15,11 +16,22 @@ export function DeletePostButton({ id }: { id: string }) {
   const queryClient = useQueryClient();
   const [state, action, pending] = useActionState(
     async (previous: PostActionState, data: FormData) => {
-      const result = await deletePostAction(previous, data);
+      let result: PostActionState;
+      try {
+        result = await deletePostAction(previous, data);
+      } catch {
+        return { status: 'error' as const, message: '글을 삭제하지 못했어요.' };
+      }
       if (result.status === 'success') {
-        await queryClient.invalidateQueries({ queryKey: ['blog-posts'] });
-        await queryClient.invalidateQueries({ queryKey: ['post'] });
-        router.replace('/admin');
+        try {
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['blog-posts'] }),
+            queryClient.invalidateQueries({ queryKey: ['post'] }),
+          ]);
+        } catch {
+          // The post was deleted; cache refresh failure must not prevent leaving the editor.
+        }
+        router.replace(ROUTES.ADMIN.HOME);
       }
       return result;
     },
@@ -32,6 +44,7 @@ export function DeletePostButton({ id }: { id: string }) {
         className={styles.button}
         type="submit"
         formAction={action}
+        formNoValidate
         disabled={pending}
         onClick={(event) => {
           if (!window.confirm('이 글을 삭제할까요? 삭제한 글은 복구할 수 없어요.'))

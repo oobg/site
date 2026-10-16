@@ -354,3 +354,18 @@ describe('PostList', () => {
     expect(screen.queryByRole('link', { name: '공통 글 다른 분류' })).not.toBeInTheDocument();
   });
 });
+
+it('keeps an explicit URL search and later search edits instead of restoring old context', async () => {
+  sessionStorage.setItem('raven:admin-list-context', JSON.stringify({ query: '옛 검색' }));
+  renderPostList(<PostList posts={posts} />, { searchParams: '?query=글' });
+  await waitFor(() => expect(elementScrollTo).toHaveBeenCalled());
+  expect(screen.getByRole('searchbox', { name: '제목 검색' })).toHaveValue('글');
+  fireEvent.change(screen.getByRole('searchbox', { name: '제목 검색' }), {
+    target: { value: '글 01' },
+  });
+  await waitFor(() =>
+    expect(screen.getByRole('searchbox', { name: '제목 검색' })).toHaveValue('글 01'),
+  );
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  expect(screen.getByRole('searchbox', { name: '제목 검색' })).toHaveValue('글 01');
+});

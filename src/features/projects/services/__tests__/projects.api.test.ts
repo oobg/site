@@ -46,6 +46,17 @@ describe('projects.api', () => {
     });
   });
 
+  it('mock 목록의 다음 페이지에서 첫 페이지 항목을 반복하지 않는다', async () => {
+    vi.stubEnv('CONTENT_SOURCE', 'mock');
+    const { getProjects } = await import('@features/projects/services/projects.api');
+
+    const first = await getProjects({ page: 1, limit: 1 });
+    const second = await getProjects({ page: 2, limit: 1 });
+
+    expect(first).toHaveLength(1);
+    expect(second).toEqual([]);
+  });
+
   it('api 목록 요청에 필터·페이지·정렬을 전달하고 data를 반환한다', async () => {
     vi.stubEnv('CONTENT_SOURCE', 'api');
     vi.stubEnv('CONTENT_API_BASE', 'https://api.raven.kr');

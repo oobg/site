@@ -22,6 +22,51 @@ function emptyPage() {
   };
 }
 
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((complete) => {
+    resolve = complete;
+  });
+  return { promise, resolve };
+}
+
+function commentResponse(body: string) {
+  return new Response(
+    JSON.stringify({
+      comment: {
+        id: body,
+        parent_id: null,
+        is_author: false,
+        nickname: '독자',
+        avatar_id: 'clay-01',
+        body,
+        created_at: '2026-09-21T00:00:00.000Z',
+      },
+    }),
+    { status: 201 },
+  );
+}
+
+function pageResponse(body: string) {
+  return new Response(
+    JSON.stringify({
+      items: [
+        {
+          id: body,
+          parent_id: null,
+          is_author: false,
+          nickname: '독자',
+          avatar_id: 'clay-01',
+          body,
+          created_at: '2026-09-21T00:00:00.000Z',
+        },
+      ],
+      total: 1,
+      nextCursor: null,
+    }),
+  );
+}
+
 /* 모션 축소 여부만 바꾸고 나머지 응답 모양은 vitest.setup.ts의 기본과 맞춘다. */
 function stubReducedMotion(reduced: boolean) {
   vi.stubGlobal(
@@ -180,5 +225,105 @@ describe('CommentsSection load failure', () => {
     expect(screen.getByText('다시 불러온 댓글')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: '다시 불러오기' })).toBeNull();
     expect(screen.queryByText('댓글은 잠시 쉬고 있어요.')).toBeNull();
+  });
+});
+
+describe('CommentsSection pending requests', () => {
+  it('keeps a new draft typed while the previous comment is being submitted', async () => {
+    const pending = deferred<Response>();
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockImplementation((_url: string, init?: RequestInit) =>
+          init?.method === 'POST' ? pending.promise : Promise.resolve(emptyPage()),
+        ),
+    );
+    const { container } = render(<CommentsSection slug="post" />);
+    await flushMicrotasks();
+    const textarea = screen.getByLabelText('댓글 내용');
+    fireEvent.change(textarea, { target: { value: '첫 번째 댓글' } });
+    fireEvent.submit(container.querySelector('form')!);
+    fireEvent.change(textarea, { target: { value: '쓰고 있는 다음 댓글' } });
+
+    await act(async () => pending.resolve(commentResponse('첫 번째 댓글')));
+    await flushMicrotasks();
+
+    expect(screen.getByText('첫 번째 댓글')).toBeVisible();
+    expect(textarea).toHaveValue('쓰고 있는 다음 댓글');
+    expect(screen.getByRole('heading', { name: '댓글 1' })).toBeVisible();
+  });
+
+  it('ignores repeated submissions while the first request is pending', async () => {
+    const pending = deferred<Response>();
+    const fetchMock = vi
+      .fn()
+      .mockImplementation((_url: string, init?: RequestInit) =>
+        init?.method === 'POST' ? pending.promise : Promise.resolve(emptyPage()),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+    const { container } = render(<CommentsSection slug="post" />);
+    await flushMicrotasks();
+    fireEvent.change(screen.getByLabelText('댓글 내용'), { target: { value: '한 번만 등록' } });
+    fireEvent.submit(container.querySelector('form')!);
+    fireEvent.submit(container.querySelector('form')!);
+
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === 'POST')).toHaveLength(1);
+    await act(async () => pending.resolve(commentResponse('한 번만 등록')));
+    await flushMicrotasks();
+    expect(screen.getByLabelText('댓글 내용')).toHaveValue('');
+    expect(screen.getByRole('heading', { name: '댓글 1' })).toBeVisible();
+  });
+
+  it('does not let a late list response overwrite the next article', async () => {
+    const previous = deferred<Response>();
+    const fetchMock = vi
+      .fn()
+      .mockImplementation((url: string) =>
+        url.includes('/old/') ? previous.promise : Promise.resolve(pageResponse('새 글의 댓글')),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+    const { rerender } = render(<CommentsSection slug="old" />);
+    await flushMicrotasks();
+    const previousSignal = (fetchMock.mock.calls[0][1] as RequestInit | undefined)?.signal;
+
+    rerender(<CommentsSection slug="new" />);
+    await flushMicrotasks();
+    await act(async () => previous.resolve(pageResponse('이전 글의 늦은 댓글')));
+    await flushMicrotasks();
+
+    expect(previousSignal?.aborted).toBe(true);
+    expect(screen.getByText('새 글의 댓글')).toBeVisible();
+    expect(screen.queryByText('이전 글의 늦은 댓글')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '댓글 1' })).toBeVisible();
+  });
+
+  it('isolates a late submit response and drafts when the article changes', async () => {
+    const previous = deferred<Response>();
+    const fetchMock = vi
+      .fn()
+      .mockImplementation((_url: string, init?: RequestInit) =>
+        init?.method === 'POST' ? previous.promise : Promise.resolve(emptyPage()),
+      );
+    vi.stubGlobal('fetch', fetchMock);
+    const { container, rerender } = render(<CommentsSection slug="old" />);
+    await flushMicrotasks();
+    fireEvent.change(screen.getByLabelText('댓글 내용'), { target: { value: '이전 글에 등록' } });
+    fireEvent.submit(container.querySelector('form')!);
+    const previousSignal = fetchMock.mock.calls.find(([, init]) => init?.method === 'POST')?.[1]
+      ?.signal;
+
+    rerender(<CommentsSection slug="new" />);
+    await flushMicrotasks();
+    expect(screen.getByLabelText('댓글 내용')).toHaveValue('');
+    fireEvent.change(screen.getByLabelText('댓글 내용'), { target: { value: '새 글의 원고' } });
+    await act(async () => previous.resolve(commentResponse('이전 글에 등록')));
+    await flushMicrotasks();
+
+    expect(previousSignal?.aborted).toBe(true);
+    expect(screen.getByLabelText('댓글 내용')).toHaveValue('새 글의 원고');
+    expect(screen.queryByText('이전 글에 등록')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '댓글 0' })).toBeVisible();
+    expect(screen.getByRole('button', { name: '댓글 등록' })).toBeEnabled();
   });
 });

@@ -106,4 +106,79 @@ describe('GET /rss.xml', () => {
     mocks.posts.mockResolvedValue([{ ...post, published_at: '언젠가' }]);
     await expect(GET()).rejects.toThrow('RSS 발행일이 유효하지 않습니다: 언젠가');
   });
+
+  it.each([
+    ['<a href="/search?x=1&#x26;y=2">hex</a>', 'a', 'href', 'https://raven.kr/search?x=1&y=2'],
+    ['<a href="/search?x=1&#38;y=2">decimal</a>', 'a', 'href', 'https://raven.kr/search?x=1&y=2'],
+    ["<a href='/files/it&#x27;s.pdf'>quote</a>", 'a', 'href', "https://raven.kr/files/it's.pdf"],
+    ["<a href='/files/it&#39;s.pdf'>quote</a>", 'a', 'href', "https://raven.kr/files/it's.pdf"],
+    ['<a href="/files/&#x22;x&#x22;">quote</a>', 'a', 'href', 'https://raven.kr/files/%22x%22'],
+    ['<img src="//cdn.example.com/image.png">', 'img', 'src', 'https://cdn.example.com/image.png'],
+    ['<a href="/search?x=&amp;#x26;">literal</a>', 'a', 'href', 'https://raven.kr/search?x=&#x26;'],
+    ['<a href="/files/&#x110000;">invalid</a>', 'a', 'href', 'https://raven.kr/files/%EF%BF%BD'],
+    ['<a href="/files/&#55296;">surrogate</a>', 'a', 'href', 'https://raven.kr/files/%EF%BF%BD'],
+    ['<a href="#footnote">anchor</a>', 'a', 'href', '#footnote'],
+    ['<a href="mailto:raven@example.com">email</a>', 'a', 'href', 'mailto:raven@example.com'],
+  ])('피드 속성의 실제 URL을 보존한다: %s', async (html, selector, attribute, expected) => {
+    mocks.markdown.mockResolvedValue({ html, toc: [] });
+    const xml = new DOMParser().parseFromString(await (await GET()).text(), 'application/xml');
+    expect(xml.querySelector('parsererror')).toBeNull();
+    const content = xml.getElementsByTagNameNS(
+      'http://purl.org/rss/1.0/modules/content/',
+      'encoded',
+    )[0];
+    const body = new DOMParser().parseFromString(content.textContent ?? '', 'text/html');
+    expect(body.querySelector(selector)?.getAttribute(attribute)).toBe(expected);
+    expect(body.querySelectorAll(selector)).toHaveLength(1);
+  });
+
+  it('코드 예제와 다른 속성 안의 href 텍스트는 수정하지 않는다', async () => {
+    const html =
+      '<p><code>href="/example"</code></p>' +
+      '<a title="href=\'/example\'" data-src="/data" href="/real">link</a>';
+    mocks.markdown.mockResolvedValue({ html, toc: [] });
+    const xml = new DOMParser().parseFromString(await (await GET()).text(), 'application/xml');
+    const content = xml.getElementsByTagNameNS(
+      'http://purl.org/rss/1.0/modules/content/',
+      'encoded',
+    )[0];
+    const body = new DOMParser().parseFromString(content.textContent ?? '', 'text/html');
+    expect(body.querySelector('code')?.textContent).toBe('href="/example"');
+    expect(body.querySelector('a')?.getAttribute('title')).toBe("href='/example'");
+    expect(body.querySelector('a')?.getAttribute('data-src')).toBe('/data');
+    expect(body.querySelector('a')?.getAttribute('href')).toBe('https://raven.kr/real');
+  });
+
+  it('문서 상대 주소는 각 게시글의 canonical URL을 기준으로 해석한다', async () => {
+    mocks.posts.mockResolvedValue([
+      { ...post, slug: 'first', category: { ...post.category, slug: 'dev' } },
+      { ...post, slug: 'second', category: { ...post.category, slug: 'notes' } },
+    ]);
+    mocks.markdown.mockResolvedValue({
+      html: '<a href="other">다른 글</a><a href="?mode=x">현재 글</a><img src="./image.png">',
+      toc: [],
+    });
+    const xml = new DOMParser().parseFromString(await (await GET()).text(), 'application/xml');
+    const contents = Array.from(
+      xml.getElementsByTagNameNS('http://purl.org/rss/1.0/modules/content/', 'encoded'),
+    ).map((node) => new DOMParser().parseFromString(node.textContent ?? '', 'text/html'));
+
+    expect(
+      contents.map((body) => [
+        ...Array.from(body.querySelectorAll('a'), (link) => link.getAttribute('href')),
+        body.querySelector('img')?.getAttribute('src'),
+      ]),
+    ).toEqual([
+      [
+        'https://raven.kr/blog/dev/other',
+        'https://raven.kr/blog/dev/first?mode=x',
+        'https://raven.kr/blog/dev/image.png',
+      ],
+      [
+        'https://raven.kr/blog/notes/other',
+        'https://raven.kr/blog/notes/second?mode=x',
+        'https://raven.kr/blog/notes/image.png',
+      ],
+    ]);
+  });
 });

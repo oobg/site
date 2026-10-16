@@ -68,8 +68,25 @@ export function IntroProvider({ children }: { children: ReactNode }) {
       if (background) background.inert = false;
       finish();
     };
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const finishOnReducedMotion = (event: MediaQueryListEvent) => {
+      if (!event.matches) return;
+      if (background) background.inert = false;
+      finish();
+    };
+    const finishOnRestore = (event: PageTransitionEvent) => {
+      if (!event.persisted) return;
+      if (background) background.inert = false;
+      finish();
+    };
     window.addEventListener('keydown', finishOnTab, true);
-    return () => window.removeEventListener('keydown', finishOnTab, true);
+    window.addEventListener('pageshow', finishOnRestore);
+    reducedMotion.addEventListener('change', finishOnReducedMotion);
+    return () => {
+      window.removeEventListener('keydown', finishOnTab, true);
+      window.removeEventListener('pageshow', finishOnRestore);
+      reducedMotion.removeEventListener('change', finishOnReducedMotion);
+    };
   }, [finish, state.playing]);
 
   return (

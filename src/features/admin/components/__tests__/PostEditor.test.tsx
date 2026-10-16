@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { StrictMode } from 'react';
 import { PostEditor } from '@features/admin/components/PostEditor';
 
 const router = { replace: vi.fn() };
@@ -740,6 +741,83 @@ describe('PostEditor slug editing', () => {
     expect(await screen.findByRole('button', { name: '저장' })).toHaveAttribute(
       'data-status',
       'published',
+    );
+  });
+});
+
+describe('editor recovery regressions', () => {
+  afterEach(() => {
+    window.sessionStorage.clear();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it('restores a snapshot when StrictMode replays effects', async () => {
+    window.sessionStorage.setItem(
+      'admin-post-editor-draft:new',
+      JSON.stringify({
+        version: 1,
+        title: '복구할 제목',
+        slug: 'recovered',
+        description: '설명',
+        body: '본문',
+        status: 'draft',
+        categoryId: '',
+        tags: '',
+        coverKey: '',
+        coverUrl: '',
+        coverAlt: '',
+        coverX: 0.5,
+        coverY: 0.5,
+        slugEdited: true,
+        savedAt: new Date().toISOString(),
+      }),
+    );
+    render(
+      <StrictMode>
+        <PostEditor action={action} />
+      </StrictMode>,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: '제목' })).toHaveValue('복구할 제목'),
+    );
+  });
+
+  it('preserves text typed while a selected-range image upload is pending', async () => {
+    let finish!: (value: Response) => void;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        () =>
+          new Promise<Response>((resolve) => {
+            finish = resolve;
+          }),
+      ),
+    );
+    render(<PostEditor action={action} />);
+    const body = screen.getByRole('textbox', { name: '본문' }) as HTMLTextAreaElement;
+    fireEvent.change(body, { target: { value: '기존 본문' } });
+    body.setSelectionRange(0, 2);
+    fireEvent.change(screen.getByLabelText('본문 이미지 선택'), {
+      target: { files: [new File(['x'], 'image.png', { type: 'image/png' })] },
+    });
+    fireEvent.change(body, { target: { value: '새로 입력한 소중한 본문' } });
+    await act(async () =>
+      finish(new Response(JSON.stringify({ url: '/assets/posts/2026-10-15/abcd.png' }))),
+    );
+    expect(body.value).toBe(
+      '새로 입력한 소중한 본문\n\n![image](/assets/posts/2026-10-15/abcd.png)',
+    );
+  });
+
+  it('handles a null cover upload response as an upload failure', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('null')));
+    render(<PostEditor action={action} />);
+    fireEvent.change(screen.getByLabelText('이미지 변경'), {
+      target: { files: [new File(['x'], 'cover.png', { type: 'image/png' })] },
+    });
+    await waitFor(() =>
+      expect(screen.getByText('대표 이미지를 업로드하지 못했습니다.')).toBeInTheDocument(),
     );
   });
 });

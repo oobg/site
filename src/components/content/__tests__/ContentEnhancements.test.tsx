@@ -78,7 +78,9 @@ describe('ContentEnhancements', () => {
       expect.stringMatching(/^mermaid-diagram-/),
       'flowchart LR\nA --> B',
     );
-    expect(initialize).toHaveBeenCalledWith(expect.objectContaining({ securityLevel: 'strict' }));
+    expect(initialize).toHaveBeenCalledWith(
+      expect.objectContaining({ securityLevel: 'strict', htmlLabels: false }),
+    );
     expect(document.querySelector('[data-mermaid-canvas] script')).toBeNull();
     expect(document.querySelector('[data-mermaid-canvas] foreignObject')).toBeNull();
     expect(document.querySelector('[data-mermaid-canvas] a')).not.toHaveAttribute('href');
@@ -140,5 +142,51 @@ describe('ContentEnhancements', () => {
     expect(npm).toHaveAttribute('aria-selected', 'true');
     expect(npm).toHaveFocus();
     expect(mermaidRender).toHaveBeenCalledTimes(1);
+  });
+
+  it('빈 원문은 로딩 상태에 남기지 않고 fallback으로 종료한다', async () => {
+    render(<Fixture source="   " />);
+    await waitFor(() =>
+      expect(document.querySelector('[data-mermaid]')).toHaveAttribute(
+        'data-mermaid-state',
+        'fallback',
+      ),
+    );
+    expect(mermaidRender).not.toHaveBeenCalled();
+    expect(screen.getByRole('status')).toHaveTextContent('원문으로');
+  });
+
+  it('미리보기에 다이어그램 루트가 직접 추가되어도 한 번만 활성화한다', async () => {
+    mermaidRender.mockResolvedValue({ svg: '<svg xmlns="http://www.w3.org/2000/svg" />' });
+    const { container } = render(<ContentEnhancements />);
+    const figure = document.createElement('section');
+    figure.setAttribute('data-mermaid', '');
+    figure.dataset.mermaidState = 'pending';
+    figure.innerHTML =
+      '<div data-mermaid-source>flowchart LR\nA --> B</div>' +
+      '<div data-mermaid-canvas></div><div data-mermaid-fallback hidden></div>';
+    container.append(figure);
+
+    await waitFor(() => expect(figure).toHaveAttribute('data-mermaid-state', 'ready'));
+    expect(mermaidRender).toHaveBeenCalledTimes(1);
+  });
+
+  it('페이지를 떠난 뒤 완료된 다이어그램은 분리된 DOM에 반영하지 않는다', async () => {
+    let completeRender: ((value: { svg: string }) => void) | undefined;
+    mermaidRender.mockReturnValueOnce(
+      new Promise<{ svg: string }>((resolve) => {
+        completeRender = resolve;
+      }),
+    );
+    const { container, unmount } = render(<Fixture />);
+    const canvas = container.querySelector('[data-mermaid-canvas]')!;
+    await waitFor(() => expect(mermaidRender).toHaveBeenCalledTimes(1));
+    unmount();
+
+    await act(async () =>
+      completeRender?.({ svg: '<svg xmlns="http://www.w3.org/2000/svg"><text>old</text></svg>' }),
+    );
+
+    expect(canvas).toBeEmptyDOMElement();
   });
 });

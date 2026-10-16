@@ -184,21 +184,20 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
       });
   }, [filter, items, query, sort]);
 
-  const orderedItems = useMemo(
-    () =>
-      filteredItems
-        .filter((item) => !item.parent_id)
-        .flatMap((parent) => [
-          parent,
-          ...filteredItems
-            .filter((item) => item.parent_id === parent.id)
-            .sort(
-              (a, b) =>
-                Date.parse(a.created_at) - Date.parse(b.created_at) || a.id.localeCompare(b.id),
-            ),
-        ]),
-    [filteredItems],
-  );
+  const orderedItems = useMemo(() => {
+    const visibleIds = new Set(filteredItems.map((item) => item.id));
+    return filteredItems
+      .filter((item) => !item.parent_id || !visibleIds.has(item.parent_id))
+      .flatMap((parent) => [
+        parent,
+        ...filteredItems
+          .filter((item) => item.parent_id === parent.id)
+          .sort(
+            (a, b) =>
+              Date.parse(a.created_at) - Date.parse(b.created_at) || a.id.localeCompare(b.id),
+          ),
+      ]);
+  }, [filteredItems]);
 
   if (loading)
     return (

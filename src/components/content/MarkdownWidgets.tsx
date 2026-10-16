@@ -11,7 +11,7 @@ function mermaidApi() {
       mermaid.initialize({
         startOnLoad: false,
         securityLevel: 'strict',
-        flowchart: { htmlLabels: false },
+        htmlLabels: false,
         suppressErrorRendering: true,
         theme: 'base',
       });

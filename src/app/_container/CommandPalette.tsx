@@ -108,6 +108,7 @@ export function CommandPalette() {
 
   const navigate = (item: PaletteItem) => {
     navigatingRef.current = true;
+    composingRef.current = false;
     setOpen(false);
     router.push(item.href);
   };
@@ -133,6 +134,7 @@ export function CommandPalette() {
     <Dialog.Root
       open={open}
       onOpenChange={(nextOpen) => {
+        composingRef.current = false;
         setOpen(nextOpen);
         if (nextOpen) navigatingRef.current = false;
       }}

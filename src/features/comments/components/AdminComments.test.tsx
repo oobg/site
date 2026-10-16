@@ -80,4 +80,58 @@ describe('AdminComments', () => {
       ),
     );
   });
+
+  it('부모가 검색어와 일치하지 않아도 조건에 맞는 답글을 표시한다', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        items: [
+          ...comments,
+          {
+            ...comments[0],
+            id: 'r1',
+            parent_id: 'c1',
+            is_author: true,
+            nickname: 'raven',
+            body: '답글에서만 찾는 단어',
+          },
+        ],
+      }),
+    } as Response);
+    render(<AdminComments />);
+    await screen.findByText('민지');
+
+    fireEvent.change(screen.getByRole('searchbox'), { target: { value: '답글에서만' } });
+
+    expect(screen.getByText('답글에서만 찾는 단어')).toBeVisible();
+    expect(screen.queryByText('좋은 글 잘 읽었습니다.')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'raven 댓글 숨기기' })).toBeEnabled();
+  });
+
+  it('부모가 공개 상태여도 숨김 답글을 숨김 탭에서 관리할 수 있다', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        items: [
+          comments[0],
+          {
+            ...comments[0],
+            id: 'r1',
+            parent_id: 'c1',
+            nickname: 'raven',
+            body: '숨긴 답글',
+            moderation_status: 'hidden',
+          },
+        ],
+      }),
+    } as Response);
+    render(<AdminComments />);
+    await screen.findByText('민지');
+
+    fireEvent.click(screen.getByRole('tab', { name: '숨김1' }));
+
+    expect(screen.getByText('숨긴 답글')).toBeVisible();
+    expect(screen.queryByText('좋은 글 잘 읽었습니다.')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'raven 댓글 공개' })).toBeEnabled();
+  });
 });

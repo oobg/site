@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 
 import { OwnerAuthorizationError, requireOwner } from '@lib/auth/owner';
+import { AdminApiError, readLimitedBody } from '@lib/api/admin-http';
 import { renderMarkdown } from '@lib/markdown/render';
 
 export const runtime = 'nodejs';
 
 const MAX_MARKDOWN_LENGTH = 200_000;
+const MAX_BODY_SIZE = 1_000_000;
 
 export async function POST(request: Request) {
   try {
@@ -16,10 +18,7 @@ export async function POST(request: Request) {
     }
 
     await requireOwner();
-    const raw = await request.text();
-    if (raw.length > 1_000_000) {
-      return NextResponse.json({ error: '본문이 너무 깁니다.' }, { status: 413 });
-    }
+    const raw = new TextDecoder().decode(await readLimitedBody(request, MAX_BODY_SIZE));
     const payload: unknown = JSON.parse(raw);
     if (
       typeof payload !== 'object' ||
@@ -36,6 +35,9 @@ export async function POST(request: Request) {
     const { html } = await renderMarkdown(payload.markdown);
     return NextResponse.json({ html }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
+    if (error instanceof AdminApiError && error.status === 413) {
+      return NextResponse.json({ error: '본문이 너무 깁니다.' }, { status: 413 });
+    }
     if (error instanceof OwnerAuthorizationError) {
       return NextResponse.json({ error: error.message }, { status: error.status });
     }
