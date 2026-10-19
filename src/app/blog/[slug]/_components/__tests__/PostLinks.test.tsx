@@ -17,6 +17,25 @@ const post: PostListItem = {
 };
 
 describe('article post links', () => {
+  it('only explains a relationship supported by actual shared tags or category', () => {
+    render(
+      <ArticleAside
+        currentPost={{ ...post, tags: ['NextJS'] }}
+        related={[
+          { ...post, slug: 'tag', title: '태그가 같은 글', tags: ['nextjs'] },
+          { ...post, slug: 'category', title: '주제가 같은 글', tags: [] },
+          { ...post, slug: 'fallback', title: '별도 글', tags: [], category: { slug: 'notes' } },
+        ]}
+      />,
+    );
+    expect(screen.getByRole('link', { name: /태그가 같은 글/ })).toHaveTextContent(
+      '같은 태그 #nextjs',
+    );
+    expect(screen.getByRole('link', { name: /주제가 같은 글/ })).toHaveTextContent(
+      '같은 주제의 글',
+    );
+    expect(screen.getByRole('link', { name: /별도 글/ })).not.toHaveTextContent('같은');
+  });
   it('preserves the category for related posts and falls back for legacy items', () => {
     render(
       <ArticleAside

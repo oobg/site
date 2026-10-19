@@ -13,29 +13,29 @@ export function PostNav({ prev, next }: { prev: PostListItem | null; next: PostL
           글 목록
         </Link>
       </div>
-      <div className={styles.cards}>
+      <div className={styles.cards} data-single={!prev || !next ? '' : undefined}>
         {prev ? (
           <Link
             href={ROUTES.BLOG.DETAIL(prev.category?.slug ?? DEFAULT_POST_CATEGORY_SLUG, prev.slug)}
             className={styles.card}
+            data-track-event="related_article_open"
+            data-track-source="previous"
           >
             <span className={styles.label}>← 이전 글</span>
             <span className={styles.cardTitle}>{prev.title}</span>
           </Link>
-        ) : (
-          <span className={styles.card} aria-hidden="true" />
-        )}
+        ) : null}
         {next ? (
           <Link
             href={ROUTES.BLOG.DETAIL(next.category?.slug ?? DEFAULT_POST_CATEGORY_SLUG, next.slug)}
             className={`${styles.card} ${styles.next}`}
+            data-track-event="related_article_open"
+            data-track-source="next"
           >
             <span className={styles.label}>다음 글 →</span>
             <span className={styles.cardTitle}>{next.title}</span>
           </Link>
-        ) : (
-          <span className={styles.card} aria-hidden="true" />
-        )}
+        ) : null}
       </div>
     </nav>
   );

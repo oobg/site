@@ -71,8 +71,8 @@
   --color-accent-rgb: 61 125 229;
   --color-accent-deep-rgb: 47 102 196;
   --color-callout-important: var(--d0-blue-dark);
-  --color-callout-warning: var(--d0-orange);
-  --color-callout-caution: var(--d0-red);
+  --color-callout-warning: #8a530a;
+  --color-callout-caution: var(--d0-red-dark);
   --color-window-close: #ff5f57;
   --color-window-minimize: #febc2e;
   --color-window-expand: #28c840;

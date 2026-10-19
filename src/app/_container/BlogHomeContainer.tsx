@@ -13,6 +13,7 @@ import { useBlogPosts } from '@features/posts/services/use-blog-posts';
 import { planHomeSections } from '@features/posts/utils/home-sections';
 import type { BlogHomeData, BlogPostFilters } from '@features/posts/types/posts.types';
 import { homeSearchHref } from '@constants/routes';
+import { trackPublicEvent } from '@lib/analytics/events';
 import styles from './BlogHomeContainer.module.css';
 
 type Filters = Required<Pick<BlogPostFilters, 'q' | 'category' | 'tag' | 'page' | 'pageSize'>>;
@@ -203,6 +204,7 @@ export function BlogHomeContainer({
               전체 글 보기
             </Link>
           </div>
+          <p className={styles.overviewDescription}>제품과 소프트웨어를 만들며 남긴 기록이에요.</p>
           {/* 실패했을 때 옛 목록을 같이 띄우면 그게 지금 상태인 줄 안다. 하나만 보인다. */}
           {result.isError ? (
             errorState
@@ -239,36 +241,38 @@ export function BlogHomeContainer({
                   </div>
                 </section>
               ) : null}
-              <div className={styles.sections}>
-                {home.sections.map((section) => (
-                  <section className={styles.topic} key={section.category.id}>
-                    <div className={styles.topicHeading}>
-                      <h2>{section.category.name}</h2>
-                      <Link
-                        href={homeSearchHref({ category: section.category.slug })}
-                        onClick={(event) => {
-                          if (opensElsewhere(event)) return;
-                          event.preventDefault();
-                          navigate({ ...filters, category: section.category.slug, page: 1 });
-                        }}
-                      >
-                        모두 보기
-                      </Link>
-                    </div>
-                    <div className={styles.topicGrid}>
-                      {section.posts.map((post) => (
-                        <PostCard
-                          key={post.slug}
-                          post={post}
-                          headingLevel={3}
-                          showCategory={false}
-                          reserveCoverSpace={true}
-                        />
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
+              {home.sections.length > 0 ? (
+                <div className={styles.sections}>
+                  {home.sections.map((section) => (
+                    <section className={styles.topic} key={section.category.id}>
+                      <div className={styles.topicHeading}>
+                        <h2>{section.category.name}</h2>
+                        <Link
+                          href={homeSearchHref({ category: section.category.slug })}
+                          onClick={(event) => {
+                            if (opensElsewhere(event)) return;
+                            event.preventDefault();
+                            navigate({ ...filters, category: section.category.slug, page: 1 });
+                          }}
+                        >
+                          모두 보기
+                        </Link>
+                      </div>
+                      <div className={styles.topicGrid}>
+                        {section.posts.map((post) => (
+                          <PostCard
+                            key={post.slug}
+                            post={post}
+                            headingLevel={3}
+                            showCategory={false}
+                            reserveCoverSpace={true}
+                          />
+                        ))}
+                      </div>
+                    </section>
+                  ))}
+                </div>
+              ) : null}
             </>
           )}
         </div>
@@ -281,7 +285,7 @@ export function BlogHomeContainer({
               {activeFilters.length === 0 ? <p>새로 쓴 글부터 차례로 모았어요.</p> : null}
             </div>
           </div>
-          {activeFilters.length > 0 && (
+          {(activeFilters.length > 0 || data) && (
             <div className={styles.filters}>
               <div className={styles.filterChips}>
                 {activeFilters.map((filter) => (
@@ -297,7 +301,7 @@ export function BlogHomeContainer({
                   </span>
                 ))}
               </div>
-              {data && data.archive.totalItems > 0 ? (
+              {data ? (
                 <p className={styles.resultCount} role="status">
                   글 {data.archive.totalItems}개
                 </p>
@@ -330,6 +334,16 @@ export function BlogHomeContainer({
                   >
                     첫 페이지로 이동
                   </Link>
+                ) : activeFilters.length > 0 ? (
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      navigate({ ...filters, q: '', category: '', tag: '', page: 1 });
+                      scrollToResults();
+                    }}
+                  >
+                    필터 모두 지우기
+                  </Button>
                 ) : null}
               </div>
             ) : (
@@ -338,6 +352,11 @@ export function BlogHomeContainer({
                   className={styles.grid}
                   data-loading={result.isFetching || undefined}
                   aria-busy={result.isFetching}
+                  onClick={(event) => {
+                    if (event.target instanceof Element && event.target.closest('a[href]')) {
+                      trackPublicEvent('search_result_open', 'archive');
+                    }
+                  }}
                 >
                   {data.archive.items.map((post) => (
                     <PostCard
@@ -353,7 +372,9 @@ export function BlogHomeContainer({
                 {data.archive.totalPages > 1 && (
                   <nav className={styles.pagination} aria-label="글 페이지">
                     {pageLink(filters.page - 1, '이전', filters.page > 1)}
-                    <span>
+                    <span
+                      aria-label={`현재 ${data.archive.page}페이지, 전체 ${data.archive.totalPages}페이지`}
+                    >
                       <strong>{data.archive.page}</strong> / {data.archive.totalPages}
                     </span>
                     {pageLink(filters.page + 1, '다음', filters.page < data.archive.totalPages)}

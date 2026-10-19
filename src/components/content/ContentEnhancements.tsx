@@ -132,7 +132,7 @@ export async function renderMermaidFigures(
         if (!svg) throw new Error('Unsafe Mermaid output');
         canvas.replaceChildren(svg);
         canvas.hidden = false;
-        fallback.hidden = true;
+        fallback.hidden = !figure.querySelector('[data-mermaid-source-toggle]');
         if (status) status.textContent = '';
         figure.dataset.mermaidState = 'ready';
       } catch {
@@ -149,6 +149,8 @@ function showMermaidFallback(figure: HTMLElement) {
   canvas?.replaceChildren();
   if (canvas) canvas.hidden = true;
   if (fallback) fallback.hidden = false;
+  const sourceToggle = figure.querySelector<HTMLDetailsElement>('[data-mermaid-source-toggle]');
+  if (sourceToggle) sourceToggle.open = true;
   if (status) status.textContent = '다이어그램을 표시할 수 없어 원문으로 보여 드려요.';
   figure.dataset.mermaidState = 'fallback';
 }
@@ -171,6 +173,41 @@ function selectInstallerTab(tab: HTMLButtonElement, focus = false) {
 
 export function ContentEnhancements({ contentKey = '' }: { contentKey?: string }) {
   useEffect(() => {
+    const scrollable = new Set<HTMLElement>();
+    const updateScrollable = (element: HTMLElement) => {
+      const overflows = element.scrollWidth > element.clientWidth;
+      if (overflows) {
+        element.tabIndex = 0;
+        element.dataset.horizontalScroll = '';
+        element.setAttribute(
+          'aria-label',
+          element.tagName === 'TABLE'
+            ? '가로로 스크롤할 수 있는 표'
+            : '가로로 스크롤할 수 있는 코드',
+        );
+      } else if (element.hasAttribute('data-horizontal-scroll')) {
+        element.removeAttribute('tabindex');
+        element.removeAttribute('data-horizontal-scroll');
+        element.removeAttribute('aria-label');
+      }
+    };
+    const resizeObserver =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver((entries) => {
+            for (const entry of entries) updateScrollable(entry.target as HTMLElement);
+          });
+    const registerScrollable = (root: ParentNode) => {
+      for (const element of root.querySelectorAll<HTMLElement>(
+        '[data-article-body] pre, [data-article-body] table',
+      )) {
+        if (scrollable.has(element)) continue;
+        scrollable.add(element);
+        updateScrollable(element);
+        resizeObserver?.observe(element);
+      }
+    };
+    registerScrollable(document);
     void renderMermaidFigures(document);
 
     const observer = new MutationObserver((records) => {
@@ -179,6 +216,7 @@ export function ContentEnhancements({ contentKey = '' }: { contentKey?: string }
           if (node instanceof HTMLElement) void renderMermaidFigures(node);
         }
       }
+      registerScrollable(document);
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
@@ -217,6 +255,7 @@ export function ContentEnhancements({ contentKey = '' }: { contentKey?: string }
     document.addEventListener('keydown', onKeyDown);
     return () => {
       observer.disconnect();
+      resizeObserver?.disconnect();
       document.removeEventListener('click', onClick);
       document.removeEventListener('keydown', onKeyDown);
     };

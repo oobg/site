@@ -103,7 +103,7 @@
 .prose blockquote {
   margin-block: var(--space-6);
   padding-left: var(--space-5);
-  border-left: 3px solid var(--color-text-muted);
+  border-left: 1px solid var(--color-text-muted);
   color: var(--reading-color);
 }
 
@@ -115,11 +115,15 @@
    본문 흐름이 거기서 끊기고, 그건 참고 한 줄이 요구할 무게가 아니다.
    색만으로 구별하지 않는다. 라벨이 읽히는 글자라 색을 못 봐도 종류가 남는다. */
 .prose blockquote[data-callout] {
+  border-left-width: 1px;
   border-left-color: var(--callout-tone, var(--color-accent));
   color: var(--reading-color);
 }
 
 .prose blockquote[data-callout] p[data-callout-label] {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   margin-block: 0 var(--space-2);
   font-size: var(--fs-13);
   font-weight: 600;
@@ -223,7 +227,7 @@
 
 .prose figure[data-code] span[data-code-dots],
 .prose figure[data-filetree] span[data-code-dots] {
-  display: inline-flex;
+  display: none;
   gap: 6px;
 }
 
@@ -257,8 +261,8 @@
   margin-left: auto;
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
@@ -272,6 +276,30 @@
 .prose figure[data-code] button[data-code-copy]:hover {
   color: var(--color-text);
   border-color: var(--color-border);
+}
+.prose figure[data-code] button[data-code-copy]:focus-visible,
+.prose [data-horizontal-scroll]:focus-visible,
+.prose [data-mermaid-source-toggle] summary:focus-visible {
+  outline: 2px solid var(--d0-blue);
+  outline-offset: -2px;
+}
+.prose [data-code-copy-feedback] {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--d0-grey-200);
+  color: var(--d0-grey-800);
+  font-family: var(--d0-font);
+  font-size: var(--fs-13);
+}
+.prose [data-mermaid-source-toggle] {
+  margin-top: var(--space-3);
+}
+.prose [data-mermaid-source-toggle] summary {
+  min-height: 44px;
+  padding-block: var(--space-2);
+  color: var(--d0-blue-dark);
+  font-size: var(--fs-14);
+  cursor: pointer;
 }
 
 /* 복사된 뒤에는 액센트로 한 번 알린다. 되돌아가는 것은 CodeCopy가 맡는다. */
@@ -450,8 +478,9 @@
 
 .prose [data-installer-note],
 .prose [data-installer-tip] {
+  border-left-width: 1px;
   padding-left: var(--space-3);
-  border-left: 2px solid var(--color-border-strong);
+  border-left: 1px solid var(--color-border-strong);
   font-size: var(--fs-14);
   color: var(--color-text-secondary);
 }

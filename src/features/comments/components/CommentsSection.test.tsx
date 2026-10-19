@@ -229,6 +229,25 @@ describe('CommentsSection load failure', () => {
 });
 
 describe('CommentsSection pending requests', () => {
+  it('announces appended comments without moving focus or replacing existing comments', async () => {
+    const first = await pageResponse('먼저 읽은 댓글').json();
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ ...first, total: 2, nextCursor: 'next' })),
+      )
+      .mockResolvedValueOnce(pageResponse('추가 댓글'));
+    vi.stubGlobal('fetch', fetchMock);
+    render(<CommentsSection slug="post" />);
+    await flushMicrotasks();
+    const more = screen.getByRole('button', { name: '댓글 더 보기' });
+    fireEvent.click(more);
+    await flushMicrotasks();
+    expect(screen.getByText('먼저 읽은 댓글')).toBeVisible();
+    expect(screen.getByText('추가 댓글')).toBeVisible();
+    expect(screen.getByText('댓글 1개를 더 불러왔어요.')).toHaveAttribute('role', 'status');
+    expect(fetchMock.mock.calls[1][0]).toContain('cursor=next');
+  });
   it('keeps a new draft typed while the previous comment is being submitted', async () => {
     const pending = deferred<Response>();
     vi.stubGlobal(

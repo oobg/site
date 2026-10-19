@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { AdminComments } from './AdminComments';
 
@@ -73,6 +73,8 @@ describe('AdminComments', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: '준호 댓글 삭제' }));
+    expect(fetchMock.mock.calls.filter(([, init]) => init?.method === 'DELETE')).toHaveLength(0);
+    fireEvent.click(await screen.findByRole('button', { name: '영구 삭제' }));
     await waitFor(() =>
       expect(fetchMock).toHaveBeenCalledWith(
         '/api/admin/comments',
@@ -133,5 +135,64 @@ describe('AdminComments', () => {
     expect(screen.getByText('숨긴 답글')).toBeVisible();
     expect(screen.queryByText('좋은 글 잘 읽었습니다.')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'raven 댓글 공개' })).toBeEnabled();
+  });
+  it('supports arrow keys and Home/End with one tabbable status tab', async () => {
+    render(<AdminComments />);
+    await screen.findByText('민지');
+    const all = screen.getByRole('tab', { name: '전체2' });
+    all.focus();
+    fireEvent.keyDown(all, { key: 'End' });
+    expect(screen.getByRole('tab', { name: '숨김1' })).toHaveFocus();
+    expect(screen.getByRole('tab', { name: '숨김1' })).toHaveAttribute('tabindex', '0');
+    fireEvent.keyDown(document.activeElement!, { key: 'Home' });
+    expect(all).toHaveFocus();
+    expect(screen.getByText(/최근 부모 댓글 최대 200개/)).toBeVisible();
+  });
+  it('cancel and Escape do not delete; failure keeps the target and confirmation for retry', async () => {
+    render(<AdminComments />);
+    await screen.findByText('민지');
+    fireEvent.click(screen.getByRole('button', { name: '민지 댓글 삭제' }));
+    fireEvent.click(await screen.findByRole('button', { name: '취소' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    fireEvent.click(screen.getByRole('button', { name: '민지 댓글 삭제' }));
+    fireEvent.keyDown(await screen.findByRole('dialog'), { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(
+      vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === 'DELETE'),
+    ).toHaveLength(0);
+    vi.mocked(fetch).mockResolvedValueOnce({ ok: false, json: async () => ({}) } as Response);
+    fireEvent.click(screen.getByRole('button', { name: '민지 댓글 삭제' }));
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: '영구 삭제' }));
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('댓글을 삭제하지 못했어요.');
+    expect(dialog).toHaveTextContent('좋은 글 잘 읽었습니다.');
+    expect(within(dialog).getByRole('button', { name: '영구 삭제' })).toBeEnabled();
+  });
+  it('describes child impact and deletes the parent and its replies with one confirmed request', async () => {
+    vi.mocked(fetch).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        items: [
+          ...comments,
+          { ...comments[0], id: 'r1', parent_id: 'c1', nickname: '작성자', body: '연결 답글' },
+        ],
+      }),
+    } as Response);
+    render(<AdminComments />);
+    await screen.findByText('민지');
+    fireEvent.click(screen.getByRole('button', { name: '민지 댓글 삭제' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toHaveTextContent('답글 1개가 함께 삭제');
+    const confirm = within(dialog).getByRole('button', { name: '영구 삭제' });
+    fireEvent.click(confirm);
+    fireEvent.click(confirm);
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(
+      vi.mocked(fetch).mock.calls.filter(([, init]) => init?.method === 'DELETE'),
+    ).toHaveLength(1);
+    expect(screen.queryByText('연결 답글')).not.toBeInTheDocument();
+    expect(screen.queryByText('민지')).not.toBeInTheDocument();
+    expect(screen.getByText('준호')).toBeVisible();
+    await waitFor(() => expect(screen.getByRole('searchbox')).toHaveFocus());
   });
 });

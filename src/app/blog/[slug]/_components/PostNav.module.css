@@ -29,6 +29,9 @@
   gap: var(--space-5);
   margin-top: var(--space-5);
 }
+.cards[data-single] {
+  grid-template-columns: minmax(0, 1fr);
+}
 
 @media (max-width: 640px) {
   .cards {
@@ -50,9 +53,9 @@
 }
 
 .label {
-  font-family: var(--font-mono), monospace;
+  font-family: var(--d0-font);
   font-size: var(--fs-13);
-  letter-spacing: 0.08em;
+  letter-spacing: var(--d0-tracking-body);
   color: var(--color-text-muted);
   transition: color var(--dur) linear;
 }

@@ -177,7 +177,8 @@ describe('renderMarkdown', () => {
       );
 
       expect(html).toContain('<figure data-filetree="">');
-      expect(html).toContain('role="tree" aria-label="파일 트리"');
+      expect(html).toContain('<ul aria-label="파일 트리">');
+      expect(html).not.toContain('role="tree');
       expect(html).toContain('data-kind="folder"');
       expect(html).toContain('data-kind="file"');
       expect(html).toContain('aria-label="Button.tsx, 파일"');
@@ -320,7 +321,11 @@ describe('renderMarkdown', () => {
       expect(html).toContain('<section data-mermaid="" data-mermaid-state="pending"');
       expect(html).toContain('data-mermaid-canvas="" role="img"');
       expect(html).toContain(`data-mermaid-source="" hidden aria-hidden="true">${source}`);
-      expect(html).toContain('data-mermaid-fallback="" data-code="" hidden');
+      expect(html).toContain(
+        '<details data-mermaid-source-toggle=""><summary>다이어그램 원문 보기</summary>',
+      );
+      expect(html).toContain('data-mermaid-fallback="" data-code=""');
+      expect(html).not.toContain('data-mermaid-fallback="" data-code="" hidden');
       expect(html).not.toContain('<figure data-code=""><figure');
     });
 

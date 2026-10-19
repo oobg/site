@@ -11,9 +11,6 @@
   border-radius: var(--d0-radius-control);
   background: var(--d0-grey-50);
 }
-.coverPlaceholder {
-  aspect-ratio: 1.9;
-}
 .cover img {
   width: 100%;
   height: 100%;
@@ -25,6 +22,9 @@
 }
 .body {
   padding-top: var(--space-3);
+}
+.card[data-no-cover] .body {
+  padding-top: 0;
 }
 .category {
   color: var(--d0-blue-dark);

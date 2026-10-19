@@ -26,11 +26,33 @@ export function CodeCopy() {
 
       const code = button.closest('figure[data-code]')?.querySelector('code');
       if (!code) return;
+      const figure = button.closest('figure[data-code]');
+      const status = button.querySelector('[data-code-copy-status]');
+      button.removeAttribute('data-copied');
+      if (status) status.textContent = '코드 복사';
 
       try {
         await navigator.clipboard.writeText(code.textContent ?? '');
       } catch {
         if (active && button.isConnected) {
+          let feedback = figure?.querySelector<HTMLElement>('[data-code-copy-feedback]');
+          if (!feedback && figure) {
+            feedback = document.createElement('p');
+            feedback.dataset.codeCopyFeedback = '';
+            feedback.setAttribute('role', 'status');
+            feedback.setAttribute('aria-live', 'polite');
+            figure.append(feedback);
+          }
+          if (feedback) {
+            feedback.hidden = false;
+            feedback.textContent =
+              '자동 복사를 사용할 수 없어요. 선택한 코드를 직접 복사해 주세요.';
+          }
+          const selection = window.getSelection();
+          const range = document.createRange();
+          range.selectNodeContents(code);
+          selection?.removeAllRanges();
+          selection?.addRange(range);
           Toast.error('코드를 복사하지 못했어요. 다시 시도해 주세요.');
         }
         return;
@@ -39,7 +61,8 @@ export function CodeCopy() {
       // 클립보드 작업 중 페이지를 떠났다면 분리된 버튼과 새 타이머를 만들지 않는다.
       if (!active || !button.isConnected) return;
 
-      const status = button.querySelector('[data-code-copy-status]');
+      const feedback = figure?.querySelector<HTMLElement>('[data-code-copy-feedback]');
+      if (feedback) feedback.hidden = true;
       button.setAttribute('data-copied', '');
       if (status) status.textContent = '복사됨';
 

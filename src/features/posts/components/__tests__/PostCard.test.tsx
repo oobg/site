@@ -21,15 +21,14 @@ const post: BlogPostSummary = {
 };
 
 describe('PostCard', () => {
-  it('표지 없는 글은 요청된 목록에서만 비어 있는 1.9 자리를 보존한다', () => {
+  it('표지 없는 글은 목록 옵션과 관계없이 텍스트부터 시작한다', () => {
     const { container, rerender } = render(<PostCard post={post} />);
     expect(container.querySelector('[data-cover-placeholder]')).toBeNull();
 
     rerender(<PostCard post={post} reserveCoverSpace />);
-    const placeholder = container.querySelector('[data-cover-placeholder]');
-    expect(placeholder).toHaveAttribute('aria-hidden', 'true');
-    expect(placeholder?.querySelector('a, img')).toBeNull();
-    expect(container.querySelector('article')).toHaveAttribute('data-reserved');
+    expect(container.querySelector('[data-cover-placeholder]')).toBeNull();
+    expect(container.querySelector('article')).not.toHaveAttribute('data-reserved');
+    expect(container.querySelector('article')).not.toHaveAttribute('data-has-cover');
     expect(container.querySelector('article')).toHaveAttribute('data-no-cover');
     expect(screen.getByRole('link', { name: '표지가 없는 글' })).toBeInTheDocument();
   });

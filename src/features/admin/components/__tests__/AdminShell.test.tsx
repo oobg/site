@@ -36,13 +36,21 @@ describe('AdminShell', () => {
     expect(banner.compareDocumentPosition(header as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
-  it('승인되지 않은 사용자에게 banner만 남긴다', () => {
+  it('승인되지 않은 사용자에게 명시적 안내만 표시하고 작업·검색·계정은 숨긴다', () => {
     render(
-      <AdminShell authorized={false} banner={<p>로그인 필요</p>}>
+      <AdminShell
+        authorized={false}
+        banner={<p>로그인 필요</p>}
+        accessFallback={<p>안전한 로그인 안내</p>}
+        search={<button>보호된 검색</button>}
+      >
         <p>비공개</p>
       </AdminShell>,
     );
     expect(screen.getByText('로그인 필요')).toBeVisible();
+    expect(screen.getByRole('main')).toHaveTextContent('안전한 로그인 안내');
+    expect(screen.queryByRole('button', { name: '보호된 검색' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '계정 메뉴' })).not.toBeInTheDocument();
     expect(screen.queryByText('비공개')).not.toBeInTheDocument();
     expect(screen.queryByRole('navigation', { name: '관리자 메뉴' })).not.toBeInTheDocument();
   });

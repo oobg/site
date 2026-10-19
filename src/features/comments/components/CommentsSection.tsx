@@ -261,6 +261,7 @@ function PostCommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarBase
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [loadError, setLoadError] = useState(false);
+  const [listAnnouncement, setListAnnouncement] = useState('');
   const nicknameTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const requestControllerRef = useRef<AbortController | null>(null);
   const submittingRef = useRef(false);
@@ -291,6 +292,7 @@ function PostCommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarBase
       setComments((current) => (cursor ? [...current, ...payload.items] : payload.items));
       setTotal(payload.total);
       setNextCursor(payload.nextCursor);
+      return payload.items.length;
     },
     [endpoint],
   );
@@ -374,6 +376,7 @@ function PostCommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarBase
       setComments((current) => [payload.comment as Comment, ...current]);
       setTotal((current) => current + 1);
       setBody((current) => (current === submittedBody ? '' : current));
+      setListAnnouncement('댓글을 등록했어요. 닉네임과 댓글 내용이 공개됩니다.');
     } catch (reason) {
       if (signal?.aborted) return;
       setError(
@@ -391,7 +394,12 @@ function PostCommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarBase
     setLoadingMore(true);
     setError('');
     try {
-      await load(nextCursor, signal);
+      const added = await load(nextCursor, signal);
+      if (added !== undefined) {
+        setListAnnouncement(
+          added ? `댓글 ${added}개를 더 불러왔어요.` : '새로 불러올 댓글이 없어요.',
+        );
+      }
     } catch {
       if (signal?.aborted) return;
       setError('댓글을 더 불러오지 못했어요. 다시 시도해 주세요.');
@@ -433,6 +441,9 @@ function PostCommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarBase
         <h2 id="comments-title">댓글 {total}</h2>
       </div>
       <form className={styles.form} onSubmit={submit}>
+        <p className={styles.guidance} id="comment-identity-help">
+          닉네임과 아이콘은 무작위로 골라 드려요. 닉네임은 직접 바꿀 수 있어요.
+        </p>
         <div className={styles.identityRow}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -458,6 +469,7 @@ function PostCommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarBase
               name="nickname"
               autoComplete="nickname"
               aria-required="true"
+              aria-describedby="comment-identity-help comment-publication-help"
               onChange={(event) => {
                 cancelNicknameAnimation();
                 setIdentityNotice('');
@@ -483,8 +495,13 @@ function PostCommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarBase
             placeholder="댓글을 남겨 주세요."
             onChange={(event) => setBody(event.target.value)}
             required
+            aria-describedby="comment-publication-help"
           />
         </label>
+        <p className={styles.guidance} id="comment-publication-help">
+          등록한 닉네임과 댓글은 누구나 볼 수 있어요. 개인정보는 남기지 마세요. 수정이나 삭제가
+          필요하면 하단 문의로 알려 주세요.
+        </p>
         <div className={styles.formFooter}>
           <span>{body.length}/1000</span>
           <button
@@ -497,6 +514,9 @@ function PostCommentsSection({ slug, avatarBaseUrl }: { slug: string; avatarBase
       </form>
       <p className={styles.status} role="status" aria-live="polite">
         {error}
+      </p>
+      <p className={styles.visuallyHidden} role="status" aria-live="polite" aria-atomic="true">
+        {listAnnouncement}
       </p>
       {loading ? (
         <div className={styles.loading} aria-label="댓글을 불러오는 중" aria-busy="true">

@@ -61,6 +61,34 @@ jobs:
       - name: 검증한 SHA 체크아웃
         run: git checkout --detach '${{ steps.target.outputs.sha }}'
 
+      # Validate this exact checked-out SHA before touching the production host.
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+        with:
+          version: 9.12.0
+          run_install: false
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22
+          package-manager-cache: false
+
+      - name: 후보 의존성 설치
+        run: HUSKY=0 pnpm install --frozen-lockfile
+
+      - name: 동일 revision 테스트와 정적 검증
+        run: |
+          pnpm test
+          pnpm typecheck
+          pnpm lint
+          pnpm check:css
+          pnpm check:design
+          python3 scripts/check-production-deploy.py
+
+      - name: 외부 비밀값 없는 후보 빌드
+        env:
+          CONTENT_SOURCE: mock
+        run: pnpm build
+
       - name: Tailscale 합류
         uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3.3.0
         with:
@@ -103,6 +131,14 @@ jobs:
           done
           test -s ~/.ssh/raven-production-known-hosts || { echo '::error::DEPLOY_HOST_KEY를 파싱하지 못했습니다.'; exit 1; }
           chmod 600 ~/.ssh/raven-production-known-hosts
+
+      - name: production 호스트 표식 확인
+        env:
+          ADDR: ${{ steps.host.outputs.addr }}
+        run: |
+          ssh -i ~/.ssh/raven-production -o UserKnownHostsFile=~/.ssh/raven-production-known-hosts \
+            -o StrictHostKeyChecking=yes -o BatchMode=yes -o ConnectTimeout=15 \
+            "ubuntu@$ADDR" 'test "$(tr -d "\r\n" < "$HOME/raven-production/config/DEPLOY_TARGET")" = raven-production'
 
       - name: production Access docs 설정 반영
         env:
@@ -155,14 +191,6 @@ jobs:
               except FileNotFoundError:
                   pass
           PY
-
-      - name: production 호스트 표식 확인
-        env:
-          ADDR: ${{ steps.host.outputs.addr }}
-        run: |
-          ssh -i ~/.ssh/raven-production -o UserKnownHostsFile=~/.ssh/raven-production-known-hosts \
-            -o StrictHostKeyChecking=yes -o BatchMode=yes -o ConnectTimeout=15 \
-            "ubuntu@$ADDR" 'test "$(tr -d "\r\n" < "$HOME/raven-production/config/DEPLOY_TARGET")" = raven-production'
 
       - name: 검증한 소스 동기화
         env:

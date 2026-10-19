@@ -1,4 +1,5 @@
 import 'server-only';
+import { logOperation } from '@lib/observability/logger';
 
 import { BetaAnalyticsDataClient } from '@google-analytics/data';
 import { unstable_cache } from 'next/cache';
@@ -298,10 +299,12 @@ const fetchAnalyticsDashboard = unstable_cache(
           { timeout: 10_000 },
         );
         locationReports = (locationResponse.reports ?? []) as AnalyticsReport[];
-      } catch (error) {
-        const code =
-          typeof error === 'object' && error && 'code' in error ? String(error.code) : 'unknown';
-        console.warn(`GA4 location reports unavailable (code: ${code})`);
+      } catch {
+        logOperation({
+          operation: 'analytics_locations',
+          code: 'GA_LOCATION_REPORT_FAILED',
+          level: 'warn',
+        });
       }
       const data: AnalyticsDashboardData = {
         range: dateRange,
@@ -381,10 +384,8 @@ const fetchAnalyticsDashboard = unstable_cache(
         })),
       };
       return { status: 'ready', data };
-    } catch (error) {
-      const code =
-        typeof error === 'object' && error && 'code' in error ? String(error.code) : 'unknown';
-      console.error(`GA4 Data API request failed (code: ${code})`);
+    } catch {
+      logOperation({ operation: 'analytics_report', code: 'GA_REPORT_FAILED' });
       return { status: 'error', message: '방문 통계를 불러오지 못했어요.' };
     }
   },

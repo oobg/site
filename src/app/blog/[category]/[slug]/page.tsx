@@ -67,7 +67,7 @@ async function BlogPostLinks({ post }: { post: BlogPost }) {
 
   return (
     <>
-      <ArticleAside related={related} />
+      <ArticleAside related={related} currentPost={post} />
       <PostNav prev={prev} next={next} />
     </>
   );

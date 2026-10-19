@@ -74,12 +74,12 @@ export function ProjectHeader({ project }: { project: Project }) {
             <dd className={styles.links}>
               {repo ? (
                 <a href={repo} target="_blank" rel="noreferrer">
-                  Repo
+                  소스 코드 보기
                 </a>
               ) : null}
               {live ? (
                 <a href={live} target="_blank" rel="noreferrer">
-                  Live
+                  프로젝트 열기
                 </a>
               ) : null}
             </dd>

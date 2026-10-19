@@ -109,7 +109,8 @@ describe('BlogSettings', () => {
     fireEvent.change(screen.getByRole('combobox', { name: '대표 글 카테고리' }), {
       target: { value: categories[0].id },
     });
-    expect(screen.queryByText(/둘째 글/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('checkbox', { name: /둘째 글/ })).not.toBeInTheDocument();
+    expect(screen.getByLabelText('추천 글 노출 순서 미리보기')).toHaveTextContent('둘째 글');
     expect(
       [...container.querySelectorAll('input[name="post_ids"]')].map(
         (node) => (node as HTMLInputElement).value,

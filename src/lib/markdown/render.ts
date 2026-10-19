@@ -341,15 +341,23 @@ function mermaidBlocks() {
           },
           {
             type: 'element',
-            tagName: 'figure',
-            properties: { 'data-mermaid-fallback': '', 'data-code': '', hidden: true },
+            tagName: 'details',
+            properties: { 'data-mermaid-source-toggle': '' },
             children: [
-              appleWindowHeader('mermaid', true),
+              textElement('summary', '다이어그램 원문 보기'),
               {
                 type: 'element',
-                tagName: 'pre',
-                properties: { 'data-mermaid-fallback-code': '' },
-                children: [textElement('code', source, { className: ['language-mermaid'] })],
+                tagName: 'figure',
+                properties: { 'data-mermaid-fallback': '', 'data-code': '' },
+                children: [
+                  appleWindowHeader('mermaid', true),
+                  {
+                    type: 'element',
+                    tagName: 'pre',
+                    properties: { 'data-mermaid-fallback-code': '' },
+                    children: [textElement('code', source, { className: ['language-mermaid'] })],
+                  },
+                ],
               },
             ],
           },
@@ -561,12 +569,11 @@ function fileTreeList(entries: FileTreeEntry[], root = false): Element {
   return {
     type: 'element',
     tagName: 'ul',
-    properties: root ? { role: 'tree', 'aria-label': '파일 트리' } : { role: 'group' },
+    properties: root ? { 'aria-label': '파일 트리' } : {},
     children: entries.map((entry) => ({
       type: 'element',
       tagName: 'li',
       properties: {
-        role: 'treeitem',
         'data-kind': entry.kind,
         'aria-label': `${entry.name}, ${entry.kind === 'folder' ? '폴더' : '파일'}`,
       },
@@ -777,7 +784,37 @@ function calloutBlocks() {
         type: 'element',
         tagName: 'p',
         properties: { 'data-callout-label': '' },
-        children: [{ type: 'text', value: CALLOUTS[kind] }],
+        children: [
+          { type: 'text', value: CALLOUTS[kind] },
+          {
+            type: 'element',
+            tagName: 'svg',
+            properties: {
+              viewBox: '0 0 24 24',
+              width: 16,
+              height: 16,
+              fill: 'none',
+              stroke: 'currentColor',
+              strokeWidth: 1.7,
+              strokeLinecap: 'round',
+              strokeLinejoin: 'round',
+              'aria-hidden': 'true',
+            },
+            children: [
+              {
+                type: 'element',
+                tagName: 'path',
+                properties: {
+                  d:
+                    kind === 'WARNING' || kind === 'CAUTION'
+                      ? 'M12 3 22 21H2L12 3ZM12 9v5M12 17v.1'
+                      : 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM12 11v6M12 7v.1',
+                },
+                children: [],
+              },
+            ],
+          },
+        ],
       });
     });
   };

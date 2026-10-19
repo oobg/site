@@ -218,3 +218,10 @@
     grid-row: 1 / span 2;
   }
 }
+
+.quickLink[data-priority] {
+  background: var(--d0-blue-light);
+}
+.quickLink[data-priority] strong {
+  color: var(--d0-blue-dark);
+}

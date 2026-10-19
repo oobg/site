@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowClockwise,
   Check,
@@ -9,6 +9,8 @@ import {
   MagnifyingGlass,
   Trash,
 } from '@phosphor-icons/react/dist/ssr';
+import { Dialog } from '@components/ui/Dialog';
+import { Button } from '@components/ui/Button';
 import { ROUTES } from '@constants/routes';
 import { getCommentAvatarUrl } from '@features/comments/utils/comment-avatar';
 import type { AdminComment, Comment } from '@features/comments/types/comments.types';
@@ -32,6 +34,9 @@ const formatDate = (value: string) =>
   }).format(new Date(value));
 
 export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
+  const [deleteTarget, setDeleteTarget] = useState<AdminComment | null>(null);
+  const deletePendingRef = useRef(false);
+  const searchRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<AdminComment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -75,7 +80,8 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
   }, []);
 
   const remove = async (id: string) => {
-    if (pendingId) return;
+    if (pendingId || deletePendingRef.current) return;
+    deletePendingRef.current = true;
     setPendingId(id);
     setError('');
     try {
@@ -86,9 +92,12 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
       });
       if (!response.ok) throw new Error();
       setItems((current) => current.filter((item) => item.id !== id && item.parent_id !== id));
+      setDeleteTarget(null);
+      requestAnimationFrame(() => searchRef.current?.focus());
     } catch {
       setError('댓글을 삭제하지 못했어요. 다시 시도해 주세요.');
     } finally {
+      deletePendingRef.current = false;
       setPendingId(null);
     }
   };
@@ -209,6 +218,9 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
     );
   return (
     <div className={styles.wrap}>
+      <p className={styles.scope}>
+        최근 부모 댓글 최대 200개와 해당 답글을 표시해요. 검색과 개수는 불러온 범위 기준이에요.
+      </p>
       {error ? (
         <div className={styles.error} role="alert">
           <span>{error}</span>
@@ -219,12 +231,33 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
         </div>
       ) : null}
       <div className={styles.toolbar}>
-        <div className={styles.tabs} role="tablist" aria-label="댓글 상태">
+        <div
+          className={styles.tabs}
+          role="tablist"
+          aria-label="댓글 상태"
+          onKeyDown={(event) => {
+            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+            event.preventDefault();
+            const values = Object.keys(filterLabels) as Filter[];
+            const index = values.indexOf(filter);
+            const next =
+              event.key === 'Home'
+                ? 0
+                : event.key === 'End'
+                  ? values.length - 1
+                  : (index + (event.key === 'ArrowRight' ? 1 : -1) + values.length) % values.length;
+            setFilter(values[next]);
+            event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]')[next]?.focus();
+          }}
+        >
           {(Object.keys(filterLabels) as Filter[]).map((value) => (
             <button
               key={value}
               type="button"
               role="tab"
+              id={`comment-tab-${value}`}
+              aria-controls="admin-comments-panel"
+              tabIndex={filter === value ? 0 : -1}
               aria-selected={filter === value}
               className={filter === value ? styles.activeTab : undefined}
               onClick={() => setFilter(value)}
@@ -238,6 +271,7 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
           <MagnifyingGlass aria-hidden size={17} />
           <span className={styles.visuallyHidden}>댓글 검색</span>
           <input
+            ref={searchRef}
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -252,139 +286,178 @@ export function AdminComments({ avatarBaseUrl }: { avatarBaseUrl?: string }) {
           </select>
         </label>
       </div>
-      {filteredItems.length ? (
-        <ul className={styles.list}>
-          {orderedItems.map((item) => (
-            <li
-              key={item.id}
-              className={styles.item}
-              data-reply={Boolean(item.parent_id)}
-              aria-label={item.parent_id ? `${item.nickname} 답글` : `${item.nickname} 댓글`}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={getCommentAvatarUrl(item.avatar_id, avatarBaseUrl)} alt="" />
-              <div className={styles.content}>
-                <div className={styles.meta}>
-                  {item.parent_id ? <span aria-hidden="true">ㄴ&gt;</span> : null}
-                  <strong>{item.nickname}</strong>
-                  {item.is_author ? <span className={styles.authorBadge}>작성자</span> : null}
-                  <a
-                    href={ROUTES.BLOG.LEGACY_DETAIL(item.post_slug)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    /{item.post_slug}
-                  </a>
-                  <time dateTime={item.created_at}>{formatDate(item.created_at)}</time>
-                  <span className={styles.status} data-status={item.moderation_status}>
-                    {filterLabels[item.moderation_status]}
-                  </span>
+      <div id="admin-comments-panel" role="tabpanel" aria-labelledby={`comment-tab-${filter}`}>
+        {filteredItems.length ? (
+          <ul className={styles.list}>
+            {orderedItems.map((item) => (
+              <li
+                key={item.id}
+                className={styles.item}
+                data-reply={Boolean(item.parent_id)}
+                aria-label={item.parent_id ? `${item.nickname} 답글` : `${item.nickname} 댓글`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={getCommentAvatarUrl(item.avatar_id, avatarBaseUrl)} alt="" />
+                <div className={styles.content}>
+                  <div className={styles.meta}>
+                    {item.parent_id ? <span aria-hidden="true">ㄴ&gt;</span> : null}
+                    <strong>{item.nickname}</strong>
+                    {item.is_author ? <span className={styles.authorBadge}>작성자</span> : null}
+                    <a
+                      href={ROUTES.BLOG.LEGACY_DETAIL(item.post_slug)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      /{item.post_slug}
+                    </a>
+                    <time dateTime={item.created_at}>{formatDate(item.created_at)}</time>
+                    <span className={styles.status} data-status={item.moderation_status}>
+                      {filterLabels[item.moderation_status]}
+                    </span>
+                  </div>
+                  <p>{item.body}</p>
                 </div>
-                <p>{item.body}</p>
-              </div>
-              <div className={styles.actions}>
-                {!item.parent_id ? (
-                  <button
-                    type="button"
-                    disabled={Boolean(pendingId) || replyPending}
-                    aria-expanded={replyTo === item.id}
-                    aria-controls={`reply-form-${item.id}`}
-                    onClick={() => {
-                      setReplyTo(item.id);
-                      setReplyBody('');
-                      setReplyError('');
-                    }}
-                  >
-                    답글
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  disabled={Boolean(pendingId) || replyPending}
-                  onClick={() => toggleVisibility(item)}
-                  aria-label={`${item.nickname} 댓글 ${item.moderation_status === 'visible' ? '숨기기' : '공개'}`}
-                >
-                  {item.moderation_status === 'visible' ? (
-                    <EyeSlash aria-hidden size={17} />
-                  ) : (
-                    <Eye aria-hidden size={17} />
-                  )}
-                  <span>{item.moderation_status === 'visible' ? '숨기기' : '공개'}</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={Boolean(pendingId) || replyPending}
-                  onClick={() => remove(item.id)}
-                  aria-label={`${item.nickname} 댓글 삭제`}
-                >
-                  <Trash aria-hidden size={17} />
-                </button>
-              </div>
-              {replyTo === item.id && !item.parent_id ? (
-                <form
-                  id={`reply-form-${item.id}`}
-                  className={styles.replyForm}
-                  onSubmit={(event) => submitReply(event, item)}
-                  aria-busy={replyPending}
-                >
-                  <label htmlFor={`reply-body-${item.id}`}>{item.nickname}님에게 답글</label>
-                  <textarea
-                    id={`reply-body-${item.id}`}
-                    value={replyBody}
-                    maxLength={1000}
-                    rows={3}
-                    required
-                    autoFocus
-                    disabled={replyPending}
-                    onChange={(event) => setReplyBody(event.target.value)}
-                    aria-describedby={replyError ? `reply-error-${item.id}` : undefined}
-                  />
-                  {replyError ? (
-                    <p id={`reply-error-${item.id}`} role="alert">
-                      {replyError}
-                    </p>
-                  ) : null}
-                  <div className={styles.actions}>
+                <div className={styles.actions}>
+                  {!item.parent_id ? (
                     <button
                       type="button"
-                      disabled={replyPending}
+                      disabled={Boolean(pendingId) || replyPending}
+                      aria-expanded={replyTo === item.id}
+                      aria-controls={`reply-form-${item.id}`}
                       onClick={() => {
-                        setReplyTo(null);
+                        setReplyTo(item.id);
                         setReplyBody('');
                         setReplyError('');
                       }}
                     >
-                      취소
+                      답글
                     </button>
-                    <button
-                      type="submit"
-                      disabled={
-                        replyPending ||
-                        Boolean(pendingId) ||
-                        !replyBody.trim() ||
-                        replyBody.trim().length > 1000 ||
-                        replyBody.includes('\u0000')
+                  ) : null}
+                  <button
+                    type="button"
+                    disabled={Boolean(pendingId) || replyPending}
+                    onClick={() => toggleVisibility(item)}
+                    aria-label={`${item.nickname} 댓글 ${item.moderation_status === 'visible' ? '숨기기' : '공개'}`}
+                  >
+                    {item.moderation_status === 'visible' ? (
+                      <EyeSlash aria-hidden size={17} />
+                    ) : (
+                      <Eye aria-hidden size={17} />
+                    )}
+                    <span>{item.moderation_status === 'visible' ? '숨기기' : '공개'}</span>
+                  </button>
+                  <Dialog
+                    trigger={
+                      <>
+                        <Trash aria-hidden size={17} />
+                        <span className={styles.visuallyHidden}>{item.nickname} 댓글 삭제</span>
+                      </>
+                    }
+                    triggerVariant="danger"
+                    title={
+                      item.parent_id ? '답글을 영구 삭제할까요?' : '댓글과 답글을 영구 삭제할까요?'
+                    }
+                    description={
+                      item.parent_id
+                        ? '이 답글만 삭제합니다. 삭제한 내용은 복구할 수 없어요.'
+                        : `이 댓글과 연결된 답글 ${items.filter((reply) => reply.parent_id === item.id).length}개가 함께 삭제됩니다. 복구할 수 없어요.`
+                    }
+                    open={deleteTarget?.id === item.id}
+                    onOpenChange={(next) => {
+                      if (!pendingId && !replyPending) {
+                        setError('');
+                        setDeleteTarget(next ? item : null);
                       }
-                    >
-                      {replyPending ? '등록 중…' : '답글 등록'}
-                    </button>
-                  </div>
-                </form>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className={styles.empty} role="status">
-          <Check aria-hidden size={24} />
-          <strong>{items.length ? '조건에 맞는 댓글이 없어요.' : '아직 댓글이 없어요.'}</strong>
-          <span>
-            {items.length
-              ? '다른 상태 탭을 선택하거나 검색어를 바꿔 보세요.'
-              : '새 댓글이 등록되면 이곳에서 바로 관리할 수 있어요.'}
-          </span>
-        </div>
-      )}
+                    }}
+                  >
+                    <p>
+                      <strong>{item.nickname}</strong>
+                    </p>
+                    <p className={styles.deleteExcerpt}>
+                      {item.body.slice(0, 160)}
+                      {item.body.length > 160 ? '…' : ''}
+                    </p>
+                    {error ? <p role="alert">{error}</p> : null}
+                    <div className={styles.deleteActions}>
+                      <Button disabled={Boolean(pendingId)} onClick={() => setDeleteTarget(null)}>
+                        취소
+                      </Button>
+                      <Button
+                        variant="danger"
+                        disabled={Boolean(pendingId)}
+                        onClick={() => void remove(item.id)}
+                      >
+                        {pendingId === item.id ? '삭제 중…' : '영구 삭제'}
+                      </Button>
+                    </div>
+                  </Dialog>
+                </div>
+                {replyTo === item.id && !item.parent_id ? (
+                  <form
+                    id={`reply-form-${item.id}`}
+                    className={styles.replyForm}
+                    onSubmit={(event) => submitReply(event, item)}
+                    aria-busy={replyPending}
+                  >
+                    <label htmlFor={`reply-body-${item.id}`}>{item.nickname}님에게 답글</label>
+                    <textarea
+                      id={`reply-body-${item.id}`}
+                      value={replyBody}
+                      maxLength={1000}
+                      rows={3}
+                      required
+                      autoFocus
+                      disabled={replyPending}
+                      onChange={(event) => setReplyBody(event.target.value)}
+                      aria-describedby={replyError ? `reply-error-${item.id}` : undefined}
+                    />
+                    {replyError ? (
+                      <p id={`reply-error-${item.id}`} role="alert">
+                        {replyError}
+                      </p>
+                    ) : null}
+                    <div className={styles.actions}>
+                      <button
+                        type="button"
+                        disabled={replyPending}
+                        onClick={() => {
+                          setReplyTo(null);
+                          setReplyBody('');
+                          setReplyError('');
+                        }}
+                      >
+                        취소
+                      </button>
+                      <button
+                        type="submit"
+                        disabled={
+                          replyPending ||
+                          Boolean(pendingId) ||
+                          !replyBody.trim() ||
+                          replyBody.trim().length > 1000 ||
+                          replyBody.includes('\u0000')
+                        }
+                      >
+                        {replyPending ? '등록 중…' : '답글 등록'}
+                      </button>
+                    </div>
+                  </form>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className={styles.empty} role="status">
+            <Check aria-hidden size={24} />
+            <strong>{items.length ? '조건에 맞는 댓글이 없어요.' : '아직 댓글이 없어요.'}</strong>
+            <span>
+              {items.length
+                ? '다른 상태 탭을 선택하거나 검색어를 바꿔 보세요.'
+                : '새 댓글이 등록되면 이곳에서 바로 관리할 수 있어요.'}
+            </span>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

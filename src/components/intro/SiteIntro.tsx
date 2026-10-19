@@ -5,11 +5,13 @@ import { useAnimate } from 'motion/react';
 import { useIntro } from './IntroProvider';
 import styles from './SiteIntro.module.css';
 
-const START_DELAY_MS = 350; // 빈 글자를 잠깐 보여준 뒤 채우기 시작
-const FILL_MS = 850; // 글자 내부가 좌→우로 차오르는 시간
-const SETTLE_MS = 400; // 다 찬 뒤 이동 전 정지(숨)
-const MOVE_MS = 700; // 좌상단 헤더 워드마크로 축소·이동(천천히)
-const FADE_MS = 280; // 오버레이 페이드아웃(핸드오프)
+// 격리 mock Chrome에서 최초 콘텐츠 공개까지 약 3초가 걸렸다. 세션당 한 번의
+// 워드마크 인계는 유지하되 읽기를 막는 대기와 이동 시간을 줄인다.
+const START_DELAY_MS = 100;
+const FILL_MS = 500;
+const SETTLE_MS = 120;
+const MOVE_MS = 420;
+const FADE_MS = 220;
 const FAILSAFE_MS = 5000;
 const FONT_WAIT_MS = 1500;
 // 이동·페이드용 부드러운 ease-out(급가속·bounce 없음).

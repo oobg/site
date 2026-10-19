@@ -15,6 +15,9 @@ CONTAINER="raven-web-production"
 HEALTH_TIMEOUT="${RAVEN_HEALTH_TIMEOUT:-120}"
 KEEP_SHA_TAGS="${RAVEN_KEEP_SHA_TAGS:-5}"
 
+[[ "$HEALTH_TIMEOUT" =~ ^[1-9][0-9]*$ ]] || { echo "invalid health timeout" >&2; exit 1; }
+[[ "$KEEP_SHA_TAGS" =~ ^[1-9][0-9]*$ ]] || { echo "invalid image retention count" >&2; exit 1; }
+
 log() { printf '\n=== %s\n' "$*"; }
 die() { printf '\n!!! %s\n' "$*" >&2; exit 1; }
 
@@ -75,21 +78,44 @@ if [ -n "$(env_value NEXT_PUBLIC_GOOGLE_ANALYTICS_ID "$ENV_FILE")" ]; then
 fi
 echo "  ok — production marker와 필수 설정 이름 확인 (값은 출력하지 않음)"
 
-log "2/6 이전 이미지 보존"
+health_ready() {
+  docker exec "$CONTAINER" wget -T 5 -qO- http://127.0.0.1:3000/health 2>/dev/null \
+    | grep -qx '{"status":"ready"}'
+}
+
+wait_for_health() {
+  local deadline
+  deadline=$(( $(date +%s) + HEALTH_TIMEOUT ))
+  while [ "$(date +%s)" -lt "$deadline" ]; do
+    if health_ready; then return 0; fi
+    sleep 3
+  done
+  return 1
+}
+
+log "2/6 실행 중인 정상 이미지 보존"
 PREV_ID=""
-if docker image inspect "$IMAGE_REPO:current" >/dev/null 2>&1; then
-  PREV_ID="$(docker image inspect -f '{{.Id}}' "$IMAGE_REPO:current")"
-  docker tag "$IMAGE_REPO:current" "$IMAGE_REPO:previous"
-  echo "  current -> previous"
+running_id="$(docker inspect -f '{{.Image}}' "$CONTAINER" 2>/dev/null || true)"
+running_health="$(docker inspect -f '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$CONTAINER" 2>/dev/null || true)"
+if [ -n "$running_id" ] && [ "$running_health" = healthy ] \
+  && health_ready && docker image inspect "$running_id" >/dev/null 2>&1; then
+  PREV_ID="$running_id"
+  docker tag "$PREV_ID" "$IMAGE_REPO:previous"
+  echo "  healthy running image -> previous"
 else
-  echo "  최초 배포 — 자동 롤백 이미지 없음"
+  echo "  실행 중인 정상 이미지 없음 — 이번 배포의 자동 롤백 대상 없음"
 fi
 
 rollback() {
-  [ -n "$PREV_ID" ] || { echo "  previous 이미지가 없어 자동 롤백할 수 없습니다." >&2; return 0; }
-  docker tag "$IMAGE_REPO:previous" "$IMAGE_REPO:current"
-  compose up -d --force-recreate --no-build "$SERVICE" tunnel || true
-  echo "  previous 이미지로 복구를 시도했습니다."
+  [ -n "$PREV_ID" ] || { echo "  검증한 previous 이미지가 없어 수동 복구가 필요합니다." >&2; return 1; }
+  docker tag "$PREV_ID" "$IMAGE_REPO:current" || return 1
+  compose up -d --force-recreate --no-deps --no-build "$SERVICE" || return 1
+  if wait_for_health; then
+    echo "  previous 이미지 복구 후 프로세스 health 확인 완료"
+    return 0
+  fi
+  echo "  previous 이미지도 health 확인 실패 — 수동 복구가 필요합니다." >&2
+  return 1
 }
 
 failure_log() {
@@ -107,34 +133,24 @@ if ! DOCKER_BUILDKIT=1 compose build "$SERVICE"; then
 fi
 
 log "4/6 컨테이너 기동"
-if ! compose up -d --no-build --remove-orphans; then
+if ! compose up -d --no-build "$SERVICE" tunnel; then
   failure_log
-  rollback
+  rollback || echo "자동 복구 미완료: 운영 복구 절차를 확인하세요." >&2
   exit 1
 fi
 
 log "5/6 프로세스 health 확인"
-deadline=$(( $(date +%s) + HEALTH_TIMEOUT ))
-healthy=0
-while [ "$(date +%s)" -lt "$deadline" ]; do
-  if docker exec "$CONTAINER" wget -qO- http://127.0.0.1:3000/health 2>/dev/null \
-    | grep -q '"status":"ready"'; then
-    healthy=1
-    break
-  fi
-  sleep 3
-done
-if [ "$healthy" -ne 1 ]; then
+if ! wait_for_health; then
   failure_log
-  rollback
-  die "프로세스 health 실패 — 가능한 경우 previous로 롤백했습니다."
+  rollback || echo "자동 복구 미완료: 운영 복구 절차를 확인하세요." >&2
+  die "새 이미지 health 실패 — 위 rollback 검증 결과를 확인하세요."
 fi
 docker tag "$IMAGE_REPO:current" "$IMAGE_REPO:$SHA"
 echo "  프로세스 health 통과. Supabase, OAuth, R2 readiness는 별도 수동 검증 대상입니다."
 
 log "6/6 raven production 이미지 정리"
 docker images --format '{{.Tag}}\t{{.CreatedAt}}' "$IMAGE_REPO" \
-  | grep -vE '^(current|previous|<none>)\b' \
+  | awk '$1 ~ /^[0-9a-f]+$/ && length($1) == 40 { print }' \
   | sort -k2 -r \
   | tail -n +$((KEEP_SHA_TAGS + 1)) \
   | cut -f1 \

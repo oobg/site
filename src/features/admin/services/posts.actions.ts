@@ -1,10 +1,21 @@
 'use server';
 
 import type { PostActionState } from '@/features/admin/types/posts-admin.types';
-import { postIdSchema, postInputSchema } from '@/features/admin/services/posts.schema';
+import {
+  expectedUpdatedAtSchema,
+  postIdSchema,
+  postInputSchema,
+} from '@/features/admin/services/posts.schema';
 import { OwnerAuthorizationError, requireOwner } from '@lib/auth/owner';
 import { createClient } from '@lib/supabase/server';
 import { refreshPostPaths, refreshPublicPostCache } from './posts.refresh';
+
+const conflict = (): PostActionState => ({
+  status: 'error',
+  message:
+    '다른 곳에서 글이 수정되었거나 삭제되었어요. 작성 중인 내용은 보관하고 최신 글을 먼저 확인해 주세요.',
+  fieldErrors: { expectedUpdatedAt: ['최신 글을 확인한 뒤 변경 내용을 다시 옮겨 주세요.'] },
+});
 
 const valuesFrom = (formData: FormData) => ({
   title: formData.get('title'),
@@ -82,11 +93,21 @@ export async function updatePostAction(
 ): Promise<PostActionState> {
   const id = postIdSchema.safeParse(formData.get('id'));
   const parsed = postInputSchema.safeParse(valuesFrom(formData));
-  if (!id.success || !parsed.success) {
+  const expected = expectedUpdatedAtSchema.safeParse(formData.get('expectedUpdatedAt'));
+  if (!id.success || !parsed.success || !expected.success) {
     return {
       status: 'error',
       message: '입력값을 확인해 주세요.',
-      fieldErrors: parsed.success ? undefined : parsed.error.flatten().fieldErrors,
+      fieldErrors: {
+        ...(parsed.success ? {} : parsed.error.flatten().fieldErrors),
+        ...(!expected.success
+          ? {
+              expectedUpdatedAt: [
+                '편집 기준이 없어요. 작성 내용을 보관한 뒤 글을 다시 열어 주세요.',
+              ],
+            }
+          : {}),
+      },
     };
   }
 
@@ -97,16 +118,20 @@ export async function updatePostAction(
       .from('posts')
       .select('slug,status,published_at')
       .eq('id', id.data)
-      .single();
+      .maybeSingle();
     if (readError) throw readError;
+    if (!current) return conflict();
     const publishedAt =
       parsed.data.status === 'published'
         ? (current.published_at ?? new Date().toISOString())
         : null;
-    const { error } = await supabase
+    const { data: saved, error } = await supabase
       .from('posts')
-      .update({ ...parsed.data, published_at: publishedAt })
-      .eq('id', id.data);
+      .update({ ...parsed.data, published_at: publishedAt, updated_at: new Date().toISOString() })
+      .eq('id', id.data)
+      .eq('updated_at', expected.data)
+      .select('updated_at')
+      .maybeSingle();
     if (error?.code === '23505') {
       return {
         status: 'error',
@@ -115,9 +140,10 @@ export async function updatePostAction(
       };
     }
     if (error) throw error;
+    if (!saved) return conflict();
     refreshPublicPostCache(current.slug, parsed.data.slug);
     refreshPostPaths(current.slug, parsed.data.slug);
-    return { status: 'success', message: '글을 수정했습니다.' };
+    return { status: 'success', message: '글을 수정했습니다.', updatedAt: saved.updated_at };
   } catch (error) {
     logFailure('Update', error);
     return failure(error);

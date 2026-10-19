@@ -4,18 +4,31 @@
 }
 
 .btn {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding-inline: var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   background: transparent;
   color: var(--color-text-secondary);
   cursor: pointer;
+  font-size: var(--fs-13);
   transition:
     border-color var(--dur) linear,
     color var(--dur) linear;
+}
+.btn:focus-visible {
+  outline: 2px solid var(--d0-blue);
+  outline-offset: 2px;
+}
+.feedback {
+  min-height: var(--space-5);
+  margin-top: var(--space-2);
+  color: var(--d0-grey-600);
+  font-size: var(--fs-13);
 }
 
 .btn:hover {

@@ -49,10 +49,12 @@ export function ArticleHeader({ post, readingMin }: { post: BlogPost; readingMin
           </span>
         </span>
       </div>
-      <ul className={styles.tags}>
+      <ul className={styles.tags} aria-label="주제와 태그">
         <li>
+          <span className={styles.tagLabel}>주제</span>
           <Link href={homeSearchHref({ category: post.category.slug })}>{post.category.name}</Link>
         </li>
+        {visibleTags.length > 0 ? <li className={styles.tagLabel}>태그</li> : null}
         {visibleTags.map((tag) => (
           <li key={tag}>
             <Link href={homeSearchHref({ tag })}>{tag}</Link>

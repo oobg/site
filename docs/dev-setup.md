@@ -152,3 +152,7 @@ Raven DB/Auth/REST와 provider, migration, 공유 gateway를 적용했다. 실�
 2026-09-07 acceptance 당시 앱 129 tests, typecheck, lint(기존 warning 2건), dev metadata Next build가 통과했다. dev 전용 Dockerfile의 실제 local build와 read-only root container `/health` smoke도 통과했다. 배포 shell harness의 success, build failure, up failure, health failure, rollback, first-deploy 시나리스를 검증했고 홈서버에서도 실제 app health 실패 후 이전 이미지를 복구했다. 당시 검증한 배포 이미지는 `snapshot-d57de14f186eb41f`이며 source digest는 `d57de14f186eb41fc85d9324c07f2b749266a43d233895260570a94fd937c1fc`다.
 
 Cloudflare tunnel version 12와 proxied DNS로 세 dev origin을 공개했다. 공개 origin에서는 health와 `/blog` SSR, GIS 로그인, Google 계정 선택, GoTrue 교환, owner 관리자 진입을 확인했다. 고유 draft는 공개 목록에서 보이지 않았고 발행 뒤 공개 상세에 title과 body가 표시됐다. local PNG 업로드는 `/assets/posts/...` Markdown 경로를 만들었고 `cdn-dev.raven.kr`의 WebP 폭 변환도 확인했다. acceptance용 database row와 source asset을 삭제한 뒤 공개 상세와 cache-bust CDN 요청이 404임을 확인했다. Day0 공개 Supabase origin은 기존 no-key 응답을 유지한다. `.github/workflows/deploy-dev.yml`은 원격에서 활성화되어 이후 `dev` push와 수동 실행에 이 검증 절차를 적용한다.
+
+## 배포 후 결과 해석
+
+비인증 `dev.raven.kr/health` 요청이 Access 로그인으로 이동하거나 HTML 200을 반환하면 아직 앱 health를 확인한 것이 아니다. 호스트 내부 JSON health와 허용된 Access 브라우저의 공개 렌더를 각각 확인한다. [운영 복구 절차](operations-runbook.md)의 dependency smoke 및 [호환성·측정 계약](compatibility-and-measurement.md)을 함께 따른다. dirty snapshot은 base Git SHA뿐 아니라 `.raven-release`의 source SHA256으로 식별한다.
