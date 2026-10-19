@@ -29,11 +29,11 @@ describe('ProjectHeader', () => {
     expect(screen.getByText('2026-06 ~ 진행중')).toBeInTheDocument();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
     expect(screen.getByText('NestJS')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /repo/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: '소스 코드 보기' })).toHaveAttribute(
       'href',
       'https://github.com/example-org/example-api',
     );
-    expect(screen.getByRole('link', { name: /live/i })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: '프로젝트 열기' })).toHaveAttribute(
       'href',
       'https://api.raven.kr',
     );
@@ -71,8 +71,8 @@ describe('ProjectHeader', () => {
     expect(screen.queryByText('기간')).toBeNull();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
     expect(screen.getByText('NestJS')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: 'Repo' })).toBeNull();
-    expect(screen.getByRole('link', { name: 'Live' })).toHaveAttribute(
+    expect(screen.queryByRole('link', { name: '소스 코드 보기' })).toBeNull();
+    expect(screen.getByRole('link', { name: '프로젝트 열기' })).toHaveAttribute(
       'href',
       '/projects/raven-api',
     );

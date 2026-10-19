@@ -35,7 +35,12 @@ export function AboutContent() {
         </h2>
 
         <div className={styles.item}>
-          <h3 className={styles.itemTitle}>실제로 어떻게 쓰이는지부터 봅니다</h3>
+          <h3 className={styles.itemTitle}>
+            <span className={styles.principleNumber} aria-hidden="true">
+              01
+            </span>
+            실제로 어떻게 쓰이는지부터 봅니다
+          </h3>
           <p className={styles.body}>
             기술적으로 깔끔한 구조가 항상 좋은 구조라고 생각하지 않습니다.
           </p>
@@ -48,7 +53,12 @@ export function AboutContent() {
         </div>
 
         <div className={styles.item}>
-          <h3 className={styles.itemTitle}>반복되는 판단은 규칙으로 남깁니다</h3>
+          <h3 className={styles.itemTitle}>
+            <span className={styles.principleNumber} aria-hidden="true">
+              02
+            </span>
+            반복되는 판단은 규칙으로 남깁니다
+          </h3>
           <p className={styles.body}>프로젝트가 커질수록 사람이 기억해야 하는 것이 많아집니다.</p>
           <p className={styles.body}>
             처음에는 모두 알고 있던 규칙도 시간이 지나면 조금씩 달라집니다. 컴포넌트를 어떻게
@@ -64,7 +74,12 @@ export function AboutContent() {
         </div>
 
         <div className={styles.item}>
-          <h3 className={styles.itemTitle}>AI가 만든 결과도 그냥 믿지는 않습니다</h3>
+          <h3 className={styles.itemTitle}>
+            <span className={styles.principleNumber} aria-hidden="true">
+              03
+            </span>
+            AI가 만든 결과도 그냥 믿지는 않습니다
+          </h3>
           <p className={styles.body}>요즘은 구현, 조사, 문서 작성 대부분에서 AI를 사용합니다.</p>
           <p className={styles.body}>
             확실히 빠릅니다. 혼자였다면 오래 걸렸을 탐색도 훨씬 짧은 시간 안에 할 수 있습니다.
@@ -82,7 +97,12 @@ export function AboutContent() {
         </div>
 
         <div className={styles.item}>
-          <h3 className={styles.itemTitle}>일단 만들어 보고, 필요하면 다시 설계합니다</h3>
+          <h3 className={styles.itemTitle}>
+            <span className={styles.principleNumber} aria-hidden="true">
+              04
+            </span>
+            일단 만들어 보고, 필요하면 다시 설계합니다
+          </h3>
           <p className={styles.body}>
             처음부터 모든 경우를 예상해서 완벽한 구조를 만들기는 어렵다고 생각합니다.
           </p>

@@ -237,7 +237,9 @@ describe('SiteHeader', () => {
 
     fireEvent.change(input, { target: { value: '없는검색어' } });
     await waitFor(() =>
-      expect(screen.getByRole('status')).toHaveTextContent('검색 결과가 없습니다.'),
+      expect(screen.getByRole('status')).toHaveTextContent(
+        '검색 결과가 없어요. 검색어를 줄여 보세요.',
+      ),
     );
     expect(input).not.toHaveAttribute('aria-activedescendant');
   });

@@ -99,4 +99,13 @@ describe('AdminAccountMenu', () => {
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('menu')).not.toBeInTheDocument();
   });
+  it('keeps identity visible and allows another sign-out attempt after a request failure', async () => {
+    signOutAction.mockRejectedValueOnce(new Error('offline'));
+    render(<AdminAccountMenu userEmail="owner@example.test" />);
+    fireEvent.click(screen.getByRole('button', { name: '계정 메뉴' }));
+    fireEvent.submit(screen.getByRole('menuitem', { name: '로그아웃' }).closest('form')!);
+    expect(await screen.findByRole('alert')).toHaveTextContent('로그아웃하지 못했어요.');
+    expect(screen.getByRole('menu')).toHaveTextContent('owner@example.test');
+    expect(screen.getByRole('menuitem', { name: '로그아웃' })).toBeEnabled();
+  });
 });

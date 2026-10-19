@@ -50,3 +50,7 @@
   font-variant-numeric: tabular-nums;
   color: var(--color-text-muted);
 }
+.relatedReason {
+  color: var(--d0-blue-dark);
+  font-size: var(--fs-12);
+}

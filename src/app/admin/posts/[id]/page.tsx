@@ -62,6 +62,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
             action={updatePostAction}
             post={{
               id: post.id,
+              updated_at: post.updated_at,
               title: post.title,
               slug: post.slug,
               description: post.description,

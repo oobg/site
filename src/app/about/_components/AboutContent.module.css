@@ -69,3 +69,12 @@
   letter-spacing: var(--ls-body);
   color: var(--d0-grey-900);
 }
+
+.principleNumber {
+  display: inline-block;
+  margin-right: var(--space-3);
+  color: var(--d0-grey-600);
+  font-size: var(--fs-13);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}

@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { ROUTES } from '@constants/routes';
 import { blogPostsQueryOptions } from '@features/posts/services/posts.query';
+import { trackPublicEvent } from '@lib/analytics/events';
 import styles from './CommandPalette.module.css';
 
 type PaletteItem = {
@@ -41,7 +42,7 @@ export function CommandPalette() {
   const listboxId = useId();
   // 서버와 첫 hydration은 같은 Ctrl 표기를 사용하고, mount 뒤 실제 OS 표기로 교체한다.
   const applePlatform = useSyncExternalStore(noopSubscribe, isApplePlatform, () => false);
-  const { data, isLoading, isError } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     ...blogPostsQueryOptions({ q: debouncedQuery, page: 1, pageSize: 6 }),
     enabled: open,
   });
@@ -59,6 +60,7 @@ export function CommandPalette() {
         if (!open) {
           openerRef.current = document.activeElement as HTMLElement | null;
           navigatingRef.current = false;
+          trackPublicEvent('search_open', 'shortcut');
         }
         setOpen(true);
       }
@@ -107,6 +109,7 @@ export function CommandPalette() {
   }, [items, listboxId, safeActiveIndex]);
 
   const navigate = (item: PaletteItem) => {
+    trackPublicEvent('search_result_open', 'palette');
     navigatingRef.current = true;
     composingRef.current = false;
     setOpen(false);
@@ -145,6 +148,7 @@ export function CommandPalette() {
         onClick={(event) => {
           openerRef.current = event.currentTarget;
           navigatingRef.current = false;
+          if (!open) trackPublicEvent('search_open', 'header');
         }}
       >
         <MagnifyingGlass aria-hidden="true" />
@@ -197,47 +201,61 @@ export function CommandPalette() {
               </Dialog.Close>
             </div>
             <div className={styles.results}>
-              {isError ? (
-                <p className={styles.state} role="alert">
-                  검색 결과를 불러오지 못했습니다.
+              <div className={styles.feedback}>
+                <p className={styles.state} role={isError ? 'alert' : 'status'} aria-atomic="true">
+                  {query.trim() !== debouncedQuery || isLoading
+                    ? '검색하는 중…'
+                    : isError
+                      ? '검색 결과를 불러오지 못했어요.'
+                      : items.length === 0
+                        ? '검색 결과가 없어요. 검색어를 줄여 보세요.'
+                        : `검색 결과 ${items.length}개`}
                 </p>
-              ) : null}
-              {isLoading || query.trim() !== debouncedQuery ? (
-                <p className={styles.state} role="status">
-                  검색하는 중…
-                </p>
-              ) : null}
-              {!isLoading && !isError && query.trim() === debouncedQuery && items.length === 0 ? (
-                <p className={styles.state} role="status">
-                  검색 결과가 없습니다.
-                </p>
-              ) : null}
+                {isError ? (
+                  <button type="button" className={styles.retry} onClick={() => void refetch()}>
+                    다시 시도
+                  </button>
+                ) : null}
+              </div>
               <div id={listboxId} role="listbox" aria-label="검색 결과">
-                {items.map((item, index) => {
-                  const Icon =
-                    item.kind === 'post'
-                      ? ArrowRight
-                      : item.kind === 'category'
-                        ? Folder
-                        : item.id === 'home'
-                          ? House
-                          : User;
+                {(['page', 'category', 'post'] as const).map((kind) => {
+                  const grouped = items.filter((item) => item.kind === kind);
+                  if (!grouped.length) return null;
+                  const label = { page: '바로가기', category: '주제', post: '글' }[kind];
                   return (
-                    <button
-                      key={item.id}
-                      id={`${listboxId}-${item.id}`}
-                      className={styles.result}
-                      role="option"
-                      tabIndex={-1}
-                      aria-selected={index === safeActiveIndex}
-                      data-active={index === safeActiveIndex || undefined}
-                      onMouseMove={() => setActiveIndex(index)}
-                      onClick={() => navigate(item)}
-                    >
-                      <Icon aria-hidden="true" />
-                      <span>{item.label}</span>
-                      <small>{item.meta}</small>
-                    </button>
+                    <div key={kind} role="group" aria-label={label} className={styles.resultGroup}>
+                      <p className={styles.groupLabel} aria-hidden="true">
+                        {label}
+                      </p>
+                      {grouped.map((item) => {
+                        const index = items.indexOf(item);
+                        const Icon =
+                          item.kind === 'post'
+                            ? ArrowRight
+                            : item.kind === 'category'
+                              ? Folder
+                              : item.id === 'home'
+                                ? House
+                                : User;
+                        return (
+                          <button
+                            key={item.id}
+                            id={`${listboxId}-${item.id}`}
+                            className={styles.result}
+                            role="option"
+                            tabIndex={-1}
+                            aria-selected={index === safeActiveIndex}
+                            data-active={index === safeActiveIndex || undefined}
+                            onMouseMove={() => setActiveIndex(index)}
+                            onClick={() => navigate(item)}
+                          >
+                            <Icon aria-hidden="true" />
+                            <span>{item.label}</span>
+                            <small>{item.meta}</small>
+                          </button>
+                        );
+                      })}
+                    </div>
                   );
                 })}
               </div>

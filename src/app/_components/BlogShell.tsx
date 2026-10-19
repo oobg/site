@@ -135,7 +135,10 @@ export function BlogShell({
       </aside>
       <div className={styles.mobileBar}>
         <Dialog.Root>
-          <Dialog.Trigger className={styles.menuButton} aria-label="블로그 카테고리 선택">
+          <Dialog.Trigger
+            className={styles.menuButton}
+            aria-label={`블로그 카테고리 선택, 현재 ${mobileCategory ?? '전체 글'}`}
+          >
             <strong>{mobileCategory ?? '기술 블로그'}</strong>
             <CaretDown aria-hidden size={16} />
           </Dialog.Trigger>

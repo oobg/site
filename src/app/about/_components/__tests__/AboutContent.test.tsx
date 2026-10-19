@@ -17,17 +17,20 @@ describe('AboutContent', () => {
 
   it('섹션 제목을 원고 순서대로 렌더한다', () => {
     render(<AboutContent />);
-    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual([
-      '일하는 방식',
-      '요즘 관심 있는 것',
-      '다루는 기술',
-      '이곳에 남기는 것',
-    ]);
+    expect(
+      screen
+        .getAllByRole('heading', { level: 2 })
+        .map((h) => h.textContent?.replace(/^0[1-4]/, '')),
+    ).toEqual(['일하는 방식', '요즘 관심 있는 것', '다루는 기술', '이곳에 남기는 것']);
   });
 
   it('소제목을 원고 순서대로 렌더한다', () => {
     render(<AboutContent />);
-    expect(screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent)).toEqual([
+    expect(
+      screen
+        .getAllByRole('heading', { level: 3 })
+        .map((h) => h.textContent?.replace(/^0[1-4]/, '')),
+    ).toEqual([
       '실제로 어떻게 쓰이는지부터 봅니다',
       '반복되는 판단은 규칙으로 남깁니다',
       'AI가 만든 결과도 그냥 믿지는 않습니다',

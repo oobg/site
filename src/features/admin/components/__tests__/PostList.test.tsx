@@ -369,3 +369,22 @@ it('keeps an explicit URL search and later search edits instead of restoring old
   await new Promise((resolve) => setTimeout(resolve, 50));
   expect(screen.getByRole('searchbox', { name: '제목 검색' })).toHaveValue('글 01');
 });
+
+it('requires confirmation before a public post is removed from the public list and reports its result at the row', async () => {
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(false).mockReturnValueOnce(true);
+  updatePostStatusAction.mockReset().mockResolvedValue({
+    status: 'success',
+    message: '글을 초안으로 바꿨어요.',
+    updatedAt: '2026-10-19T00:00:00.000Z',
+  });
+  renderPostList(<PostList posts={[posts[1]]} />);
+  const state = screen.getByRole('combobox', { name: `${posts[1].title} 상태` });
+  fireEvent.change(state, { target: { value: 'draft' } });
+  expect(confirm).toHaveBeenCalledWith(expect.stringContaining('공개 목록에서 내려가요'));
+  expect(updatePostStatusAction).not.toHaveBeenCalled();
+  expect(state).toHaveValue('published');
+  fireEvent.change(state, { target: { value: 'draft' } });
+  await waitFor(() => expect(state).toHaveValue('draft'));
+  expect(state).toHaveAccessibleDescription('글을 초안으로 바꿨어요.');
+  confirm.mockRestore();
+});

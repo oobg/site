@@ -96,7 +96,7 @@ describe('PostEditor slug editing', () => {
 
     fireEvent.click(screen.getByRole('button', { name: '재생성' }));
     expect(screen.getByRole('textbox', { name: 'URL' })).toHaveValue('나의-첫-글');
-    expect(screen.getByText('저장하지 않은 변경이 있어요.')).toBeInTheDocument();
+    expect(screen.getByText('서버에 저장하지 않은 변경이 있어요.')).toBeInTheDocument();
   });
 
   it('debounces a new-post snapshot and exposes its saved state inline', () => {
@@ -106,7 +106,7 @@ describe('PostEditor slug editing', () => {
     fireEvent.change(screen.getByRole('textbox', { name: '제목' }), {
       target: { value: '임시 제목' },
     });
-    expect(screen.getByText('임시 저장 중…')).toBeInTheDocument();
+    expect(screen.getByText('이 탭에 임시 보관 중…')).toBeInTheDocument();
     expect(window.sessionStorage.getItem('admin-post-editor-draft:new')).toBeNull();
 
     act(() => vi.advanceTimersByTime(499));
@@ -120,7 +120,7 @@ describe('PostEditor slug editing', () => {
         slug: '임시-제목',
       },
     );
-    expect(screen.getByText('임시 저장됨')).toBeInTheDocument();
+    expect(screen.getByText('이 탭에 임시 보관됨 · 서버 저장 전')).toBeInTheDocument();
   });
 
   it('restores an existing-post snapshot and can discard it without a modal', async () => {
@@ -163,12 +163,18 @@ describe('PostEditor slug editing', () => {
       expect(screen.getByRole('textbox', { name: '제목' })).toHaveValue('복구된 제목'),
     );
     expect(
-      screen.getByText('이 기기에서 작성하던 임시 저장 내용을 복구했어요.'),
+      screen.getByText(
+        '이 브라우저 탭의 임시 보관 내용을 복구했어요. 서버에 저장된 내용은 아직 바뀌지 않았어요.',
+      ),
     ).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: '임시 저장 버리기' }));
 
     expect(screen.getByRole('textbox', { name: '제목' })).toHaveValue('서버 제목');
-    expect(screen.queryByText('이 기기에서 작성하던 임시 저장 내용을 복구했어요.')).toBeNull();
+    expect(
+      screen.queryByText(
+        '이 브라우저 탭의 임시 보관 내용을 복구했어요. 서버에 저장된 내용은 아직 바뀌지 않았어요.',
+      ),
+    ).toBeNull();
     expect(window.sessionStorage.getItem('admin-post-editor-draft:p1')).toBeNull();
   });
 
@@ -819,5 +825,151 @@ describe('editor recovery regressions', () => {
     await waitFor(() =>
       expect(screen.getByText('대표 이미지를 업로드하지 못했습니다.')).toBeInTheDocument(),
     );
+  });
+  it('uses each successful server revision for the next save', async () => {
+    const save = vi
+      .fn()
+      .mockResolvedValueOnce({
+        status: 'success',
+        message: '첫 서버 저장 완료',
+        updatedAt: '2026-09-02T00:00:00.000Z',
+      })
+      .mockResolvedValueOnce({
+        status: 'success',
+        message: '다음 서버 저장 완료',
+        updatedAt: '2026-09-03T00:00:00.000Z',
+      });
+    render(
+      <PostEditor
+        action={save}
+        post={{
+          id: 'p1',
+          updated_at: '2026-09-01T00:00:00.000Z',
+          title: '제목',
+          slug: 'slug',
+          description: '설명',
+          body: '본문',
+          status: 'draft',
+        }}
+      />,
+    );
+    const form = screen.getByRole('textbox', { name: '제목' }).closest('form')!;
+    fireEvent.submit(form);
+    await screen.findByText('첫 서버 저장 완료');
+    expect(save.mock.calls[0][1].get('expectedUpdatedAt')).toBe('2026-09-01T00:00:00.000Z');
+    fireEvent.submit(form);
+    await screen.findByText('다음 서버 저장 완료');
+    expect(save.mock.calls[1][1].get('expectedUpdatedAt')).toBe('2026-09-02T00:00:00.000Z');
+  });
+  it('retains input and the original revision after a conflict, including the recovery snapshot', async () => {
+    const save = vi.fn().mockResolvedValue({
+      status: 'error',
+      message: '다른 곳에서 수정했어요.',
+      fieldErrors: { expectedUpdatedAt: ['최신 글을 확인해 주세요.'] },
+    });
+    render(
+      <PostEditor
+        action={save}
+        post={{
+          id: 'p1',
+          updated_at: '2026-09-01T00:00:00.000Z',
+          title: '제목',
+          slug: 'slug',
+          description: '설명',
+          body: '본문',
+          status: 'draft',
+        }}
+      />,
+    );
+    fireEvent.change(screen.getByRole('textbox', { name: '본문' }), {
+      target: { value: '지우면 안 되는 내용' },
+    });
+    fireEvent.submit(screen.getByRole('textbox', { name: '제목' }).closest('form')!);
+    expect(await screen.findByRole('heading', { name: '최신 글을 확인해 주세요' })).toBeVisible();
+    expect(screen.getByRole('textbox', { name: '본문' })).toHaveValue('지우면 안 되는 내용');
+    expect(screen.getByRole('link', { name: '최신 글을 새 탭에서 확인' })).toHaveAttribute(
+      'rel',
+      'noopener noreferrer',
+    );
+    await waitFor(() =>
+      expect(JSON.parse(sessionStorage.getItem('admin-post-editor-draft:p1')!)).toMatchObject({
+        body: '지우면 안 되는 내용',
+        expectedUpdatedAt: '2026-09-01T00:00:00.000Z',
+      }),
+    );
+    expect(router.replace).not.toHaveBeenCalled();
+    fireEvent.submit(screen.getByRole('textbox', { name: '제목' }).closest('form')!);
+    await waitFor(() => expect(save).toHaveBeenCalledTimes(2));
+    expect(save.mock.calls[1][1].get('expectedUpdatedAt')).toBe('2026-09-01T00:00:00.000Z');
+  });
+  it('does not silently rebase a recovered draft onto a newer server revision', async () => {
+    sessionStorage.setItem(
+      'admin-post-editor-draft:p1',
+      JSON.stringify({
+        version: 1,
+        expectedUpdatedAt: '2026-09-01T00:00:00.000Z',
+        title: '복원 제목',
+        slug: 'slug',
+        description: '설명',
+        body: '복원 본문',
+        status: 'draft',
+        categoryId: '',
+        tags: '',
+        coverKey: '',
+        coverUrl: '',
+        coverAlt: '',
+        coverX: 0.5,
+        coverY: 0.5,
+        slugEdited: true,
+        savedAt: '2026-09-01T01:00:00.000Z',
+      }),
+    );
+    const save = vi.fn().mockResolvedValue({ status: 'idle', message: '' });
+    render(
+      <PostEditor
+        action={save}
+        post={{
+          id: 'p1',
+          updated_at: '2026-09-02T00:00:00.000Z',
+          title: '서버 제목',
+          slug: 'slug',
+          description: '설명',
+          body: '서버 본문',
+          status: 'draft',
+        }}
+      />,
+    );
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', { name: '제목' })).toHaveValue('복원 제목'),
+    );
+    fireEvent.submit(screen.getByRole('textbox', { name: '제목' }).closest('form')!);
+    await waitFor(() => expect(save).toHaveBeenCalledOnce());
+    expect(save.mock.calls[0][1].get('expectedUpdatedAt')).toBe('2026-09-01T00:00:00.000Z');
+  });
+  it('links the server error summary to the actual body field and restores write-mode focus', async () => {
+    const save = vi.fn().mockResolvedValue({
+      status: 'error',
+      message: '입력값을 확인해 주세요.',
+      fieldErrors: { body: ['본문을 확인해 주세요.'] },
+    });
+    render(
+      <PostEditor
+        action={save}
+        post={{
+          id: 'p1',
+          updated_at: '2026-09-01T00:00:00Z',
+          title: '제목',
+          slug: 'slug',
+          description: '설명',
+          body: '본문',
+          status: 'draft',
+        }}
+      />,
+    );
+    fireEvent.click(screen.getByRole('tab', { name: '텍스트 편집' }));
+    fireEvent.submit(screen.getByRole('textbox', { name: '제목' }).closest('form')!);
+    fireEvent.click(await screen.findByRole('link', { name: '본문을 확인해 주세요.' }));
+    await waitFor(() => expect(screen.getByRole('textbox', { name: '본문' })).toHaveFocus());
+    expect(screen.getByRole('tab', { name: '마크다운' })).toHaveAttribute('aria-selected', 'true');
   });
 });

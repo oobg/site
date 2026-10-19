@@ -234,7 +234,11 @@ export function FeaturedCarousel({
                 </button>
               </div>
             </div>
-          ) : null}
+          ) : (
+            <p className={styles.singleCount} aria-label="추천 글 1개 중 1번째">
+              1 / 1
+            </p>
+          )}
         </div>
       </div>
     </section>

@@ -29,6 +29,7 @@ import { DeletePostButton } from './DeletePostButton';
 
 type PostDraft = {
   id?: string;
+  updated_at?: string;
   title: string;
   slug: string;
   description: string;
@@ -45,6 +46,7 @@ type PostDraft = {
 
 type EditorSnapshot = {
   version: 1;
+  expectedUpdatedAt?: string;
   title: string;
   slug: string;
   description: string;
@@ -149,6 +151,21 @@ const uploadUrlFrom = (value: unknown) => {
     : null;
 };
 
+const fieldTargets: Record<string, string> = {
+  title: 'post-title',
+  slug: 'post-slug',
+  description: 'post-description',
+  body: 'post-body',
+  status: 'post-status',
+  category_id: 'post-category_id',
+  tags: 'post-tags',
+  cover_image_key: 'cover-heading',
+  cover_image_url: 'cover-heading',
+  cover_position_x: 'post-cover_position_x',
+  cover_position_y: 'post-cover_position_y',
+  cover_alt: 'post-cover_alt',
+};
+
 function fieldError(state: PostActionState, name: string) {
   return state.fieldErrors?.[name]?.[0];
 }
@@ -163,7 +180,9 @@ export function PostEditor({
   action: (previousState: PostActionState, formData: FormData) => Promise<PostActionState>;
 }) {
   const snapshotKey = snapshotKeyFor(post);
+  const [expectedUpdatedAt, setExpectedUpdatedAt] = useState(post?.updated_at ?? '');
   const [title, setTitle] = useState(post?.title ?? '');
+  const [savedTitle, setSavedTitle] = useState(post?.title ?? '');
   const [slug, setSlug] = useState(post?.slug ?? '');
   const [description, setDescription] = useState(post?.description ?? '');
   const [body, setBody] = useState(post?.body ?? '');
@@ -209,6 +228,8 @@ export function PostEditor({
 
     const timer = window.setTimeout(() => {
       loadedSnapshotKeyRef.current = snapshotKey;
+      // Never adopt a fresh server revision for an old recovered draft.
+      setExpectedUpdatedAt(snapshot.expectedUpdatedAt ?? '');
       setTitle(snapshot.title);
       setSlug(snapshot.slug);
       setDescription(snapshot.description);
@@ -244,6 +265,8 @@ export function PostEditor({
         return failed;
       }
       if (nextState.status === 'success') {
+        if (nextState.updatedAt) setExpectedUpdatedAt(nextState.updatedAt);
+        setSavedTitle(String(formData.get('title') ?? title));
         const submittedStatus = formData.get('status');
         if (submittedStatus === 'draft' || submittedStatus === 'published') {
           setStatus(submittedStatus);
@@ -283,6 +306,7 @@ export function PostEditor({
     const timer = window.setTimeout(() => {
       const snapshot: EditorSnapshot = {
         version: 1,
+        expectedUpdatedAt,
         title,
         slug,
         description,
@@ -316,6 +340,7 @@ export function PostEditor({
     coverX,
     coverY,
     description,
+    expectedUpdatedAt,
     dirty,
     pending,
     slug,
@@ -524,6 +549,7 @@ export function PostEditor({
     removeEditorSnapshot(snapshotKey);
     const initialCategory =
       post?.category_id ?? categories.find((category) => category.is_default)?.id ?? '';
+    setExpectedUpdatedAt(post?.updated_at ?? '');
     setTitle(post?.title ?? '');
     setSlug(post?.slug ?? '');
     setDescription(post?.description ?? '');
@@ -546,13 +572,13 @@ export function PostEditor({
 
   const snapshotMessage =
     snapshotNotice === 'restored'
-      ? '이 기기에서 작성하던 임시 저장 내용을 복구했어요.'
+      ? '이 브라우저 탭의 임시 보관 내용을 복구했어요. 서버에 저장된 내용은 아직 바뀌지 않았어요.'
       : snapshotNotice === 'saving'
-        ? '임시 저장 중…'
+        ? '이 탭에 임시 보관 중…'
         : snapshotNotice === 'saved'
-          ? '임시 저장됨'
+          ? '이 탭에 임시 보관됨 · 서버 저장 전'
           : snapshotNotice === 'error'
-            ? '임시 저장하지 못했어요. 브라우저 저장 공간을 확인해 주세요.'
+            ? '이 탭에 임시 보관하지 못했어요. 서버에 저장하거나 내용을 복사해 주세요.'
             : null;
 
   return (
@@ -566,9 +592,18 @@ export function PostEditor({
         setDirty(true);
       }}
       onSubmit={(event) => {
+        if (event.target !== event.currentTarget) return;
         if (uploading) event.preventDefault();
         const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
         const submittedStatus = (submitter?.dataset.status ?? secondaryStatus) as PostStatus;
+        if (
+          persistedStatus === 'published' &&
+          submittedStatus === 'draft' &&
+          !window.confirm('초안으로 바꾸면 공개 목록에서 이 글이 내려가요. 계속할까요?')
+        ) {
+          event.preventDefault();
+          return;
+        }
         if (submittedStatus && statusInputRef.current) {
           statusInputRef.current.value = submittedStatus;
         }
@@ -589,7 +624,86 @@ export function PostEditor({
           ) : null}
         </div>
       ) : null}
-      {post?.id ? <input type="hidden" name="id" value={post.id} /> : null}
+      {post?.id ? (
+        <>
+          <input type="hidden" name="id" value={post.id} />
+          <input type="hidden" name="expectedUpdatedAt" value={expectedUpdatedAt} />
+        </>
+      ) : null}
+      {state.fieldErrors?.expectedUpdatedAt ? (
+        <section className={styles.recovery} role="alert" aria-labelledby="conflict-title">
+          <h2 id="conflict-title">최신 글을 확인해 주세요</h2>
+          <p>{state.message} 자동으로 덮어쓰지 않습니다.</p>
+          <p>이 탭의 작성 내용은 유지됩니다. 최신 글과 비교한 뒤 필요한 내용을 옮겨 주세요.</p>
+          {post?.id ? (
+            <a href={ROUTES.ADMIN.POST(post.id)} target="_blank" rel="noopener noreferrer">
+              최신 글을 새 탭에서 확인
+            </a>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => {
+              try {
+                window.sessionStorage.setItem(
+                  snapshotKey,
+                  JSON.stringify({
+                    version: 1,
+                    expectedUpdatedAt,
+                    title,
+                    slug,
+                    description,
+                    body,
+                    status,
+                    categoryId,
+                    tags,
+                    coverKey,
+                    coverUrl,
+                    coverAlt,
+                    coverX,
+                    coverY,
+                    slugEdited,
+                    savedAt: new Date().toISOString(),
+                  }),
+                );
+                window.location.reload();
+              } catch {
+                setSnapshotNotice('error');
+              }
+            }}
+          >
+            임시 보관을 유지하고 다시 불러오기
+          </button>
+        </section>
+      ) : null}
+      {Object.entries(state.fieldErrors ?? {}).some(([name]) => name !== 'expectedUpdatedAt') ? (
+        <section className={styles.errorSummary} role="alert" aria-labelledby="field-errors-title">
+          <h2 id="field-errors-title" tabIndex={-1}>
+            입력값을 확인해 주세요
+          </h2>
+          <ul>
+            {Object.entries(state.fieldErrors ?? {})
+              .filter(([name]) => name !== 'expectedUpdatedAt')
+              .map(([name, errors]) => (
+                <li key={name}>
+                  <a
+                    href={`#${fieldTargets[name] ?? 'field-errors-title'}`}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      if (name === 'body') setEditorTab('write');
+                      requestAnimationFrame(() =>
+                        document
+                          .getElementById(fieldTargets[name] ?? 'field-errors-title')
+                          ?.focus(),
+                      );
+                    }}
+                  >
+                    {errors[0]}
+                  </a>
+                </li>
+              ))}
+          </ul>
+        </section>
+      ) : null}
       <input ref={statusInputRef} type="hidden" name="status" value={status} />
       <footer className={styles.footer}>
         <span className={styles.breadcrumb}>
@@ -600,7 +714,12 @@ export function PostEditor({
         <span className={styles.saveState} aria-live="polite">
           {uploading
             ? '이미지를 올리는 중이에요.'
-            : state.message || (dirty ? '저장하지 않은 변경이 있어요.' : '저장 전')}
+            : state.message ||
+              (dirty
+                ? '서버에 저장하지 않은 변경이 있어요.'
+                : post
+                  ? '서버에서 불러온 내용'
+                  : '서버 저장 전')}
         </span>
         <div className={styles.submitArea}>
           <button
@@ -616,449 +735,505 @@ export function PostEditor({
           </button>
         </div>
       </footer>
-      <div className={styles.mainFields}>
-        <h2 className={styles.groupHeading}>기본 정보</h2>
-        <label className={`${styles.field} ${styles.titleField}`}>
-          <span>제목</span>
-          <input
-            ref={titleRef}
-            aria-describedby={fieldError(state, 'title') ? 'title-error' : undefined}
-            aria-invalid={Boolean(fieldError(state, 'title'))}
-            name="title"
-            value={title}
-            onChange={(event) => {
-              const value = event.target.value;
-              setTitle(value);
-              if (!slugEdited) setSlug(normalizeSlug(value));
-            }}
-            autoComplete="off"
-            required
-          />
-          {fieldError(state, 'title') ? (
-            <small id="title-error">{fieldError(state, 'title')}</small>
-          ) : null}
-        </label>
-
-        <label className={styles.field}>
-          <span>설명</span>
-          <textarea
-            aria-describedby={fieldError(state, 'description') ? 'description-error' : undefined}
-            aria-invalid={Boolean(fieldError(state, 'description'))}
-            name="description"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            rows={2}
-            required
-          />
-          {fieldError(state, 'description') ? (
-            <small id="description-error">{fieldError(state, 'description')}</small>
-          ) : null}
-        </label>
-      </div>
-
-      <div className={styles.editorBlock}>
-        <div
-          className={styles.editorTabs}
-          role="tablist"
-          aria-label="본문 편집 모드"
-          onKeyDown={(event) => {
-            if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
-            event.preventDefault();
-            const next =
-              event.key === 'Home'
-                ? 'write'
-                : event.key === 'End'
-                  ? 'preview'
-                  : editorTab === 'write'
-                    ? 'preview'
-                    : 'write';
-            setEditorTab(next);
-            const tabs = event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]');
-            tabs[next === 'write' ? 0 : 1]?.focus();
-          }}
-        >
-          <button
-            id="editor-write-tab"
-            type="button"
-            role="tab"
-            aria-controls="editor-write-panel"
-            aria-selected={editorTab === 'write'}
-            tabIndex={editorTab === 'write' ? 0 : -1}
-            onClick={() => setEditorTab('write')}
-          >
-            마크다운
-          </button>
-          <button
-            id="editor-preview-tab"
-            type="button"
-            role="tab"
-            aria-controls="editor-preview-panel"
-            aria-selected={editorTab === 'preview'}
-            tabIndex={editorTab === 'preview' ? 0 : -1}
-            onClick={() => setEditorTab('preview')}
-          >
-            텍스트 편집
-          </button>
-        </div>
-        <div className={styles.toolbar} role="toolbar" aria-label="Markdown 서식">
-          <button
-            type="button"
-            disabled={busy || editorTab !== 'write'}
-            title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
-            onClick={() => wrapSelection('## ', '', '소제목')}
-            aria-label="소제목"
-          >
-            H2
-          </button>
-          <button
-            type="button"
-            disabled={busy || editorTab !== 'write'}
-            title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
-            onClick={() => wrapSelection('**', '**')}
-            aria-label="굵게"
-          >
-            <TextB aria-hidden size={18} weight="bold" />
-          </button>
-          <button
-            type="button"
-            disabled={busy || editorTab !== 'write'}
-            title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
-            onClick={() => wrapSelection('[', '](https://)', '링크 텍스트')}
-            aria-label="링크"
-          >
-            <LinkSimple aria-hidden size={18} weight="bold" />
-          </button>
-          <button
-            type="button"
-            disabled={busy || editorTab !== 'write'}
-            title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
-            onClick={() => wrapSelection('> ', '', '인용문')}
-            aria-label="인용문"
-          >
-            <Quotes aria-hidden size={18} weight="fill" />
-          </button>
-          <button
-            type="button"
-            disabled={busy || editorTab !== 'write'}
-            title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
-            onClick={() => wrapSelection('`', '`', '코드')}
-            aria-label="인라인 코드"
-          >
-            <Code aria-hidden size={18} weight="bold" />
-          </button>
-          <label
-            className={styles.toolbarUpload}
-            aria-disabled={busy || editorTab !== 'write'}
-            title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
-          >
-            <ImageSquare aria-hidden size={19} />
-            <span className={styles.visuallyHidden}>본문 이미지 선택</span>
+      <div className={styles.workspace}>
+        <div className={styles.mainFields}>
+          <h2 className={styles.groupHeading}>기본 정보</h2>
+          <label className={`${styles.field} ${styles.titleField}`}>
+            <span>제목</span>
             <input
-              accept="image/jpeg,image/png,image/gif,image/webp"
-              disabled={busy || editorTab !== 'write'}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void upload(file);
-                event.target.value = '';
-              }}
-              type="file"
-            />
-          </label>
-          {editorTab === 'preview' ? (
-            <span className={styles.toolbarHint}>
-              서식 도구는 마크다운 모드에서 사용할 수 있어요.
-            </span>
-          ) : null}
-        </div>
-        <div className={styles.editorColumns}>
-          <div
-            id="editor-write-panel"
-            role="tabpanel"
-            aria-labelledby="editor-write-tab"
-            hidden={editorTab !== 'write'}
-            className={`${styles.dropzone} ${dragging ? styles.dragging : ''}`}
-            onDragEnter={(event) => {
-              event.preventDefault();
-              setDragging(true);
-            }}
-            onDragOver={(event) => event.preventDefault()}
-            onDragLeave={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node | null))
-                setDragging(false);
-            }}
-            onDrop={(event) => {
-              event.preventDefault();
-              setDragging(false);
-              const file = event.dataTransfer.files[0];
-              if (file && !busy) void upload(file);
-            }}
-          >
-            {dragging ? (
-              <div className={styles.dropHint} aria-hidden>
-                <ImageSquare size={24} /> 놓아서 본문에 삽입
-              </div>
-            ) : null}
-            <textarea
-              ref={bodyRef}
-              id="post-body"
-              data-editor-scroll-region
-              aria-label="본문"
-              aria-describedby="body-help"
-              aria-invalid={Boolean(fieldError(state, 'body'))}
-              className={styles.body}
-              name="body"
-              value={body}
+              id="post-title"
+              ref={titleRef}
+              aria-describedby={fieldError(state, 'title') ? 'title-error' : undefined}
+              aria-invalid={Boolean(fieldError(state, 'title'))}
+              name="title"
+              value={title}
               onChange={(event) => {
                 const value = event.target.value;
-                setBody(value);
-                if (!value.trim()) {
-                  setPreviewHtml('');
-                  previewSourceRef.current = '';
-                  setPreviewMessage('본문을 입력하면 여기에 미리보기가 표시돼요.');
-                }
+                setTitle(value);
+                if (!slugEdited) setSlug(normalizeSlug(value));
               }}
-              onInvalid={() => setEditorTab('write')}
-              spellCheck
-              required
-            />
-          </div>
-          <section
-            id="editor-preview-panel"
-            data-editor-scroll-region
-            role="tabpanel"
-            aria-labelledby="editor-preview-tab"
-            hidden={editorTab !== 'preview'}
-            className={styles.preview}
-            onClick={(event) => {
-              if ((event.target as Element).closest('a')) event.preventDefault();
-            }}
-          >
-            <div
-              ref={syncVisualEditor}
-              className={`${articleStyles.prose} ${styles.visualEditor}`}
-              contentEditable={!busy}
-              suppressContentEditableWarning
-              role="textbox"
-              aria-label="본문 텍스트 편집"
-              aria-multiline="true"
-              aria-readonly={busy}
-              aria-describedby="body-help visual-editor-help"
-              data-empty={!body.trim() ? 'true' : undefined}
-              onInput={(event) => {
-                const markdown = htmlToMarkdown(event.currentTarget);
-                previewSourceRef.current = markdown;
-                bodyValueRef.current = markdown;
-                setBody(markdown);
-                editRevisionRef.current += 1;
-                setDirty(true);
-                setPreviewMessage('');
-              }}
-            />
-            {visiblePreviewMessage ? (
-              <p className={styles.previewMessage} role="status">
-                {visiblePreviewMessage}
-              </p>
-            ) : null}
-            <span id="visual-editor-help" className={styles.visuallyHidden}>
-              렌더링된 본문을 직접 수정할 수 있습니다. 변경 내용은 마크다운 원문에 반영됩니다.
-            </span>
-          </section>
-          <CodeCopy />
-          <ContentEnhancements contentKey={previewHtml} />
-        </div>
-        <p id="body-help" className={styles.helper} aria-live="polite">
-          {fieldError(state, 'body') ||
-            uploadMessage ||
-            '이미지를 끌어 놓으면 현재 커서 위치에 경로가 들어가요.'}
-        </p>
-      </div>
-
-      <aside className={styles.settings} aria-label="글 설정">
-        <h2 className={styles.groupHeading}>발행 설정</h2>
-        <label className={styles.statusField}>
-          <span>상태</span>
-          <select
-            value={status}
-            disabled={busy}
-            onChange={(event) => setStatus(event.target.value as PostStatus)}
-          >
-            <option value="draft">초안</option>
-            <option value="published">공개</option>
-          </select>
-        </label>
-        <label className={styles.field}>
-          <span>카테고리</span>
-          <select
-            name="category_id"
-            value={categoryId}
-            onChange={(event) => setCategoryId(event.target.value)}
-            required
-          >
-            {categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className={styles.field}>
-          <span>태그</span>
-          <input
-            name="tags"
-            value={tags}
-            onChange={(event) => setTags(event.target.value)}
-            placeholder="설계, 협업"
-          />
-          <small>쉼표로 구분하며 저장할 때 중복을 정리해요.</small>
-        </label>
-
-        <div className={styles.field}>
-          <label htmlFor="post-slug">URL</label>
-          <span className={styles.slugControl}>
-            <input
-              id="post-slug"
-              aria-describedby="slug-help"
-              aria-invalid={Boolean(fieldError(state, 'slug'))}
-              name="slug"
-              value={slug}
-              onBlur={(event) => setSlug(normalizeSlug(event.currentTarget.value))}
-              onChange={(event) => {
-                setSlugEdited(true);
-                setSlug(event.target.value);
-              }}
-              onCompositionEnd={(event) => setSlug(normalizeSlug(event.currentTarget.value))}
               autoComplete="off"
               required
             />
+            {fieldError(state, 'title') ? (
+              <small id="title-error">{fieldError(state, 'title')}</small>
+            ) : null}
+          </label>
+
+          <label className={styles.field}>
+            <span>설명</span>
+            <textarea
+              aria-describedby={fieldError(state, 'description') ? 'description-error' : undefined}
+              aria-invalid={Boolean(fieldError(state, 'description'))}
+              id="post-description"
+              name="description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              rows={2}
+              required
+            />
+            {fieldError(state, 'description') ? (
+              <small id="description-error">{fieldError(state, 'description')}</small>
+            ) : null}
+          </label>
+        </div>
+
+        <div className={styles.editorBlock}>
+          <div
+            className={styles.editorTabs}
+            role="tablist"
+            aria-label="본문 편집 모드"
+            onKeyDown={(event) => {
+              if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+              event.preventDefault();
+              const next =
+                event.key === 'Home'
+                  ? 'write'
+                  : event.key === 'End'
+                    ? 'preview'
+                    : editorTab === 'write'
+                      ? 'preview'
+                      : 'write';
+              setEditorTab(next);
+              const tabs = event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]');
+              tabs[next === 'write' ? 0 : 1]?.focus();
+            }}
+          >
             <button
-              className={styles.slugButton}
+              id="editor-write-tab"
               type="button"
-              disabled={busy || !title.trim()}
-              onClick={() => {
-                setSlugEdited(true);
-                setSlug(normalizeSlug(title));
-                editRevisionRef.current += 1;
-                setDirty(true);
+              role="tab"
+              aria-controls="editor-write-panel"
+              aria-selected={editorTab === 'write'}
+              tabIndex={editorTab === 'write' ? 0 : -1}
+              onClick={() => setEditorTab('write')}
+            >
+              마크다운
+            </button>
+            <button
+              id="editor-preview-tab"
+              type="button"
+              role="tab"
+              aria-controls="editor-preview-panel"
+              aria-selected={editorTab === 'preview'}
+              tabIndex={editorTab === 'preview' ? 0 : -1}
+              onClick={() => setEditorTab('preview')}
+            >
+              텍스트 편집
+            </button>
+          </div>
+          <p className={styles.modeHint}>
+            {editorTab === 'write'
+              ? '마크다운 원문을 편집하고 있어요.'
+              : '편집 가능한 미리보기예요. 본문을 직접 바꾸면 마크다운 원문에도 반영돼요.'}
+          </p>
+          <div className={styles.toolbar} role="toolbar" aria-label="Markdown 서식">
+            <button
+              type="button"
+              disabled={busy || editorTab !== 'write'}
+              title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
+              onClick={() => wrapSelection('## ', '', '소제목')}
+              aria-label="소제목"
+            >
+              H2
+            </button>
+            <button
+              type="button"
+              disabled={busy || editorTab !== 'write'}
+              title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
+              onClick={() => wrapSelection('**', '**')}
+              aria-label="굵게"
+            >
+              <TextB aria-hidden size={18} weight="bold" />
+            </button>
+            <button
+              type="button"
+              disabled={busy || editorTab !== 'write'}
+              title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
+              onClick={() => wrapSelection('[', '](https://)', '링크 텍스트')}
+              aria-label="링크"
+            >
+              <LinkSimple aria-hidden size={18} weight="bold" />
+            </button>
+            <button
+              type="button"
+              disabled={busy || editorTab !== 'write'}
+              title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
+              onClick={() => wrapSelection('> ', '', '인용문')}
+              aria-label="인용문"
+            >
+              <Quotes aria-hidden size={18} weight="fill" />
+            </button>
+            <button
+              type="button"
+              disabled={busy || editorTab !== 'write'}
+              title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
+              onClick={() => wrapSelection('`', '`', '코드')}
+              aria-label="인라인 코드"
+            >
+              <Code aria-hidden size={18} weight="bold" />
+            </button>
+            <label
+              className={styles.toolbarUpload}
+              aria-disabled={busy || editorTab !== 'write'}
+              title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
+            >
+              <ImageSquare aria-hidden size={19} />
+              <span className={styles.visuallyHidden}>본문 이미지 선택</span>
+              <input
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                disabled={busy || editorTab !== 'write'}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void upload(file);
+                  event.target.value = '';
+                }}
+                type="file"
+              />
+            </label>
+            {editorTab === 'preview' ? (
+              <span className={styles.toolbarHint}>
+                서식 도구는 마크다운 모드에서 사용할 수 있어요.
+              </span>
+            ) : null}
+          </div>
+          <div className={styles.editorColumns}>
+            <div
+              id="editor-write-panel"
+              role="tabpanel"
+              aria-labelledby="editor-write-tab"
+              hidden={editorTab !== 'write'}
+              className={`${styles.dropzone} ${dragging ? styles.dragging : ''}`}
+              onDragEnter={(event) => {
+                event.preventDefault();
+                setDragging(true);
+              }}
+              onDragOver={(event) => event.preventDefault()}
+              onDragLeave={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node | null))
+                  setDragging(false);
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                setDragging(false);
+                const file = event.dataTransfer.files[0];
+                if (file && !busy) void upload(file);
               }}
             >
-              재생성
-            </button>
-          </span>
-          <small id="slug-help">
-            {fieldError(state, 'slug') ??
-              (post ? '기존 주소를 유지해요.' : '제목으로 자동 생성돼요.')}
-          </small>
-        </div>
-        <h2 className={styles.groupHeading} id="cover-heading">
-          대표 이미지
-        </h2>
-        <section className={`${styles.field} ${styles.coverField}`} aria-labelledby="cover-heading">
-          {coverUrl ? (
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element -- owner-selected CDN URL is not a configured image host */}
-              <img
-                src={coverUrl}
-                alt={coverAlt || ''}
-                style={{
-                  objectPosition: `${coverX * 100}% ${coverY * 100}%`,
-                  aspectRatio: '16 / 9',
-                  objectFit: 'cover',
+              {dragging ? (
+                <div className={styles.dropHint} aria-hidden>
+                  <ImageSquare size={24} /> 놓아서 본문에 삽입
+                </div>
+              ) : null}
+              <textarea
+                ref={bodyRef}
+                id="post-body"
+                data-editor-scroll-region
+                aria-label="본문"
+                aria-describedby="body-help"
+                aria-invalid={Boolean(fieldError(state, 'body'))}
+                className={styles.body}
+                name="body"
+                value={body}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setBody(value);
+                  if (!value.trim()) {
+                    setPreviewHtml('');
+                    previewSourceRef.current = '';
+                    setPreviewMessage('본문을 입력하면 여기에 미리보기가 표시돼요.');
+                  }
+                }}
+                onInvalid={() => setEditorTab('write')}
+                spellCheck
+                required
+              />
+            </div>
+            <section
+              id="editor-preview-panel"
+              data-editor-scroll-region
+              role="tabpanel"
+              aria-labelledby="editor-preview-tab"
+              hidden={editorTab !== 'preview'}
+              className={styles.preview}
+              onClick={(event) => {
+                if ((event.target as Element).closest('a')) event.preventDefault();
+              }}
+            >
+              <div
+                ref={syncVisualEditor}
+                className={`${articleStyles.prose} ${styles.visualEditor}`}
+                contentEditable={!busy}
+                suppressContentEditableWarning
+                role="textbox"
+                aria-label="본문 텍스트 편집"
+                aria-multiline="true"
+                aria-readonly={busy}
+                aria-describedby="body-help visual-editor-help"
+                data-empty={!body.trim() ? 'true' : undefined}
+                onInput={(event) => {
+                  const markdown = htmlToMarkdown(event.currentTarget);
+                  previewSourceRef.current = markdown;
+                  bodyValueRef.current = markdown;
+                  setBody(markdown);
+                  editRevisionRef.current += 1;
+                  setDirty(true);
+                  setPreviewMessage('');
                 }}
               />
-              <Dialog.Root>
-                <Dialog.Trigger className={styles.coverZoomButton} type="button">
-                  크게 보기
-                </Dialog.Trigger>
-                <Dialog.Portal>
-                  <Dialog.Backdrop className={styles.coverLightboxBackdrop} />
-                  <Dialog.Viewport className={styles.coverLightboxViewport}>
-                    <Dialog.Popup className={styles.coverLightbox} initialFocus={false}>
-                      <Dialog.Title className={styles.coverLightboxTitle}>
-                        대표 이미지 크게 보기
-                      </Dialog.Title>
-                      <Dialog.Close
-                        ref={focusCoverLightboxClose}
-                        className={styles.coverLightboxClose}
-                        type="button"
-                        aria-label="대표 이미지 크게 보기 닫기"
-                      >
-                        <X aria-hidden size={22} />
-                      </Dialog.Close>
-                      {/* eslint-disable-next-line @next/next/no-img-element -- owner-selected CDN URL is not a configured image host */}
-                      <img
-                        className={styles.coverLightboxImage}
-                        src={coverUrl}
-                        alt={coverAlt || ''}
-                      />
-                    </Dialog.Popup>
-                  </Dialog.Viewport>
-                </Dialog.Portal>
-              </Dialog.Root>
-            </>
-          ) : (
-            <div className={styles.coverPlaceholder} aria-hidden>
-              <ImageSquare size={24} />
-            </div>
-          )}
-          <input type="hidden" name="cover_image_key" value={coverKey} />
-          <input type="hidden" name="cover_image_url" value={coverUrl} />
-          <label>
-            <span>가로 위치</span>
-            <input
-              type="range"
-              name="cover_position_x"
-              min="0"
-              max="1"
-              step="0.01"
-              value={coverX}
-              onChange={(event) => setCoverX(Number(event.target.value))}
-            />
-          </label>
-          <label>
-            <span>세로 위치</span>
-            <input
-              type="range"
-              name="cover_position_y"
-              min="0"
-              max="1"
-              step="0.01"
-              value={coverY}
-              onChange={(event) => setCoverY(Number(event.target.value))}
-            />
-          </label>
-          <label>
-            <span>대체 텍스트</span>
-            <input
-              name="cover_alt"
-              value={coverAlt}
-              onChange={(event) => setCoverAlt(event.target.value)}
-              placeholder="이미지 내용을 설명해 주세요"
-            />
-          </label>
-          <label className={styles.uploadButton} aria-disabled={busy}>
-            <UploadSimple aria-hidden size={17} />
-            이미지 변경
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/gif,image/webp"
-              disabled={busy}
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (file) void uploadCover(file);
-                event.target.value = '';
-              }}
-            />
-          </label>
-        </section>
-
-        <details className={styles.settingsDetails}>
-          <summary>주소와 검색 정보</summary>
-          <div className={styles.detailsContent}>
-            <p>공개 주소는 URL 값으로 만들고 검색 설명은 상단 설명을 사용해요.</p>
+              <p className={styles.previewMessage} role="status" aria-live="polite">
+                {visiblePreviewMessage || '미리보기가 최신 내용이에요.'}
+              </p>
+              <span id="visual-editor-help" className={styles.visuallyHidden}>
+                렌더링된 본문을 직접 수정할 수 있습니다. 변경 내용은 마크다운 원문에 반영됩니다.
+              </span>
+            </section>
+            <CodeCopy />
+            <ContentEnhancements contentKey={previewHtml} />
           </div>
-        </details>
-        {post?.id ? <DeletePostButton id={post.id} /> : null}
-      </aside>
+          <p id="body-help" className={styles.helper} aria-live="polite">
+            {fieldError(state, 'body') ||
+              uploadMessage ||
+              '이미지를 끌어 놓으면 현재 커서 위치에 경로가 들어가요.'}
+          </p>
+        </div>
+
+        <aside className={styles.settings} aria-label="글 설정">
+          <h2 className={styles.groupHeading}>발행 설정</h2>
+          <p className={styles.modeHint}>
+            {persistedStatus === 'published'
+              ? '공개 글의 변경 사항은 저장하거나 공개하기를 누르면 바로 반영돼요.'
+              : '초안은 나만 볼 수 있어요. 공개하기를 누르면 공개 목록에 올라가요.'}
+            {secondaryStatus === 'draft' && persistedStatus === 'published'
+              ? ' 초안으로 전환하면 공개 목록에서 내려가요.'
+              : ''}
+          </p>
+          <label className={styles.statusField}>
+            <span>상태</span>
+            <select
+              id="post-status"
+              aria-invalid={Boolean(fieldError(state, 'status'))}
+              value={status}
+              disabled={busy}
+              onChange={(event) => setStatus(event.target.value as PostStatus)}
+            >
+              <option value="draft">초안</option>
+              <option value="published">공개</option>
+            </select>
+          </label>
+          <label className={styles.field}>
+            <span>카테고리</span>
+            <select
+              aria-invalid={Boolean(fieldError(state, 'category_id'))}
+              id="post-category_id"
+              name="category_id"
+              value={categoryId}
+              onChange={(event) => setCategoryId(event.target.value)}
+              required
+            >
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className={styles.field}>
+            <span>태그</span>
+            <input
+              aria-invalid={Boolean(fieldError(state, 'tags'))}
+              id="post-tags"
+              name="tags"
+              value={tags}
+              onChange={(event) => setTags(event.target.value)}
+              placeholder="설계, 협업"
+            />
+            <small>쉼표로 구분하며 저장할 때 중복을 정리해요.</small>
+          </label>
+
+          <div className={styles.field}>
+            <label htmlFor="post-slug">URL</label>
+            <span className={styles.slugControl}>
+              <input
+                id="post-slug"
+                aria-describedby="slug-help"
+                aria-invalid={Boolean(fieldError(state, 'slug'))}
+                name="slug"
+                value={slug}
+                onBlur={(event) => setSlug(normalizeSlug(event.currentTarget.value))}
+                onChange={(event) => {
+                  setSlugEdited(true);
+                  setSlug(event.target.value);
+                }}
+                onCompositionEnd={(event) => setSlug(normalizeSlug(event.currentTarget.value))}
+                autoComplete="off"
+                required
+              />
+              <button
+                className={styles.slugButton}
+                type="button"
+                disabled={busy || !title.trim()}
+                onClick={() => {
+                  setSlugEdited(true);
+                  setSlug(normalizeSlug(title));
+                  editRevisionRef.current += 1;
+                  setDirty(true);
+                }}
+              >
+                재생성
+              </button>
+            </span>
+            <small id="slug-help">
+              {fieldError(state, 'slug') ??
+                (post ? '기존 주소를 유지해요.' : '제목으로 자동 생성돼요.')}
+            </small>
+          </div>
+          <h2 className={styles.groupHeading} id="cover-heading" tabIndex={-1}>
+            대표 이미지
+          </h2>
+          <section
+            className={`${styles.field} ${styles.coverField}`}
+            aria-labelledby="cover-heading"
+          >
+            {coverUrl ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element -- owner-selected CDN URL is not a configured image host */}
+                <img
+                  src={coverUrl}
+                  alt={coverAlt || ''}
+                  style={{
+                    objectPosition: `${coverX * 100}% ${coverY * 100}%`,
+                    aspectRatio: '1.9',
+                    objectFit: 'cover',
+                  }}
+                />
+                <div className={styles.coverRatios}>
+                  <span>목록 · 데스크톱 추천 1.9:1</span>
+                  <details>
+                    <summary>다른 노출 비율 미리보기</summary>
+                    {[
+                      { label: '글 상세 16:9', ratio: '16 / 9' },
+                      { label: '모바일 목록 6:5', ratio: '6 / 5' },
+                      { label: '모바일 추천 16:10', ratio: '16 / 10' },
+                    ].map(({ label, ratio }) => (
+                      <figure key={label}>
+                        <figcaption>{label}</figcaption>
+                        {/* eslint-disable-next-line @next/next/no-img-element -- owner-selected asset crop preview */}
+                        <img
+                          src={coverUrl}
+                          alt=""
+                          style={{
+                            aspectRatio: ratio,
+                            objectPosition: `${coverX * 100}% ${coverY * 100}%`,
+                          }}
+                        />
+                      </figure>
+                    ))}
+                  </details>
+                </div>
+                <Dialog.Root>
+                  <Dialog.Trigger className={styles.coverZoomButton} type="button">
+                    크게 보기
+                  </Dialog.Trigger>
+                  <Dialog.Portal>
+                    <Dialog.Backdrop className={styles.coverLightboxBackdrop} />
+                    <Dialog.Viewport className={styles.coverLightboxViewport}>
+                      <Dialog.Popup className={styles.coverLightbox} initialFocus={false}>
+                        <Dialog.Title className={styles.coverLightboxTitle}>
+                          대표 이미지 크게 보기
+                        </Dialog.Title>
+                        <Dialog.Close
+                          ref={focusCoverLightboxClose}
+                          className={styles.coverLightboxClose}
+                          type="button"
+                          aria-label="대표 이미지 크게 보기 닫기"
+                        >
+                          <X aria-hidden size={22} />
+                        </Dialog.Close>
+                        {/* eslint-disable-next-line @next/next/no-img-element -- owner-selected CDN URL is not a configured image host */}
+                        <img
+                          className={styles.coverLightboxImage}
+                          src={coverUrl}
+                          alt={coverAlt || ''}
+                        />
+                      </Dialog.Popup>
+                    </Dialog.Viewport>
+                  </Dialog.Portal>
+                </Dialog.Root>
+              </>
+            ) : (
+              <div className={styles.coverPlaceholder} aria-hidden>
+                <ImageSquare size={24} />
+              </div>
+            )}
+            <input type="hidden" name="cover_image_key" value={coverKey} />
+            <input type="hidden" name="cover_image_url" value={coverUrl} />
+            <label>
+              <span>가로 위치</span>
+              <input
+                type="range"
+                id="post-cover_position_x"
+                name="cover_position_x"
+                min="0"
+                max="1"
+                step="0.01"
+                value={coverX}
+                onChange={(event) => setCoverX(Number(event.target.value))}
+              />
+            </label>
+            <label>
+              <span>세로 위치</span>
+              <input
+                type="range"
+                id="post-cover_position_y"
+                name="cover_position_y"
+                min="0"
+                max="1"
+                step="0.01"
+                value={coverY}
+                onChange={(event) => setCoverY(Number(event.target.value))}
+              />
+            </label>
+            <label>
+              <span>대체 텍스트</span>
+              <input
+                id="post-cover_alt"
+                aria-invalid={Boolean(fieldError(state, 'cover_alt'))}
+                aria-describedby="cover-alt-help"
+                name="cover_alt"
+                value={coverAlt}
+                onChange={(event) => setCoverAlt(event.target.value)}
+                placeholder="이미지 내용을 설명해 주세요"
+              />
+            </label>
+            <p id="cover-alt-help" className={styles.modeHint}>
+              이미지를 볼 수 없는 독자에게 전할 내용을 적어 주세요. 장식용이면 비워 둘 수 있어요.
+            </p>
+            <label className={styles.uploadButton} aria-disabled={busy}>
+              <UploadSimple aria-hidden size={17} />
+              이미지 변경
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                disabled={busy}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void uploadCover(file);
+                  event.target.value = '';
+                }}
+              />
+            </label>
+          </section>
+
+          <details className={styles.settingsDetails}>
+            <summary>주소와 검색 정보</summary>
+            <div className={styles.detailsContent}>
+              <p>공개 주소는 URL 값으로 만들고 검색 설명은 상단 설명을 사용해요.</p>
+            </div>
+          </details>
+          {post?.id ? <DeletePostButton id={post.id} title={savedTitle || title} /> : null}
+        </aside>
+      </div>
     </form>
   );
 }

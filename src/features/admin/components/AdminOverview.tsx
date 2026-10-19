@@ -74,7 +74,11 @@ export function AdminOverview({
             </span>
             <ArrowRight aria-hidden size={17} />
           </Link>
-          <Link className={styles.quickLink} href={`${ROUTES.ADMIN.POSTS}&status=draft`}>
+          <Link
+            className={styles.quickLink}
+            data-priority={draftCount > 0 || undefined}
+            href={`${ROUTES.ADMIN.POSTS}&status=draft`}
+          >
             <span className={styles.quickIcon}>
               <FileText aria-hidden size={19} />
             </span>

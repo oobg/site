@@ -40,6 +40,7 @@ const form = (overrides: Record<string, string> = {}) => {
     description: '설명',
     body: '본문',
     status: 'draft',
+    expectedUpdatedAt: '2026-09-01T00:00:00.000Z',
     ...overrides,
   };
   const data = new FormData();
@@ -107,7 +108,13 @@ describe('post actions', () => {
       '/blog/[category]/[slug]',
       '/blog/post-slug',
     ]);
-    expect(log).toHaveBeenCalledWith('Post cache revalidation failed');
+    expect(log).toHaveBeenCalledWith(
+      expect.objectContaining({
+        operation: 'post_path_revalidation',
+        code: 'CACHE_REVALIDATION_FAILED',
+        level: 'error',
+      }),
+    );
     log.mockRestore();
   });
 
@@ -157,10 +164,19 @@ describe('post actions', () => {
         },
         error: null,
       });
-      const updateEq = vi.fn().mockResolvedValue({ error: null });
+      const updateEq = vi.fn();
+      updateEq.mockReturnValue({
+        eq: updateEq,
+        select: () => ({
+          maybeSingle: async () => ({
+            data: { updated_at: '2026-09-02T00:00:00.000Z' },
+            error: null,
+          }),
+        }),
+      });
       const update = vi.fn().mockReturnValue({ eq: updateEq });
       const table = {
-        select: vi.fn().mockReturnValue({ eq: () => ({ single: readSingle }) }),
+        select: vi.fn().mockReturnValue({ eq: () => ({ maybeSingle: readSingle }) }),
         update,
       };
       mocks.createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(table) });
@@ -202,9 +218,19 @@ describe('post actions', () => {
       data: { slug: 'post-slug', status: 'draft', published_at: null },
       error: null,
     });
-    const update = vi.fn().mockReturnValue({ eq: vi.fn().mockResolvedValue({ error: null }) });
+    const eq = vi.fn();
+    eq.mockReturnValue({
+      eq,
+      select: () => ({
+        maybeSingle: async () => ({
+          data: { updated_at: '2026-09-02T00:00:00.000Z' },
+          error: null,
+        }),
+      }),
+    });
+    const update = vi.fn().mockReturnValue({ eq });
     const table = {
-      select: vi.fn().mockReturnValue({ eq: () => ({ single: readSingle }) }),
+      select: vi.fn().mockReturnValue({ eq: () => ({ maybeSingle: readSingle }) }),
       update,
     };
     mocks.createClient.mockResolvedValue({ from: vi.fn().mockReturnValue(table) });
@@ -272,4 +298,105 @@ describe('post actions', () => {
       expect(mocks.createClient).not.toHaveBeenCalled();
     },
   );
+});
+
+describe('editor optimistic concurrency', () => {
+  const id = '8e10a748-fd28-41a0-9f3d-8b81fc40c753';
+  const baseRevision = '2026-09-01T00:00:00.000Z';
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.requireOwner.mockResolvedValue(undefined);
+  });
+  function backend(options: { current?: boolean; revision?: string; writeError?: unknown } = {}) {
+    let revision = options.revision ?? baseRevision;
+    const writes: Array<{ filters: Record<string, unknown>; values: Record<string, unknown> }> = [];
+    const update = vi.fn((values: Record<string, unknown>) => {
+      const filters: Record<string, unknown> = {};
+      const query = {
+        eq: vi.fn((key: string, value: unknown) => {
+          filters[key] = value;
+          return query;
+        }),
+        select: vi.fn(() => query),
+        maybeSingle: vi.fn(async () => {
+          if (options.writeError) return { data: null, error: options.writeError };
+          if (filters.id !== id || filters.updated_at !== revision)
+            return { data: null, error: null };
+          writes.push({ filters: { ...filters }, values });
+          // Represents the DB's authoritative updated_at returned after its update trigger.
+          revision = new Date(Date.parse(revision) + 1000).toISOString();
+          return { data: { updated_at: revision }, error: null };
+        }),
+      };
+      return query;
+    });
+    const table = {
+      select: vi.fn(() => ({
+        eq: () => ({
+          maybeSingle: async () => ({
+            data:
+              options.current === false
+                ? null
+                : { slug: 'old', status: 'draft', published_at: null },
+            error: null,
+          }),
+        }),
+      })),
+      update,
+    };
+    mocks.createClient.mockResolvedValue({ from: vi.fn(() => table) });
+    return { writes, update };
+  }
+  it('requires the original revision and returns the DB revision for two successive saves', async () => {
+    const db = backend();
+    const first = await updatePostAction(previous, form({ id, expectedUpdatedAt: baseRevision }));
+    expect(first).toMatchObject({ status: 'success', updatedAt: '2026-09-01T00:00:01.000Z' });
+    const second = await updatePostAction(
+      previous,
+      form({ id, expectedUpdatedAt: first.updatedAt!, body: '두 번째 저장' }),
+    );
+    expect(second).toMatchObject({ status: 'success', updatedAt: '2026-09-01T00:00:02.000Z' });
+    expect(db.writes.map((w) => w.filters)).toEqual([
+      { id, updated_at: baseRevision },
+      { id, updated_at: first.updatedAt },
+    ]);
+  });
+  it.each(['another tab edit', 'concurrent publication state change'])(
+    'does not overwrite after %s',
+    async () => {
+      const db = backend({ revision: '2026-09-01T00:00:03.123456Z' });
+      const result = await updatePostAction(
+        previous,
+        form({ id, expectedUpdatedAt: baseRevision, body: '오래된 내용' }),
+      );
+      expect(result.status).toBe('error');
+      expect(result.fieldErrors?.expectedUpdatedAt).toBeDefined();
+      expect(db.writes).toHaveLength(0);
+      expect(db.update).toHaveBeenCalledOnce();
+      expect(mocks.invalidatePublicPostCache).not.toHaveBeenCalled();
+    },
+  );
+  it('returns conflict for a deleted post without issuing an update', async () => {
+    const db = backend({ current: false });
+    const result = await updatePostAction(previous, form({ id, expectedUpdatedAt: baseRevision }));
+    expect(result.fieldErrors?.expectedUpdatedAt).toBeDefined();
+    expect(db.update).not.toHaveBeenCalled();
+  });
+  it('rejects a missing revision instead of silently accepting current data', async () => {
+    const db = backend();
+    const data = form({ id });
+    data.delete('expectedUpdatedAt');
+    const result = await updatePostAction(previous, data);
+    expect(result.fieldErrors?.expectedUpdatedAt).toBeDefined();
+    expect(db.update).not.toHaveBeenCalled();
+    expect(mocks.createClient).not.toHaveBeenCalled();
+  });
+  it('does not report success or invalidate cache after a network/storage failure', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    backend({ writeError: new Error('offline') });
+    const result = await updatePostAction(previous, form({ id }));
+    expect(result.status).toBe('error');
+    expect(mocks.invalidatePublicPostCache).not.toHaveBeenCalled();
+    log.mockRestore();
+  });
 });

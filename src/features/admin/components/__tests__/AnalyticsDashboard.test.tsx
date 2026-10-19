@@ -1,12 +1,27 @@
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot, type Root } from 'react-dom/client';
+import type { AnalyticsDashboardResult } from '@features/admin/types/analytics.types';
 import { AnalyticsDashboard } from '@features/admin/components/AnalyticsDashboard';
+
+const motionPreference = vi.hoisted(() => ({ value: null as boolean | null }));
+vi.mock('motion/react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('motion/react')>();
+  return { ...actual, useReducedMotion: () => motionPreference.value };
+});
 
 vi.mock('cobe', () => ({
   default: () => ({ destroy: vi.fn(), update: vi.fn() }),
 }));
 
 describe('AnalyticsDashboard', () => {
+  beforeEach(() => {
+    motionPreference.value = false;
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
   it('설정되지 않은 서버 변수만 정확히 안내한다', () => {
     render(
       <AnalyticsDashboard result={{ status: 'not-configured', missing: ['GA4_PRIVATE_KEY'] }} />,
@@ -83,6 +98,11 @@ describe('AnalyticsDashboard', () => {
       />,
     );
 
+    fireEvent.click(screen.getByText('날짜별 방문 데이터를 표로 보기'));
+    const dailyTable = screen.getByRole('table', { name: '최근 28일의 날짜별 방문 데이터' });
+    expect(within(dailyTable).getByText('2026-09-16')).toBeVisible();
+    expect(within(dailyTable).getByRole('columnheader', { name: '세션' })).toBeVisible();
+    expect(screen.getByText(/GA4 반영 지연/)).toBeInTheDocument();
     expect(screen.getByText('디바이스 유형별 방문')).toBeInTheDocument();
     const deviceList = screen.getByLabelText('디바이스 유형별 활성 사용자');
     expect(deviceList).toBeInTheDocument();
@@ -138,4 +158,68 @@ describe('AnalyticsDashboard', () => {
     expect(screen.queryByText('/admin')).not.toBeInTheDocument();
     expect(screen.getByText('서울특별시 · 대한민국')).toBeInTheDocument();
   });
+});
+
+const hydrationResult: AnalyticsDashboardResult = {
+  status: 'ready',
+  data: {
+    range: { startDate: '27daysAgo', endDate: 'today', days: 28 },
+    summary: { activeUsers: 1, sessions: 1, screenPageViews: 1, engagementRate: 0 },
+    daily: [],
+    channels: [],
+    pages: [],
+    devices: [],
+    locations: { countries: [], regions: [], cities: [] },
+    countries: [],
+    campaigns: [],
+    browsers: [],
+    operatingSystems: [],
+    visitorTypes: [],
+  },
+};
+
+describe('AnalyticsDashboard SSR hydration motion preference', () => {
+  it.each([true, false])(
+    'hydrates without markup recovery when client reduced motion is %s',
+    async (reduced) => {
+      motionPreference.value = null;
+      const tree = <AnalyticsDashboard result={hydrationResult} />;
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(tree);
+      document.body.append(container);
+      const serverControl = within(container).getByRole('button', { name: '회전 멈춤' });
+      expect(serverControl).not.toBeDisabled();
+      const recoverableError = vi.fn();
+      const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+      motionPreference.value = reduced;
+      let root: Root | undefined;
+      try {
+        await act(async () => {
+          root = hydrateRoot(container, tree, { onRecoverableError: recoverableError });
+        });
+        const control = within(container).getByRole('button', {
+          name: reduced ? '동작 줄이기 사용 중' : '회전 멈춤',
+        });
+        expect(control).toHaveProperty('disabled', reduced);
+        expect(recoverableError).not.toHaveBeenCalled();
+        expect(consoleError.mock.calls.flat().map(String).join(' ')).not.toMatch(
+          /hydration|didn.t match|server rendered/i,
+        );
+        if (!reduced) {
+          fireEvent.click(control);
+          expect(within(container).getByRole('button', { name: '회전 시작' })).toHaveAttribute(
+            'aria-pressed',
+            'true',
+          );
+        }
+      } finally {
+        await act(async () => {
+          root?.unmount();
+        });
+        container.remove();
+        consoleError.mockRestore();
+        motionPreference.value = false;
+      }
+    },
+  );
 });

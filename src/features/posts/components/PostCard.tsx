@@ -25,12 +25,12 @@ export function PostCard({
   variant?: 'default' | 'compact';
 }) {
   const Heading = headingLevel === 3 ? 'h3' : 'h2';
-  const hasCover = Boolean(post.cover_image_url || reserveCoverSpace);
+  const hasCover = Boolean(post.cover_image_url);
   return (
     <article
       className={variant === 'compact' ? `${styles.card} ${styles.compact}` : styles.card}
       data-no-cover={!post.cover_image_url || undefined}
-      data-reserved={reserveCoverSpace || undefined}
+      data-reserved={reserveCoverSpace && hasCover ? '' : undefined}
       data-has-cover={hasCover || undefined}
     >
       {post.cover_image_url ? (
@@ -52,8 +52,6 @@ export function PostCard({
             }}
           />
         </Link>
-      ) : reserveCoverSpace ? (
-        <div className={styles.coverPlaceholder} data-cover-placeholder="" aria-hidden="true" />
       ) : null}
       <div className={styles.body}>
         {showCategory ? <span className={styles.category}>{post.category.name}</span> : null}

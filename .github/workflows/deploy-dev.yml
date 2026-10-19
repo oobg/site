@@ -205,6 +205,26 @@ jobs:
           rm -rf -- "$backup"
           backup=''
 
+      # This is read-only evidence after activation. A failure marks the release
+      # unhealthy; it does not promise an additional automatic image rollback.
+      - name: 배포 revision과 컨테이너 공개 경로 검증
+        env:
+          TARGET_SHA: ${{ steps.target.outputs.sha }}
+        run: |
+          set -euo pipefail
+          root=/srv/docker/raven-dev
+          release="$root/app/.raven-release"
+          test "$(sed -n 's/^BASE_GIT_SHA=//p' "$release")" = "$TARGET_SHA"
+          test "$(sed -n 's/^SOURCE_STATE=//p' "$release")" = clean
+          expected=$(sed -n 's/^SOURCE_SHA256=//p' "$release")
+          actual=$(python3 "$root/app/deploy/server/dev-source.py" digest "$root/app")
+          test "$actual" = "$expected"
+          running=$(docker inspect -f '{{.Image}}' raven-web-dev)
+          tagged=$(docker image inspect -f '{{.Id}}' "raven-web-dev:$TARGET_SHA")
+          test "$running" = "$tagged"
+          printf 'revision=%s source_sha256=%s image=%s\n' "$TARGET_SHA" "$actual" "$running"
+          docker exec -i raven-web-dev node --input-type=module - < "$root/app/scripts/check-dev-runtime.mjs"
+
       - name: dev CDN 캐시 갱신
         if: github.event_name == 'workflow_dispatch' && inputs.refresh_cdn
         run: bash deploy/server/deploy-cdn-dev.sh

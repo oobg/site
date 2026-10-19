@@ -70,6 +70,7 @@ export function PostList({
   const [page, setPage] = useState(1);
   const [pendingIds, setPendingIds] = useState<Set<string>>(() => new Set());
   const [message, setMessage] = useState('');
+  const [rowMessages, setRowMessages] = useState<Record<string, string>>({});
   const [, startTransition] = useTransition();
   const postsWithOverrides = useMemo(
     () => posts.map((post) => withFreshOverride(post, overrides[post.id])),
@@ -174,6 +175,14 @@ export function PostList({
   };
 
   const changeStatus = (post: AdminPostListItem, nextStatus: AdminPostListItem['status']) => {
+    if (pendingIds.has(post.id)) return;
+    if (
+      post.status === 'published' &&
+      nextStatus === 'draft' &&
+      !window.confirm(`‘${post.title}’ 글을 초안으로 바꾸면 공개 목록에서 내려가요. 계속할까요?`)
+    )
+      return;
+    setRowMessages((current) => ({ ...current, [post.id]: '상태를 저장하고 있어요.' }));
     setPendingIds((current) => new Set(current).add(post.id));
     setMessage('');
     startTransition(async () => {
@@ -187,9 +196,14 @@ export function PostList({
               updatedAt: result.updatedAt ?? post.updatedAt,
             },
           }));
-        setMessage(result.message);
+        setRowMessages((current) => ({ ...current, [post.id]: result.message }));
+        setMessage(`${post.title}: ${result.message}`);
       } catch {
-        setMessage('글 상태를 바꾸지 못했어요.');
+        setRowMessages((current) => ({
+          ...current,
+          [post.id]: '글 상태를 바꾸지 못했어요. 다시 선택해 주세요.',
+        }));
+        setMessage(`${post.title}: 글 상태를 바꾸지 못했어요.`);
       } finally {
         setPendingIds((current) => {
           const next = new Set(current);
@@ -214,6 +228,7 @@ export function PostList({
             <button
               type="button"
               key={value}
+              aria-pressed={status === value}
               data-active={status === value || undefined}
               onClick={() => {
                 void setFilters({ status: value });
@@ -263,7 +278,13 @@ export function PostList({
         {message}
       </p>
       {!compact ? (
-        <div className={styles.tableWrap} ref={tableRef}>
+        <div
+          className={styles.tableWrap}
+          ref={tableRef}
+          role="region"
+          aria-label="글 목록 표 가로 스크롤"
+          tabIndex={0}
+        >
           <table className={styles.table} aria-label="글 목록">
             <thead>
               <tr>
@@ -316,6 +337,7 @@ export function PostList({
                   <td data-label="대표 이미지">
                     <div className={styles.thumbnail}>
                       {post.coverImageUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element -- owner-selected CDN host may vary
                         <img
                           src={post.coverImageUrl}
                           alt=""
@@ -345,6 +367,7 @@ export function PostList({
                     <select
                       className={styles.statusSelect}
                       aria-label={`${post.title} 상태`}
+                      aria-describedby={rowMessages[post.id] ? `post-status-${post.id}` : undefined}
                       value={post.status}
                       disabled={pendingIds.has(post.id)}
                       onChange={(event) =>
@@ -354,6 +377,9 @@ export function PostList({
                       <option value="draft">초안</option>
                       <option value="published">공개</option>
                     </select>
+                    <p className={styles.rowFeedback} id={`post-status-${post.id}`}>
+                      {rowMessages[post.id]}
+                    </p>
                   </td>
                   <td data-label="생성일">
                     <time dateTime={post.createdAt}>{formatDate(post.createdAt)}</time>

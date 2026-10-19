@@ -149,6 +149,12 @@
   white-space: nowrap;
   border: 0;
 }
+.singleCount {
+  margin-top: var(--space-4);
+  color: var(--d0-grey-600);
+  font-size: var(--fs-13);
+  font-variant-numeric: tabular-nums;
+}
 .progressRing {
   position: absolute;
   inset: 0;

@@ -46,7 +46,7 @@ main acceptance는 실제 운영 origin에서 다음을 확인한다.
 5. privacy 관련 개인정보 제거 변경이 운영 origin에 반영된다. 현재 `/privacy` 페이지 자체는 없다.
 6. 배포 실패 시 health check가 실패하고 가능한 경우 이전 이미지가 재기동된다.
 
-main acceptance 전에는 production 자동 배포로 바꾸지 않는다. 현재 OCI workflow는 테스트 게이트를 실행하지 않으므로 typecheck·lint·test는 로컬 및 기존 홈서버 workflow에서 별도로 검증한다.
+main acceptance 전에는 production 자동 배포로 바꾸지 않는다. OCI workflow는 동일 후보 SHA에서 test·typecheck·lint·CSS/design 검사·배포 실패 harness·mock build를 통과한 뒤 호스트 설정을 변경한다. 실제 production 설정으로의 build와 외부 dependency 검증은 별도로 수행한다.
 
 ### 2. dev: 홈서버 + self-hosted Supabase + 개발 이미지 서버
 
@@ -94,7 +94,7 @@ OCI 호스트 setup은 다음 계약을 만족해야 한다.
 
 GitHub Actions에는 앱 runtime secret을 주입하지 않는다. workflow가 사용하는 연결 설정은 production environment의 `DEPLOY_HOST`, `DEPLOY_HOST_KEY` variables와 `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET`, `DEPLOY_SSH_KEY` secrets이다. 앱의 Supabase·CMS·R2·tunnel 값은 OCI 호스트의 위 config 파일에만 둔다.
 
-배포 script는 먼저 `raven-web-production:current` 이미지를 `previous`로 tag하고, OCI에서 새 이미지를 build한다. compose 기동 시 기존 컨테이너가 교체될 수 있으므로 health 확인 전 기존 컨테이너가 보존된다고 가정하지 않는다. build 실패 시 실행 중 컨테이너를 변경하지 않고, 기동 또는 health 실패 시 `previous` 이미지가 있으면 재기동한다. 최초 배포처럼 이전 이미지가 없으면 자동 image rollback은 불가능하며, 실패 상태를 남긴다. DNS 또는 Cloudflare tunnel의 이전 경로를 이용한 외부 rollback은 별도 수동 운영 절차다.
+배포 script는 실행 중인 web 컨테이너의 이미지 ID와 healthy 상태·내부 health 응답을 확인한 경우에만 그 이미지를 `previous`로 보존하고, OCI에서 새 이미지를 build한다. 현재 태그가 실행 중인 정상 이미지와 같다고 가정하지 않는다. compose 기동 시 기존 컨테이너가 교체될 수 있으므로 health 확인 전 기존 컨테이너가 보존된다고 가정하지 않는다. build 실패 시 실행 중 컨테이너를 변경하지 않고, 기동 또는 health 실패 시 이번 실행에서 보존한 정상 이미지가 있으면 web만 재기동하고 health를 다시 검증한다. 복구 health가 실패하거나 정상 이전 이미지가 없으면 수동 복구가 필요한 실패 상태를 남긴다. DNS 또는 Cloudflare tunnel의 이전 경로를 이용한 외부 rollback은 별도 수동 운영 절차다.
 
 ## 환경변수 원칙
 
@@ -103,3 +103,9 @@ GitHub Actions에는 앱 runtime secret을 주입하지 않는다. workflow가 �
 ## 운영 전환 기록
 
 OCI main은 공개 origin과 실제 Google 로그인까지 전환했고, 사용자가 draft 저장·글 발행·이미지 업로드를 확인했다. 현재 운영 소스는 `ca6af3a06a8d23f901031ef7a2e449fdb1ac5283`이며 로컬 전체 31개 test file, 107개 test를 통과했다. 실제 rollback 확인과 production 자동 배포 방식 결정은 남아 있다.
+
+## 개선 이후 검증과 운영
+
+실제 운영 배포 여부와 revision은 각 release 기록으로 확인한다. `python3 scripts/check-production-deploy.py`는 성공·빈 태그 목록·build 실패·기동 실패·health 실패·rollback 기동/health 실패·정상 이전 이미지 없음의 9개 mock 시나리오를 검사한다. 이 검사가 실제 production rollback 연습을 대신하지는 않는다.
+
+[운영 복구 절차](operations-runbook.md)와 [호환성·측정 계약](compatibility-and-measurement.md)에 외부 검증 범위, 수집 제외와 비용·백업 확인 항목을 기록했다. `node scripts/check-public-readiness.mjs https://raven.kr`는 공개 liveness와 HTML 렌더만 확인하며 로그인 HTML 200을 health 성공으로 취급하지 않는다.

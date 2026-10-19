@@ -14,7 +14,7 @@ import {
 } from 'recharts';
 import { Desktop, DeviceMobile, DeviceTablet, Pause, Play, Question } from '@phosphor-icons/react';
 import { motion, useReducedMotion } from 'motion/react';
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import type {
   AnalyticsDashboardData,
   AnalyticsDashboardResult,
@@ -378,12 +378,20 @@ function DevicePerspective({ devices }: { devices: AnalyticsDashboardData['devic
   );
 }
 
+const subscribeToHydration = () => () => undefined;
+
 function CountryGlobe({ countries }: { countries: AnalyticsDashboardData['countries'] }) {
   const reduceMotion = useReducedMotion();
+  const motionPreferenceReady = useSyncExternalStore(
+    subscribeToHydration,
+    () => true,
+    () => false,
+  );
+  const renderReducedMotion = motionPreferenceReady && Boolean(reduceMotion);
   const [rotationPaused, setRotationPaused] = useState(false);
   const max = Math.max(...countries.map((country) => country.activeUsers), 0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rotationEnabledRef = useRef(true);
+  const rotationEnabledRef = useRef(false);
   const syncRotationRef = useRef<() => void>(() => undefined);
   const markers = useMemo(
     () =>
@@ -401,7 +409,7 @@ function CountryGlobe({ countries }: { countries: AnalyticsDashboardData['countr
   );
 
   useEffect(() => {
-    rotationEnabledRef.current = !rotationPaused && !reduceMotion;
+    rotationEnabledRef.current = !rotationPaused && reduceMotion === false;
     syncRotationRef.current();
   }, [reduceMotion, rotationPaused]);
 
@@ -519,15 +527,15 @@ function CountryGlobe({ countries }: { countries: AnalyticsDashboardData['countr
           type="button"
           className={styles.globeControl}
           aria-pressed={rotationPaused}
-          disabled={Boolean(reduceMotion)}
+          disabled={renderReducedMotion}
           onClick={() => setRotationPaused((paused) => !paused)}
         >
-          {rotationPaused || reduceMotion ? (
+          {rotationPaused || renderReducedMotion ? (
             <Play aria-hidden size={14} weight="bold" />
           ) : (
             <Pause aria-hidden size={14} weight="bold" />
           )}
-          {reduceMotion ? '동작 줄이기 사용 중' : rotationPaused ? '회전 시작' : '회전 멈춤'}
+          {renderReducedMotion ? '동작 줄이기 사용 중' : rotationPaused ? '회전 시작' : '회전 멈춤'}
         </button>
       </div>
       <MetricBarList
@@ -635,7 +643,13 @@ function PagesList({ pages }: { pages: AnalyticsDashboardData['pages'] }) {
   );
 }
 
-export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResult }) {
+export function AnalyticsDashboard({
+  result,
+  requestedAt,
+}: {
+  result: AnalyticsDashboardResult;
+  requestedAt?: string;
+}) {
   if (result.status === 'not-configured')
     return (
       <section className={styles.state} aria-labelledby="analytics-title">
@@ -697,7 +711,6 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
     <section className={styles.dashboard} aria-label="방문 통계 데이터">
       <div className={styles.heading}>
         <div>
-          <p className={styles.kicker}>RAVEN.KR / GA4</p>
           <strong>방문 흐름을 한눈에</strong>
         </div>
         <div className={styles.headingMeta}>
@@ -706,6 +719,54 @@ export function AnalyticsDashboard({ result }: { result: AnalyticsDashboardResul
         </div>
       </div>
 
+      <p className={styles.dataContext}>
+        최근 {data.range.days}일 집계 · 최대 1시간 캐시를 사용해요. GA4 반영 지연으로 최근 방문이
+        빠져 있을 수 있어요.
+        {requestedAt ? (
+          <>
+            {' '}
+            조회 시각{' '}
+            <time dateTime={requestedAt}>
+              {new Intl.DateTimeFormat('ko-KR', { dateStyle: 'medium', timeStyle: 'short' }).format(
+                new Date(requestedAt),
+              )}
+            </time>
+          </>
+        ) : null}
+      </p>
+      <details className={styles.dataTable}>
+        <summary>날짜별 방문 데이터를 표로 보기</summary>
+        <div
+          className={styles.tableScroll}
+          tabIndex={0}
+          role="region"
+          aria-label="날짜별 방문 데이터 표 스크롤"
+        >
+          <table>
+            <caption>최근 {data.range.days}일의 날짜별 방문 데이터</caption>
+            <thead>
+              <tr>
+                <th scope="col">날짜</th>
+                <th scope="col">활성 사용자</th>
+                <th scope="col">세션</th>
+                <th scope="col">조회수</th>
+                <th scope="col">참여율</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.daily.map((item) => (
+                <tr key={item.date}>
+                  <th scope="row">{item.date.replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3')}</th>
+                  <td>{number.format(item.activeUsers)}</td>
+                  <td>{number.format(item.sessions)}</td>
+                  <td>{number.format(item.screenPageViews)}</td>
+                  <td>{percent.format(item.engagementRate)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </details>
       <dl className={styles.metrics}>
         {metricCards.map((metric) => (
           <div className={styles.metricCard} data-tone={metric.tone} key={metric.label}>

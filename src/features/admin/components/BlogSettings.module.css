@@ -101,3 +101,20 @@
     content: '생성일: ';
   }
 }
+
+.pinPreview {
+  margin-block: var(--space-4);
+  padding: var(--space-4);
+  background: var(--d0-grey-50);
+  border-radius: var(--d0-radius-control);
+}
+.pinPreview h3 {
+  font-size: var(--fs-14);
+  margin-bottom: var(--space-2);
+}
+.pinPreview ol {
+  padding-left: var(--space-5);
+  color: var(--d0-grey-700);
+  font-size: var(--fs-14);
+  line-height: var(--lh-body);
+}

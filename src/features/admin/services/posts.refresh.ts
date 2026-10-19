@@ -1,4 +1,5 @@
 import 'server-only';
+import { logOperation } from '@lib/observability/logger';
 import { revalidatePath } from 'next/cache';
 import { ROUTES } from '@constants/routes';
 import { invalidatePublicPostCache } from '@lib/cache/posts';
@@ -18,7 +19,7 @@ function revalidatePostPaths(slugs: (string | undefined)[], includeCategoryRoute
       if (path === '/blog/[category]/[slug]') revalidatePath(path, 'page');
       else revalidatePath(path);
     } catch {
-      console.error('Post cache revalidation failed');
+      logOperation({ operation: 'post_path_revalidation', code: 'CACHE_REVALIDATION_FAILED' });
     }
   }
 }
@@ -35,6 +36,6 @@ export function refreshPublicPostCache(oldSlug?: string, newSlug?: string) {
   try {
     invalidatePublicPostCache({ oldSlug, newSlug });
   } catch {
-    console.error('Post data cache invalidation failed');
+    logOperation({ operation: 'post_cache_invalidation', code: 'CACHE_INVALIDATION_FAILED' });
   }
 }

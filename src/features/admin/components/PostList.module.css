@@ -111,6 +111,7 @@
   font-size: 13px;
 }
 .tableWrap {
+  position: relative;
   overflow-x: auto;
   border-top: 1px solid var(--color-border);
 }
@@ -557,4 +558,17 @@
     width: fit-content;
     max-width: 100%;
   }
+}
+
+.rowFeedback {
+  max-width: 24ch;
+  margin-top: var(--space-2);
+  color: var(--d0-grey-600);
+  font-size: var(--fs-12);
+  line-height: var(--lh-body);
+}
+
+.tableWrap:focus-visible {
+  outline: 2px solid var(--d0-blue);
+  outline-offset: 2px;
 }

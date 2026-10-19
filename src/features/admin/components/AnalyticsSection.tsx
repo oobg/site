@@ -3,7 +3,8 @@ import { getAnalyticsDashboard } from '@features/admin/services/analytics.admin'
 import styles from './AnalyticsDashboard.module.css';
 
 export async function AnalyticsSection() {
-  return <AnalyticsDashboard result={await getAnalyticsDashboard()} />;
+  const result = await getAnalyticsDashboard();
+  return <AnalyticsDashboard result={result} requestedAt={new Date().toISOString()} />;
 }
 
 export function AnalyticsSectionLoading() {

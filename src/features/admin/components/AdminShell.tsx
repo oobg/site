@@ -21,12 +21,14 @@ export function AdminShell({
   banner,
   authorized,
   search,
+  accessFallback,
 }: {
   children: ReactNode;
   userEmail?: string;
   banner: ReactNode;
   authorized: boolean;
   search?: ReactNode;
+  accessFallback?: ReactNode;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -36,23 +38,23 @@ export function AdminShell({
   const hasPostFilter = ['status', 'category', 'query'].some((key) =>
     searchParams.get(key)?.trim(),
   );
+  const editing = pathname.startsWith(`${ROUTES.ADMIN.HOME}/posts/`);
   const posts =
-    pathname === ROUTES.ADMIN.HOME && (view === 'posts' || (view === null && hasPostFilter));
+    editing ||
+    (pathname === ROUTES.ADMIN.HOME && (view === 'posts' || (view === null && hasPostFilter)));
   const overview = pathname === ROUTES.ADMIN.HOME && !settings && !comments && !posts;
   const analytics = pathname === ROUTES.ADMIN.ANALYTICS;
   return (
     <div className={styles.shell}>
       {banner}
-      {authorized ? (
-        <a className={styles.skip} href="#main">
-          본문으로 건너뛰기
-        </a>
-      ) : null}
+      <a className={styles.skip} href="#main">
+        본문으로 건너뛰기
+      </a>
       <header className={styles.topbar}>
         <Link href={ROUTES.ADMIN.HOME} className={styles.wordmark} data-site-wordmark>
           raven
         </Link>
-        <div className={styles.search}>{search}</div>
+        {authorized ? <div className={styles.search}>{search}</div> : null}
         {authorized ? (
           <div className={styles.account}>
             <AdminAccountMenu userEmail={userEmail} />
@@ -100,7 +102,7 @@ export function AdminShell({
               </Link>
             </div>
             <div className={`${styles.navGroup} ${styles.navFooter}`}>
-              <span className={styles.navLabel}>관리</span>
+              <span className={styles.navLabel}>설정과 이동</span>
               <Link
                 href={`${ROUTES.ADMIN.HOME}?view=settings`}
                 aria-current={settings ? 'page' : undefined}
@@ -109,7 +111,7 @@ export function AdminShell({
                 <Gear aria-hidden size={19} />
                 블로그 설정
               </Link>
-              <Link href={ROUTES.HOME}>
+              <Link href={ROUTES.HOME} className={styles.siteLink}>
                 <ArrowSquareOut aria-hidden size={19} />
                 사이트 보기
               </Link>
@@ -119,7 +121,11 @@ export function AdminShell({
             {children}
           </main>
         </div>
-      ) : null}
+      ) : (
+        <main className={styles.accessMain} id="main" tabIndex={-1}>
+          {accessFallback}
+        </main>
+      )}
     </div>
   );
 }

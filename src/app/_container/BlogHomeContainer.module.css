@@ -43,6 +43,12 @@
   background: var(--d0-blue-light);
   color: var(--d0-grey-700);
   font-size: 13px;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.filterChip > span {
+  min-width: 0;
 }
 .filterChip button {
   border: 0;
@@ -52,6 +58,8 @@
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
+  flex: none;
+  min-height: var(--space-6);
 }
 .filterChip button:focus-visible {
   border-radius: var(--d0-radius-sm);
@@ -173,6 +181,12 @@
 .overviewHeading h1 {
   font-size: 24px;
   letter-spacing: var(--d0-tracking-title);
+}
+.overviewDescription {
+  margin-top: var(--space-2);
+  color: var(--d0-grey-600);
+  font-size: var(--fs-15);
+  line-height: var(--d0-leading-body);
 }
 .recentGrid,
 .topicGrid {

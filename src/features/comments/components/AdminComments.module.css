@@ -357,3 +357,24 @@
 .actions {
   flex-wrap: wrap;
 }
+
+.scope {
+  margin-bottom: var(--space-4);
+  color: var(--d0-grey-600);
+  font-size: var(--fs-13);
+  line-height: var(--lh-body);
+}
+.deleteExcerpt {
+  margin-top: var(--space-3);
+  overflow-wrap: anywhere;
+  color: var(--d0-grey-700);
+  font-size: var(--fs-14);
+  line-height: var(--lh-body);
+}
+.deleteActions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}

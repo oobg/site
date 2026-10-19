@@ -1,10 +1,12 @@
 .backdrop {
+  z-index: 70;
   position: fixed;
   inset: 0;
   background: rgb(26 31 38 / 0.28);
   transition: opacity var(--d0-dur) var(--d0-ease);
 }
 .popup {
+  z-index: 71;
   position: fixed;
   top: 50%;
   left: 50%;

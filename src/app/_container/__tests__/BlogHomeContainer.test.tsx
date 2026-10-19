@@ -99,6 +99,20 @@ describe('BlogHomeContainer', () => {
     expect(history).toHaveBeenCalledWith(null, '', '/');
   });
 
+  it('empty filtered results show zero and clear all filters together', () => {
+    mocks.search = new URLSearchParams('q=없음&tag=nextjs&category=dev');
+    const history = vi.spyOn(window.history, 'pushState');
+    render(
+      <BlogHomeContainer
+        initialData={empty}
+        initialFilters={{ q: '없음', tag: 'nextjs', category: 'dev', page: 1 }}
+      />,
+    );
+    expect(screen.getByText('글 0개')).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: '필터 모두 지우기' }));
+    expect(history).toHaveBeenCalledWith(null, '', '/');
+  });
+
   it('restores the tag filter when browser history returns to its URL', () => {
     mocks.search = new URLSearchParams();
     const { rerender } = render(
@@ -414,7 +428,7 @@ describe('BlogHomeContainer', () => {
       expect(within(card as HTMLElement).getByText('개발')).toBeInTheDocument();
   });
 
-  it('reserves unframed placeholders when every recent post has no cover', () => {
+  it('starts recent posts with text when covers are absent', () => {
     const featured = makePost('featured', '추천된 글');
     render(
       <BlogHomeContainer
@@ -435,12 +449,12 @@ describe('BlogHomeContainer', () => {
     const recent = screen.getByRole('region', { name: '최근 글' });
     const cards = recent.querySelectorAll('article');
     expect(cards).toHaveLength(2);
-    expect([...cards].every((card) => card.hasAttribute('data-reserved'))).toBe(true);
-    expect(recent.querySelectorAll('[data-cover-placeholder]')).toHaveLength(2);
+    expect([...cards].every((card) => !card.hasAttribute('data-has-cover'))).toBe(true);
+    expect(recent.querySelectorAll('[data-cover-placeholder]')).toHaveLength(0);
     expect(recent.querySelector('article > a[aria-hidden="true"], article img')).toBeNull();
   });
 
-  it('reserves unframed placeholders when every archive post has no cover', () => {
+  it('starts archive posts with text when covers are absent', () => {
     mocks.search = new URLSearchParams('view=all');
     const archivePosts = [makePost('a', '가'), makePost('b', '나')];
     const { container } = render(
@@ -458,12 +472,12 @@ describe('BlogHomeContainer', () => {
       />,
     );
 
-    expect(container.querySelectorAll('article[data-reserved]')).toHaveLength(2);
-    expect(container.querySelectorAll('[data-cover-placeholder]')).toHaveLength(2);
+    expect(container.querySelectorAll('article[data-reserved]')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-cover-placeholder]')).toHaveLength(0);
     expect(container.querySelector('article > a[aria-hidden="true"], article img')).toBeNull();
   });
 
-  it('reserves unframed placeholders when every topic post has no cover', () => {
+  it('starts topic posts with text when covers are absent', () => {
     const topicPosts = [makePost('topic-a', '주제 가'), makePost('topic-b', '주제 나')];
     render(
       <BlogHomeContainer
@@ -482,8 +496,8 @@ describe('BlogHomeContainer', () => {
     );
 
     const topic = screen.getByRole('heading', { name: '개발' }).closest('section');
-    expect(topic?.querySelectorAll('article[data-reserved]')).toHaveLength(2);
-    expect(topic?.querySelectorAll('[data-cover-placeholder]')).toHaveLength(2);
+    expect(topic?.querySelectorAll('article[data-reserved]')).toHaveLength(0);
+    expect(topic?.querySelectorAll('[data-cover-placeholder]')).toHaveLength(0);
     expect(topic?.querySelector('article > a[aria-hidden="true"], article img')).toBeNull();
   });
 

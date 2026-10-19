@@ -45,7 +45,7 @@ async function runSettingsAction(
   return result;
 }
 
-function CategoryRow({ category }: { category: BlogCategory }) {
+function CategoryRow({ category, postCount }: { category: BlogCategory; postCount: number }) {
   const queryClient = useQueryClient();
   const [lastAction, setLastAction] = useState<'update' | 'delete'>('update');
   const withInvalidation =
@@ -105,7 +105,11 @@ function CategoryRow({ category }: { category: BlogCategory }) {
       <form
         action={deleteAction}
         onSubmit={(event) => {
-          if (!window.confirm('이 카테고리의 글을 미분류로 옮기고 삭제할까요?')) {
+          if (
+            !window.confirm(
+              `‘${category.name}’ 분류를 삭제하고 글 ${postCount}개를 미분류로 옮길까요? 글은 삭제되지 않아요.`,
+            )
+          ) {
             event.preventDefault();
             return;
           }
@@ -117,7 +121,11 @@ function CategoryRow({ category }: { category: BlogCategory }) {
           삭제
         </button>
       </form>
-      {!category.is_default ? <small>삭제하면 이 카테고리의 글은 미분류로 옮겨져요.</small> : null}
+      <small>
+        {category.is_default
+          ? '기본 분류는 분류가 없는 글을 받아 줘요. 이름과 URL을 바꾸거나 삭제할 수 없어요.'
+          : `글 ${postCount}개 · 삭제하면 글은 미분류로 옮겨지며 그대로 남아요.`}
+      </small>
       {state.message ? (
         <p role={state.status === 'error' ? 'alert' : 'status'}>{state.message}</p>
       ) : null}
@@ -155,17 +163,22 @@ export function BlogSettings({
       .sort((a, b) => (a.pin_order ?? 99) - (b.pin_order ?? 99))
       .map((post) => post.id),
   );
+  const [savedPinnedIds, setSavedPinnedIds] = useState(pinnedIds);
+  const pinDirty = pinnedIds.join() !== savedPinnedIds.join();
   const [postQuery, setPostQuery] = useState('');
   const [postCategory, setPostCategory] = useState('');
   const [pinState, pinAction, pinning] = useActionState(
-    (state: PostActionState, data: FormData) =>
-      runSettingsAction(
+    async (state: PostActionState, data: FormData) => {
+      const result = await runSettingsAction(
         reorderPinnedPostsAction,
         state,
         data,
         () => queryClient.invalidateQueries({ queryKey: ['blog-posts'] }),
         '대표 글 순서를 저장하지 못했어요. 다시 시도해 주세요.',
-      ),
+      );
+      if (result.status === 'success') setSavedPinnedIds(data.getAll('post_ids').map(String));
+      return result;
+    },
     initialPostActionState,
   );
 
@@ -205,7 +218,11 @@ export function BlogSettings({
       <section>
         <h2>카테고리</h2>
         {categories.map((category) => (
-          <CategoryRow key={category.id} category={category} />
+          <CategoryRow
+            key={category.id}
+            category={category}
+            postCount={posts.filter((post) => post.category_id === category.id).length}
+          />
         ))}
         <form action={createAction} className={styles.categoryForm}>
           <input name="name" placeholder="새 카테고리" aria-label="새 카테고리 이름" required />
@@ -227,6 +244,22 @@ export function BlogSettings({
 
       <section>
         <h2>대표 글</h2>
+        <p aria-live="polite">
+          {pinnedIds.length}/5개 선택 ·{' '}
+          {pinDirty ? '아직 저장하지 않은 순서예요.' : '저장된 순서예요.'}
+        </p>
+        <div className={styles.pinPreview} aria-label="추천 글 노출 순서 미리보기">
+          <h3>노출 순서 미리보기</h3>
+          {pinnedIds.length ? (
+            <ol>
+              {pinnedIds.map((id) => (
+                <li key={id}>{published.find((post) => post.id === id)?.title}</li>
+              ))}
+            </ol>
+          ) : (
+            <p>선택한 대표 글이 없어요. 공개 글을 최대 5개 고를 수 있어요.</p>
+          )}
+        </div>
         <p>공개 글을 최대 5개 선택하고 화살표로 순서를 정해요.</p>
         <div className={styles.postFilters}>
           <label>

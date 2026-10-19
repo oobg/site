@@ -54,6 +54,10 @@ describe('CodeCopy', () => {
     expect(button).not.toHaveAttribute('data-copied');
     expect(screen.getByText('코드 복사')).toBeInTheDocument();
     expect(feedback.error).toHaveBeenCalledWith('코드를 복사하지 못했어요. 다시 시도해 주세요.');
+    expect(
+      screen.getByText('자동 복사를 사용할 수 없어요. 선택한 코드를 직접 복사해 주세요.'),
+    ).toBeVisible();
+    expect(window.getSelection()?.toString()).toBe('const value = 1;');
   });
 
   it('코드 블록 밖의 클릭은 무시한다', () => {

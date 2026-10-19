@@ -47,3 +47,8 @@ export const postInputSchema = z.object({
 });
 
 export const postIdSchema = z.string().uuid('올바르지 않은 글 ID입니다.');
+
+// Kept separate from content input: only updates require a revision precondition.
+export const expectedUpdatedAtSchema = z
+  .string()
+  .datetime({ offset: true, message: '편집 기준을 확인할 수 없어요. 글을 다시 열어 주세요.' });
