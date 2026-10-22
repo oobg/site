@@ -23,7 +23,7 @@ jobs:
           version: 9.12.0
       - uses: actions/setup-node@v5
         with:
-          node-version: 24
+          node-version: 24.22.1
           # setup-node@v5는 package-manager-cache가 기본 true라 packageManager(pnpm) 감지 시
           # pnpm store(≈211MB)를 원격 캐시로 tar 업/다운로드한다. self-hosted 러너는 로컬
           # store가 영구 잔존하므로 이 왕복(≈40s)이 순수 낭비 → 명시적으로 끈다.
