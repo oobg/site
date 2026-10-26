@@ -739,11 +739,14 @@ export function PostEditor({
         <div className={styles.mainFields}>
           <h2 className={styles.groupHeading}>기본 정보</h2>
           <label className={`${styles.field} ${styles.titleField}`}>
-            <span>제목</span>
+            <span id="post-title-label">제목</span>
             <input
               id="post-title"
+              aria-labelledby="post-title-label"
               ref={titleRef}
-              aria-describedby={fieldError(state, 'title') ? 'title-error' : undefined}
+              aria-describedby={
+                fieldError(state, 'title') ? 'title-help title-error' : 'title-help'
+              }
               aria-invalid={Boolean(fieldError(state, 'title'))}
               name="title"
               value={title}
@@ -755,15 +758,21 @@ export function PostEditor({
               autoComplete="off"
               required
             />
+            <small id="title-help">160자까지 입력할 수 있어요.</small>
             {fieldError(state, 'title') ? (
               <small id="title-error">{fieldError(state, 'title')}</small>
             ) : null}
           </label>
 
           <label className={styles.field}>
-            <span>설명</span>
+            <span id="post-description-label">설명</span>
             <textarea
-              aria-describedby={fieldError(state, 'description') ? 'description-error' : undefined}
+              aria-labelledby="post-description-label"
+              aria-describedby={
+                fieldError(state, 'description')
+                  ? 'description-help description-error'
+                  : 'description-help'
+              }
               aria-invalid={Boolean(fieldError(state, 'description'))}
               id="post-description"
               name="description"
@@ -772,6 +781,7 @@ export function PostEditor({
               rows={2}
               required
             />
+            <small id="description-help">500자까지 입력할 수 있어요.</small>
             {fieldError(state, 'description') ? (
               <small id="description-error">{fieldError(state, 'description')}</small>
             ) : null}
@@ -1039,16 +1049,21 @@ export function PostEditor({
             </select>
           </label>
           <label className={styles.field}>
-            <span>태그</span>
+            <span id="post-tags-label">태그</span>
             <input
               aria-invalid={Boolean(fieldError(state, 'tags'))}
               id="post-tags"
+              aria-labelledby="post-tags-label"
+              aria-describedby="tags-help"
               name="tags"
               value={tags}
               onChange={(event) => setTags(event.target.value)}
               placeholder="설계, 협업"
             />
-            <small>쉼표로 구분하며 저장할 때 중복을 정리해요.</small>
+            <small id="tags-help">
+              쉼표로 구분하며 저장할 때 중복을 정리해요. 태그는 30개까지, 하나에 80자까지 입력할 수
+              있어요.
+            </small>
           </label>
 
           <div className={styles.field}>
@@ -1085,7 +1100,8 @@ export function PostEditor({
             </span>
             <small id="slug-help">
               {fieldError(state, 'slug') ??
-                (post ? '기존 주소를 유지해요.' : '제목으로 자동 생성돼요.')}
+                (post ? '기존 주소를 유지해요.' : '제목으로 자동 생성돼요.')}{' '}
+              160자까지 입력할 수 있어요.
             </small>
           </div>
           <h2 className={styles.groupHeading} id="cover-heading" tabIndex={-1}>
@@ -1208,6 +1224,7 @@ export function PostEditor({
             </label>
             <p id="cover-alt-help" className={styles.modeHint}>
               이미지를 볼 수 없는 독자에게 전할 내용을 적어 주세요. 장식용이면 비워 둘 수 있어요.
+              300자까지 입력할 수 있어요.
             </p>
             <label className={styles.uploadButton} aria-disabled={busy}>
               <UploadSimple aria-hidden size={17} />

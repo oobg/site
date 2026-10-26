@@ -11,6 +11,38 @@ const validPost = {
 };
 
 describe('postInputSchema', () => {
+  it.each([
+    ['title', '가'.repeat(161), '제목은 160자까지 입력할 수 있어요.'],
+    ['slug', 'a'.repeat(161), 'URL은 160자까지 입력할 수 있어요.'],
+    ['description', '가'.repeat(501), '설명은 500자까지 입력할 수 있어요.'],
+    ['tags', ['가'.repeat(81)], '태그는 하나에 80자까지 입력할 수 있어요.'],
+    ['tags', Array.from({ length: 31 }, (_, i) => `tag-${i}`), '태그는 30개까지 입력할 수 있어요.'],
+    ['cover_image_key', 'a'.repeat(1025), '대표 이미지 경로는 1024자까지 입력할 수 있어요.'],
+    ['cover_alt', '가'.repeat(301), '대체 텍스트는 300자까지 입력할 수 있어요.'],
+    ['cover_position_x', 1.1, '가로 위치는 1 이하여야 해요.'],
+    ['cover_position_y', 1.1, '세로 위치는 1 이하여야 해요.'],
+  ] as const)('%s 한도 초과 오류를 한국어로 표시한다', (key, value, message) => {
+    const result = postInputSchema.safeParse({ ...validPost, [key]: value });
+    expect(result.success).toBe(false);
+    if (!result.success)
+      expect(result.error.issues.map((issue) => issue.message)).toContain(message);
+  });
+  it('기존 최대 한도값은 그대로 허용한다', () => {
+    expect(
+      postInputSchema.safeParse({
+        ...validPost,
+        title: '가'.repeat(160),
+        slug: 'a'.repeat(160),
+        description: '가'.repeat(500),
+        tags: Array.from({ length: 30 }, (_, i) => `${i}`.padEnd(80, 'a')),
+        cover_image_key: 'a'.repeat(1024),
+        cover_alt: '가'.repeat(300),
+        cover_position_x: 1,
+        cover_position_y: 1,
+      }).success,
+    ).toBe(true);
+  });
+
   it('accepts the supported CMS fields', () => {
     expect(postInputSchema.parse(validPost)).toMatchObject({
       ...validPost,

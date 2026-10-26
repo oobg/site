@@ -37,6 +37,24 @@ describe('PostEditor slug editing', () => {
     vi.restoreAllMocks();
   });
 
+  it('입력의 기존 이름을 유지하고 최대 길이 도움말을 연결한다', () => {
+    render(<PostEditor action={action} />);
+    for (const [name, limit] of [
+      ['제목', '160자'],
+      ['설명', '500자'],
+      ['URL', '160자'],
+      ['태그', '30개'],
+      ['대체 텍스트', '300자'],
+    ]) {
+      expect(screen.getByRole('textbox', { name })).toHaveAccessibleDescription(
+        expect.stringContaining(limit),
+      );
+    }
+    expect(screen.getByRole('textbox', { name: '태그' })).toHaveAccessibleDescription(
+      expect.stringContaining('80자'),
+    );
+  });
+
   it('creates a Korean slug while a new title is entered', () => {
     render(<PostEditor action={action} />);
 
