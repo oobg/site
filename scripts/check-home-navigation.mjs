@@ -44,7 +44,17 @@ try {
     results.push({ viewport, ...position });
     await page.close();
   }
-  console.log(JSON.stringify(results, null, 2));
+  const home = await browser.newPage({ reducedMotion: 'reduce' });
+  await home.goto(origin);
+  await home.waitForLoadState('networkidle');
+  const homeDocument = await home.evaluate(() => ({
+    title: document.title,
+    titleNodes: document.head.querySelectorAll('title').length,
+  }));
+  console.log(JSON.stringify({ results, homeDocument }, null, 2));
+  assert.equal(homeDocument.title, 'raven.kr', 'Home document title must use the site name');
+  assert.equal(homeDocument.titleNodes, 1, 'Home must render exactly one title element');
+  await home.close();
   assert(
     results.every((row) => row.headingTop >= row.headerBottom),
     'List title is covered by the sticky header',
