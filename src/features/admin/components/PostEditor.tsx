@@ -20,6 +20,7 @@ import { CodeCopy } from '@components/content/CodeCopy';
 import { ContentEnhancements } from '@components/content/ContentEnhancements';
 import { normalizeSlug } from '@features/admin/services/slug';
 import { htmlToMarkdown } from '@features/admin/utils/htmlToMarkdown';
+import { isTextEditingSafe } from '@features/admin/utils/textEditingSafety';
 import type { PostActionState, PostStatus } from '@features/admin/types/posts-admin.types';
 import type { BlogCategory } from '@features/posts/types/posts.types';
 import { initialPostActionState } from '@features/admin/types/posts-admin.types';
@@ -62,6 +63,9 @@ type EditorSnapshot = {
   slugEdited: boolean;
   savedAt: string;
 };
+
+const structureProtectionMessage =
+  '원문 구조를 유지하려면 마크다운으로 편집해 주세요. 이 본문은 텍스트 편집으로 변환할 수 없어요.';
 
 const snapshotKeyFor = (post?: PostDraft) => `admin-post-editor-draft:${post?.id ?? 'new'}`;
 
@@ -205,6 +209,7 @@ export function PostEditor({
   const [previewHtml, setPreviewHtml] = useState('');
   const [previewReady, setPreviewReady] = useState(!body.trim());
   const [previewFailed, setPreviewFailed] = useState(false);
+  const [structureMessage, setStructureMessage] = useState('');
   const [previewGeneration, setPreviewGeneration] = useState(0);
   const [previewMessage, setPreviewMessage] = useState('미리보기를 준비하고 있어요.');
   const [editorTab, setEditorTab] = useState<'write' | 'preview'>('write');
@@ -217,6 +222,7 @@ export function PostEditor({
   const bodyValueRef = useRef(body);
   const previewSequenceRef = useRef(0);
   const visualEditorRef = useRef<HTMLDivElement>(null);
+  const editorTabRef = useRef<'write' | 'preview'>('write');
   const previewReadyRef = useRef(!body.trim());
   const previewControllerRef = useRef<AbortController | null>(null);
   const editRevisionRef = useRef(0);
@@ -234,6 +240,11 @@ export function PostEditor({
   const initializeVisualEditor = useCallback(
     (source: string) => {
       invalidatePreview();
+      if (editorTabRef.current === 'preview' && !isTextEditingSafe(source)) {
+        setStructureMessage(structureProtectionMessage);
+        editorTabRef.current = 'write';
+        setEditorTab('write');
+      }
       const ready = !source.trim();
       previewReadyRef.current = ready;
       setPreviewReady(ready);
@@ -249,10 +260,17 @@ export function PostEditor({
   );
 
   function changeEditorTab(next: 'write' | 'preview') {
-    if (next === editorTab) return;
+    if (next === editorTab) return true;
+    if (next === 'preview' && !isTextEditingSafe(bodyValueRef.current)) {
+      setStructureMessage(structureProtectionMessage);
+      return false;
+    }
+    setStructureMessage('');
     invalidatePreview();
     if (next === 'preview') initializeVisualEditor(bodyValueRef.current);
+    editorTabRef.current = next;
     setEditorTab(next);
+    return true;
   }
 
   useEffect(() => {
@@ -832,9 +850,9 @@ export function PostEditor({
                     : editorTab === 'write'
                       ? 'preview'
                       : 'write';
-              changeEditorTab(next);
+              const changed = changeEditorTab(next);
               const tabs = event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]');
-              tabs[next === 'write' ? 0 : 1]?.focus();
+              tabs[changed && next === 'preview' ? 1 : 0]?.focus();
             }}
           >
             <button
@@ -865,6 +883,7 @@ export function PostEditor({
               ? '마크다운 원문을 편집하고 있어요.'
               : '편집 가능한 미리보기예요. 본문을 직접 바꾸면 마크다운 원문에도 반영돼요.'}
           </p>
+          {structureMessage ? <p role="alert">{structureMessage}</p> : null}
           <div className={styles.toolbar} role="toolbar" aria-label="Markdown 서식">
             <button
               type="button"
