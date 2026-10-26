@@ -203,6 +203,9 @@ export function PostEditor({
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
   const [previewHtml, setPreviewHtml] = useState('');
+  const [previewReady, setPreviewReady] = useState(!body.trim());
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const [previewGeneration, setPreviewGeneration] = useState(0);
   const [previewMessage, setPreviewMessage] = useState('미리보기를 준비하고 있어요.');
   const [editorTab, setEditorTab] = useState<'write' | 'preview'>('write');
   const [snapshotNotice, setSnapshotNotice] = useState<
@@ -213,13 +216,44 @@ export function PostEditor({
   const statusInputRef = useRef<HTMLInputElement>(null);
   const bodyValueRef = useRef(body);
   const previewSequenceRef = useRef(0);
-  const previewSourceRef = useRef('');
+  const visualEditorRef = useRef<HTMLDivElement>(null);
+  const previewReadyRef = useRef(!body.trim());
+  const previewControllerRef = useRef<AbortController | null>(null);
   const editRevisionRef = useRef(0);
   const skipNextSnapshotWriteRef = useRef(false);
   const loadedSnapshotKeyRef = useRef<string | null>(null);
   const router = useRouter();
   const queryClient = useQueryClient();
   useAdminNavigationGuard(dirty);
+
+  const invalidatePreview = useCallback(() => {
+    previewSequenceRef.current += 1;
+    previewControllerRef.current?.abort();
+  }, []);
+
+  const initializeVisualEditor = useCallback(
+    (source: string) => {
+      invalidatePreview();
+      const ready = !source.trim();
+      previewReadyRef.current = ready;
+      setPreviewReady(ready);
+      setPreviewFailed(false);
+      setPreviewMessage(ready ? '' : '미리보기를 준비하고 있어요.');
+      setPreviewGeneration((generation) => generation + 1);
+      if (ready && visualEditorRef.current) {
+        visualEditorRef.current.innerHTML = '';
+        setPreviewHtml('');
+      }
+    },
+    [invalidatePreview],
+  );
+
+  function changeEditorTab(next: 'write' | 'preview') {
+    if (next === editorTab) return;
+    invalidatePreview();
+    if (next === 'preview') initializeVisualEditor(bodyValueRef.current);
+    setEditorTab(next);
+  }
 
   useEffect(() => {
     if (loadedSnapshotKeyRef.current === snapshotKey) return;
@@ -233,6 +267,7 @@ export function PostEditor({
       setTitle(snapshot.title);
       setSlug(snapshot.slug);
       setDescription(snapshot.description);
+      initializeVisualEditor(snapshot.body);
       setBody(snapshot.body);
       bodyValueRef.current = snapshot.body;
       setStatus(snapshot.status);
@@ -249,7 +284,7 @@ export function PostEditor({
       skipNextSnapshotWriteRef.current = true;
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [snapshotKey]);
+  }, [snapshotKey, initializeVisualEditor]);
 
   const [state, formAction, pending] = useActionState(
     async (previousState: PostActionState, formData: FormData): Promise<PostActionState> => {
@@ -352,17 +387,6 @@ export function PostEditor({
   ]);
 
   useEffect(() => {
-    bodyValueRef.current = body;
-  }, [body]);
-
-  const syncVisualEditor = useCallback(
-    (editor: HTMLDivElement | null) => {
-      if (editor && editor.innerHTML !== previewHtml) editor.innerHTML = previewHtml;
-    },
-    [previewHtml],
-  );
-
-  useEffect(() => {
     titleRef.current?.focus();
   }, [post?.id]);
 
@@ -377,20 +401,13 @@ export function PostEditor({
 
   useEffect(() => {
     const sequence = ++previewSequenceRef.current;
-    if (editorTab !== 'preview' || !body.trim()) {
-      return;
-    }
-    if (previewHtml && previewSourceRef.current === body) {
-      setPreviewMessage('');
-      return;
-    }
-    if (previewHtml && previewSourceRef.current !== body) {
-      setPreviewHtml('');
-      setPreviewMessage('미리보기를 업데이트하는 중이에요.');
-      return;
-    }
-
+    if (editorTab !== 'preview' || !body.trim()) return;
     const controller = new AbortController();
+    previewControllerRef.current = controller;
+    const isCurrent = () =>
+      !controller.signal.aborted &&
+      sequence === previewSequenceRef.current &&
+      bodyValueRef.current === body;
     const timer = window.setTimeout(async () => {
       setPreviewMessage('미리보기를 업데이트하는 중이에요.');
       try {
@@ -401,25 +418,33 @@ export function PostEditor({
           signal: controller.signal,
         });
         const result: unknown = await response.json();
-        if (controller.signal.aborted || sequence !== previewSequenceRef.current) return;
+        if (!isCurrent()) return;
         const html = previewHtmlFrom(result);
         if (!response.ok || html === null) {
           throw new Error(errorMessage(result) ?? '미리보기를 만들지 못했습니다.');
         }
-        previewSourceRef.current = body;
-        setPreviewHtml(html);
+        // Only initialization owns the DOM. Background results never replace live editing nodes.
+        if (!previewReadyRef.current) {
+          const editor = visualEditorRef.current;
+          if (!editor) return;
+          editor.innerHTML = html;
+          setPreviewHtml(html);
+          previewReadyRef.current = true;
+          setPreviewReady(true);
+        }
+        setPreviewFailed(false);
         setPreviewMessage('');
       } catch (error) {
-        if (controller.signal.aborted || sequence !== previewSequenceRef.current) return;
+        if (!isCurrent()) return;
+        setPreviewFailed(true);
         setPreviewMessage(error instanceof Error ? error.message : '미리보기를 만들지 못했습니다.');
       }
     }, 350);
-
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [body, editorTab, previewHtml]);
+  }, [body, editorTab, previewGeneration]);
 
   async function upload(file: File) {
     if (!file.type.startsWith('image/')) {
@@ -462,6 +487,7 @@ export function PostEditor({
       const prefix = start > 0 && currentBody[start - 1] !== '\n' ? '\n\n' : '';
       const suffix = end < currentBody.length && currentBody[end] !== '\n' ? '\n\n' : '';
       const next = `${currentBody.slice(0, start)}${prefix}${markdown}${suffix}${currentBody.slice(end)}`;
+      initializeVisualEditor(next);
       bodyValueRef.current = next;
       setBody(next);
       editRevisionRef.current += 1;
@@ -520,6 +546,7 @@ export function PostEditor({
     const end = textarea.selectionEnd;
     const selected = body.slice(start, end) || fallback;
     const next = `${body.slice(0, start)}${prefix}${selected}${suffix}${body.slice(end)}`;
+    initializeVisualEditor(next);
     bodyValueRef.current = next;
     setBody(next);
     editRevisionRef.current += 1;
@@ -553,6 +580,7 @@ export function PostEditor({
     setTitle(post?.title ?? '');
     setSlug(post?.slug ?? '');
     setDescription(post?.description ?? '');
+    initializeVisualEditor(post?.body ?? '');
     setBody(post?.body ?? '');
     bodyValueRef.current = post?.body ?? '';
     setStatus(post?.status ?? 'draft');
@@ -689,7 +717,7 @@ export function PostEditor({
                     href={`#${fieldTargets[name] ?? 'field-errors-title'}`}
                     onClick={(event) => {
                       event.preventDefault();
-                      if (name === 'body') setEditorTab('write');
+                      if (name === 'body') changeEditorTab('write');
                       requestAnimationFrame(() =>
                         document
                           .getElementById(fieldTargets[name] ?? 'field-errors-title')
@@ -804,7 +832,7 @@ export function PostEditor({
                     : editorTab === 'write'
                       ? 'preview'
                       : 'write';
-              setEditorTab(next);
+              changeEditorTab(next);
               const tabs = event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]');
               tabs[next === 'write' ? 0 : 1]?.focus();
             }}
@@ -816,7 +844,7 @@ export function PostEditor({
               aria-controls="editor-write-panel"
               aria-selected={editorTab === 'write'}
               tabIndex={editorTab === 'write' ? 0 : -1}
-              onClick={() => setEditorTab('write')}
+              onClick={() => changeEditorTab('write')}
             >
               마크다운
             </button>
@@ -827,7 +855,7 @@ export function PostEditor({
               aria-controls="editor-preview-panel"
               aria-selected={editorTab === 'preview'}
               tabIndex={editorTab === 'preview' ? 0 : -1}
-              onClick={() => setEditorTab('preview')}
+              onClick={() => changeEditorTab('preview')}
             >
               텍스트 편집
             </button>
@@ -947,14 +975,11 @@ export function PostEditor({
                 value={body}
                 onChange={(event) => {
                   const value = event.target.value;
+                  initializeVisualEditor(value);
+                  bodyValueRef.current = value;
                   setBody(value);
-                  if (!value.trim()) {
-                    setPreviewHtml('');
-                    previewSourceRef.current = '';
-                    setPreviewMessage('본문을 입력하면 여기에 미리보기가 표시돼요.');
-                  }
                 }}
-                onInvalid={() => setEditorTab('write')}
+                onInvalid={() => changeEditorTab('write')}
                 spellCheck
                 required
               />
@@ -971,29 +996,48 @@ export function PostEditor({
               }}
             >
               <div
-                ref={syncVisualEditor}
+                ref={visualEditorRef}
                 className={`${articleStyles.prose} ${styles.visualEditor}`}
-                contentEditable={!busy}
+                contentEditable={!busy && previewReady}
                 suppressContentEditableWarning
                 role="textbox"
                 aria-label="본문 텍스트 편집"
                 aria-multiline="true"
-                aria-readonly={busy}
+                aria-readonly={busy || !previewReady}
                 aria-describedby="body-help visual-editor-help"
                 data-empty={!body.trim() ? 'true' : undefined}
                 onInput={(event) => {
+                  if (busy || !previewReadyRef.current || editorTab !== 'preview') return;
+                  invalidatePreview();
                   const markdown = htmlToMarkdown(event.currentTarget);
-                  previewSourceRef.current = markdown;
                   bodyValueRef.current = markdown;
                   setBody(markdown);
                   editRevisionRef.current += 1;
                   setDirty(true);
                   setPreviewMessage('');
+                  setPreviewFailed(false);
                 }}
               />
               <p className={styles.previewMessage} role="status" aria-live="polite">
                 {visiblePreviewMessage || '미리보기가 최신 내용이에요.'}
               </p>
+              {previewFailed ? (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      invalidatePreview();
+                      setPreviewFailed(false);
+                      setPreviewGeneration((generation) => generation + 1);
+                    }}
+                  >
+                    다시 시도
+                  </button>
+                  <button type="button" onClick={() => changeEditorTab('write')}>
+                    마크다운으로 편집
+                  </button>
+                </div>
+              ) : null}
               <span id="visual-editor-help" className={styles.visuallyHidden}>
                 렌더링된 본문을 직접 수정할 수 있습니다. 변경 내용은 마크다운 원문에 반영됩니다.
               </span>
