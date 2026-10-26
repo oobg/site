@@ -500,7 +500,7 @@ export function PostEditor({
       }
       setCoverKey(result.path.replace(/^\//, ''));
       setCoverUrl(result.publicUrl);
-      if (!coverAlt) setCoverAlt(file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '));
+      setCoverAlt((current) => current || file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '));
       editRevisionRef.current += 1;
       setDirty(true);
       setUploadMessage('대표 이미지를 올렸어요.');
