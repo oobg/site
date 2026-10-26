@@ -45,7 +45,15 @@ async function runSettingsAction(
   return result;
 }
 
-function CategoryRow({ category, postCount }: { category: BlogCategory; postCount: number }) {
+function CategoryRow({
+  category,
+  postCount,
+  hasPublishedPosts,
+}: {
+  category: BlogCategory;
+  postCount: number;
+  hasPublishedPosts: boolean;
+}) {
   const queryClient = useQueryClient();
   const [lastAction, setLastAction] = useState<'update' | 'delete'>('update');
   const withInvalidation =
@@ -89,6 +97,12 @@ function CategoryRow({ category, postCount }: { category: BlogCategory; postCoun
           name="slug"
           defaultValue={category.slug}
           aria-label="카테고리 slug"
+          readOnly={hasPublishedPosts}
+          aria-describedby={
+            hasPublishedPosts && !category.is_default
+              ? `category-slug-${category.id}-help`
+              : undefined
+          }
           disabled={category.is_default}
         />
         <input
@@ -126,6 +140,11 @@ function CategoryRow({ category, postCount }: { category: BlogCategory; postCoun
           ? '기본 분류는 분류가 없는 글을 받아 줘요. 이름과 URL을 바꾸거나 삭제할 수 없어요.'
           : `글 ${postCount}개 · 삭제하면 글은 미분류로 옮겨지며 그대로 남아요.`}
       </small>
+      {hasPublishedPosts && !category.is_default ? (
+        <small id={`category-slug-${category.id}-help`}>
+          공개 글의 기존 주소를 유지하기 위해 URL을 바꿀 수 없어요. 이름은 바꿀 수 있어요.
+        </small>
+      ) : null}
       {state.message ? (
         <p role={state.status === 'error' ? 'alert' : 'status'}>{state.message}</p>
       ) : null}
@@ -222,6 +241,7 @@ export function BlogSettings({
             key={category.id}
             category={category}
             postCount={posts.filter((post) => post.category_id === category.id).length}
+            hasPublishedPosts={published.some((post) => post.category_id === category.id)}
           />
         ))}
         <form action={createAction} className={styles.categoryForm}>
