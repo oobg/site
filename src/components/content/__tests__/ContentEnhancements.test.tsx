@@ -1,7 +1,9 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ContentEnhancements, renderMermaidFigures } from '@components/content/ContentEnhancements';
+import { CodeCopy } from '@components/content/CodeCopy';
+import { renderMarkdown } from '@lib/markdown/render';
 
 const initialize = vi.fn();
 const mermaidRender = vi.fn();
@@ -188,5 +190,72 @@ describe('ContentEnhancements', () => {
     );
 
     expect(canvas).toBeEmptyDOMElement();
+  });
+});
+
+async function renderArticleFixture(source: string) {
+  const { html } = await renderMarkdown(`\`\`\`mermaid\n${source}\n\`\`\``);
+  render(
+    <>
+      <ContentEnhancements />
+      <CodeCopy />
+      <article data-article-body dangerouslySetInnerHTML={{ __html: html }} />
+    </>,
+  );
+}
+
+describe('renderMarkdown Mermaid integration', () => {
+  const source = 'flowchart LR\nA["원문 & <태그>"] --> B';
+  const writeText = vi.fn();
+  beforeEach(() => {
+    mermaidRender.mockReset();
+    writeText.mockReset().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+  });
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'clipboard');
+  });
+  it('성공한 도식의 실제 원문 접이식을 열고 원문 그대로 복사한다', async () => {
+    mermaidRender.mockResolvedValue({
+      svg: '<svg xmlns="http://www.w3.org/2000/svg"><text>도식</text></svg>',
+    });
+    await renderArticleFixture(source);
+    await waitFor(() =>
+      expect(document.querySelector('[data-mermaid]')).toHaveAttribute(
+        'data-mermaid-state',
+        'ready',
+      ),
+    );
+    const details = document.querySelector<HTMLDetailsElement>(
+      'details[data-mermaid-source-toggle]',
+    );
+    expect(details).not.toBeNull();
+    expect(details!.open).toBe(false);
+    expect(document.querySelector('[data-mermaid-fallback]')).not.toHaveAttribute('hidden');
+    fireEvent.click(screen.getByText('다이어그램 원문 보기'));
+    expect(details!.open).toBe(true);
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: '코드 복사' })));
+    expect(writeText).toHaveBeenCalledWith(source);
+    expect(screen.getByText('복사됨')).toBeInTheDocument();
+    expect(mermaidRender).toHaveBeenCalledWith(expect.any(String), source);
+  });
+  it('실제 renderer 원문을 파싱 실패 후 자동으로 펼친다', async () => {
+    mermaidRender.mockRejectedValue(new Error('parse failed'));
+    await renderArticleFixture(source);
+    await waitFor(() =>
+      expect(document.querySelector('[data-mermaid]')).toHaveAttribute(
+        'data-mermaid-state',
+        'fallback',
+      ),
+    );
+    const details = document.querySelector<HTMLDetailsElement>(
+      'details[data-mermaid-source-toggle]',
+    );
+    expect(details).not.toBeNull();
+    expect(details!.open).toBe(true);
+    expect(document.querySelector('[data-mermaid-fallback] code')).toHaveTextContent(
+      source.replace(/\n/g, ' '),
+    );
+    expect(document.querySelector('[data-mermaid-canvas]')).toHaveAttribute('hidden');
   });
 });
