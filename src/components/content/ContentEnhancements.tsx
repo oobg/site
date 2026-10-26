@@ -174,6 +174,7 @@ function selectInstallerTab(tab: HTMLButtonElement, focus = false) {
 export function ContentEnhancements({ contentKey = '' }: { contentKey?: string }) {
   useEffect(() => {
     const scrollable = new Set<HTMLElement>();
+    const originalLabels = new WeakMap<HTMLElement, string | null>();
     const updateScrollable = (element: HTMLElement) => {
       const overflows = element.scrollWidth > element.clientWidth;
       if (overflows) {
@@ -183,12 +184,16 @@ export function ContentEnhancements({ contentKey = '' }: { contentKey?: string }
           'aria-label',
           element.tagName === 'TABLE'
             ? '가로로 스크롤할 수 있는 표'
-            : '가로로 스크롤할 수 있는 코드',
+            : element.matches('[data-filetree] > ul')
+              ? '가로로 스크롤할 수 있는 파일 트리'
+              : '가로로 스크롤할 수 있는 코드',
         );
       } else if (element.hasAttribute('data-horizontal-scroll')) {
         element.removeAttribute('tabindex');
         element.removeAttribute('data-horizontal-scroll');
-        element.removeAttribute('aria-label');
+        const originalLabel = originalLabels.get(element);
+        if (originalLabel != null) element.setAttribute('aria-label', originalLabel);
+        else element.removeAttribute('aria-label');
       }
     };
     const resizeObserver =
@@ -199,10 +204,11 @@ export function ContentEnhancements({ contentKey = '' }: { contentKey?: string }
           });
     const registerScrollable = (root: ParentNode) => {
       for (const element of root.querySelectorAll<HTMLElement>(
-        '[data-article-body] pre, [data-article-body] table',
+        '[data-article-body] pre, [data-article-body] table, [data-article-body] [data-filetree] > ul',
       )) {
         if (scrollable.has(element)) continue;
         scrollable.add(element);
+        originalLabels.set(element, element.getAttribute('aria-label'));
         updateScrollable(element);
         resizeObserver?.observe(element);
       }
@@ -256,6 +262,14 @@ export function ContentEnhancements({ contentKey = '' }: { contentKey?: string }
     return () => {
       observer.disconnect();
       resizeObserver?.disconnect();
+      for (const element of scrollable) {
+        if (!element.hasAttribute('data-horizontal-scroll')) continue;
+        element.removeAttribute('tabindex');
+        element.removeAttribute('data-horizontal-scroll');
+        const originalLabel = originalLabels.get(element);
+        if (originalLabel != null) element.setAttribute('aria-label', originalLabel);
+        else element.removeAttribute('aria-label');
+      }
       document.removeEventListener('click', onClick);
       document.removeEventListener('keydown', onKeyDown);
     };

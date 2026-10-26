@@ -259,3 +259,53 @@ describe('renderMarkdown Mermaid integration', () => {
     expect(document.querySelector('[data-mermaid-canvas]')).toHaveAttribute('hidden');
   });
 });
+
+describe('file tree overflow keyboard access', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it('루트 ul에 넘칠 때만 키보드 접근과 스크롤 이름을 주고 해소되면 원래 이름을 복원한다', async () => {
+    let resize!: ResizeObserverCallback;
+    const observe = vi.fn();
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: ResizeObserverCallback) {
+          resize = callback;
+        }
+        observe = observe;
+        disconnect = vi.fn();
+      },
+    );
+    const { html } = await renderMarkdown('```filetree\nproject/\n└── very-long-filename.ts\n```');
+    render(<article data-article-body dangerouslySetInnerHTML={{ __html: html }} />);
+    const root = document.querySelector<HTMLElement>('[data-filetree] > ul')!;
+    let width = 100;
+    Object.defineProperties(root, {
+      clientWidth: { get: () => 100 },
+      scrollWidth: { get: () => width },
+    });
+    const enhancements = render(<ContentEnhancements contentKey="first" />);
+    expect(observe).toHaveBeenCalledWith(root);
+    expect(root).not.toHaveAttribute('tabindex');
+    expect(root).toHaveAttribute('aria-label', '파일 트리');
+    expect(root).not.toHaveAttribute('role');
+    const entry: ResizeObserverEntry = {
+      target: root,
+      contentRect: root.getBoundingClientRect(),
+      borderBoxSize: [],
+      contentBoxSize: [],
+      devicePixelContentBoxSize: [],
+    };
+    width = 500;
+    act(() => resize([entry], {} as ResizeObserver));
+    expect(root).toHaveAttribute('tabindex', '0');
+    expect(root).toHaveAttribute('aria-label', '가로로 스크롤할 수 있는 파일 트리');
+    expect(root.querySelector('ul')).not.toHaveAttribute('tabindex');
+    enhancements.rerender(<ContentEnhancements contentKey="refreshed" />);
+    width = 100;
+    act(() => resize([entry], {} as ResizeObserver));
+    expect(root).not.toHaveAttribute('tabindex');
+    expect(root).not.toHaveAttribute('data-horizontal-scroll');
+    expect(root).toHaveAttribute('aria-label', '파일 트리');
+    expect(root).not.toHaveAttribute('role');
+  });
+});
