@@ -1,4 +1,5 @@
 .archive {
+  scroll-margin-top: var(--rail-top);
   padding-block: 0 var(--space-8);
 }
 .heading {
