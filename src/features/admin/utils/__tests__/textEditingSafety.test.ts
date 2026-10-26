@@ -6,6 +6,17 @@ import { renderMarkdown } from '@lib/markdown/render';
 import { htmlToMarkdown } from '@features/admin/utils/htmlToMarkdown';
 import { isTextEditingSafe } from '@features/admin/utils/textEditingSafety';
 
+const parser = unified().use(remarkParse).use(remarkGfm);
+const ast = (source: string) =>
+  JSON.stringify(parser.parse(source), (key, value) => (key === 'position' ? undefined : value));
+
+async function roundTrip(source: string) {
+  const { html } = await renderMarkdown(source, { assetPublicUrl: '' });
+  const root = document.createElement('div');
+  root.innerHTML = html;
+  return { html, markdown: htmlToMarkdown(root) };
+}
+
 const escaped = [
   '\\# 일반 문장',
   '\\## 소제목 아님',
@@ -106,4 +117,81 @@ describe('isTextEditingSafe', () => {
     });
     expect(isTextEditingSafe('본문')).toBe(false);
   });
+});
+
+describe('C-02 후속 구조 반례', () => {
+  it.each([
+    '999999999. 마지막 항목',
+    '999999998. 첫 항목\n999999999. 마지막 항목',
+    '- 항목\n  - 안쪽 항목',
+    '- > 인용\n  > 두 줄',
+    '- ```text\n  코드\n  ```',
+    '- # 제목',
+  ])('경계 번호와 보존되는 단일 블록·중첩 목록을 허용한다: %s', async (source) => {
+    const { html, markdown } = await roundTrip(source);
+    expect(ast(markdown)).toBe(ast(source));
+    expect((await renderMarkdown(markdown)).html).toBe(html);
+    expect(isTextEditingSafe(source)).toBe(true);
+  });
+
+  it.each(['``  a  ``', '\\~\\~취소선 아님\\~\\~'])(
+    '표 셀 문맥에서도 인라인 의미 손실을 차단한다: %s',
+    async (cell) => {
+      const source = `| ${cell} |\n| --- |`;
+      const { markdown } = await roundTrip(source);
+      expect(ast(markdown)).not.toBe(ast(source));
+      expect(isTextEditingSafe(source)).toBe(false);
+    },
+  );
+
+  it('표 셀의 block marker를 허용해도 정렬 손실은 차단한다', async () => {
+    const source = '| # 제목 | 값 |\n| :--- | ---: |\n| a | b |';
+    const { markdown } = await roundTrip(source);
+    expect(ast(markdown)).not.toBe(ast(source));
+    expect(isTextEditingSafe(source)).toBe(false);
+  });
+
+  it('blocks an ordered list whose next serialized marker exceeds nine digits', async () => {
+    const source = '999999999. 첫 항목\n999999999. 둘째 항목';
+    const { html, markdown } = await roundTrip(source);
+    const root = document.createElement('div');
+    root.innerHTML = html;
+    expect(root.querySelectorAll('li')).toHaveLength(2);
+    const converted = await renderMarkdown(markdown);
+    root.innerHTML = converted.html;
+    expect(markdown).toBe('999999999. 첫 항목\n1000000000. 둘째 항목');
+    expect(root.querySelectorAll('li')).toHaveLength(1);
+    expect(ast(markdown)).not.toBe(ast(source));
+    expect(isTextEditingSafe(source)).toBe(false);
+  });
+
+  it.each(['- 항목\n  > 인용', '- 항목\n  ```text\n  코드\n  ```', '- # 제목\n  본문'])(
+    'blocks a tight list item that gains a paragraph wrapper: %s',
+    async (source) => {
+      const { html, markdown } = await roundTrip(source);
+      const root = document.createElement('div');
+      root.innerHTML = html;
+      expect(root.querySelector('li > p')).toBeNull();
+      root.innerHTML = (await renderMarkdown(markdown)).html;
+      expect(root.querySelector('li > p')).not.toBeNull();
+      expect(parser.parse(source)).toMatchObject({
+        children: [{ type: 'list', children: [{ type: 'listItem', spread: false }] }],
+      });
+      expect(parser.parse(markdown)).toMatchObject({
+        children: [{ type: 'list', children: [{ type: 'listItem', spread: true }] }],
+      });
+      expect(isTextEditingSafe(source)).toBe(false);
+    },
+  );
+
+  it.each(['# 제목', '> 인용', '- 항목', '1. 번호'])(
+    'does not mistake a table cell for a standalone block: %s',
+    async (cell) => {
+      const source = `| ${cell} | 값 |\n| --- | --- |\n| a | b |`;
+      const { html, markdown } = await roundTrip(source);
+      expect(ast(markdown)).toBe(ast(source));
+      expect((await renderMarkdown(markdown)).html).toBe(html);
+      expect(isTextEditingSafe(source)).toBe(true);
+    },
+  );
 });

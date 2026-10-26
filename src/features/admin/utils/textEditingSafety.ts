@@ -82,13 +82,32 @@ function withoutPositions(value: unknown): unknown {
   );
 }
 
-function inlineStructureSurvives(children: MarkdownNode[], depth?: number) {
+function inlineStructureSurvives(
+  children: MarkdownNode[],
+  type: 'paragraph' | 'heading' | 'tableCell' = 'paragraph',
+  depth?: number,
+) {
   if (!children.length) return true;
   const serialized = children.map(inline).join('');
-  const block =
-    depth === undefined ? { type: 'paragraph', children } : { type: 'heading', depth, children };
-  const expected = { type: 'root', children: [block] };
-  const markdown = depth === undefined ? serialized : `${'#'.repeat(depth)} ${serialized.trim()}`;
+  const block = type === 'heading' ? { type, depth, children } : { type, children };
+  const expected = {
+    type: 'root',
+    children:
+      type === 'tableCell'
+        ? [{ type: 'table', align: [null], children: [{ type: 'tableRow', children: [block] }] }]
+        : [block],
+  };
+  // Cells keep their table context; their text cannot introduce standalone block markers.
+  // Match the converter's cell whitespace and pipe normalization before reparsing.
+  const markdown =
+    type === 'tableCell'
+      ? `| ${serialized
+          .trim()
+          .replaceAll('|', '\\|')
+          .replace(/\s*\n\s*/g, ' ')} |\n| --- |`
+      : type === 'heading'
+        ? `${'#'.repeat(depth!)} ${serialized.trim()}`
+        : serialized;
   // Decoded text such as "# text", "> text", or a multiline setext marker must remain a paragraph.
   // Comparing the inline AST also detects unprotected GFM markers becoming new inline structure.
   return (
@@ -124,6 +143,20 @@ function supported(node: MarkdownNode): boolean {
     }
   }
   if ((node.type === 'list' || node.type === 'listItem') && node.spread === true) return false;
+  // The converter separates non-list body blocks with blank lines, making tight items loose.
+  if (
+    node.type === 'listItem' &&
+    node.spread === false &&
+    node.children!.filter((child) => child.type !== 'list').length > 1
+  )
+    return false;
+  // Each item is serialized as start + index; CommonMark list markers allow at most nine digits.
+  if (
+    node.type === 'list' &&
+    node.ordered === true &&
+    Number(node.start) + node.children!.length - 1 > 999999999
+  )
+    return false;
   if (allowed.includes('value') && typeof node.value !== 'string') return false;
   if (
     node.type === 'heading' &&
@@ -168,9 +201,10 @@ function supported(node: MarkdownNode): boolean {
       return false;
     if (node.type === 'image' && node.alt != null && typeof node.alt !== 'string') return false;
   }
-  if (node.type === 'heading') return inlineStructureSurvives(node.children!, Number(node.depth));
-  if (['paragraph', 'tableCell'].includes(node.type))
-    return inlineStructureSurvives(node.children!);
+  if (node.type === 'heading')
+    return inlineStructureSurvives(node.children!, 'heading', Number(node.depth));
+  if (node.type === 'paragraph' || node.type === 'tableCell')
+    return inlineStructureSurvives(node.children!, node.type);
   return true;
 }
 
