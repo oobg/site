@@ -121,6 +121,39 @@ describe('POST /api/admin/uploads', () => {
     expect(mocks.storeAsset).not.toHaveBeenCalled();
   });
 
+  it('stores an HTML document under assets/embeds', async () => {
+    mocks.getAssetStorageConfig.mockReturnValue({ publicUrl: 'https://cdn-dev.raven.kr' });
+    const response = await POST(
+      await uploadRequest(
+        new File(['﻿\n<!DOCTYPE html><html lang="ko"><body>한글</body></html>'], 'a.html', {
+          type: 'text/html',
+        }),
+      ),
+    );
+    expect(response.status).toBe(201);
+    const stored = mocks.storeAsset.mock.calls[0][1];
+    expect(stored.key).toMatch(/^assets\/embeds\/\d{4}-\d{2}-\d{2}\/[0-9a-f-]+\.html$/);
+    expect(stored.contentType).toBe('text/html');
+    expect(await response.json()).toMatchObject({ url: `/${stored.key}` });
+  });
+
+  it('rejects HTML uploads that are not documents or use an image key', async () => {
+    const fragment = await POST(
+      await uploadRequest(new File(['<script>alert(1)</script>'], 'a.html', { type: 'text/html' })),
+    );
+    expect(fragment.status).toBe(415);
+
+    const imageKey = await POST(
+      await uploadRequest(
+        new File(['<!doctype html><html></html>'], 'a.html', { type: 'text/html' }),
+        'https://dev.raven.kr',
+        'assets/posts/2026-10-06/a.html',
+      ),
+    );
+    expect(imageKey.status).toBe(422);
+    expect(mocks.storeAsset).not.toHaveBeenCalled();
+  });
+
   it('keeps the 10MB upload limit', async () => {
     const response = await POST(
       await uploadRequest(

@@ -4,7 +4,7 @@ import path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 
 import { storeLocalAsset } from '@lib/assets/storage';
-import { isAssetKey } from '@lib/assets/key';
+import { isAssetKey, isEmbedAssetKey, isImageAssetKey } from '@lib/assets/key';
 
 const roots: string[] = [];
 
@@ -41,6 +41,21 @@ describe('local asset storage', () => {
       'assets/posts/2026-02-30/a.png',
       'assets/posts/2026-09-10/a.png.exe',
       'https://cdn.example/a.png',
+    ]) {
+      expect(isAssetKey(invalid)).toBe(false);
+    }
+  });
+  it('accepts embed HTML only under assets/embeds and keeps it out of image keys', () => {
+    const embed = 'assets/embeds/2026-10-06/123e4567-e89b-12d3-a456-426614174000.html';
+    expect(isAssetKey(embed)).toBe(true);
+    expect(isEmbedAssetKey(embed)).toBe(true);
+    expect(isImageAssetKey(embed)).toBe(false);
+    for (const invalid of [
+      'assets/posts/2026-10-06/a.html',
+      'assets/embeds/2026-10-06/a.png',
+      'assets/embeds/2026-10-06/../a.html',
+      'assets/embeds/2026-02-30/a.html',
+      'assets/embeds/a.html',
     ]) {
       expect(isAssetKey(invalid)).toBe(false);
     }

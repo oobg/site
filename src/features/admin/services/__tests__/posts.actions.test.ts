@@ -62,6 +62,22 @@ describe('post actions', () => {
     expect(mocks.createClient).not.toHaveBeenCalled();
   });
 
+  it.each(['assets/embeds/2026-10-06/a.html', '/assets/embeds/2026-10-06/a.html'])(
+    'create/update 모두 HTML 대표 이미지 key %s를 DB 접근 전에 거부한다',
+    async (key) => {
+      const data = form({ id: '8e10a748-fd28-41a0-9f3d-8b81fc40c753', cover_image_key: key });
+      for (const action of [createPostAction, updatePostAction]) {
+        const result = await action(previous, data);
+        expect(result).toMatchObject({
+          status: 'error',
+          fieldErrors: { cover_image_key: ['HTML 임베드는 대표 이미지로 사용할 수 없어요.'] },
+        });
+      }
+      expect(mocks.requireOwner).not.toHaveBeenCalled();
+      expect(mocks.createClient).not.toHaveBeenCalled();
+    },
+  );
+
   it('creates a draft without a publication timestamp', async () => {
     const single = vi.fn().mockResolvedValue({ data: { id: 'post-id' }, error: null });
     const select = vi.fn().mockReturnValue({ single });

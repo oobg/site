@@ -195,3 +195,24 @@ describe('C-02 후속 구조 반례', () => {
     },
   );
 });
+
+describe('HTML embed text editing round trip', () => {
+  it.each([
+    '{"src":"/assets/embeds/2026-10-06/gallery.html","title":"갤러리","height":640}',
+    '{\n  "src": "/assets/embeds/2026-10-06/gallery.html",\n  "title": "그림 & <태그> `한글`",\n  "height": 640\n}',
+    '{ "src": "https://example.com/invalid.html", "title": "코드 fallback" }',
+    '{ "src": ',
+  ])('JSON 원문과 주변 문단을 보존하며 C-02가 코드 내부를 오판하지 않는다: %s', async (json) => {
+    const source = `앞 문단\n\n\`\`\`embed\n${json}\n\`\`\`\n\n뒤 문단`;
+    const { html, markdown } = await roundTrip(source);
+    expect(markdown).toBe(source);
+    expect(ast(markdown)).toBe(ast(source));
+    expect((await renderMarkdown(markdown, { assetPublicUrl: '' })).html).toBe(html);
+    expect(isTextEditingSafe(source)).toBe(true);
+  });
+
+  it('임베드 옆 손실 위험 문단은 기존 C-02 가드로 차단한다', () => {
+    const embed = '```embed\n{"src":"/assets/embeds/2026-10-06/a.html","title":"그림"}\n```';
+    expect(isTextEditingSafe(`${embed}\n\n\\# 제목 아님`)).toBe(false);
+  });
+});

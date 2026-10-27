@@ -171,6 +171,33 @@ function selectInstallerTab(tab: HTMLButtonElement, focus = false) {
   if (focus) tab.focus();
 }
 
+export const EMBED_HEIGHT_MESSAGE = 'raven:embed-height';
+const EMBED_HEIGHT_RANGE = { min: 120, max: 6_000 };
+
+/**
+ * 임베드 문서가 알려 온 높이로 iframe을 맞춘다.
+ *
+ * sandbox에 allow-same-origin이 없어 event.origin은 항상 'null'이다. 그래서 출처 대신
+ * 메시지를 보낸 창이 본문의 임베드 iframe인지를 확인한다 — 다른 창이 보낸 같은
+ * 모양의 메시지로 본문 레이아웃을 흔들 수 없게.
+ */
+export function resizeEmbedFrame(event: MessageEvent, root: ParentNode = document) {
+  const data: unknown = event.data;
+  if (typeof data !== 'object' || data === null) return;
+  const { type, height } = data as { type?: unknown; height?: unknown };
+  if (type !== EMBED_HEIGHT_MESSAGE || typeof height !== 'number' || !Number.isFinite(height)) {
+    return;
+  }
+  const frame = Array.from(
+    root.querySelectorAll<HTMLIFrameElement>('[data-embed] iframe[data-embed-frame]'),
+  ).find(
+    (candidate) => candidate.contentWindow !== null && candidate.contentWindow === event.source,
+  );
+  if (!frame) return;
+  const clamped = Math.min(EMBED_HEIGHT_RANGE.max, Math.max(EMBED_HEIGHT_RANGE.min, height));
+  frame.height = String(Math.ceil(clamped));
+}
+
 export function ContentEnhancements({ contentKey = '' }: { contentKey?: string }) {
   useEffect(() => {
     const scrollable = new Set<HTMLElement>();
@@ -257,8 +284,11 @@ export function ContentEnhancements({ contentKey = '' }: { contentKey?: string }
       selectInstallerTab(tabs[next], true);
     };
 
+    const onMessage = (event: MessageEvent) => resizeEmbedFrame(event);
+
     document.addEventListener('click', onClick);
     document.addEventListener('keydown', onKeyDown);
+    window.addEventListener('message', onMessage);
     return () => {
       observer.disconnect();
       resizeObserver?.disconnect();
@@ -272,6 +302,7 @@ export function ContentEnhancements({ contentKey = '' }: { contentKey?: string }
       }
       document.removeEventListener('click', onClick);
       document.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('message', onMessage);
     };
   }, [contentKey]);
 

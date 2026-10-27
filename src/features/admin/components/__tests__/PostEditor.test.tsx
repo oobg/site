@@ -861,8 +861,8 @@ describe('editor recovery regressions', () => {
         finish(
           new Response(
             JSON.stringify({
-              path: '/assets/cover-image.png',
-              publicUrl: 'https://assets.example.test/cover-image.png',
+              path: '/assets/posts/2026-10-06/cover-image.png',
+              publicUrl: 'https://assets.example.test/assets/posts/2026-10-06/cover-image.png',
             }),
           ),
         ),

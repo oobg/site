@@ -180,6 +180,17 @@ describe('htmlToMarkdown', () => {
     expect(htmlToMarkdown(rendered)).toBe(source);
   });
 
+  it('임베드는 iframe 대신 숨겨 둔 fence 원문으로 돌아간다', async () => {
+    const source = [
+      '앞 문단',
+      '```embed\n{"src":"/assets/embeds/2026-10-06/gallery.html","title":"갤러리","height":640}\n```',
+      '뒤 문단',
+    ].join('\n\n');
+    const { html } = await renderMarkdown(source, { assetPublicUrl: 'https://cdn.raven.kr' });
+
+    expect(htmlToMarkdown(root(html))).toBe(source);
+  });
+
   it('preserves unsupported pasted element text and rejects unsafe URLs', () => {
     const markdown = htmlToMarkdown(
       root(

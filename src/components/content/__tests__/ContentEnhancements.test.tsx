@@ -1,7 +1,12 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ContentEnhancements, renderMermaidFigures } from '@components/content/ContentEnhancements';
+import {
+  ContentEnhancements,
+  EMBED_HEIGHT_MESSAGE,
+  renderMermaidFigures,
+  resizeEmbedFrame,
+} from '@components/content/ContentEnhancements';
 import { CodeCopy } from '@components/content/CodeCopy';
 import { renderMarkdown } from '@lib/markdown/render';
 
@@ -307,5 +312,99 @@ describe('file tree overflow keyboard access', () => {
     expect(root).not.toHaveAttribute('data-horizontal-scroll');
     expect(root).toHaveAttribute('aria-label', '파일 트리');
     expect(root).not.toHaveAttribute('role');
+  });
+});
+
+describe('resizeEmbedFrame', () => {
+  function mountFrames() {
+    const root = document.createElement('div');
+    root.innerHTML =
+      '<figure data-embed><iframe data-embed-frame height="480"></iframe></figure>' +
+      '<iframe data-other height="480"></iframe>';
+    document.body.append(root);
+    const [embedded, other] = Array.from(root.querySelectorAll('iframe'));
+    return { root, embedded, other };
+  }
+
+  const message = (source: Window | null, data: unknown) =>
+    new MessageEvent('message', { data, source, origin: 'null' });
+
+  it('본문 임베드 iframe이 보낸 높이로만 맞추고 범위를 넘으면 자른다', () => {
+    const { root, embedded, other } = mountFrames();
+
+    resizeEmbedFrame(
+      message(embedded.contentWindow, { type: EMBED_HEIGHT_MESSAGE, height: 812.4 }),
+      root,
+    );
+    expect(embedded.height).toBe('813');
+
+    resizeEmbedFrame(
+      message(embedded.contentWindow, { type: EMBED_HEIGHT_MESSAGE, height: 1e9 }),
+      root,
+    );
+    expect(embedded.height).toBe('6000');
+
+    resizeEmbedFrame(
+      message(other.contentWindow, { type: EMBED_HEIGHT_MESSAGE, height: 300 }),
+      root,
+    );
+    resizeEmbedFrame(message(window, { type: EMBED_HEIGHT_MESSAGE, height: 300 }), root);
+    resizeEmbedFrame(message(embedded.contentWindow, { type: 'other', height: 300 }), root);
+    resizeEmbedFrame(
+      message(embedded.contentWindow, { type: EMBED_HEIGHT_MESSAGE, height: '300' }),
+      root,
+    );
+    expect(embedded.height).toBe('6000');
+    root.remove();
+  });
+
+  it('최소 높이를 지키고 null source와 비유한 높이는 무시한다', () => {
+    const { root, embedded } = mountFrames();
+    resizeEmbedFrame(
+      message(embedded.contentWindow, { type: EMBED_HEIGHT_MESSAGE, height: -1 }),
+      root,
+    );
+    expect(embedded.height).toBe('120');
+    for (const data of [
+      null,
+      'height',
+      {},
+      { type: EMBED_HEIGHT_MESSAGE, height: NaN },
+      { type: EMBED_HEIGHT_MESSAGE, height: Infinity },
+    ]) {
+      resizeEmbedFrame(message(embedded.contentWindow, data), root);
+    }
+    resizeEmbedFrame(message(null, { type: EMBED_HEIGHT_MESSAGE, height: 900 }), root);
+    expect(embedded.height).toBe('120');
+    root.remove();
+  });
+});
+
+describe('ContentEnhancements 임베드 높이', () => {
+  it('window로 들어온 높이 메시지를 받아 본문 iframe을 맞춘다', () => {
+    const { container, unmount } = render(
+      <>
+        <ContentEnhancements />
+        <figure data-embed>
+          <iframe data-embed-frame height="480" title="임베드" />
+        </figure>
+      </>,
+    );
+    const frame = container.querySelector('iframe')!;
+    const send = (height: number) =>
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: { type: EMBED_HEIGHT_MESSAGE, height },
+            source: frame.contentWindow,
+          }),
+        );
+      });
+
+    send(321);
+    expect(frame.height).toBe('321');
+    unmount();
+    send(900);
+    expect(frame.height).toBe('321');
   });
 });

@@ -2,7 +2,9 @@
 
 import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
 import { Dialog } from '@base-ui/react/dialog';
+import { isImageAssetKey } from '@lib/assets/key';
 import {
+  Browser,
   Code,
   ImageSquare,
   LinkSimple,
@@ -150,7 +152,9 @@ const uploadUrlFrom = (value: unknown) => {
     typeof value.url !== 'string'
   )
     return null;
-  return /^\/assets\/posts\/[0-9-]+\/[0-9a-f-]+\.(?:jpg|png|gif|webp)$/.test(value.url)
+  return /^\/assets\/(?:posts\/[0-9-]+\/[0-9a-f-]+\.(?:jpg|png|gif|webp)|embeds\/[0-9-]+\/[0-9a-f-]+\.html)$/.test(
+    value.url,
+  )
     ? value.url
     : null;
 };
@@ -465,13 +469,16 @@ export function PostEditor({
   }, [body, editorTab, previewGeneration]);
 
   async function upload(file: File) {
-    if (!file.type.startsWith('image/')) {
-      setUploadMessage('이미지 파일만 올릴 수 있어요.');
+    const embed = file.type === 'text/html';
+    if (!embed && !file.type.startsWith('image/')) {
+      setUploadMessage('이미지나 HTML 파일만 올릴 수 있어요.');
       return;
     }
+    const kind = embed ? 'HTML' : '이미지';
+    const target = embed ? 'HTML을' : '이미지를';
 
     setUploading(true);
-    setUploadMessage('이미지를 올리는 중이에요.');
+    setUploadMessage(`${target} 올리는 중이에요.`);
     const sourceBody = bodyValueRef.current;
     const selectionStart = bodyRef.current?.selectionStart;
     const selectionEnd = bodyRef.current?.selectionEnd;
@@ -482,7 +489,7 @@ export function PostEditor({
       const result: unknown = await response.json();
       const uploadedUrl = uploadUrlFrom(result);
       if (!response.ok || uploadedUrl === null) {
-        throw new Error(errorMessage(result) ?? '이미지를 업로드하지 못했습니다.');
+        throw new Error(errorMessage(result) ?? `${target} 업로드하지 못했습니다.`);
       }
 
       const textarea = bodyRef.current;
@@ -500,8 +507,11 @@ export function PostEditor({
           .replace(/\.[^.]+$/, '')
           .replace(/[-_]+/g, ' ')
           .replace(/[\[\]()\r\n]/g, '')
-          .trim() || '업로드한 이미지';
-      const markdown = `![${alt}](${uploadedUrl})`;
+          .trim() || `업로드한 ${kind}`;
+      // HTML은 iframe으로만 열리게 embed fence로 넣는다. 높이는 fence에서 고칠 수 있다.
+      const markdown = embed
+        ? `\`\`\`embed\n${JSON.stringify({ src: uploadedUrl, title: alt })}\n\`\`\``
+        : `![${alt}](${uploadedUrl})`;
       const prefix = start > 0 && currentBody[start - 1] !== '\n' ? '\n\n' : '';
       const suffix = end < currentBody.length && currentBody[end] !== '\n' ? '\n\n' : '';
       const next = `${currentBody.slice(0, start)}${prefix}${markdown}${suffix}${currentBody.slice(end)}`;
@@ -510,20 +520,24 @@ export function PostEditor({
       setBody(next);
       editRevisionRef.current += 1;
       setDirty(true);
-      setUploadMessage('본문에 이미지 링크를 넣었어요.');
+      setUploadMessage(embed ? '본문에 임베드 블록을 넣었어요.' : '본문에 이미지 링크를 넣었어요.');
       requestAnimationFrame(() => {
         const cursor = start + prefix.length + markdown.length;
         textarea?.focus();
         textarea?.setSelectionRange(cursor, cursor);
       });
     } catch (error) {
-      setUploadMessage(error instanceof Error ? error.message : '이미지를 업로드하지 못했습니다.');
+      setUploadMessage(error instanceof Error ? error.message : `${target} 업로드하지 못했습니다.`);
     } finally {
       setUploading(false);
     }
   }
 
   async function uploadCover(file: File) {
+    if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+      setUploadMessage('대표 이미지는 JPEG, PNG, GIF, WebP 파일만 올릴 수 있어요.');
+      return;
+    }
     setUploading(true);
     setUploadMessage('대표 이미지를 올리는 중이에요.');
     try {
@@ -537,6 +551,7 @@ export function PostEditor({
         result === null ||
         !('path' in result) ||
         typeof result.path !== 'string' ||
+        !isImageAssetKey(result.path.replace(/^\//, '')) ||
         !('publicUrl' in result) ||
         typeof result.publicUrl !== 'string'
       ) {
@@ -759,7 +774,7 @@ export function PostEditor({
         </span>
         <span className={styles.saveState} aria-live="polite">
           {uploading
-            ? '이미지를 올리는 중이에요.'
+            ? '파일을 올리는 중이에요.'
             : state.message ||
               (dirty
                 ? '서버에 저장하지 않은 변경이 있어요.'
@@ -939,6 +954,24 @@ export function PostEditor({
               <span className={styles.visuallyHidden}>본문 이미지 선택</span>
               <input
                 accept="image/jpeg,image/png,image/gif,image/webp"
+                disabled={busy || editorTab !== 'write'}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void upload(file);
+                  event.target.value = '';
+                }}
+                type="file"
+              />
+            </label>
+            <label
+              className={styles.toolbarUpload}
+              aria-disabled={busy || editorTab !== 'write'}
+              title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
+            >
+              <Browser aria-hidden size={19} />
+              <span className={styles.visuallyHidden}>본문 HTML 임베드 선택</span>
+              <input
+                accept="text/html,.html"
                 disabled={busy || editorTab !== 'write'}
                 onChange={(event) => {
                   const file = event.target.files?.[0];

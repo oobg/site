@@ -55,6 +55,30 @@ describe('postInputSchema', () => {
     });
   });
 
+  it.each([
+    'assets/embeds/2026-10-06/a.html',
+    '/assets/embeds/2026-10-06/a.html',
+    ' assets/embeds ',
+    '/assets/embeds',
+  ])('대표 이미지의 예약된 HTML namespace를 거부한다: %s', (key) => {
+    const result = postInputSchema.safeParse({ ...validPost, cover_image_key: key });
+    expect(result.success).toBe(false);
+    if (!result.success)
+      expect(result.error.flatten().fieldErrors.cover_image_key).toContain(
+        'HTML 임베드는 대표 이미지로 사용할 수 없어요.',
+      );
+  });
+
+  it.each([
+    'legacy/free-form-cover-key',
+    'assets/posts/2026-10-06/a.png',
+    'assets/embeds-old/a.png',
+  ])('기존 자유형 대표 이미지 key 계약은 유지한다: %s', (key) => {
+    expect(
+      postInputSchema.parse({ ...validPost, cover_image_key: ` ${key} ` }).cover_image_key,
+    ).toBe(key);
+  });
+
   it('태그를 소문자 unique 배열로 만들고 cover crop 범위를 검증한다', () => {
     expect(postInputSchema.parse({ ...validPost, tags: 'React, react, NextJS' }).tags).toEqual([
       'react',

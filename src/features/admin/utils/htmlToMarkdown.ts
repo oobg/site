@@ -110,7 +110,7 @@ function codeBlock(element: Element) {
   return `${fence}${language}\n${value}\n${fence}`;
 }
 
-function componentFence(element: Element, kind: 'mermaid' | 'installer') {
+function componentFence(element: Element, kind: 'mermaid' | 'installer' | 'embed') {
   const value = element.querySelector(`[data-${kind}-source]`)?.textContent ?? '';
   const longest = Math.max(0, ...Array.from(value.matchAll(/`{3,}/g), (match) => match[0].length));
   const fence = '`'.repeat(Math.max(3, longest + 1));
@@ -248,6 +248,9 @@ function block(element: Element): string {
   }
   if (element.hasAttribute('data-installer')) {
     return componentFence(element, 'installer');
+  }
+  if (element.hasAttribute('data-embed')) {
+    return componentFence(element, 'embed');
   }
   if (tag === 'FIGURE' && element.hasAttribute('data-filetree')) return fileTree(element);
   if (tag === 'FIGURE' && element.hasAttribute('data-code')) return codeBlock(element);

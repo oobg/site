@@ -45,6 +45,10 @@ export const postInputSchema = z.object({
     .string()
     .trim()
     .max(1024, '대표 이미지 경로는 1024자까지 입력할 수 있어요.')
+    .refine(
+      (key) => !/^\/?assets\/embeds(?:\/|$)/.test(key),
+      'HTML 임베드는 대표 이미지로 사용할 수 없어요.',
+    )
     .nullable()
     .default(null),
   cover_image_url: z.preprocess(
