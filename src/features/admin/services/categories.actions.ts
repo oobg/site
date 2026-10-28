@@ -79,10 +79,42 @@ export async function updateCategoryAction(
   try {
     await requireOwner();
     const supabase = await createClient();
+    const { data: current, error: currentError } = await supabase
+      .from('post_categories')
+      .select('id, slug')
+      .eq('id', id.data)
+      .maybeSingle();
+    if (currentError) throw currentError;
+    if (!current) return { status: 'error', message: '카테고리를 찾을 수 없습니다.' };
+    if (current.id !== id.data || typeof current.slug !== 'string' || !current.slug) {
+      throw new Error('Invalid current category');
+    }
+    const changesSlug = current.slug !== parsed.data.slug;
+    if (changesSlug) {
+      const { data: published, error: publishedError } = await supabase
+        .from('posts')
+        .select('id')
+        .eq('category_id', id.data)
+        .eq('status', 'published')
+        .limit(1);
+      if (publishedError) throw publishedError;
+      if (!Array.isArray(published)) throw new Error('Unknown published post state');
+      if (published.length > 0) {
+        return {
+          status: 'error',
+          message: '공개 글이 연결된 카테고리는 URL을 바꿀 수 없습니다. 이름만 수정해 주세요.',
+        };
+      }
+    }
+    // Name-only edits never reapply a stale URL from the form.
+    const update = changesSlug
+      ? parsed.data
+      : { name: parsed.data.name, sort_order: parsed.data.sort_order };
     const { data, error } = await supabase
       .from('post_categories')
-      .update(parsed.data)
+      .update(update)
       .eq('id', id.data)
+      .eq('slug', current.slug)
       .select('id')
       .maybeSingle();
     if (error) throw error;

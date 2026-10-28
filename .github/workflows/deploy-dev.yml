@@ -85,12 +85,18 @@ jobs:
           logs=$(mktemp -d)
           pnpm typecheck > "$logs/typecheck.log" 2>&1 & typecheck_pid=$!
           pnpm lint > "$logs/lint.log" 2>&1 & lint_pid=$!
+          pnpm check:css > "$logs/css.log" 2>&1 & css_pid=$!
+          pnpm check:design > "$logs/design.log" 2>&1 & design_pid=$!
           wait "$typecheck_pid"; typecheck_rc=$?
           wait "$lint_pid"; lint_rc=$?
+          wait "$css_pid"; css_rc=$?
+          wait "$design_pid"; design_rc=$?
           show_log() { echo "::group::$1 (exit $2)"; cat "$3"; echo '::endgroup::'; }
           show_log typecheck "$typecheck_rc" "$logs/typecheck.log"
           show_log lint "$lint_rc" "$logs/lint.log"
-          test "$typecheck_rc" -eq 0 && test "$lint_rc" -eq 0
+          show_log check:css "$css_rc" "$logs/css.log"
+          show_log check:design "$design_rc" "$logs/design.log"
+          test "$typecheck_rc" -eq 0 && test "$lint_rc" -eq 0 && test "$css_rc" -eq 0 && test "$design_rc" -eq 0
 
       # 호스트를 바꾸는 첫 step(Access 설정 반영)보다 앞에 둔다. ledger를 읽기만 하고
       # migration을 적용하지 않는다. 빠진 파일이 있으면 앱을 바꾸기 전에 실패한다.

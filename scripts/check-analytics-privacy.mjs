@@ -47,13 +47,15 @@ const scenarios = [
   ['referrer', '/', 'referrer'],
   ['sdk-race', '/', 'race'],
 ];
+const selectedScenarios = process.env.ANALYTICS_PROBE_CASES
+  ? process.env.ANALYTICS_PROBE_CASES.split(',').map(
+      (name) => scenarios.find(([candidate]) => candidate === name) ?? [name],
+    )
+  : scenarios;
 const report = [];
 try {
-  for (const [name, path, action] of scenarios.filter(
-    ([name]) =>
-      !process.env.ANALYTICS_PROBE_CASES ||
-      process.env.ANALYTICS_PROBE_CASES.split(',').includes(name),
-  )) {
+  for (const [name, path, action] of selectedScenarios) {
+    if (!path) continue; // Unknown selections are rejected by the verdict below.
     const context = await browser.newContext({ serviceWorkers: 'block' });
     const packets = [];
     let sdkRequests = 0;
@@ -94,10 +96,16 @@ try {
     await page.addScriptTag({ content: code });
     if (action === 'race')
       await page.evaluate((token) => history.pushState({}, '', `/blog?q=${token}`), sentinel);
-    if (!name.startsWith('initial-'))
-      await page
-        .waitForFunction(() => window.__ravenAnalytics?.loaded, { timeout: 20000 })
-        .catch(() => {});
+    let timedOut = false;
+    if (!name.startsWith('initial-')) {
+      try {
+        await page.waitForFunction(() => window.__ravenAnalytics?.loaded, undefined, {
+          timeout: 20000,
+        });
+      } catch {
+        timedOut = true;
+      }
+    }
     await page.waitForTimeout(1200);
     const before = packets.length;
     if (action === 'spa')
@@ -159,6 +167,7 @@ try {
     report.push({
       name,
       sdkRequests,
+      timedOut,
       ...state,
       packets: collect.length,
       packetsAfterInteraction: packets.length - before,
@@ -188,23 +197,52 @@ for (const result of report) {
       .map((item) => `${item.tid}:${item.sequence}`),
   ).size;
 }
+// Count logical pageviews rather than transport retries from an aborted collect.
+const expected = {
+  clean: [false, true, 1, 'none'],
+  'clean-spa': [false, true, 2, 'pageview'],
+  'initial-query': [true, false, 0, 'none'],
+  'initial-hash': [true, false, 0, 'none'],
+  'initial-admin': [true, false, 0, 'none'],
+  'initial-auth': [true, false, 0, 'none'],
+  'query-latch': [true, true, 1, 'none'],
+  'hash-latch': [true, true, 1, 'none'],
+  'admin-latch': [true, true, 1, 'none'],
+  outbound: [true, true, 1, 'none'],
+  mail: [true, true, 1, 'none'],
+  download: [true, true, 1, 'none'],
+  form: [true, true, 1, 'none'],
+  referrer: [false, true, 1, 'none'],
+  'sdk-race': [true, true, 0, 'none'],
+};
+const failures = [];
+if (!selectedScenarios.length) failures.push('No scenarios selected');
+for (const [name] of selectedScenarios) {
+  const rows = report.filter((row) => row.name === name);
+  const expectation = expected[name];
+  if (!expectation || rows.length !== 1) {
+    failures.push(`${name}: unknown or unexecuted scenario`);
+    continue;
+  }
+  const row = rows[0];
+  const [blocked, loaded, pageviews, interaction] = expectation;
+  if (
+    row.timedOut ||
+    row.leakedPackets !== 0 ||
+    row.blocked !== blocked ||
+    row.loaded !== loaded ||
+    (loaded ? !(row.sdkRequests >= 1) : row.sdkRequests !== 0) ||
+    row.logicalPageviews !== pageviews ||
+    (pageviews === 0 && row.packets !== 0) ||
+    (interaction === 'none'
+      ? row.packetsAfterInteraction !== 0
+      : !(row.packetsAfterInteraction > 0))
+  )
+    failures.push(`${name}: scenario expectations failed`);
+}
 const output = process.env.ANALYTICS_PROBE_OUTPUT ?? '/tmp/raven-analytics-privacy.json';
 await writeFile(output, JSON.stringify(report, null, 2));
 console.log(
-  JSON.stringify(
-    {
-      output,
-      scenarios: report.length,
-      leaking: report.filter((item) => item.leakedPackets).map((item) => item.name),
-      cleanPageviews: report.find((item) => item.name === 'clean')?.pageviews,
-      results: report,
-    },
-    null,
-    2,
-  ),
+  JSON.stringify({ output, scenarios: report.length, failures, results: report }, null, 2),
 );
-if (
-  report.some((item) => item.leakedPackets) ||
-  report.find((item) => item.name === 'clean')?.logicalPageviews !== 1
-)
-  process.exitCode = 1;
+if (failures.length) process.exitCode = 1;

@@ -1,7 +1,14 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ContentEnhancements, renderMermaidFigures } from '@components/content/ContentEnhancements';
+import {
+  ContentEnhancements,
+  EMBED_HEIGHT_MESSAGE,
+  renderMermaidFigures,
+  resizeEmbedFrame,
+} from '@components/content/ContentEnhancements';
+import { CodeCopy } from '@components/content/CodeCopy';
+import { renderMarkdown } from '@lib/markdown/render';
 
 const initialize = vi.fn();
 const mermaidRender = vi.fn();
@@ -188,5 +195,216 @@ describe('ContentEnhancements', () => {
     );
 
     expect(canvas).toBeEmptyDOMElement();
+  });
+});
+
+async function renderArticleFixture(source: string) {
+  const { html } = await renderMarkdown(`\`\`\`mermaid\n${source}\n\`\`\``);
+  render(
+    <>
+      <ContentEnhancements />
+      <CodeCopy />
+      <article data-article-body dangerouslySetInnerHTML={{ __html: html }} />
+    </>,
+  );
+}
+
+describe('renderMarkdown Mermaid integration', () => {
+  const source = 'flowchart LR\nA["원문 & <태그>"] --> B';
+  const writeText = vi.fn();
+  beforeEach(() => {
+    mermaidRender.mockReset();
+    writeText.mockReset().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } });
+  });
+  afterEach(() => {
+    Reflect.deleteProperty(navigator, 'clipboard');
+  });
+  it('성공한 도식의 실제 원문 접이식을 열고 원문 그대로 복사한다', async () => {
+    mermaidRender.mockResolvedValue({
+      svg: '<svg xmlns="http://www.w3.org/2000/svg"><text>도식</text></svg>',
+    });
+    await renderArticleFixture(source);
+    await waitFor(() =>
+      expect(document.querySelector('[data-mermaid]')).toHaveAttribute(
+        'data-mermaid-state',
+        'ready',
+      ),
+    );
+    const details = document.querySelector<HTMLDetailsElement>(
+      'details[data-mermaid-source-toggle]',
+    );
+    expect(details).not.toBeNull();
+    expect(details!.open).toBe(false);
+    expect(document.querySelector('[data-mermaid-fallback]')).not.toHaveAttribute('hidden');
+    fireEvent.click(screen.getByText('다이어그램 원문 보기'));
+    expect(details!.open).toBe(true);
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: '코드 복사' })));
+    expect(writeText).toHaveBeenCalledWith(source);
+    expect(screen.getByText('복사됨')).toBeInTheDocument();
+    expect(mermaidRender).toHaveBeenCalledWith(expect.any(String), source);
+  });
+  it('실제 renderer 원문을 파싱 실패 후 자동으로 펼친다', async () => {
+    mermaidRender.mockRejectedValue(new Error('parse failed'));
+    await renderArticleFixture(source);
+    await waitFor(() =>
+      expect(document.querySelector('[data-mermaid]')).toHaveAttribute(
+        'data-mermaid-state',
+        'fallback',
+      ),
+    );
+    const details = document.querySelector<HTMLDetailsElement>(
+      'details[data-mermaid-source-toggle]',
+    );
+    expect(details).not.toBeNull();
+    expect(details!.open).toBe(true);
+    expect(document.querySelector('[data-mermaid-fallback] code')).toHaveTextContent(
+      source.replace(/\n/g, ' '),
+    );
+    expect(document.querySelector('[data-mermaid-canvas]')).toHaveAttribute('hidden');
+  });
+});
+
+describe('file tree overflow keyboard access', () => {
+  afterEach(() => vi.unstubAllGlobals());
+  it('루트 ul에 넘칠 때만 키보드 접근과 스크롤 이름을 주고 해소되면 원래 이름을 복원한다', async () => {
+    let resize!: ResizeObserverCallback;
+    const observe = vi.fn();
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: ResizeObserverCallback) {
+          resize = callback;
+        }
+        observe = observe;
+        disconnect = vi.fn();
+      },
+    );
+    const { html } = await renderMarkdown('```filetree\nproject/\n└── very-long-filename.ts\n```');
+    render(<article data-article-body dangerouslySetInnerHTML={{ __html: html }} />);
+    const root = document.querySelector<HTMLElement>('[data-filetree] > ul')!;
+    let width = 100;
+    Object.defineProperties(root, {
+      clientWidth: { get: () => 100 },
+      scrollWidth: { get: () => width },
+    });
+    const enhancements = render(<ContentEnhancements contentKey="first" />);
+    expect(observe).toHaveBeenCalledWith(root);
+    expect(root).not.toHaveAttribute('tabindex');
+    expect(root).toHaveAttribute('aria-label', '파일 트리');
+    expect(root).not.toHaveAttribute('role');
+    const entry: ResizeObserverEntry = {
+      target: root,
+      contentRect: root.getBoundingClientRect(),
+      borderBoxSize: [],
+      contentBoxSize: [],
+      devicePixelContentBoxSize: [],
+    };
+    width = 500;
+    act(() => resize([entry], {} as ResizeObserver));
+    expect(root).toHaveAttribute('tabindex', '0');
+    expect(root).toHaveAttribute('aria-label', '가로로 스크롤할 수 있는 파일 트리');
+    expect(root.querySelector('ul')).not.toHaveAttribute('tabindex');
+    enhancements.rerender(<ContentEnhancements contentKey="refreshed" />);
+    width = 100;
+    act(() => resize([entry], {} as ResizeObserver));
+    expect(root).not.toHaveAttribute('tabindex');
+    expect(root).not.toHaveAttribute('data-horizontal-scroll');
+    expect(root).toHaveAttribute('aria-label', '파일 트리');
+    expect(root).not.toHaveAttribute('role');
+  });
+});
+
+describe('resizeEmbedFrame', () => {
+  function mountFrames() {
+    const root = document.createElement('div');
+    root.innerHTML =
+      '<figure data-embed><iframe data-embed-frame height="480"></iframe></figure>' +
+      '<iframe data-other height="480"></iframe>';
+    document.body.append(root);
+    const [embedded, other] = Array.from(root.querySelectorAll('iframe'));
+    return { root, embedded, other };
+  }
+
+  const message = (source: Window | null, data: unknown) =>
+    new MessageEvent('message', { data, source, origin: 'null' });
+
+  it('본문 임베드 iframe이 보낸 높이로만 맞추고 범위를 넘으면 자른다', () => {
+    const { root, embedded, other } = mountFrames();
+
+    resizeEmbedFrame(
+      message(embedded.contentWindow, { type: EMBED_HEIGHT_MESSAGE, height: 812.4 }),
+      root,
+    );
+    expect(embedded.height).toBe('813');
+
+    resizeEmbedFrame(
+      message(embedded.contentWindow, { type: EMBED_HEIGHT_MESSAGE, height: 1e9 }),
+      root,
+    );
+    expect(embedded.height).toBe('6000');
+
+    resizeEmbedFrame(
+      message(other.contentWindow, { type: EMBED_HEIGHT_MESSAGE, height: 300 }),
+      root,
+    );
+    resizeEmbedFrame(message(window, { type: EMBED_HEIGHT_MESSAGE, height: 300 }), root);
+    resizeEmbedFrame(message(embedded.contentWindow, { type: 'other', height: 300 }), root);
+    resizeEmbedFrame(
+      message(embedded.contentWindow, { type: EMBED_HEIGHT_MESSAGE, height: '300' }),
+      root,
+    );
+    expect(embedded.height).toBe('6000');
+    root.remove();
+  });
+
+  it('최소 높이를 지키고 null source와 비유한 높이는 무시한다', () => {
+    const { root, embedded } = mountFrames();
+    resizeEmbedFrame(
+      message(embedded.contentWindow, { type: EMBED_HEIGHT_MESSAGE, height: -1 }),
+      root,
+    );
+    expect(embedded.height).toBe('120');
+    for (const data of [
+      null,
+      'height',
+      {},
+      { type: EMBED_HEIGHT_MESSAGE, height: NaN },
+      { type: EMBED_HEIGHT_MESSAGE, height: Infinity },
+    ]) {
+      resizeEmbedFrame(message(embedded.contentWindow, data), root);
+    }
+    resizeEmbedFrame(message(null, { type: EMBED_HEIGHT_MESSAGE, height: 900 }), root);
+    expect(embedded.height).toBe('120');
+    root.remove();
+  });
+});
+
+describe('ContentEnhancements 임베드 높이', () => {
+  it('window로 들어온 높이 메시지를 받아 본문 iframe을 맞춘다', () => {
+    const { container, unmount } = render(
+      <>
+        <ContentEnhancements />
+        <figure data-embed>
+          <iframe data-embed-frame height="480" title="임베드" />
+        </figure>
+      </>,
+    );
+    const frame = container.querySelector('iframe')!;
+    const send = (height: number) =>
+      act(() => {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: { type: EMBED_HEIGHT_MESSAGE, height },
+            source: frame.contentWindow,
+          }),
+        );
+      });
+
+    send(321);
+    expect(frame.height).toBe('321');
+    unmount();
+    send(900);
+    expect(frame.height).toBe('321');
   });
 });

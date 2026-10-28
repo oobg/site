@@ -37,6 +37,24 @@ describe('PostEditor slug editing', () => {
     vi.restoreAllMocks();
   });
 
+  it('입력의 기존 이름을 유지하고 최대 길이 도움말을 연결한다', () => {
+    render(<PostEditor action={action} />);
+    for (const [name, limit] of [
+      ['제목', '160자'],
+      ['설명', '500자'],
+      ['URL', '160자'],
+      ['태그', '30개'],
+      ['대체 텍스트', '300자'],
+    ]) {
+      expect(screen.getByRole('textbox', { name })).toHaveAccessibleDescription(
+        expect.stringContaining(limit),
+      );
+    }
+    expect(screen.getByRole('textbox', { name: '태그' })).toHaveAccessibleDescription(
+      expect.stringContaining('80자'),
+    );
+  });
+
   it('creates a Korean slug while a new title is entered', () => {
     render(<PostEditor action={action} />);
 
@@ -815,6 +833,44 @@ describe('editor recovery regressions', () => {
       '새로 입력한 소중한 본문\n\n![image](/assets/posts/2026-10-15/abcd.png)',
     );
   });
+
+  it.each([
+    ['업로드 중 작성한 정확한 설명', '업로드 중 작성한 정확한 설명'],
+    ['', 'cover image'],
+  ])(
+    '커버 업로드 완료 시 최신 대체 텍스트 %s를 보존하거나 빈 값만 채운다',
+    async (typed, expected) => {
+      let finish!: (value: Response) => void;
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(
+          () =>
+            new Promise<Response>((resolve) => {
+              finish = resolve;
+            }),
+        ),
+      );
+      render(<PostEditor action={action} />);
+      fireEvent.change(screen.getByLabelText('이미지 변경'), {
+        target: { files: [new File(['x'], 'cover-image.png', { type: 'image/png' })] },
+      });
+      const alt = screen.getByRole('textbox', { name: '대체 텍스트' });
+      expect(alt).not.toBeDisabled();
+      fireEvent.change(alt, { target: { value: typed } });
+      await act(async () =>
+        finish(
+          new Response(
+            JSON.stringify({
+              path: '/assets/posts/2026-10-06/cover-image.png',
+              publicUrl: 'https://assets.example.test/assets/posts/2026-10-06/cover-image.png',
+            }),
+          ),
+        ),
+      );
+      expect(alt).toHaveValue(expected);
+      expect(screen.getByText('대표 이미지를 올렸어요.')).toBeInTheDocument();
+    },
+  );
 
   it('handles a null cover upload response as an upload failure', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('null')));

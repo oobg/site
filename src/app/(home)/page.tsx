@@ -3,9 +3,13 @@ import { BlogHomeContainer } from '@/app/_container/BlogHomeContainer';
 import { prefetchBlogHome } from '@features/posts/services/posts.prefetch';
 import { normalizeBlogPostFilters } from '@features/posts/services/posts.query';
 import { buildMetadata } from '@lib/metadata/metadata';
+import { SITE } from '@constants/site';
 
 export const dynamic = 'force-dynamic';
-export const metadata = buildMetadata({ path: '/' });
+export const metadata = {
+  ...buildMetadata({ path: '/' }),
+  title: { absolute: SITE.name },
+};
 
 function first(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;

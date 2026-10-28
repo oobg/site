@@ -7,8 +7,7 @@
  * 스타일 없이 렌더된다. 2026-08-10 작업에서 이 검사가 4건을 잡았고 그중 2건은
  * 같은 세션에서 새로 만든 것이었다.
  *
- * 비어 있는 모듈(사이클 2~6에서 다시 쓸 것)은 건너뛴다. 그렇게 하지 않으면
- * 재작성이 끝날 때까지 전 파일이 실패로 나와 게이트가 쓸모없어진다.
+ * 빈 모듈도 실제 참조가 있으면 실패한다. 정적 대괄호 참조도 함께 검사한다.
  */
 import { readFileSync } from 'node:fs';
 import { globSync } from 'node:fs';
@@ -61,15 +60,17 @@ function checkOne(file, source, binding, relative) {
   const stripped = css.replace(/\/\*[\s\S]*?\*\//g, '');
   const defined = new Set([...stripped.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)].map((m) => m[1]));
 
-  if (defined.size === 0) {
+  const used = new Set([
+    ...[...source.matchAll(new RegExp(String.raw`\b${binding}\.([\w$]+)`, 'g'))].map((m) => m[1]),
+    ...[
+      ...source.matchAll(new RegExp(String.raw`\b${binding}\s*\[\s*(['"])([^'"]+)\1\s*\]`, 'g')),
+    ].map((m) => m[2]),
+  ]);
+  if (defined.size === 0 && used.size === 0) {
     skipped += 1;
     return;
   }
   checked += 1;
-
-  const used = new Set(
-    [...source.matchAll(new RegExp(String.raw`\b${binding}\.([\w$]+)`, 'g'))].map((m) => m[1]),
-  );
 
   for (const name of used) {
     if (!defined.has(name)) {

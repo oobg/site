@@ -2,7 +2,9 @@
 
 import { useActionState, useCallback, useEffect, useRef, useState } from 'react';
 import { Dialog } from '@base-ui/react/dialog';
+import { isImageAssetKey } from '@lib/assets/key';
 import {
+  Browser,
   Code,
   ImageSquare,
   LinkSimple,
@@ -20,6 +22,7 @@ import { CodeCopy } from '@components/content/CodeCopy';
 import { ContentEnhancements } from '@components/content/ContentEnhancements';
 import { normalizeSlug } from '@features/admin/services/slug';
 import { htmlToMarkdown } from '@features/admin/utils/htmlToMarkdown';
+import { isTextEditingSafe } from '@features/admin/utils/textEditingSafety';
 import type { PostActionState, PostStatus } from '@features/admin/types/posts-admin.types';
 import type { BlogCategory } from '@features/posts/types/posts.types';
 import { initialPostActionState } from '@features/admin/types/posts-admin.types';
@@ -62,6 +65,9 @@ type EditorSnapshot = {
   slugEdited: boolean;
   savedAt: string;
 };
+
+const structureProtectionMessage =
+  '원문 구조를 유지하려면 마크다운으로 편집해 주세요. 이 본문은 텍스트 편집으로 변환할 수 없어요.';
 
 const snapshotKeyFor = (post?: PostDraft) => `admin-post-editor-draft:${post?.id ?? 'new'}`;
 
@@ -146,7 +152,9 @@ const uploadUrlFrom = (value: unknown) => {
     typeof value.url !== 'string'
   )
     return null;
-  return /^\/assets\/posts\/[0-9-]+\/[0-9a-f-]+\.(?:jpg|png|gif|webp)$/.test(value.url)
+  return /^\/assets\/(?:posts\/[0-9-]+\/[0-9a-f-]+\.(?:jpg|png|gif|webp)|embeds\/[0-9-]+\/[0-9a-f-]+\.html)$/.test(
+    value.url,
+  )
     ? value.url
     : null;
 };
@@ -203,6 +211,10 @@ export function PostEditor({
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState('');
   const [previewHtml, setPreviewHtml] = useState('');
+  const [previewReady, setPreviewReady] = useState(!body.trim());
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const [structureMessage, setStructureMessage] = useState('');
+  const [previewGeneration, setPreviewGeneration] = useState(0);
   const [previewMessage, setPreviewMessage] = useState('미리보기를 준비하고 있어요.');
   const [editorTab, setEditorTab] = useState<'write' | 'preview'>('write');
   const [snapshotNotice, setSnapshotNotice] = useState<
@@ -213,13 +225,57 @@ export function PostEditor({
   const statusInputRef = useRef<HTMLInputElement>(null);
   const bodyValueRef = useRef(body);
   const previewSequenceRef = useRef(0);
-  const previewSourceRef = useRef('');
+  const visualEditorRef = useRef<HTMLDivElement>(null);
+  const editorTabRef = useRef<'write' | 'preview'>('write');
+  const previewReadyRef = useRef(!body.trim());
+  const previewControllerRef = useRef<AbortController | null>(null);
   const editRevisionRef = useRef(0);
   const skipNextSnapshotWriteRef = useRef(false);
   const loadedSnapshotKeyRef = useRef<string | null>(null);
   const router = useRouter();
   const queryClient = useQueryClient();
   useAdminNavigationGuard(dirty);
+
+  const invalidatePreview = useCallback(() => {
+    previewSequenceRef.current += 1;
+    previewControllerRef.current?.abort();
+  }, []);
+
+  const initializeVisualEditor = useCallback(
+    (source: string) => {
+      invalidatePreview();
+      if (editorTabRef.current === 'preview' && !isTextEditingSafe(source)) {
+        setStructureMessage(structureProtectionMessage);
+        editorTabRef.current = 'write';
+        setEditorTab('write');
+      }
+      const ready = !source.trim();
+      previewReadyRef.current = ready;
+      setPreviewReady(ready);
+      setPreviewFailed(false);
+      setPreviewMessage(ready ? '' : '미리보기를 준비하고 있어요.');
+      setPreviewGeneration((generation) => generation + 1);
+      if (ready && visualEditorRef.current) {
+        visualEditorRef.current.innerHTML = '';
+        setPreviewHtml('');
+      }
+    },
+    [invalidatePreview],
+  );
+
+  function changeEditorTab(next: 'write' | 'preview') {
+    if (next === editorTab) return true;
+    if (next === 'preview' && !isTextEditingSafe(bodyValueRef.current)) {
+      setStructureMessage(structureProtectionMessage);
+      return false;
+    }
+    setStructureMessage('');
+    invalidatePreview();
+    if (next === 'preview') initializeVisualEditor(bodyValueRef.current);
+    editorTabRef.current = next;
+    setEditorTab(next);
+    return true;
+  }
 
   useEffect(() => {
     if (loadedSnapshotKeyRef.current === snapshotKey) return;
@@ -233,6 +289,7 @@ export function PostEditor({
       setTitle(snapshot.title);
       setSlug(snapshot.slug);
       setDescription(snapshot.description);
+      initializeVisualEditor(snapshot.body);
       setBody(snapshot.body);
       bodyValueRef.current = snapshot.body;
       setStatus(snapshot.status);
@@ -249,7 +306,7 @@ export function PostEditor({
       skipNextSnapshotWriteRef.current = true;
     }, 0);
     return () => window.clearTimeout(timer);
-  }, [snapshotKey]);
+  }, [snapshotKey, initializeVisualEditor]);
 
   const [state, formAction, pending] = useActionState(
     async (previousState: PostActionState, formData: FormData): Promise<PostActionState> => {
@@ -352,17 +409,6 @@ export function PostEditor({
   ]);
 
   useEffect(() => {
-    bodyValueRef.current = body;
-  }, [body]);
-
-  const syncVisualEditor = useCallback(
-    (editor: HTMLDivElement | null) => {
-      if (editor && editor.innerHTML !== previewHtml) editor.innerHTML = previewHtml;
-    },
-    [previewHtml],
-  );
-
-  useEffect(() => {
     titleRef.current?.focus();
   }, [post?.id]);
 
@@ -377,20 +423,13 @@ export function PostEditor({
 
   useEffect(() => {
     const sequence = ++previewSequenceRef.current;
-    if (editorTab !== 'preview' || !body.trim()) {
-      return;
-    }
-    if (previewHtml && previewSourceRef.current === body) {
-      setPreviewMessage('');
-      return;
-    }
-    if (previewHtml && previewSourceRef.current !== body) {
-      setPreviewHtml('');
-      setPreviewMessage('미리보기를 업데이트하는 중이에요.');
-      return;
-    }
-
+    if (editorTab !== 'preview' || !body.trim()) return;
     const controller = new AbortController();
+    previewControllerRef.current = controller;
+    const isCurrent = () =>
+      !controller.signal.aborted &&
+      sequence === previewSequenceRef.current &&
+      bodyValueRef.current === body;
     const timer = window.setTimeout(async () => {
       setPreviewMessage('미리보기를 업데이트하는 중이에요.');
       try {
@@ -401,34 +440,45 @@ export function PostEditor({
           signal: controller.signal,
         });
         const result: unknown = await response.json();
-        if (controller.signal.aborted || sequence !== previewSequenceRef.current) return;
+        if (!isCurrent()) return;
         const html = previewHtmlFrom(result);
         if (!response.ok || html === null) {
           throw new Error(errorMessage(result) ?? '미리보기를 만들지 못했습니다.');
         }
-        previewSourceRef.current = body;
-        setPreviewHtml(html);
+        // Only initialization owns the DOM. Background results never replace live editing nodes.
+        if (!previewReadyRef.current) {
+          const editor = visualEditorRef.current;
+          if (!editor) return;
+          editor.innerHTML = html;
+          setPreviewHtml(html);
+          previewReadyRef.current = true;
+          setPreviewReady(true);
+        }
+        setPreviewFailed(false);
         setPreviewMessage('');
       } catch (error) {
-        if (controller.signal.aborted || sequence !== previewSequenceRef.current) return;
+        if (!isCurrent()) return;
+        setPreviewFailed(true);
         setPreviewMessage(error instanceof Error ? error.message : '미리보기를 만들지 못했습니다.');
       }
     }, 350);
-
     return () => {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [body, editorTab, previewHtml]);
+  }, [body, editorTab, previewGeneration]);
 
   async function upload(file: File) {
-    if (!file.type.startsWith('image/')) {
-      setUploadMessage('이미지 파일만 올릴 수 있어요.');
+    const embed = file.type === 'text/html';
+    if (!embed && !file.type.startsWith('image/')) {
+      setUploadMessage('이미지나 HTML 파일만 올릴 수 있어요.');
       return;
     }
+    const kind = embed ? 'HTML' : '이미지';
+    const target = embed ? 'HTML을' : '이미지를';
 
     setUploading(true);
-    setUploadMessage('이미지를 올리는 중이에요.');
+    setUploadMessage(`${target} 올리는 중이에요.`);
     const sourceBody = bodyValueRef.current;
     const selectionStart = bodyRef.current?.selectionStart;
     const selectionEnd = bodyRef.current?.selectionEnd;
@@ -439,7 +489,7 @@ export function PostEditor({
       const result: unknown = await response.json();
       const uploadedUrl = uploadUrlFrom(result);
       if (!response.ok || uploadedUrl === null) {
-        throw new Error(errorMessage(result) ?? '이미지를 업로드하지 못했습니다.');
+        throw new Error(errorMessage(result) ?? `${target} 업로드하지 못했습니다.`);
       }
 
       const textarea = bodyRef.current;
@@ -457,29 +507,37 @@ export function PostEditor({
           .replace(/\.[^.]+$/, '')
           .replace(/[-_]+/g, ' ')
           .replace(/[\[\]()\r\n]/g, '')
-          .trim() || '업로드한 이미지';
-      const markdown = `![${alt}](${uploadedUrl})`;
+          .trim() || `업로드한 ${kind}`;
+      // HTML은 iframe으로만 열리게 embed fence로 넣는다. 높이는 fence에서 고칠 수 있다.
+      const markdown = embed
+        ? `\`\`\`embed\n${JSON.stringify({ src: uploadedUrl, title: alt })}\n\`\`\``
+        : `![${alt}](${uploadedUrl})`;
       const prefix = start > 0 && currentBody[start - 1] !== '\n' ? '\n\n' : '';
       const suffix = end < currentBody.length && currentBody[end] !== '\n' ? '\n\n' : '';
       const next = `${currentBody.slice(0, start)}${prefix}${markdown}${suffix}${currentBody.slice(end)}`;
+      initializeVisualEditor(next);
       bodyValueRef.current = next;
       setBody(next);
       editRevisionRef.current += 1;
       setDirty(true);
-      setUploadMessage('본문에 이미지 링크를 넣었어요.');
+      setUploadMessage(embed ? '본문에 임베드 블록을 넣었어요.' : '본문에 이미지 링크를 넣었어요.');
       requestAnimationFrame(() => {
         const cursor = start + prefix.length + markdown.length;
         textarea?.focus();
         textarea?.setSelectionRange(cursor, cursor);
       });
     } catch (error) {
-      setUploadMessage(error instanceof Error ? error.message : '이미지를 업로드하지 못했습니다.');
+      setUploadMessage(error instanceof Error ? error.message : `${target} 업로드하지 못했습니다.`);
     } finally {
       setUploading(false);
     }
   }
 
   async function uploadCover(file: File) {
+    if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+      setUploadMessage('대표 이미지는 JPEG, PNG, GIF, WebP 파일만 올릴 수 있어요.');
+      return;
+    }
     setUploading(true);
     setUploadMessage('대표 이미지를 올리는 중이에요.');
     try {
@@ -493,6 +551,7 @@ export function PostEditor({
         result === null ||
         !('path' in result) ||
         typeof result.path !== 'string' ||
+        !isImageAssetKey(result.path.replace(/^\//, '')) ||
         !('publicUrl' in result) ||
         typeof result.publicUrl !== 'string'
       ) {
@@ -500,7 +559,7 @@ export function PostEditor({
       }
       setCoverKey(result.path.replace(/^\//, ''));
       setCoverUrl(result.publicUrl);
-      if (!coverAlt) setCoverAlt(file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '));
+      setCoverAlt((current) => current || file.name.replace(/\.[^.]+$/, '').replace(/[-_]+/g, ' '));
       editRevisionRef.current += 1;
       setDirty(true);
       setUploadMessage('대표 이미지를 올렸어요.');
@@ -520,6 +579,7 @@ export function PostEditor({
     const end = textarea.selectionEnd;
     const selected = body.slice(start, end) || fallback;
     const next = `${body.slice(0, start)}${prefix}${selected}${suffix}${body.slice(end)}`;
+    initializeVisualEditor(next);
     bodyValueRef.current = next;
     setBody(next);
     editRevisionRef.current += 1;
@@ -553,6 +613,7 @@ export function PostEditor({
     setTitle(post?.title ?? '');
     setSlug(post?.slug ?? '');
     setDescription(post?.description ?? '');
+    initializeVisualEditor(post?.body ?? '');
     setBody(post?.body ?? '');
     bodyValueRef.current = post?.body ?? '';
     setStatus(post?.status ?? 'draft');
@@ -689,7 +750,7 @@ export function PostEditor({
                     href={`#${fieldTargets[name] ?? 'field-errors-title'}`}
                     onClick={(event) => {
                       event.preventDefault();
-                      if (name === 'body') setEditorTab('write');
+                      if (name === 'body') changeEditorTab('write');
                       requestAnimationFrame(() =>
                         document
                           .getElementById(fieldTargets[name] ?? 'field-errors-title')
@@ -713,7 +774,7 @@ export function PostEditor({
         </span>
         <span className={styles.saveState} aria-live="polite">
           {uploading
-            ? '이미지를 올리는 중이에요.'
+            ? '파일을 올리는 중이에요.'
             : state.message ||
               (dirty
                 ? '서버에 저장하지 않은 변경이 있어요.'
@@ -739,11 +800,14 @@ export function PostEditor({
         <div className={styles.mainFields}>
           <h2 className={styles.groupHeading}>기본 정보</h2>
           <label className={`${styles.field} ${styles.titleField}`}>
-            <span>제목</span>
+            <span id="post-title-label">제목</span>
             <input
               id="post-title"
+              aria-labelledby="post-title-label"
               ref={titleRef}
-              aria-describedby={fieldError(state, 'title') ? 'title-error' : undefined}
+              aria-describedby={
+                fieldError(state, 'title') ? 'title-help title-error' : 'title-help'
+              }
               aria-invalid={Boolean(fieldError(state, 'title'))}
               name="title"
               value={title}
@@ -755,15 +819,21 @@ export function PostEditor({
               autoComplete="off"
               required
             />
+            <small id="title-help">160자까지 입력할 수 있어요.</small>
             {fieldError(state, 'title') ? (
               <small id="title-error">{fieldError(state, 'title')}</small>
             ) : null}
           </label>
 
           <label className={styles.field}>
-            <span>설명</span>
+            <span id="post-description-label">설명</span>
             <textarea
-              aria-describedby={fieldError(state, 'description') ? 'description-error' : undefined}
+              aria-labelledby="post-description-label"
+              aria-describedby={
+                fieldError(state, 'description')
+                  ? 'description-help description-error'
+                  : 'description-help'
+              }
               aria-invalid={Boolean(fieldError(state, 'description'))}
               id="post-description"
               name="description"
@@ -772,6 +842,7 @@ export function PostEditor({
               rows={2}
               required
             />
+            <small id="description-help">500자까지 입력할 수 있어요.</small>
             {fieldError(state, 'description') ? (
               <small id="description-error">{fieldError(state, 'description')}</small>
             ) : null}
@@ -794,9 +865,9 @@ export function PostEditor({
                     : editorTab === 'write'
                       ? 'preview'
                       : 'write';
-              setEditorTab(next);
+              const changed = changeEditorTab(next);
               const tabs = event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]');
-              tabs[next === 'write' ? 0 : 1]?.focus();
+              tabs[changed && next === 'preview' ? 1 : 0]?.focus();
             }}
           >
             <button
@@ -806,7 +877,7 @@ export function PostEditor({
               aria-controls="editor-write-panel"
               aria-selected={editorTab === 'write'}
               tabIndex={editorTab === 'write' ? 0 : -1}
-              onClick={() => setEditorTab('write')}
+              onClick={() => changeEditorTab('write')}
             >
               마크다운
             </button>
@@ -817,7 +888,7 @@ export function PostEditor({
               aria-controls="editor-preview-panel"
               aria-selected={editorTab === 'preview'}
               tabIndex={editorTab === 'preview' ? 0 : -1}
-              onClick={() => setEditorTab('preview')}
+              onClick={() => changeEditorTab('preview')}
             >
               텍스트 편집
             </button>
@@ -827,6 +898,7 @@ export function PostEditor({
               ? '마크다운 원문을 편집하고 있어요.'
               : '편집 가능한 미리보기예요. 본문을 직접 바꾸면 마크다운 원문에도 반영돼요.'}
           </p>
+          {structureMessage ? <p role="alert">{structureMessage}</p> : null}
           <div className={styles.toolbar} role="toolbar" aria-label="Markdown 서식">
             <button
               type="button"
@@ -891,6 +963,24 @@ export function PostEditor({
                 type="file"
               />
             </label>
+            <label
+              className={styles.toolbarUpload}
+              aria-disabled={busy || editorTab !== 'write'}
+              title={editorTab !== 'write' ? '마크다운 모드에서 사용할 수 있어요.' : undefined}
+            >
+              <Browser aria-hidden size={19} />
+              <span className={styles.visuallyHidden}>본문 HTML 임베드 선택</span>
+              <input
+                accept="text/html,.html"
+                disabled={busy || editorTab !== 'write'}
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) void upload(file);
+                  event.target.value = '';
+                }}
+                type="file"
+              />
+            </label>
             {editorTab === 'preview' ? (
               <span className={styles.toolbarHint}>
                 서식 도구는 마크다운 모드에서 사용할 수 있어요.
@@ -937,14 +1027,11 @@ export function PostEditor({
                 value={body}
                 onChange={(event) => {
                   const value = event.target.value;
+                  initializeVisualEditor(value);
+                  bodyValueRef.current = value;
                   setBody(value);
-                  if (!value.trim()) {
-                    setPreviewHtml('');
-                    previewSourceRef.current = '';
-                    setPreviewMessage('본문을 입력하면 여기에 미리보기가 표시돼요.');
-                  }
                 }}
-                onInvalid={() => setEditorTab('write')}
+                onInvalid={() => changeEditorTab('write')}
                 spellCheck
                 required
               />
@@ -961,29 +1048,48 @@ export function PostEditor({
               }}
             >
               <div
-                ref={syncVisualEditor}
+                ref={visualEditorRef}
                 className={`${articleStyles.prose} ${styles.visualEditor}`}
-                contentEditable={!busy}
+                contentEditable={!busy && previewReady}
                 suppressContentEditableWarning
                 role="textbox"
                 aria-label="본문 텍스트 편집"
                 aria-multiline="true"
-                aria-readonly={busy}
+                aria-readonly={busy || !previewReady}
                 aria-describedby="body-help visual-editor-help"
                 data-empty={!body.trim() ? 'true' : undefined}
                 onInput={(event) => {
+                  if (busy || !previewReadyRef.current || editorTab !== 'preview') return;
+                  invalidatePreview();
                   const markdown = htmlToMarkdown(event.currentTarget);
-                  previewSourceRef.current = markdown;
                   bodyValueRef.current = markdown;
                   setBody(markdown);
                   editRevisionRef.current += 1;
                   setDirty(true);
                   setPreviewMessage('');
+                  setPreviewFailed(false);
                 }}
               />
               <p className={styles.previewMessage} role="status" aria-live="polite">
                 {visiblePreviewMessage || '미리보기가 최신 내용이에요.'}
               </p>
+              {previewFailed ? (
+                <div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      invalidatePreview();
+                      setPreviewFailed(false);
+                      setPreviewGeneration((generation) => generation + 1);
+                    }}
+                  >
+                    다시 시도
+                  </button>
+                  <button type="button" onClick={() => changeEditorTab('write')}>
+                    마크다운으로 편집
+                  </button>
+                </div>
+              ) : null}
               <span id="visual-editor-help" className={styles.visuallyHidden}>
                 렌더링된 본문을 직접 수정할 수 있습니다. 변경 내용은 마크다운 원문에 반영됩니다.
               </span>
@@ -1039,16 +1145,21 @@ export function PostEditor({
             </select>
           </label>
           <label className={styles.field}>
-            <span>태그</span>
+            <span id="post-tags-label">태그</span>
             <input
               aria-invalid={Boolean(fieldError(state, 'tags'))}
               id="post-tags"
+              aria-labelledby="post-tags-label"
+              aria-describedby="tags-help"
               name="tags"
               value={tags}
               onChange={(event) => setTags(event.target.value)}
               placeholder="설계, 협업"
             />
-            <small>쉼표로 구분하며 저장할 때 중복을 정리해요.</small>
+            <small id="tags-help">
+              쉼표로 구분하며 저장할 때 중복을 정리해요. 태그는 30개까지, 하나에 80자까지 입력할 수
+              있어요.
+            </small>
           </label>
 
           <div className={styles.field}>
@@ -1085,7 +1196,8 @@ export function PostEditor({
             </span>
             <small id="slug-help">
               {fieldError(state, 'slug') ??
-                (post ? '기존 주소를 유지해요.' : '제목으로 자동 생성돼요.')}
+                (post ? '기존 주소를 유지해요.' : '제목으로 자동 생성돼요.')}{' '}
+              160자까지 입력할 수 있어요.
             </small>
           </div>
           <h2 className={styles.groupHeading} id="cover-heading" tabIndex={-1}>
@@ -1208,6 +1320,7 @@ export function PostEditor({
             </label>
             <p id="cover-alt-help" className={styles.modeHint}>
               이미지를 볼 수 없는 독자에게 전할 내용을 적어 주세요. 장식용이면 비워 둘 수 있어요.
+              300자까지 입력할 수 있어요.
             </p>
             <label className={styles.uploadButton} aria-disabled={busy}>
               <UploadSimple aria-hidden size={17} />

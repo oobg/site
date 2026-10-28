@@ -27,7 +27,35 @@
 | `REVALIDATE_SECRET` | —                      | revalidation 웹훅 시크릿                      |
 | `R2_PUBLIC_URL`     | —                      | Markdown의 `/assets/...`를 연결할 공개 origin |
 
-`supabase` 공개 조회는 RLS와 별도로 목록·상세 쿼리에 `status = 'published'`를 넣는다. 현재 posts 테이블에는 tags와 cover 컬럼이 없으므로 기존 계약에는 `tags: []`, `cover_image_url: null`, `description → summary`, `body → body_markdown`으로 맞춘다.
+`supabase` 공개 조회는 RLS와 별도로 목록·상세 쿼리에 `status = 'published'`를 넣는다.
+
+## 현재 공개 BlogPost 읽기 계약
+
+홈·목록은 `getBlogHomeData()`, 글 상세는 `getBlogPost()`를 사용한다. Supabase 경로는
+`PUBLIC_BLOG_POST_COLUMNS`로 태그와 커버 필드를 실제로 읽고, 상세에는 `body`를 더한다.
+`BlogPostSummary`와 `BlogPost`는 기존 콘텐츠 공통 필드에 다음 정보를 포함한다.
+
+| Supabase 읽기 필드                     | 공개 BlogPost 매핑                                                                                                     |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `tags`                                 | 실제 태그 배열. 값이 없으면 `[]`                                                                                       |
+| `cover_image_url`                      | 저장된 URL을 우선 사용                                                                                                 |
+| `cover_image_key`                      | 키를 그대로 보존. URL이 없고 키가 있으면 선행 `/` 하나를 붙인 경로를 `cover_image_url`로 사용하며, 둘 다 없으면 `null` |
+| `cover_position_x`, `cover_position_y` | `cover_position: { x, y }`                                                                                             |
+| `cover_alt`                            | 커버 대체 텍스트                                                                                                       |
+| `pin_order`                            | 추천 글의 고정 순서                                                                                                    |
+| `category:post_categories!inner(...)`  | 현재 카테고리의 id, slug, legacy_slug, 이름, 정렬 순서와 기본 분류 여부. 카테고리 slug가 없으면 조회 실패              |
+
+`description`은 `toPlainSummary()`를 거쳐 `summary`로, 상세의 `body`는
+`body_markdown`으로 맞춘다. `published_at`이 없으면 `created_at`을 사용한다.
+태그와 커버를 빈 배열·null로 고정하는 계약이 아니다.
+
+## 기존 호환 Post 읽기 계약
+
+`getPosts()`·`getPost()`의 `PostListItem`·`Post`는 기존 API 공통 타입을 유지한다.
+이 경로도 `CONTENT_SOURCE=supabase`이면 `tags`, `cover_image_url`을 실제 select하고,
+누락된 값에만 각각 `[]`, `null`을 사용한다. `description → summary`,
+`body → body_markdown` 매핑을 적용하며 BlogPost의 커버 위치·대체 텍스트·고정 순서 전체를
+반환하는 타입은 아니다. `CONTENT_SOURCE=api`는 보관된 content-v2 호환 계약을 따른다.
 
 Markdown의 `/assets/...` `src`·`href`는 렌더 단계에서 `${R2_PUBLIC_URL}/assets/...`로 바꾼다. 외부 URL과 다른 root-relative 경로는 그대로 둔다. 경로 탈출 형태는 변환하지 않는다.
 

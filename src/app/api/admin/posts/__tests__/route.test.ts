@@ -207,6 +207,7 @@ describe('admin post HTTP contract', () => {
   );
   it.each([
     { cover_image_key: '../escape.png' },
+    { cover_image_key: 'assets/embeds/2026-10-06/gallery.html' },
     { cover_image_url: 'https://cdn.raven.kr/a.png' },
     { body_markdown: 'wrong field' },
     { title: '' },

@@ -301,6 +301,26 @@
   font-size: var(--fs-14);
   cursor: pointer;
 }
+.prose [data-embed-caption] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--d0-grey-200);
+  color: var(--d0-grey-800);
+  font-size: var(--fs-14);
+}
+.prose [data-embed-title] {
+  font-weight: 600;
+}
+.prose [data-embed-status] {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  color: var(--d0-grey-600);
+  font-size: var(--fs-13);
+}
 
 /* 복사된 뒤에는 액센트로 한 번 알린다. 되돌아가는 것은 CodeCopy가 맡는다. */
 .prose figure[data-code] button[data-code-copy][data-copied] {
@@ -381,6 +401,22 @@
 
 .prose [data-mermaid-status]:empty {
   display: none;
+}
+
+/* 임베드는 본문 폭을 그대로 쓰고 높이는 문서가 알려 준 값을 따른다. 테두리는
+   코드 창과 같은 두께로 두어 본문 밖에서 온 화면이라는 것만 드러낸다. */
+.prose figure[data-embed] {
+  margin-block: var(--space-6);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.prose iframe[data-embed-frame] {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: var(--color-surface);
 }
 
 /* 설치 안내는 카드 묶음 대신 제목, 명령, 순서가 이어지는 문서 블록으로 둔다. */

@@ -13,6 +13,7 @@ import type { Root, Element } from 'hast';
 import { z } from 'zod';
 import type { TocEntry } from '@lib/markdown/toc.types';
 import { env } from '@configs/env';
+import { isEmbedAssetKey } from '@lib/assets/key';
 
 // 구조적 타입으로 텍스트만 추출(hast 세부 타입 마찰 회피)
 type TextishNode = { type: string; value?: string; children?: TextishNode[] };
@@ -138,7 +139,7 @@ function textElement(
   };
 }
 
-function sourceStore(kind: 'mermaid' | 'installer', value: string): Element {
+function sourceStore(kind: 'mermaid' | 'installer' | 'embed', value: string): Element {
   return textElement('div', value, {
     [`data-${kind}-source`]: '',
     hidden: true,
@@ -364,6 +365,91 @@ function mermaidBlocks() {
           textElement('p', '다이어그램을 불러오는 중이에요.', {
             'data-mermaid-status': '',
             role: 'status',
+          }),
+        ],
+      };
+      return 'skip';
+    });
+  };
+}
+
+const EMBED_DEFAULT_HEIGHT = 480;
+const embedSchema = z
+  .object({
+    src: z.string().refine((value) => value.startsWith('/') && isEmbedAssetKey(value.slice(1))),
+    title: installerText(120),
+    height: z.number().int().min(120).max(4_000).optional(),
+  })
+  .strict();
+
+/**
+ * 관리자 업로드로 올린 HTML을 sandbox iframe으로 끼운다.
+ *
+ * allow-same-origin을 주지 않아 문서는 불투명 origin에서 돈다 — 스크립트는 실행되지만
+ * 사이트나 CDN의 쿠키·저장소에는 닿지 않는다. 높이는 문서가 postMessage로 알려 오면
+ * ContentEnhancements가 맞추고, 알려 오지 않으면 fence의 height가 그대로 남는다.
+ *
+ * src는 업로드 경로(`/assets/embeds/...`)만 받는다. 외부 URL을 받으면 원고 한 줄로
+ * 아무 페이지나 글 안에 띄울 수 있게 된다.
+ */
+function embedBlocks(publicUrl: string) {
+  return (tree: Root) => {
+    visit(tree, 'element', (node: Element, index, parent) => {
+      if (node.tagName !== 'pre' || !parent || index === null || index === undefined) return;
+      const code = node.children[0];
+      if (!code || code.type !== 'element' || code.tagName !== 'code') return;
+      const classes = Array.isArray(code.properties?.className)
+        ? code.properties.className.map(String)
+        : [];
+      if (!classes.includes('language-embed')) return;
+
+      const source = nodeText(code as unknown as TextishNode).replace(/\n$/, '');
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(source);
+      } catch {
+        return;
+      }
+      const result = embedSchema.safeParse(parsed);
+      if (!result.success) return;
+      const src = resolveAssetPath(result.data.src, publicUrl);
+      if (!src) return;
+
+      parent.children[index] = {
+        type: 'element',
+        tagName: 'figure',
+        properties: { 'data-embed': '', contentEditable: 'false' },
+        children: [
+          sourceStore('embed', source),
+          {
+            type: 'element',
+            tagName: 'figcaption',
+            properties: { 'data-embed-caption': '' },
+            children: [
+              textElement('span', result.data.title, { 'data-embed-title': '' }),
+              textElement('a', '새 창에서 열기', {
+                href: src,
+                target: '_blank',
+                rel: ['noopener', 'noreferrer'],
+              }),
+            ],
+          },
+          {
+            type: 'element',
+            tagName: 'iframe',
+            properties: {
+              'data-embed-frame': '',
+              src,
+              title: result.data.title,
+              sandbox: 'allow-scripts',
+              loading: 'lazy',
+              referrerPolicy: 'no-referrer',
+              height: result.data.height ?? EMBED_DEFAULT_HEIGHT,
+            },
+            children: [],
+          },
+          textElement('p', '내용이 보이지 않으면 새 창에서 열어 확인해 주세요.', {
+            'data-embed-status': '',
           }),
         ],
       };
@@ -917,20 +1003,20 @@ export async function renderMarkdown(
 ): Promise<{ html: string; toc: TocEntry[] }> {
   const toc: TocEntry[] = [];
   const langs: string[] = [];
+  const assetPublicUrl =
+    options.assetPublicUrl ??
+    (env.ASSET_STORAGE_BACKEND === 'local' ? env.ASSET_PUBLIC_URL : env.R2_PUBLIC_URL);
   const file = await unified()
     .use(remarkParse)
     .use(remarkGfm)
     .use(remarkRehype)
-    .use(
-      resolveAssetPaths,
-      options.assetPublicUrl ??
-        (env.ASSET_STORAGE_BACKEND === 'local' ? env.ASSET_PUBLIC_URL : env.R2_PUBLIC_URL),
-    )
+    .use(resolveAssetPaths, assetPublicUrl)
     .use(removeUnsafeResourceUrls)
     .use(rehypeSlug)
     .use(collectToc, toc)
     .use(installerBlocks)
     .use(mermaidBlocks)
+    .use(embedBlocks, assetPublicUrl)
     .use(fileTreeBlocks)
     .use(collectCodeLangs, langs)
     .use(calloutBlocks)

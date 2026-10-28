@@ -210,3 +210,43 @@ describe('BlogSettings', () => {
     expect(screen.getAllByRole('button', { name: '삭제' })[1]).toBeEnabled();
   });
 });
+
+describe('P1 category URL UI protection', () => {
+  beforeEach(() => vi.resetAllMocks());
+  it('공개 글의 URL만 readonly로 두고 이름 변경 시 기존 slug를 함께 제출한다', async () => {
+    actionMocks.updateCategoryAction.mockResolvedValue({
+      status: 'success',
+      message: '저장했습니다.',
+    });
+    view();
+    const slug = screen.getAllByRole('textbox', { name: '카테고리 slug' })[1]!;
+    const name = screen.getAllByRole('textbox', { name: '카테고리 이름' })[1]!;
+    expect(slug).toHaveAttribute('readonly');
+    expect(slug).not.toBeDisabled();
+    expect(slug).toHaveAccessibleDescription(
+      '공개 글의 기존 주소를 유지하기 위해 URL을 바꿀 수 없어요. 이름은 바꿀 수 있어요.',
+    );
+    expect(name).not.toHaveAttribute('readonly');
+    expect(name).not.toBeDisabled();
+    fireEvent.change(name, { target: { value: '새 개발 이름' } });
+    await act(async () => fireEvent.submit(name.closest('form')!));
+    const payload = actionMocks.updateCategoryAction.mock.calls[0]?.[1] as FormData;
+    expect(payload.get('slug')).toBe('dev');
+    expect(payload.get('name')).toBe('새 개발 이름');
+  });
+  it.each(['draft', 'none'] as const)('공개 글이 없는 %s 분류의 URL 편집은 허용한다', (kind) => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <BlogSettings
+          categories={categories}
+          posts={kind === 'draft' ? [{ ...posts[1]!, status: 'draft' }] : []}
+        />
+      </QueryClientProvider>,
+    );
+    const slug = screen.getAllByRole('textbox', { name: '카테고리 slug' })[1]!;
+    expect(slug).not.toHaveAttribute('readonly');
+    expect(slug).not.toBeDisabled();
+    fireEvent.change(slug, { target: { value: 'next' } });
+    expect(slug).toHaveValue('next');
+  });
+});

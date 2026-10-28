@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { postInputSchema } from '@features/admin/services/posts.schema';
 import { DEFAULT_POST_CATEGORY_ID } from '@features/posts/types/posts.types';
 import { blogPostMetadataInputSchema } from '@features/posts/utils/blog-schema';
-import { isAssetKey } from '@lib/assets/key';
+import { isImageAssetKey } from '@lib/assets/key';
 
 export const MAX_POST_REQUEST_BYTES = 1_000_000;
 export const MAX_POST_MARKDOWN_LENGTH = 200_000;
@@ -26,7 +26,7 @@ export const adminPostInputSchema = z
     tags: blogPostMetadataInputSchema.shape.tags,
     cover_image_key: z
       .string()
-      .refine(isAssetKey, '올바른 이미지 key가 필요합니다.')
+      .refine(isImageAssetKey, '올바른 이미지 key가 필요합니다.')
       .nullable()
       .default(null),
     cover_alt: blogPostMetadataInputSchema.shape.cover_alt,

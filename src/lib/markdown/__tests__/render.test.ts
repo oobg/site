@@ -492,6 +492,49 @@ describe('renderMarkdown', () => {
     });
   });
 
+  describe('임베드', () => {
+    const embed = (value: unknown) =>
+      `\`\`\`embed\n${typeof value === 'string' ? value : JSON.stringify(value)}\n\`\`\``;
+    const src = '/assets/embeds/2026-10-06/123e4567-e89b-12d3-a456-426614174000.html';
+
+    it('업로드한 HTML을 격리된 iframe으로 끼우고 원문을 남긴다', async () => {
+      const source = { src, title: '프리셋 갤러리', height: 640 };
+      const { html } = await renderMarkdown(embed(source), {
+        assetPublicUrl: 'https://cdn.raven.kr',
+      });
+      const root = document.createElement('div');
+      root.innerHTML = html;
+      const frame = root.querySelector('figure[data-embed] iframe[data-embed-frame]');
+
+      expect(frame?.getAttribute('src')).toBe(`https://cdn.raven.kr${src}`);
+      expect(frame?.getAttribute('sandbox')).toBe('allow-scripts');
+      expect(frame?.getAttribute('title')).toBe('프리셋 갤러리');
+      expect(frame?.getAttribute('height')).toBe('640');
+      expect(frame?.getAttribute('loading')).toBe('lazy');
+      expect(root.querySelector('[data-embed-source]')?.textContent).toBe(JSON.stringify(source));
+      expect(root.querySelector('[data-code]')).toBeNull();
+    });
+
+    it('height가 없으면 기본 높이를 쓴다', async () => {
+      const { html } = await renderMarkdown(embed({ src, title: '그림' }));
+      expect(html).toContain('height="480"');
+    });
+
+    it.each([
+      ['외부 URL', { src: 'https://evil.example/a.html', title: 'x' }],
+      ['이미지 경로', { src: '/assets/posts/2026-10-06/a.png', title: 'x' }],
+      ['경로 탈출', { src: '/assets/embeds/2026-10-06/../a.html', title: 'x' }],
+      ['제목 없음', { src }],
+      ['알 수 없는 필드', { src, title: 'x', allow: 'allow-same-origin' }],
+      ['범위 밖 높이', { src, title: 'x', height: 99_999 }],
+      ['깨진 JSON', '{ "src": '],
+    ])('%s는 일반 코드블럭으로 남긴다', async (_label, value) => {
+      const { html } = await renderMarkdown(embed(value));
+      expect(html).not.toContain('<iframe');
+      expect(html).toContain('data-code');
+    });
+  });
+
   describe('콜아웃', () => {
     /* 기술 글은 "주의"·"참고"를 자주 쓴다. 없으면 인용문을 그 용도로 전용하게 되고,
        그러면 진짜 인용과 경고가 같은 모양이 된다. GitHub 표기를 그대로 받는다. */
